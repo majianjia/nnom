@@ -30,8 +30,8 @@ model.add(&model, Output(shape(6, 1, 1), qformat(7, 0), output_buf));
 sequencial_compile(&model);
 
 while(1){
-	feed_input(&input_buf)
-	model_run(&model);
+    feed_input(&input_buf)
+    model_run(&model);
 }
 ~~~~
 The NNoM interfaces are similar to **Keras**： https://keras.io/
@@ -43,11 +43,11 @@ The above shows a sequential model.
 Detail documentation comes later. 
 
 ## Functional Model
-Functional APIs are much more flexible. 
+Functional APIs are much more flexible. An example is shown in [uci-inception example](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)
 
 It allows developer to build complext structures in MCU, such as [Inception](https://www.cs.unc.edu/~wliu/papers/GoogLeNet.pdf) and [ResNet](https://arxiv.org/abs/1512.03385). 
 
-An example with Inception structures includes 3 parallel subpathes.
+Here is a brief codeing of Inception structures includes 3 parallel subpathes.
 ~~~~
 #define INPUT_HIGHT 1
 #define INPUT_WIDTH 128
@@ -90,8 +90,8 @@ x = model.hook(Output(shape(6,1,1), qformat(7, 0), output_buf), x);
 model_compile(&model, input_layer, x);
 
 while(1){
-	feed_input(&input_buf)
-	model_run(&model);
+    feed_input(&input_buf)
+    model_run(&model);
 }
 ~~~~
 Detail documentation comes later. 
