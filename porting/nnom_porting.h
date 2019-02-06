@@ -21,7 +21,7 @@
 // memory interfaces
 #define nnom_malloc(n)   	malloc(n) 
 #define nnom_free(p)		free(p)
-#define nnom_memset(p,v,s)  memset(p,v,s)
+#define nnom_memset(p,v,s)	memset(p,v,s)
 
 // runtime & debuges
 #define nnom_us_get()		0
