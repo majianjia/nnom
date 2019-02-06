@@ -4,7 +4,7 @@ NNoM is a higher-level layer-based static Graph Neural Network library specifica
 NNoM is released under LGPL-V3.0, please check the license file for detail. 
 
 ## Dependencies
-NNoM currently runs on top of CMSIS-NN/DSP backend. 
+NNoM currently runs on top of [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) backend. 
 
 Therefore, it runs on ARM Cortex-M 32-bit RISC processor only. 
 
