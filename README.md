@@ -1,9 +1,11 @@
 # Neural Network on Microcontroller (NNoM)
 NNoM is a higher-level layer-based static Graph Neural Network library specifically for microcontrollers. 
+
 NNoM is released under LGPL-V3.0, please check the license file for detail. 
 
 ## Dependencies
 NNoM currently runs on top of CMSIS-NN/DSP backend. 
+
 Therefore, it runs on ARM Cortex-M 32-bit RISC processor only. 
 
 ## Why NNoM?
@@ -33,13 +35,18 @@ A simple example:
     }
 ~~~~
 The NNoM interfaces are similar to **Keras**： https://keras.io/
+
 It supports both sequential and functional API. 
+
 The above shows a sequential model. 
+
 Detail documentation comes later. 
 
 ## Functional Model
 Functional APIs are much more flexible. 
+
 It allows developer to build complext structures in MCU, such as [Inception](https://www.cs.unc.edu/~wliu/papers/GoogLeNet.pdf) and [ResNet](https://arxiv.org/abs/1512.03385). 
+
 An example with Inception structures includes 3 parallel subpathes.
 ~~~~
     #define INPUT_HIGHT 1
@@ -83,7 +90,7 @@ An example with Inception structures includes 3 parallel subpathes.
 Detail documentation comes later. 
 ## Available Operations
 
-Available operations are listed below
+Layers
 
 | Layers | Status |Layer API|Comments|
 | ------ |-- |--|--|
@@ -99,16 +106,22 @@ Available operations are listed below
 | SoftMax|Beta | SoftMax()| |
 | Activation|Beta| Activation()|A layer instance for activation|
 
+Activations
+
 | Actrivation | Status |Layer API|Activation API|Comments|
 | ------ |-- |--|--|--|
 | ReLU  | Beta|ReLU()|act_relu()||
 | TanH | Beta|TanH()|act_tanh()||
 |Sigmoid|Beta| Sigmoid()|act_sigmoid()||
 
+Pooling Layers
+
 | Pooling | Status |Layer API|Comments|
 | ------ |-- |--|--|
 | Max Pooling  | Beta|MaxPool()|Support 1/2D|
 | Average Pooling | Beta|AvgPool()|Support 1/2D|
+
+Matrix Operations Layers
 
 | Matrix | Status |Layer API|Comments|
 | ------ |-- |--|--|
@@ -119,26 +132,35 @@ Available operations are listed below
 
 ## Memory requirements
 NNoM requires dynamic memory allocating during model building and compiling. 
+
 No memory allocating in running the model. 
+
 RAM requirement is about 100 to 150 bytes per layer for NNoM instance, plus the maximum data buf cost.
 
 >The sequential exmaple above includes 9 layer instances. So, the memory cost for instances is 130 * 9 = 1170 Bytes.
+>
 >The maximum data buffer is in the convolutional layer.
+>
 >It costs 1*128*9 = 1152 Bytes as input, 1*64*16 = 1024 Bytes as output, and 576 Bytes as intermedium buffer (img2col). 
+>
 >The total memory cost of the model is around 1170 (instance) + (1152+1024+576)(network) = 3922 Bytes. 
 
 In NNoM, we dont analysis memory cost manually like above. 
+
 Memory analysis will be printed when compiling the model.  
 
 # Deploying Keras model to NNoM
-No, there is no single script to convert a pre-trained model to NNoM. 
+No, there is no single script to convert a pre-trained model to NNoM.
+
 However, NNoM provides simple python scripts to help developers train, quantise and deploy a keras model to NNoM.
 
 The tutorial comes later. 
 
 # Porting
 It is required to include the [CMSIS-NN lib](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) in your projects.
+
 The porting is easy on ARM-Cortex-M microcontroller. 
+
 Simply modify the [nnom_porting.h](https://github.com/majianjia/nnom/blob/master/porting/nnom_porting.h) refer to the example in the file. 
 
 # Current Critical Limitations 
