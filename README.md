@@ -13,10 +13,10 @@ The aims of NNoM is to provide a light-weight, user-friendly and flexible interf
 
 A simple example:
 ~~~~
-    #define INPUT_HIGHT 1
-    #define INPUT_WIDTH 128
-    #define INPUT_CH 9
-    
+	#define INPUT_HIGHT 1
+	#define INPUT_WIDTH 128
+	#define INPUT_CH 9
+
 	new_model(&model);
 	model.add(&model, Input(shape(INPUT_HIGHT, INPUT_WIDTH, INPUT_CH), qformat(7, 0), input_buf));
 	model.add(&model, Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b)); // c1_w, c1_b are weights and bias
@@ -28,11 +28,11 @@ A simple example:
 	model.add(&model, Softmax());
 	model.add(&model, Output(shape(6, 1, 1), qformat(7, 0), output_buf));
 	sequencial_compile(&model);
-	
-    while(1){
-        feed_input(&input_buf)
-        model_run(&model);
-    }
+
+	while(1){
+		feed_input(&input_buf)
+		model_run(&model);
+	}
 ~~~~
 The NNoM interfaces are similar to **Keras**： https://keras.io/
 
@@ -49,27 +49,32 @@ It allows developer to build complext structures in MCU, such as [Inception](htt
 
 An example with Inception structures includes 3 parallel subpathes.
 ~~~~
-    #define INPUT_HIGHT 1
-    #define INPUT_WIDTH 128
-    #define INPUT_CH 9
+	#define INPUT_HIGHT 1
+	#define INPUT_WIDTH 128
+	#define INPUT_CH 9
 
-    nnom_layer_t *input_layer, *x, *x1, *x2, *x3;
-    
+	nnom_layer_t *input_layer, *x, *x1, *x2, *x3;
+
 	input_layer = Input(shape(INPUT_HIGHT, INPUT_WIDTH, INPUT_CH), qformat(7, 0), input_buf);
+	
 	// conv2d
 	x = model.hook(Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b), input_layer);
 	x = model.active(act_relu(), x);
 	x = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x);
+	
 	// parallel Inception 1 - conv2d 
 	x1 = model.hook(Conv2D(16, kernel(1, 5), stride(1, 1), PADDING_SAME, &c2_w, &c2_b), x); // hooked to x
 	x1 = model.active(act_relu(), x1);
 	x1 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x1);
+	
 	//  parallel Inception 2 - conv2d 
 	x2 = model.hook(Conv2D(16, kernel(1, 3), stride(1, 1), PADDING_SAME, &c3_w, &c3_b), x); // hooked to x
 	x2 = model.active(act_relu(), x2);
 	x2 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x2);
+	
 	//  parallel Inception 3 - maxpool 
 	x3 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x); // hooked to x
+	
 	// concatenate 3 parallel. 
 	x = model.merge(Concat(-1), x1, x2); 
 	x = model.merge(Concat(-1), x, x3);
@@ -80,12 +85,14 @@ An example with Inception structures includes 3 parallel subpathes.
 	x = model.hook(Dense(6, &ip2_w, &ip2_b), x);
 	x = model.hook(Softmax(), x);
 	x = model.hook(Output(shape(6,1,1), qformat(7, 0), output_buf), x);
+	
 	// compile and check
 	model_compile(&model, input_layer, x);
-    while(1){
-        feed_input(&input_buf)
-        model_run(&model);
-    }
+	
+	while(1){
+		feed_input(&input_buf)
+		model_run(&model);
+	}
 ~~~~
 Detail documentation comes later. 
 ## Available Operations
