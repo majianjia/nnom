@@ -95,8 +95,9 @@ nnom_layer_t* AvePool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
 ~~~
 
 Activation **Layers API** are started with capital letter. They are differed from the **Activation API**, starts with `act_*`.
+Pleas check the Activation APIs below for more detail. 
 
-They return a **layer** instance. Pleas check Activation APIs below for detial. 
+They return a **layer** instance. 
 ~~~
 // Activation layers take activation instance as input.  
 nnom_layer_t* Activation(nnom_activation_t *act);		
@@ -116,13 +117,13 @@ nnom_layer_t * Mult(void);
 nnom_layer_t* Concat(int8_t axis);
 ~~~
 
-Flatten only change the shapes to (x, 1, 1)
+Flatten change the shapes to (x, 1, 1)
 ~~~
 // utils
 nnom_layer_t* Flatten(void);
 ~~~
 
-These are stable NN layers currently. More please check the source code. 
+Currently are stable NN layers. For more developing layers, please check the source codes. 
 
 ~~~
 // conv2d
