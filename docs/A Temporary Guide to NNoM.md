@@ -232,7 +232,7 @@ void model_stat(nnom_model_t *m);
 
 ## Demo of Evaluation
 
-The example runs on RT-Thread, uses Y-Modem to receive testing dataset, uses ringbuffer to store data, and the console (msh) to print the results. 
+The UCI HAR example runs on RT-Thread, uses Y-Modem to receive testing dataset, uses ringbuffer to store data, and the console (msh) to print the results. 
 
 The layer order, activation, output shape, operation, memory of I/O, and assigned memory block are shown. 
 It also summarised the memory cost by neural network. 
