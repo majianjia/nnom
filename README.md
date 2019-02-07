@@ -13,9 +13,8 @@ Therefore, it runs on ARM Cortex-M 32-bit RISC processor only.
 ## Why NNoM?
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
 
-
-AND evaluating quantised model on MCU
-![](https://github.com/majianjia/nnom/blob/master/docs/gifs/nnom_predic_finished.gif)
+Most importantly, the performance of the quantised model can be evaluated on the targeted MCU 
+![](https://github.com/majianjia/nnom/blob/master/docs/gifs/uci_har_result.png)
 
 
 A simple example:
@@ -179,7 +178,7 @@ It is required to include the [CMSIS-NN lib](https://github.com/ARM-software/CMS
 
 The porting is easy on ARM-Cortex-M microcontroller. 
 
-Simply modify the [nnom_porting.h](https://github.com/majianjia/nnom/blob/master/porting/nnom_porting.h) refer to the example in the file. 
+Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/porting/nnom_port.h) refer to the example in the file. 
 
 # Current Critical Limitations 
 - Support 8-bit quantisation only. 
