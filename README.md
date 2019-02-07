@@ -3,6 +3,8 @@ NNoM is a higher-level layer-based static Graph Neural Network library specifica
 
 NNoM is released under LGPL-V3.0, please check the license file for detail. 
 
+[A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md)
+
 ## Dependencies
 NNoM currently runs on top of [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) backend. 
 
@@ -10,6 +12,11 @@ Therefore, it runs on ARM Cortex-M 32-bit RISC processor only.
 
 ## Why NNoM?
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
+
+
+AND evaluating quantised model on MCU
+![](https://github.com/majianjia/nnom/blob/master/docs/gifs/nnom_predic_finished.gif)
+
 
 A simple example:
 ~~~~
@@ -94,6 +101,7 @@ while(1){
     model_run(&model);
 }
 ~~~~
+Please check [A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md)
 Detail documentation comes later. 
 ## Available Operations
 
@@ -160,6 +168,9 @@ Memory analysis will be printed when compiling the model.
 No, there is no single script to convert a pre-trained model to NNoM.
 
 However, NNoM provides simple python scripts to help developers train, quantise and deploy a keras model to NNoM.
+
+Please check [A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md)
+and UCI HAR example.
 
 The tutorial comes later. 
 
