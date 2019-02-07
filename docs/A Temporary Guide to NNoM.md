@@ -139,9 +139,9 @@ nnom_layer_t* Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b);
 
 ## Addictionlly, Activation APIs
  
-Actication APIs are not essential in the original design. The original idea is making eveything as a layer. 
+Actication APIs are not essential in the original idea. The original idea is making eveything as a layer. 
 
-However, single layer instances cost huge amount of memories(100~150 Bytes). While activations are relativly simple, always same input/output shape, few/none parameter...
+However, single layer instances cost huge amount of memories(100~150 Bytes), while activations are relativly simple, mostly have same input/output shape, a few/none parameter(s)...
 
 Therefore, to reduce the complexity, the "actial"(activation tail) is added to each layer instance. Actail takes activation instance as input. The model API, `model.active()` will attach the activation to the layer's actail. 
 
