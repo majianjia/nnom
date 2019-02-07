@@ -14,7 +14,7 @@ A basic layer contains a list of **Input/Ouput modules** (I/O). Each of I/O cont
 
 Dont be scared, check this
 
-![](/A Temporary Guide to NNoM/nnom_structures.png)
+![](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM/nnom_structures.png)
 
 Next, we need APIs to create layers and build the model structures.  
 
@@ -191,13 +191,7 @@ The evaluation methods are listed in `nnom_utils.h`
 
 They run the model with testing data, then evaluate the model. Includes Top-k accuracy, confusion matrix, runtime stat...
 
-It is recommened to use them with RTOS. 
-
-
 Please refer to UCI HAR example for usage. 
-
-The example runs on RT-Thread, uses Y-Modem to receive testing dataset, uses ringbuffer to store data, and the console (msh) to print the results. 
-
 ~~~
 // create a prediction
 // input model, the buf pointer to the softwmax output (Temporary, this can be extract from model)
@@ -235,12 +229,25 @@ uint32_t nnom_predic_one(nnom_model_t* m, int8_t* input, int8_t* output); // cur
 void model_stat(nnom_model_t *m);
 ~~~
 
+
+## Demo of Evaluation
+
+The example runs on RT-Thread, uses Y-Modem to receive testing dataset, uses ringbuffer to store data, and the console (msh) to print the results. 
+
+The layer order, activation, output shape, operation, memory of I/O, and assigned memory block are shown. 
+It also summarised the memory cost by neural network. 
+![Model Compiling](https://github.com/majianjia/nnom/blob/master/docs/gifs/nnom_compile.gif)
+
+Type `predic`, then use Y-Modem to send the data file. The model will run once enough data is received.
+![Start Prediction](https://github.com/majianjia/nnom/blob/master/docs/gifs/nnom_predic_start.gif)
+
+When the file copying done, the runtime summary, Top-k and confusion matrix will be printed
+![Prediction finished](https://github.com/majianjia/nnom/blob/master/docs/gifs/nnom_predic_finished.gif)
+
+Optionally, the runtime stat detail of each layer can be printed by `nn_stat`
+![Print stat](https://github.com/majianjia/nnom/blob/master/docs/gifs/nnom_stat.gif)
  
- 
- 
- 
- 
- 
+PS: The "runtime stat" in the animation is not correct, due to the test chip is overclocking (STM32L476 @ 160MHZ), and the timer is overclocking as well. However, the prediction summary uses system_tick timer which is not overclocking. 
  
 
 
