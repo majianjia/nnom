@@ -178,7 +178,7 @@ It is required to include the [CMSIS-NN lib](https://github.com/ARM-software/CMS
 
 The porting is easy on ARM-Cortex-M microcontroller. 
 
-Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/porting/nnom_port.h) refer to the example in the file. 
+Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/port/nnom_port.h) refer to the example in the file. 
 
 # Current Critical Limitations 
 - Support 8-bit quantisation only. 
