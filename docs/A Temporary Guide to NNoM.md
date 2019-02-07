@@ -8,7 +8,7 @@ Layer is a container. Every operation (convolution, ...) must be wrapped into a 
 
 A basic layer contains a list of **Input/Ouput modules** (I/O). Each of I/O contains a list of **Hook** (similar to Nodes in Keras).
 
-**Hook**  stores the links to a IO
+**Hook**  stores the links to an I/O (other layer's)
 
 **I/O** is a buffer to store input/output data of the operation. 
 
