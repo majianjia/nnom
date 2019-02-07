@@ -1,0 +1,255 @@
+
+
+# NNoM Structure
+
+NNoM uses a layer-based structure. 
+
+Layer is a container. Every operation (convolution, ...) must be wrapped into a layer. 
+
+A basic layer contains a list of **Input/Ouput modules** (I/O). Each of I/O contains a list of **Hook** (similar to Nodes in Keras).
+
+**Hook**  stores the links to a IO
+
+**I/O** is a buffer to store input/output data of the operation. 
+
+Dont be scared, check this
+
+![](/A Temporary Guide to NNoM/nnom_structures.png)
+
+Next, we need APIs to create layers and build the model structures.  
+
+# APIs
+**layer APIs** and **construction APIs** are used to build a model. 
+
+Layer APIs can create and return a new layer instance. Model APIs uses layer instances to build a model. 
+
+**Layer APIs** such as Conv2D(), Dense(), Activation() ... which you can find in *nnom_layer.h*
+
+**Construction APIs** such as model.hook(), model.merge(), model.add() ... which you can find in new_model() at *nnom.c*
+
+
+> For example, to add a convolution layer into sequencial model:
+>
+> **model.add(&model,** *Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b)* **);**
+>
+> A layer is created by Conv2D, then being hooked to the previous layer. 
+
+
+> In functional model. the hooking is explicit invoked by using *model.hook()*
+>	
+> x = **model.hook(** *Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b)* **, input_layer);**
+>
+> x = **model.hook(** *MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID)* **, x);**
+
+
+## Construction APIs
+Construction APIs are statics functions located in nnom.c
+Currently are:
+
+Sequencial Construction API 
+
+`nnom_status_t model.add(nnom_model_t* model,  nnom_layer_t *layer);`
+
+Functional Construction API
+
+~~~
+// hook the current layer to the input layer
+// this function only to connect (single output layer) to (single input layer). 
+// return the curr (layer) instance
+nnom_layer_t * model.hook(nnom_layer_t* curr, nnom_layer_t *last)
+~~~
+
+~~~
+// merge 2 layer's output to one output by provided merging method(a mutiple input layer)
+// method = merging layer such as (concat(), dot(), mult(), add())
+// return the method (layer) instance
+nnom_layer_t * model.merge(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2)
+~~~
+
+~~~
+// This api will merge activation to layer's to reduce the extra layer for activation
+// activation such as (act_relu(), act_tanh()...)
+nnom_layer_t * model.active(nnom_activation_t* act, nnom_layer_t * target)
+~~~
+For `model.active()` check Activation APIs below. 
+
+
+
+## Layer APIs
+
+Layers APIs are listed in *nnom_layers.h*
+
+Input/output layers are neccessary for a model. They are responsible to copy data from user's input buffer, and copy out to user's output buffer. 
+~~~
+// Layer APIs 
+// input/output
+nnom_layer_t* Input(nnom_shape_t input_shape, nnom_qformat_t fmt, void* p_buf);
+nnom_layer_t* Output(nnom_shape_t output_shape, nnom_qformat_t fmt, void* p_buf);
+~~~
+
+Pooling as they are
+~~~
+// Pooling, kernel, strides, padding
+nnom_layer_t* MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+nnom_layer_t* AvePool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+~~~
+
+Activation **Layers API** are started with capital letter. They are differed from the **Activation API**, starts with `act_*`.
+
+They return a **layer** instance. Pleas check Activation APIs below for detial. 
+~~~
+// Activation layers take activation instance as input.  
+nnom_layer_t* Activation(nnom_activation_t *act);		
+// Activation's layer API. 
+nnom_layer_t* ReLU(void);
+nnom_layer_t* Softmax(void);
+nnom_layer_t* Sigmoid(void);
+nnom_layer_t* TanH(void);
+~~~
+
+Matrix API. They are the "merging method", which must be used by `model.merge(method, in1, in2)`
+~~~
+// Matrix
+nnom_layer_t * Add(void);
+nnom_layer_t * Sub(void);
+nnom_layer_t * Mult(void);
+nnom_layer_t* Concat(int8_t axis);
+~~~
+
+Flatten only change the shapes to (x, 1, 1)
+~~~
+// utils
+nnom_layer_t* Flatten(void);
+~~~
+
+These are stable NN layers currently. More please check the source code. 
+
+~~~
+// conv2d
+nnom_layer_t* Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad,
+	nnom_weight_t *w, nnom_bias_t *b);
+
+// depthwise_convolution
+nnom_layer_t* DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad, 
+	nnom_weight_t *w, nnom_bias_t *b);
+
+// fully connected, dense
+nnom_layer_t* Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b);
+~~~
+
+## Addictionlly, Activation APIs
+ 
+Actication APIs are not essential in the original design. The original idea is making eveything as a layer. 
+
+However, single layer instances cost huge amount of memories(100~150 Bytes). While activations are relativly simple, always same input/output shape, few/none parameter...
+
+Therefore, to reduce the complexity, the "actial"(activation tail) is added to each layer instance. Actail takes activation instance as input. The model API, `model.active()` will attach the activation to the layer's actail. 
+
+~~~ 
+// attach act to target_layer, return the target layer instance.
+nnom_layer_t * model.active(nnom_activation_t* act, nnom_layer_t * target_layer)
+~~~
+ 
+The Activation APIs are listed in *nnom_activations.h*
+
+~~~
+// Activation
+nnom_activation_t* act_relu(void);
+nnom_activation_t* act_softmax(void);
+nnom_activation_t* act_sigmoid(void);
+nnom_activation_t* act_tanh(void);
+~~~
+ 
+ 
+## Model API
+
+A model instance contains the starting layer, the end layer and other neccessary info. 
+
+
+~~~
+// Create or initial a new model() 
+nnom_model_t* 	new_model(nnom_model_t* m);
+
+// Delete the model. This is not functional currently. 
+void 		 	model_delete(nnom_model_t* m);  
+
+// Compile a sequencial model. 
+nnom_status_t 	sequencial_compile(nnom_model_t *m);
+
+// Compile a functional model with specified input layer and output layer. 
+// if output = NULL, the output is automatic selected. 
+nnom_status_t 	model_compile(nnom_model_t *m, nnom_layer_t* input, nnom_layer_t* output);
+
+// Run the model.
+nnom_status_t 	model_run(nnom_model_t *m);
+~~~
+ 
+
+# Evaluation
+
+The evaluation methods are listed in `nnom_utils.h`
+
+They run the model with testing data, then evaluate the model. Includes Top-k accuracy, confusion matrix, runtime stat...
+
+It is recommened to use them with RTOS. 
+
+
+Please refer to UCI HAR example for usage. 
+
+The example runs on RT-Thread, uses Y-Modem to receive testing dataset, uses ringbuffer to store data, and the console (msh) to print the results. 
+
+~~~
+// create a prediction
+// input model, the buf pointer to the softwmax output (Temporary, this can be extract from model)
+// the size of softmax output (the num of lable)
+// the top k that wants to record. 
+nnom_predic_t* prediction_create(nnom_model_t* m, int8_t* buf_prediction, size_t label_num, size_t top_k_size);// currently int8_t 
+
+// after a new data is set in input
+// feed data to prediction
+// input the current label, (range from 0 to total number of label -1)
+// (the current input data should be set by user manully to the input buffer of the model.)
+uint32_t prediction_run(nnom_predic_t* pre, uint32_t label);
+
+// to mark prediction finished
+void prediction_end(nnom_predic_t* pre);
+
+// free all resources
+void predicetion_delete(nnom_predic_t* pre);
+
+// print matrix
+void prediction_matrix(nnom_predic_t* pre);
+
+// this function is to print sumarry 
+void prediction_summary(nnom_predic_t* pre);
+
+// -------------------------------
+
+// stand alone prediction API
+// this api test one set of data, return the prediction 
+// input the model's input and output bufer
+// return the predicted label
+uint32_t nnom_predic_one(nnom_model_t* m, int8_t* input, int8_t* output); // currently int8_t 
+
+// print last runtime stat of the model
+void model_stat(nnom_model_t *m);
+~~~
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
