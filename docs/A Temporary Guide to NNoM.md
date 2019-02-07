@@ -144,7 +144,7 @@ Actication APIs are not essential in the original idea. The original idea is mak
 
 However, single layer instances cost huge amount of memories(100~150 Bytes), while activations are relativly simple, mostly have same input/output shape, a few/none parameter(s)...
 
-Therefore, to reduce the complexity, the "actial"(activation tail) is added to each layer instance. Actail takes activation instance as input. The model API, `model.active()` will attach the activation to the layer's actail. 
+Therefore, to reduce the complexity, the "actail"(activation tail) is added to each layer instance. If a layer's Actail is not null, it will be called right after the layer is executed. Actail takes activation instance as input. The model API, `model.active()` will attach the activation to the layer's actail. 
 
 ~~~ 
 // attach act to target_layer, return the target layer instance.
