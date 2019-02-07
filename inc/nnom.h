@@ -18,7 +18,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "nnom_porting.h"
+#include "nnom_port.h"
 
 typedef enum
 {
