@@ -23,9 +23,9 @@ Next, we need APIs to create layers and build the model structures.
 
 Layer APIs can create and return a new layer instance. Model APIs uses layer instances to build a model. 
 
-**Layer APIs** such as Conv2D(), Dense(), Activation() ... which you can find in *nnom_layer.h*
+**Layer APIs** such as `Conv2D(), Dense(), Activation()` ... which you can find in *nnom_layer.h*
 
-**Construction APIs** such as model.hook(), model.merge(), model.add() ... which you can find in new_model() at *nnom.c*
+**Construction APIs** such as `model.hook(), model.merge(), model.add()` ... which you can find in new_model() at *nnom.c*
 
 
 > For example, to add a convolution layer into sequencial model:
