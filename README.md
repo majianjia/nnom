@@ -157,11 +157,11 @@ No memory allocating in running the model.
 
 RAM requirement is about 100 to 150 bytes per layer for NNoM instance, plus the maximum data buf cost.
 
->The sequential exmaple above includes 9 layer instances. So, the memory cost for instances is 130 * 9 = 1170 Bytes.
+>The sequential exmaple above includes 9 layer instances. So, the memory cost for instances is 130 x 9 = 1170 Bytes.
 >
 >The maximum data buffer is in the convolutional layer.
 >
->It costs 1*128*9 = 1152 Bytes as input, 1*64*16 = 1024 Bytes as output, and 576 Bytes as intermedium buffer (img2col). 
+>It costs 1 x 128 x 9 = 1152 Bytes as input, 1 x 64 x 16 = 1024 Bytes as output, and 576 Bytes as intermedium buffer (img2col). 
 >
 >The total memory cost of the model is around 1170 (instance) + (1152+1024+576)(network) = 3922 Bytes. 
 
