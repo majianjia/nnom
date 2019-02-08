@@ -16,7 +16,7 @@ The aims of NNoM is to provide a light-weight, user-friendly and flexible interf
 **If you are not satisfy with old conv-dense sequencial model,
 and would like to try more up-to-date, decent and complex structures (such as Inception, SqueezeNet, ResNet... )**
 
-**NNoM can help you to build it on MCU in the same way as you did in Keras.**
+**NNoM can help you to build those complex structures on MCU in the same way as you did in Keras.**
 
 Most importantly, the performance can be evaluated on the targeted MCU directly with NNoM.
 ![](https://github.com/majianjia/nnom/blob/master/docs/gifs/uci_har_results.png)
