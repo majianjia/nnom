@@ -13,9 +13,8 @@ Therefore, it runs on ARM Cortex-M 32-bit RISC processor only.
 ## Why NNoM?
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
 
-
-AND evaluating quantised model on MCU
-![](https://github.com/majianjia/nnom/blob/master/docs/gifs/nnom_predic_finished.gif)
+Most importantly, the performance of the quantised model can be evaluated on the targeted MCU 
+![](https://github.com/majianjia/nnom/blob/master/docs/gifs/uci_har_result.png)
 
 
 A simple example:
@@ -52,7 +51,7 @@ Detail documentation comes later.
 ## Functional Model
 Functional APIs are much more flexible. An example is shown in [uci-inception example](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)
 
-It allows developer to build complext structures in MCU, such as [Inception](https://www.cs.unc.edu/~wliu/papers/GoogLeNet.pdf) and [ResNet](https://arxiv.org/abs/1512.03385). 
+It allows developer to build complex structures in MCU, such as [Inception](https://www.cs.unc.edu/~wliu/papers/GoogLeNet.pdf) and [ResNet](https://arxiv.org/abs/1512.03385). 
 
 Here is a brief codeing of Inception structures includes 3 parallel subpathes.
 ~~~~
@@ -179,7 +178,7 @@ It is required to include the [CMSIS-NN lib](https://github.com/ARM-software/CMS
 
 The porting is easy on ARM-Cortex-M microcontroller. 
 
-Simply modify the [nnom_porting.h](https://github.com/majianjia/nnom/blob/master/porting/nnom_porting.h) refer to the example in the file. 
+Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/port/nnom_port.h) refer to the example in the file. 
 
 # Current Critical Limitations 
 - Support 8-bit quantisation only. 

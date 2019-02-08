@@ -8,7 +8,7 @@ Layer is a container. Every operation (convolution, ...) must be wrapped into a 
 
 A basic layer contains a list of **Input/Ouput modules** (I/O). Each of I/O contains a list of **Hook** (similar to Nodes in Keras).
 
-**Hook**  stores the links to a IO
+**Hook**  stores the links to an I/O (other layer's)
 
 **I/O** is a buffer to store input/output data of the operation. 
 
@@ -95,8 +95,9 @@ nnom_layer_t* AvePool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
 ~~~
 
 Activation **Layers API** are started with capital letter. They are differed from the **Activation API**, starts with `act_*`.
+Pleas check the Activation APIs below for more detail. 
 
-They return a **layer** instance. Pleas check Activation APIs below for detial. 
+They return a **layer** instance. 
 ~~~
 // Activation layers take activation instance as input.  
 nnom_layer_t* Activation(nnom_activation_t *act);		
@@ -116,13 +117,13 @@ nnom_layer_t * Mult(void);
 nnom_layer_t* Concat(int8_t axis);
 ~~~
 
-Flatten only change the shapes to (x, 1, 1)
+Flatten change the shapes to (x, 1, 1)
 ~~~
 // utils
 nnom_layer_t* Flatten(void);
 ~~~
 
-These are stable NN layers currently. More please check the source code. 
+Currently are stable NN layers. For more developing layers, please check the source codes. 
 
 ~~~
 // conv2d
@@ -143,7 +144,7 @@ Actication APIs are not essential in the original idea. The original idea is mak
 
 However, single layer instances cost huge amount of memories(100~150 Bytes), while activations are relativly simple, mostly have same input/output shape, a few/none parameter(s)...
 
-Therefore, to reduce the complexity, the "actial"(activation tail) is added to each layer instance. Actail takes activation instance as input. The model API, `model.active()` will attach the activation to the layer's actail. 
+Therefore, to reduce the complexity, the "actail"(activation tail) is added to each layer instance. If a layer's Actail is not null, it will be called right after the layer is executed. Actail takes activation instance as input. The model API, `model.active()` will attach the activation to the layer's actail. 
 
 ~~~ 
 // attach act to target_layer, return the target layer instance.
