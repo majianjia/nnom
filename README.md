@@ -13,7 +13,12 @@ Therefore, it runs on ARM Cortex-M 32-bit RISC processor only.
 ## Why NNoM?
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
 
-Most importantly, the performance of the quantised model can be evaluated on the targeted MCU 
+**If you are not satisfy with old conv-dense sequencial model,
+and would like to try more up-to-date, decent and complex structures (such as Inception, SqueezeNet, ResNet... )**
+
+**NNoM can help you to build it on MCU in the same way as you did in Keras.**
+
+Most importantly, the performance can be evaluated on the targeted MCU directly with NNoM.
 ![](https://github.com/majianjia/nnom/blob/master/docs/gifs/uci_har_results.png)
 
 
@@ -44,9 +49,9 @@ The NNoM interfaces are similar to **Keras**： https://keras.io/
 
 It supports both sequential and functional API. 
 
-The above shows a sequential model. 
+The above codes shows how a sequential model is built, compiled, and ran. 
 
-Detail documentation comes later. 
+
 
 ## Functional Model
 Functional APIs are much more flexible. An example is shown in [uci-inception example](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)
@@ -101,6 +106,7 @@ while(1){
 }
 ~~~~
 Please check [A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md)
+
 Detail documentation comes later. 
 ## Available Operations
 
@@ -169,7 +175,7 @@ No, there is no single script to convert a pre-trained model to NNoM.
 However, NNoM provides simple python scripts to help developers train, quantise and deploy a keras model to NNoM.
 
 Please check [A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md)
-and UCI HAR example.
+and [UCI HAR example](https://github.com/majianjia/nnom/tree/master/examples/uci-inception).
 
 The tutorial comes later. 
 
@@ -192,10 +198,10 @@ Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/po
 
 # Contacts
 Jianjia Ma
-J.Ma2@lboro.ac.uk
-majianjia@live.com
+
+J.Ma2@lboro.ac.uk or majianjia@live.com
 
 # Citation Required
-Please contact above
+Please contact us using above details. 
 
 
