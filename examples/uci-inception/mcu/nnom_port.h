@@ -8,8 +8,8 @@
  * 2019-02-05     Jianjia Ma   The first version
  */
 
-#ifndef __NNOM_PORTING_H__
-#define __NNOM_PORTING_H__
+#ifndef __NNOM_PORT_H__
+#define __NNOM_PORT_H__
 
 #include <stdint.h>
 #include <string.h>

@@ -18,44 +18,26 @@
 #include "ymodem.h"
 
 #include "nnom.h"
-typedef struct _nnom_layer_config_t
+
+// STM32 TIMER
+static TIM_HandleTypeDef s_TimerInstance = { 
+    .Instance = TIM2
+};
+void us_timer_enable()
 {
-	const char name[16];
-	const int8_t output_dec;
-	const struct _nnom_layer_config_t* next;
-} nnom_layer_config_t;
-
-typedef struct _conv_nnom_layer_config_t
+    __TIM2_CLK_ENABLE();
+    s_TimerInstance.Init.Prescaler = 80;
+    s_TimerInstance.Init.CounterMode = TIM_COUNTERMODE_UP;
+    s_TimerInstance.Init.Period = 0xffffffff;
+    s_TimerInstance.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    s_TimerInstance.Init.RepetitionCounter = 0;
+    HAL_TIM_Base_Init(&s_TimerInstance);
+    HAL_TIM_Base_Start(&s_TimerInstance);
+}
+uint32_t us_timer_get()
 {
-	const nnom_layer_config_t super;
-	const nnom_weight_t weight;
-	const nnom_bias_t   bias;
-} nnom_conv_layer_config_t;
-
-const nnom_conv_layer_config_t conv1;
-const int8_t conv_1_weight[] = CONV1D_1_KERNEL_0;
-const int8_t conv_1_bias[] = CONV1D_1_KERNEL_0;
-
-const nnom_conv_layer_config_t conv2;
-const int8_t conv_2_weight[] = CONV1D_2_KERNEL_0;
-const int8_t conv_2_bias[] = CONV1D_2_KERNEL_0;
-
-const nnom_conv_layer_config_t conv1 = {
-	.super.name = "conv1", 
-	.super.next = &conv2.super,
-	.weight.p_value = (void*)conv_1_weight,
-	.weight.shift = CONV1D_1_KERNEL_0_SHIFT,
-	};
-
-const nnom_conv_layer_config_t conv2 = {
-	.super.name = "conv2", 
-	.super.next = NULL,
-	.weight.p_value = (void*)conv_2_weight,
-	.weight.shift = CONV1D_1_KERNEL_0_SHIFT,
-	};
-
-	
-const nnom_layer_config_t model_config = {.name = "base", .next = (nnom_layer_config_t*)&conv1};
+	return __HAL_TIM_GET_COUNTER(&s_TimerInstance);
+}
 
 
 // input data (int8 or q7)
@@ -66,7 +48,7 @@ const nnom_layer_config_t model_config = {.name = "base", .next = (nnom_layer_co
 #define DATA_TYPE_COUNT 	(6)		
 
 
-// NN ----------------
+// weights and bias ----------------
 const int8_t conv1_wt[] = CONV1D_1_KERNEL_0;
 const int8_t conv1_b[] = CONV1D_1_BIAS_0;
 const int8_t conv2_wt[] = CONV1D_2_KERNEL_0;
@@ -128,44 +110,28 @@ nnom_bias_t ip2_b = {
 	.p_value = (void*)fc2_b,
 	.shift = DENSE_2_BIAS_0_SHIFT};
 
-nnom_model_t model = {0}; // to use finsh to print
+// a global model for used in console
+nnom_model_t model = {0}; 
+
+// input output buffer. 
 int8_t nnom_input_data[INPUT_HIGHT * INPUT_WIDTH * INPUT_CH];
 int8_t nnom_output_data[DATA_TYPE_COUNT];
 
-
-static TIM_HandleTypeDef s_TimerInstance = { 
-    .Instance = TIM2
-};
-void us_timer_enable()
-{
-    __TIM2_CLK_ENABLE();
-    s_TimerInstance.Init.Prescaler = 80;
-    s_TimerInstance.Init.CounterMode = TIM_COUNTERMODE_UP;
-    s_TimerInstance.Init.Period = 0xffffffff;
-    s_TimerInstance.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    s_TimerInstance.Init.RepetitionCounter = 0;
-    HAL_TIM_Base_Init(&s_TimerInstance);
-    HAL_TIM_Base_Start(&s_TimerInstance);
-}
-
-uint32_t us_timer_get()
-{
-	return __HAL_TIM_GET_COUNTER(&s_TimerInstance);
-}
-
-
-void thread_nnom(void *p)
+int main(void)
 {
 	nnom_layer_t *input_layer;
 	nnom_layer_t *x;
-	nnom_layer_t *x1;
+	nnom_layer_t *x1;		
 	nnom_layer_t *x2;
 	nnom_layer_t *x3;
+	
+	// for runtime stat
+	us_timer_enable();
 
 	// inital a model
 	new_model(&model);
 	
-	// input format
+	// input layer
 	input_layer = Input(shape(INPUT_HIGHT, INPUT_WIDTH, INPUT_CH), qformat(7, 0), nnom_input_data);
 	
 	// conv2d
@@ -186,7 +152,6 @@ void thread_nnom(void *p)
 	// maxpool - 3 - inception
 	x3 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x);
 	
-	
 	// concatenate 
 	x = model.merge(Concat(-1), x1, x2); 
 	x = model.merge(Concat(-1), x, x3);
@@ -202,29 +167,22 @@ void thread_nnom(void *p)
 	x = model.active(act_relu(), x);
 	x = model.hook(Dense(6, &ip2_w, &ip2_b), x);
 	x = model.hook(Softmax(), x);
+	
+	// output layer
 	x = model.hook(Output(shape(6,1,1), qformat(7, 0), nnom_output_data), x);
 	
 	// compile and check
 	model_compile(&model, input_layer, x);
 	
+	// run once
+	model_run(&model);
+	
+	// the prediction will be in console, so we do nothing in main. 
 	while(1)
 	{
-		model_run(&model);
-		
-		while(1)
-		{
-			rt_thread_delay(RT_TICK_PER_SECOND);
-		}
+		rt_thread_delay(RT_TICK_PER_SECOND);
 	}
-}
 
-int main(void)
-{
-	rt_thread_t tid;
-	us_timer_enable();
-	
-	tid = rt_thread_create("nnom", thread_nnom, RT_NULL, 2048, 30, 500);
-	rt_thread_startup(tid);
 }
 
 
