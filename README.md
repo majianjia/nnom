@@ -51,7 +51,7 @@ Detail documentation comes later.
 ## Functional Model
 Functional APIs are much more flexible. An example is shown in [uci-inception example](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)
 
-It allows developer to build complext structures in MCU, such as [Inception](https://www.cs.unc.edu/~wliu/papers/GoogLeNet.pdf) and [ResNet](https://arxiv.org/abs/1512.03385). 
+It allows developer to build complex structures in MCU, such as [Inception](https://www.cs.unc.edu/~wliu/papers/GoogLeNet.pdf) and [ResNet](https://arxiv.org/abs/1512.03385). 
 
 Here is a brief codeing of Inception structures includes 3 parallel subpathes.
 ~~~~
