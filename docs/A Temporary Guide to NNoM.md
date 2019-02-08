@@ -138,6 +138,15 @@ nnom_layer_t* DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nno
 nnom_layer_t* Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b);
 ~~~
 
+About the missing **Batch Normalization Layer**
+
+Batch Normalization layer can be fused into the last convolution layer. So NNoM currently does not provide a Batch Normalization Layer. It might be implemented as a single layer in the future. However, currently, please fused it to the last layer.
+
+[Further reading about fusing BN parameters to conv weights](https://tkv.io/posts/fusing-batchnorm-and-conv/)
+
+[Fusing batch-norm layers](https://github.com/ARM-software/ML-KWS-for-MCU/blob/master/Deployment/Quant_guide.md#fusing-batch-norm-layers)
+
+
 ## Addictionlly, Activation APIs
  
 Actication APIs are not essential in the original idea. The original idea is making eveything as a layer. 
@@ -248,7 +257,9 @@ When the file copying done, the runtime summary, Top-k and confusion matrix will
 Optionally, the runtime stat detail of each layer can be printed by `nn_stat`
 ![Print stat](https://github.com/majianjia/nnom/blob/master/docs/gifs/nnom_stat.gif)
  
-PS: The "runtime stat" in the animation is not correct, due to the test chip is overclocking (STM32L476 @ 160MHZ), and the timer is overclocking as well. However, the prediction summary uses system_tick timer which is not overclocking. 
+PS: The "runtime stat" in the animation is not correct, due to the test chip is overclocking (STM32L476 @ 160MHz, 2x overclocking), and the timer is overclocking as well. 
+
+However, the numbers in prediction summary are correct, because they are measured by system_tick timer which is not overclocking. 
  
 
 
