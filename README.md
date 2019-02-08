@@ -14,7 +14,7 @@ Therefore, it runs on ARM Cortex-M 32-bit RISC processor only.
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
 
 Most importantly, the performance of the quantised model can be evaluated on the targeted MCU 
-![](https://github.com/majianjia/nnom/blob/master/docs/gifs/uci_har_result.png)
+![](https://github.com/majianjia/nnom/blob/master/docs/gifs/uci_har_results.png)
 
 
 A simple example:
@@ -190,7 +190,12 @@ Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/po
 - Support mutiple Q-formats
 - support memory releasing. 
 
+# Contacts
+Jianjia Ma
+J.Ma2@lboro.ac.uk
+majianjia@live.com
 
-
+# Citation Required
+Please contact above
 
 
