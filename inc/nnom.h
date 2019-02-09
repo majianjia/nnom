@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 #include "nnom_port.h"
 
@@ -222,11 +223,12 @@ typedef struct _nnom_model {
 	nnom_layer_t* head;
 	nnom_layer_t* tail;
 	
-	nnom_status_t (*add)(struct _nnom_model * m, nnom_layer_t *layer);  // has too pass a raw value
-	nnom_layer_t *(*hook)(nnom_layer_t* curr, nnom_layer_t* last);		// create hook 2 layer's primary IO. 
-	nnom_layer_t *(*merge)(nnom_layer_t* method, nnom_layer_t* in1, nnom_layer_t* in2);	// merge 2 layer using the method (concate, add, .any multiple input layer..)
+	nnom_status_t (*add)(struct _nnom_model * m, nnom_layer_t *layer);  			// has too pass a raw value
+	nnom_layer_t *(*hook)(nnom_layer_t* curr, nnom_layer_t* last);					// create hook 2 layer's primary IO. 
+	nnom_layer_t *(*merge)(nnom_layer_t *method, nnom_layer_t * in1,nnom_layer_t *in2);	// an older interface of merge 2 input. 
+	nnom_layer_t *(*mergex)(nnom_layer_t *method, int num, ...);					// merge a few layers using mutiple input method (concate, add, ...)
 	nnom_layer_t *(*active)(nnom_activation_t* act, nnom_layer_t* target_layer);	// add the activation to the existing layer's tail
-	
+
 	// block memory for layers
 	nnom_mem_block_t blocks[NNOM_BLOCK_NUM];
 	

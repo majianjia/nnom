@@ -14,8 +14,10 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include "math.h"
 #include "nnom.h"
+
 
 const char default_layer_names[][12] = DEFUALT_LAYER_NAMES;
 const char default_activation_names[][8] = ACTIVATION_NAMES;
@@ -133,57 +135,108 @@ static nnom_layer_t * model_hook(nnom_layer_t* curr, nnom_layer_t *last)
 	return curr;
 }
 
+
+// find an available hook on the io module, normally used by output io module. 
+// input, the output io module that wants to hook on
+// output, the new hook that added to the end of the hook list on the io 
+static nnom_layer_hook_t * allocate_hook(nnom_layer_io_t * io)
+{
+	nnom_layer_hook_t * hook;
+	if(io == NULL)
+		return NULL;
+	hook = &io->hook;
+	
+	// if the primary hook is empty, reture it directly. 
+	if(hook->io == NULL)
+	{
+		return hook;
+	}
+	else
+	{
+		// find the empty place and allocate new hook for us
+		while(hook->next!= NULL)
+		{
+			hook = hook->next;
+		}
+		hook->next = nnom_mem(sizeof(nnom_layer_hook_t));
+		if(hook->next == NULL)
+			return NULL;
+		return hook->next;
+	}
+}
+
+// to check if an input io is hooked to other layer
+// input the primary io of a layer's input
+// return, the new io that added to the input io list. 
+static nnom_layer_io_t * allocate_input_io(nnom_layer_io_t * io)
+{
+	if(io == NULL)
+		return NULL;
+	
+	// if the io is free to used
+	if(io->hook.io == NULL)
+	{
+		return io;
+	}
+	else
+	{
+		// find the empty place and allocate new hook for us
+		while(io->aux!= NULL)
+		{
+			io = io->aux;
+		}
+		io->aux = nnom_mem(sizeof(nnom_layer_io_t));
+		if(io->aux == NULL)
+			return NULL;
+		// the owner for new io is inherited
+		io->aux->owner = io->owner;
+		return  io->aux;
+	}
+}
+
+
+// merge a few layers using specified method 
+// num = the number of layer that will be merged
+// method = functional layer such as (concat(), dot(), mult(), add())
+static nnom_layer_t * model_mergex(nnom_layer_t *method, int num, ...)
+{
+	nnom_layer_t * in_layer;
+	nnom_layer_io_t * method_in_io;
+	nnom_layer_hook_t *output_io_hook;
+	
+	va_list valist;
+	
+	if(method == NULL)
+		return NULL;
+	
+	va_start(valist, num);
+	
+	for (int i = 0; i < num; i++)
+    {
+		// get the input layer
+		in_layer = va_arg(valist, nnom_layer_t*);
+		
+		// add a new hook to the output io of the input layer
+		output_io_hook = allocate_hook(in_layer->out);
+		// add a new input io to the method layer's input list.
+		method_in_io = allocate_input_io(method->in); 
+		
+		// manually hook them togeter. 
+		output_io_hook->io = method_in_io;			
+		method_in_io->hook.io = in_layer->out;		
+    }
+	va_end(valist);
+	return method;
+}
+
 // merge 2 input 
+// this is an older interface
 // method = functional layer such as (concat(), dot(), mult(), add())
 static nnom_layer_t * model_merge(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2)
 {
-	if(method == NULL || in1 == NULL || in2 == NULL)
-		return NULL;
-
-	// hooke in1
-	nnom_layer_t * layer = in1; 
-	nnom_layer_hook_t *hook = &layer->out->hook;
-	nnom_layer_hook_t *new_hook = NULL;
-	nnom_layer_io_t * in_port = method->in;		// the in1 hook with primary input, in2 with aux input. 
-
-	// check and allocate a hook in each in layer. 
-	// currently support 2 input. 
-	for(uint32_t i = 0; i<2; i++)
-	{
-		// check if the current hook is taken. 
-		if(hook->io != NULL)
-		{
-			// find the empty place and allocate new hook for us in thos in1->out, in2->out
-			while(hook->next!= NULL)
-			{
-				hook = hook->next;
-			}
-			new_hook = nnom_mem(sizeof(nnom_layer_hook_t));
-			if(new_hook == NULL)
-				return NULL;
-			hook->next = new_hook;
-		}
-		// no hooked layer yet, so we take this one.
-		else
-			new_hook = hook;
-
-		// now connect them the the method
-		// the new_hook is the new hook allocate in last layer. 
-		new_hook->io    	= in_port; //primary IO. 
-		in_port->hook.io 	= layer->out;
-		
-		// if all done
-		if(i >= 1)
-			break;
-		
-		// switch to in2
-		layer = in2;
-		hook = &layer->out->hook;
-		in_port = method->in->aux;			// the second layer will link to AUX input. 
-	}
-
-	return method;
+	return model_mergex(method, 2, in1, in2);
 }
+
 
 // This api will merge activation to layer's to reduce the extra layer for activation
 static nnom_layer_t * model_active(nnom_activation_t* act, nnom_layer_t * target)
@@ -214,6 +267,7 @@ nnom_model_t* new_model(nnom_model_t *model)
 	m->add = model_add;
 	m->hook = model_hook;
 	m->merge = model_merge;
+	m->mergex = model_mergex;
 	m->active = model_active;
 	
 	return m;

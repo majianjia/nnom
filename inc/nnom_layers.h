@@ -127,6 +127,12 @@ nnom_shape_t stride(size_t w, size_t h);
 nnom_qformat_t qformat(int8_t n, int8_t m);
 size_t shape_size(nnom_shape_t *s);
 
+// utils
+// this function is to add a new IO to current inited IO 
+// input, the targeted IO that the new IO will be added to 
+// output , the new IO
+nnom_layer_io_t * io_add_aux(nnom_layer_io_t * targeted_io);
+
 // Layer APIs ******
 
 // input/output

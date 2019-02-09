@@ -264,22 +264,21 @@ nnom_status_t maxpooling_out_shape(nnom_layer_t * layer)
 
 nnom_status_t concatenate_out_shape(nnom_layer_t * layer)
 {
+	nnom_concat_layer_t *cl = (nnom_concat_layer_t*)layer;
+	nnom_layer_io_t *in; 
+	uint32_t in_num = 0;
 	uint32_t offset;
 	int32_t shape_element_num;
-	nnom_concat_layer_t *cl = (nnom_concat_layer_t*)layer;
 	
-	// test, output fmt and out shift
-	layer->in->qfmt = layer->in->hook.io->qfmt;
-	layer->in->aux->qfmt = layer->in->aux->hook.io->qfmt;
-	// mutiple input, check if adjust Qnm is necessary. 
-	// layer->out->qfmt.m = layer->in->qfmt.m;	
-	// get the bigger one, the smaller one will then be shift while doing concatenation
-	layer->out->qfmt.n = layer->in->qfmt.n < layer->in->aux->qfmt.n ?
-							layer->in->qfmt.n : layer->in->aux->qfmt.n;
-	
-	//get the last layer's output as input shape
-	layer->in->shape = layer->in->hook.io->shape;			// primary input
-	layer->in->aux->shape = layer->in->aux->hook.io->shape; // aux input
+	// for each input module, copy the shape from the output of last layer
+	in = layer->in;
+	while(in != NULL)
+	{
+		//get the last layer's output as input shape
+		in->shape = in->hook.io->shape;
+		in = in->aux;
+		in_num++;		
+	}
 	
 	// get how many element in shape
 	shape_element_num = sizeof(nnom_shape_t) / sizeof(nnom_shape_data_t);
@@ -292,22 +291,35 @@ nnom_status_t concatenate_out_shape(nnom_layer_t * layer)
 	else	
 		offset = cl->axis;
 	
-	// check others
+	// do the work
 	for(uint32_t i = 0; i < shape_element_num * sizeof(nnom_shape_data_t); i+= sizeof(nnom_shape_data_t))
 	{
 		// exclue the concat axies
 		if(i == offset*sizeof(nnom_shape_data_t))
-		{
-			*(nnom_shape_data_t*)((uint32_t)(&layer->out->shape) + i) = 
-				*(nnom_shape_data_t*)((uint32_t)(&layer->in->shape) + i) + 
-				*(nnom_shape_data_t*)((uint32_t)(&layer->in->aux->shape) + i);
+		{	
+			nnom_shape_data_t* out_axis = (nnom_shape_data_t*)((uint32_t)(&layer->out->shape) + i);
+			*out_axis = 0;
+			
+			in = layer->in;
+			while(in != NULL)
+			{
+				*out_axis += *(nnom_shape_data_t*)((uint32_t)(&in->shape) + i);
+				in = in->aux;	
+			}
 			continue;
 		}
-			
-		if(*(nnom_shape_data_t*)((uint32_t)(&layer->in->shape) + i) != 
-			*(nnom_shape_data_t*)((uint32_t)(&layer->in->aux->shape) + i))
-			return NN_ARGUMENT_ERROR;
 		
+		// check others, all other must be same shape
+		in = layer->in;
+		while(in != NULL && in->aux != NULL)
+		{
+			if(*(nnom_shape_data_t*)((uint32_t)(&in->shape) + i) != 
+				*(nnom_shape_data_t*)((uint32_t)(&in->aux->shape) + i))
+				return NN_ARGUMENT_ERROR;
+			in = in->aux;	
+		}
+
+		// now set other axis
 		*(nnom_shape_data_t*)((uint32_t)(&layer->out->shape) + i) = 
 			*(nnom_shape_data_t*)((uint32_t)(&layer->in->shape) + i);
 	}
@@ -315,6 +327,7 @@ nnom_status_t concatenate_out_shape(nnom_layer_t * layer)
 	return NN_SUCCESS;
 }
 
+// deprecated. 
 nnom_status_t same_shape_2in_1out_out_shape(nnom_layer_t * layer)
 {
 	//get the last layer's output as input shape
@@ -339,6 +352,22 @@ nnom_status_t same_shape_2in_1out_out_shape(nnom_layer_t * layer)
 	layer->out->shape.w = layer->in->shape.w;
 	layer->out->shape.c = layer->in->shape.c;
 
+	return NN_SUCCESS;
+}
+
+// the shape of mutiple inputs are same as output
+nnom_status_t same_io_shape_base_layer_out_shape(nnom_layer_t *layer)
+{
+	//get the last layer's output as input shape
+	layer->in->shape = layer->in->hook.io->shape;		
+	
+	// test, output fmt and out shift
+	layer->in->qfmt = layer->in->hook.io->qfmt;
+	
+	layer->out->shape.h = layer->in->shape.h;
+	layer->out->shape.w = layer->in->shape.w;
+	layer->out->shape.c = layer->in->shape.c;
+	
 	return NN_SUCCESS;
 }
 

@@ -297,8 +297,86 @@ nnom_status_t softmax_run(nnom_layer_t *layer)
 }
 
 
-
 nnom_status_t concat_run(nnom_layer_t *layer)
+{
+	// by default, concat layer has mutiple (>=2) input and 1 output.
+	nnom_concat_layer_t *cl = (nnom_concat_layer_t*)layer;
+	uint32_t shape_element_num = sizeof(nnom_shape_t) / sizeof(nnom_shape_data_t);
+	size_t width =  sizeof(nnom_shape_data_t);
+	nnom_shape_axis_t *out_shape = (nnom_shape_axis_t *)(&layer->out->shape);  // get the shape.axis[0,1,2...] access to shape type
+	uint32_t offset;
+	nnom_layer_io_t *in, *out;
+	
+	in = layer->in;
+	out = layer->out;
+
+	// last axis, shape c
+	if(cl->axis < 0)
+		offset = (shape_element_num + cl->axis);
+	else	
+		offset = cl->axis;
+	
+	// concat by different axis, TODO, change to nested loop
+	// the concat axis might be different, means that, the block size for each input could be different 
+	if(offset == 0)
+	{
+		uint8_t *pin;
+		uint8_t *pout = out->mem->blk;
+		in = layer->in;
+		while(in != NULL)
+		{
+			pin = in->mem->blk;
+			memcpy(pout, pin, shape_size(&in->shape));
+			pout += shape_size(&in->shape);
+						
+			in = in->aux;
+		}
+	}
+	else if (offset == 1)
+	{	
+		uint8_t *pin;
+		uint8_t *pout = out->mem->blk;
+		uint32_t block_size;
+		
+		for(int j = 0; j < out_shape->axis[0]; j++)
+		{			
+			in = layer->in;
+			while(in != NULL)
+			{
+				block_size = in->shape.c * in->shape.w;
+				pin = (uint8_t*)in->mem->blk + j * block_size;
+				memcpy(pout, pin, block_size);
+				pout += block_size;
+				
+				in = in->aux;
+			}
+		}
+	}
+	else if(offset == 2)
+	{
+		uint8_t *pin;
+		uint8_t *pout = out->mem->blk;
+		uint32_t block_size;
+		
+		for(int j = 0; j < out_shape->axis[1] * out_shape->axis[0]; j++)
+		{
+			in = layer->in;
+			while(in != NULL)
+			{
+				block_size = in->shape.c;
+				pin = (uint8_t*)in->mem->blk + j * block_size;
+				memcpy(pout, pin, block_size);
+				pout += block_size;
+							
+				in = in->aux;
+			}
+		}
+	}
+
+	return NN_SUCCESS;
+}
+
+nnom_status_t concat_run_bk(nnom_layer_t *layer)
 {
 	// by default, concat layer has 2 input and 1 output.
 	nnom_concat_layer_t *cl = (nnom_concat_layer_t*)layer;
@@ -362,31 +440,86 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 
 nnom_status_t add_run(nnom_layer_t *layer)
 {
-	// add data type later
+	nnom_layer_io_t * in; 
+	size_t size = shape_size(&layer->in->shape);
+	
+	// adding the first 2 matrix
 	arm_add_q7(layer->in->mem->blk, 
-				layer->in->aux->mem->blk, 
-				layer->out->mem->blk, 
-				shape_size(&layer->in->shape));
+			layer->in->aux->mem->blk, 
+			layer->out->mem->blk, 
+			size);
+	
+	// if there is 3rd or more
+	if(layer->in->aux->aux != NULL)
+	{
+		in = layer->in->aux->aux;
+		while(in != NULL)
+		{
+			arm_add_q7(in->mem->blk, 
+					layer->out->mem->blk, 
+					layer->out->mem->blk, 
+					size);
+			
+			in = in->aux;
+		}
+	}
+
 	return NN_SUCCESS;
 }
 
 nnom_status_t sub_run(nnom_layer_t *layer)
 {
-	// add data type later
+	nnom_layer_io_t * in; 
+	size_t size = shape_size(&layer->in->shape);
+	
+	// adding the first 2 matrix
 	arm_sub_q7(layer->in->mem->blk, 
-				layer->in->aux->mem->blk, 
-				layer->out->mem->blk, 
-				shape_size(&layer->in->shape));
+			layer->in->aux->mem->blk, 
+			layer->out->mem->blk, 
+			size);
+	
+	// if there is 3rd or more
+	if(layer->in->aux->aux != NULL)
+	{
+		in = layer->in->aux->aux;
+		while(in != NULL)
+		{
+			arm_sub_q7(in->mem->blk, 
+					layer->out->mem->blk, 
+					layer->out->mem->blk, 
+					size);
+			
+			in = in->aux;
+		}
+	}
 	return NN_SUCCESS;
 }
 
 nnom_status_t mult_run(nnom_layer_t *layer)
 {
-	// add data type later
+	nnom_layer_io_t * in; 
+	size_t size = shape_size(&layer->in->shape);
+	
+	// adding the first 2 matrix
 	arm_mult_q7(layer->in->mem->blk, 
-				layer->in->aux->mem->blk, 
-				layer->out->mem->blk, 
-				shape_size(&layer->in->shape));
+			layer->in->aux->mem->blk, 
+			layer->out->mem->blk, 
+			size);
+	
+	// if there is 3rd or more
+	if(layer->in->aux->aux != NULL)
+	{
+		in = layer->in->aux->aux;
+		while(in != NULL)
+		{
+			arm_mult_q7(in->mem->blk, 
+					layer->out->mem->blk, 
+					layer->out->mem->blk, 
+					size);
+			
+			in = in->aux;
+		}
+	}
 	return NN_SUCCESS;
 }
 
