@@ -30,7 +30,7 @@ Layer APIs can create and return a new layer instance. Model APIs uses layer ins
 
 For example, to add a convolution layer into sequencial model:
 ~~~c
-model.add(&model,** *Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b)* **);
+model.add(&model, Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b));
 ~~~
 
 
