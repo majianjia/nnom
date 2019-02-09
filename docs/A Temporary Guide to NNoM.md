@@ -4,7 +4,7 @@
 
 NNoM uses a layer-based structure. 
 
-Layer is a container. Every operation (convolution, ...) must be wrapped into a layer. 
+Layer is a container. Every operation (convolution, concat...) must be wrapped into a layer. 
 
 A basic layer contains a list of **Input/Ouput modules** (I/O). Each of I/O contains a list of **Hook** (similar to Nodes in Keras).
 
@@ -12,7 +12,7 @@ A basic layer contains a list of **Input/Ouput modules** (I/O). Each of I/O cont
 
 **I/O** is a buffer to store input/output data of the operation. 
 
-Dont be scared, check this
+Dont be scared, check this:
 
 ![](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM/nnom_structures.png)
 
@@ -28,14 +28,14 @@ Layer APIs can create and return a new layer instance. Model APIs uses layer ins
 **Construction APIs** such as `model.hook(), model.merge(), model.add()` ... which you can find in `new_model()` at *nnom.c*
 
 
-> For example, to add a convolution layer into sequencial model:
+For example, to add a convolution layer into sequencial model:
 >
 > **model.add(&model,** *Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b)* **);**
 >
 > A layer is created by Conv2D, then being hooked to the previous layer. 
 
 
-> In functional model. the hooking is explicit invoked by using *model.hook()*
+In functional model, the links between layer is specified explicitly by using `model.hook()`
 >	
 > x = **model.hook(** *Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b)* **, input_layer);**
 >
@@ -64,6 +64,13 @@ nnom_layer_t * model.hook(nnom_layer_t* curr, nnom_layer_t *last)
 // method = merging layer such as (concat(), dot(), mult(), add())
 // return the method (layer) instance
 nnom_layer_t * model.merge(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2)
+~~~
+
+~~~
+// merge a few layers using specified method 
+// num = the number of layer that will be merged
+// method = functional layer such as (concat(), dot(), mult(), add())
+nnom_layer_t * model_mergex(nnom_layer_t *method, int num, ...)
 ~~~
 
 ~~~
