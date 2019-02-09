@@ -21,7 +21,7 @@ Next, we need APIs to create layers and build the model structures.
 # APIs
 **layer APIs** and **construction APIs** are used to build a model. 
 
-Layer APIs can create and return a new layer instance. Model APIs uses layer instances to build a model. 
+Layer APIs can create and return a new layer instance, while construction APIs use layer instances to build a model. 
 
 **Layer APIs** such as `Conv2D(), Dense(), Activation()` ... which you can find in *nnom_layers.h*
 
