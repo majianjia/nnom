@@ -76,7 +76,7 @@ nnom_layer_t * model.mergex(nnom_layer_t *method, int num, ...)
 ~~~
 
 ~~~c
-// This api will merge activation to layer's to reduce the extra layer for activation
+// This api will merge the activation to the targeted layerto reduce an extra activation layer
 // activation such as (act_relu(), act_tanh()...)
 nnom_layer_t * model.active(nnom_activation_t* act, nnom_layer_t * target)
 ~~~
