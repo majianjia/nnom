@@ -22,7 +22,7 @@ Most importantly, your implementation can be evaluated directly on MCU with NNoM
 
 
 A simple example:
-~~~~
+~~~~c
 #define INPUT_HIGHT 1
 #define INPUT_WIDTH 128
 #define INPUT_CH 9
@@ -58,7 +58,7 @@ Functional APIs are much more flexible. An example is shown in [uci-inception ex
 It allows developer to build complex structures in MCU, such as [Inception](https://www.cs.unc.edu/~wliu/papers/GoogLeNet.pdf) and [ResNet](https://arxiv.org/abs/1512.03385). 
 
 The below codes shows an Inception structures with 3 parallel subpathes.
-~~~~
+~~~~c
 #define INPUT_HIGHT 1
 #define INPUT_WIDTH 128
 #define INPUT_CH 9
