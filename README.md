@@ -13,12 +13,11 @@ Therefore, it runs on ARM Cortex-M 32-bit RISC processor only.
 ## Why NNoM?
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
 
-**If you are not satisfy with old conv-dense sequencial model,
-and would like to try more up-to-date, decent and complex structures (such as Inception, SqueezeNet, ResNet... )**
+**If you would like to try more up-to-date, decent and complex structures on MCU** (such as `Inception, SqueezeNet, ResNet, DenseNet...`)
 
-**NNoM can help you to build those complex structures on MCU in the same way as you did in Keras.**
+**NNoM can help you to build those complex structures in the same way as you did in Keras.**
 
-Most importantly, the performance can be evaluated on the targeted MCU directly with NNoM.
+Most importantly, your implementation can be evaluated directly on MCU with NNoM.
 ![](https://github.com/majianjia/nnom/blob/master/docs/gifs/uci_har_results.png)
 
 
@@ -45,7 +44,7 @@ while(1){
     model_run(&model);
 }
 ~~~~
-The NNoM interfaces are similar to **Keras**： https://keras.io/
+The NNoM interfaces are similar to [**Keras**](https://keras.io/)
 
 It supports both sequential and functional API. 
 
@@ -87,8 +86,8 @@ x2 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x2);
 x3 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x); // hooked to x
 
 // concatenate 3 parallel. 
-x = model.merge(Concat(-1), x1, x2); 
-x = model.merge(Concat(-1), x, x3);
+x = model.mergex(Concat(-1), 3, x1, x2, x3); // new merge API. 
+
 // flatten & dense
 x = model.hook(Flatten(), x);
 x = model.hook(Dense(128, &ip1_w, &ip1_b), x);
@@ -110,7 +109,7 @@ Please check [A brief manual](https://github.com/majianjia/nnom/blob/master/docs
 Detail documentation comes later. 
 ## Available Operations
 
-Layers
+**Layers**
 
 | Layers | Status |Layer API|Comments|
 | ------ |-- |--|--|
@@ -126,7 +125,9 @@ Layers
 | SoftMax|Beta | SoftMax()| |
 | Activation|Beta| Activation()|A layer instance for activation|
 
-Activations
+**Activations**
+
+Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md#addictionlly-activation-apis) to reduce memory cost.
 
 | Actrivation | Status |Layer API|Activation API|Comments|
 | ------ |-- |--|--|--|
@@ -134,14 +135,14 @@ Activations
 | TanH | Beta|TanH()|act_tanh()||
 |Sigmoid|Beta| Sigmoid()|act_sigmoid()||
 
-Pooling Layers
+**Pooling Layers**
 
 | Pooling | Status |Layer API|Comments|
 | ------ |-- |--|--|
 | Max Pooling  | Beta|MaxPool()|Support 1/2D|
 | Average Pooling | Beta|AvgPool()|Support 1/2D|
 
-Matrix Operations Layers
+**Matrix Operations Layers**
 
 | Matrix | Status |Layer API|Comments|
 | ------ |-- |--|--|
@@ -163,7 +164,7 @@ RAM requirement is about 100 to 150 bytes per layer for NNoM instance, plus the 
 >
 >It costs 1 x 128 x 9 = 1152 Bytes as input, 1 x 64 x 16 = 1024 Bytes as output, and 576 Bytes as intermedium buffer (img2col). 
 >
->The total memory cost of the model is around 1170 (instance) + (1152+1024+576)(network) = 3922 Bytes. 
+>The total memory cost of the model is around 1170 (instance) + (1152+1024+576)(network) = ~3922 Bytes. 
 
 In NNoM, we dont analysis memory cost manually like above. 
 
