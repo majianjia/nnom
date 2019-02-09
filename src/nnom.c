@@ -18,7 +18,6 @@
 #include "math.h"
 #include "nnom.h"
 
-
 const char default_layer_names[][12] = DEFUALT_LAYER_NAMES;
 const char default_activation_names[][8] = ACTIVATION_NAMES;
 size_t memory_taken = 0;

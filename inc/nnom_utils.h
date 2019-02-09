@@ -62,6 +62,9 @@ void predicetion_delete(nnom_predic_t* pre);
 // print matrix
 void prediction_matrix(nnom_predic_t* pre);
 
+// print top-k
+void prediction_top_k(nnom_predic_t* pre);
+
 // this function is to print sumarry 
 void prediction_summary(nnom_predic_t* pre);
 

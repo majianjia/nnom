@@ -81,12 +81,12 @@ uint32_t prediction_run(nnom_predic_t* pre, uint32_t label)
 	uint32_t start; 
 		
 	// now run model 
-	start = nnom_ms_get(); // could be us
+	start = nnom_ms_get();
 	model_run(pre->model);
 	pre->t_run_total +=  nnom_ms_get() - start;
 	
 	// find how many prediction is bigger than the ground true. 
-	// Raning rules, same as tensorflow. however, MCU is more frequencly to be equal since it is using fixed-point. 
+	// Raning rules, same as tensorflow. however, predictions in MCU is more frequencly to have equal probability since it is using fixed-point. 
 	// if ranking is 1, 2, =2(true), 4, 5, 6. the result will be top 3. 
 	// if ranking is 1, 2(true), =2, 4, 5, 6. the result will be top 2. 
 	// find the ranking of the prediced label.
@@ -94,7 +94,7 @@ uint32_t prediction_run(nnom_predic_t* pre, uint32_t label)
 	{
 		if(j == label)
 			continue;
-		if(pre->buf_prediction[label] < pre->buf_prediction[j])  // it equal more frequently in MCU than pc. 
+		if(pre->buf_prediction[label] < pre->buf_prediction[j]) 
 			true_ranking++;
 		// while value[label] = value[j]. only when label > j, label is the second of j
 		else if (pre->buf_prediction[label] == pre->buf_prediction[j] && j < label)
@@ -103,7 +103,6 @@ uint32_t prediction_run(nnom_predic_t* pre, uint32_t label)
 
 	if(true_ranking < pre->top_k_size)
 		pre->top_k[true_ranking] ++;
-	
 
 	// Find top 1 and return the current prediction.
 	// If there are several maximum prediction, return the first one.
@@ -155,8 +154,7 @@ void prediction_matrix(nnom_predic_t* pre)
 		
 		printf(" %3d |", i);
 		for(int j=0; j<pre->label_num; j++)
-		{
-			
+		{		
 			row_total += pre->confusion_mat[i*pre->label_num + j]; 
 			printf("%6d", pre->confusion_mat[i*pre->label_num + j]);
 		}
@@ -166,20 +164,11 @@ void prediction_matrix(nnom_predic_t* pre)
 	printf("\n");
 }
 
-// this function is to print sumarry 
-void prediction_summary(nnom_predic_t* pre)
+// top-k
+void prediction_top_k(nnom_predic_t* pre)
 {
 	uint32_t top = 0;
-	
-	// sumamry 
-	printf("\nPrediction summary:\n");
-	printf("Total test frame: %d\n", pre->predic_count);
-	printf("Total running time: %d ms\n", pre->t_run_total);
-	printf("Test running time: %d sec\n", pre->t_predic_total / 1000);
-	printf("Average time per round: %d us\n", (pre->t_run_total* 1000)/pre->predic_count );
-	printf("Average effeciency %.2f ops/us\n", (float)(pre->model->total_ops * pre->predic_count) / (float)(pre->t_run_total* 1000));
-	printf("Average frame rate: %.1f Hz\n", (float)1000 /((float)pre->t_run_total / pre->predic_count) );
-	// top k
+
 	for (int i = 0; i< pre->top_k_size; i ++)
 	{
 		top += pre->top_k[i];
@@ -188,9 +177,26 @@ void prediction_summary(nnom_predic_t* pre)
 		else
 			printf("Top %d Accuracy: 100%% \n", i+1);	
 	} 
+}
+
+
+// this function is to print sumarry 
+void prediction_summary(nnom_predic_t* pre)
+{
+	// sumamry 
+	printf("\nPrediction summary:\n");
+	printf("Total test frame: %d\n", pre->predic_count);
+	printf("Total running time: %d ms\n", pre->t_run_total);
+	printf("Test running time: %d sec\n", pre->t_predic_total / 1000);
+	printf("Average time per round: %d us\n", (pre->t_run_total* 1000)/pre->predic_count );
+	printf("Average effeciency %.2f ops/us\n", (float)(pre->model->total_ops * pre->predic_count) / (float)(pre->t_run_total* 1000));
+	printf("Average frame rate: %.1f Hz\n", (float)1000 /((float)pre->t_run_total / pre->predic_count) );
+
+	// print top-k
+	prediction_top_k(pre);
+	
 	// print confusion matrix
 	prediction_matrix(pre);
-
 }
 
 
