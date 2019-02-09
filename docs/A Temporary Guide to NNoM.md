@@ -47,8 +47,9 @@ Construction APIs are statics functions located in nnom.c
 Currently are:
 
 Sequencial Construction API 
-
-`nnom_status_t model.add(nnom_model_t* model,  nnom_layer_t *layer);`
+~~~c
+nnom_status_t model.add(nnom_model_t* model,  nnom_layer_t *layer);
+~~~
 
 Functional Construction API
 
@@ -67,9 +68,10 @@ nnom_layer_t * model.merge(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t
 ~~~
 
 ~~~c
-// merge a few layers using specified method 
-// num = the number of layer that will be merged
-// method = functional layer such as (concat(), dot(), mult(), add())
+// Same as model.merge()
+// Except it can take mutiple layers as input. 
+// num = the number of layer
+// method: same as model.merge()
 nnom_layer_t * model.mergex(nnom_layer_t *method, int num, ...)
 ~~~
 
@@ -78,7 +80,7 @@ nnom_layer_t * model.mergex(nnom_layer_t *method, int num, ...)
 // activation such as (act_relu(), act_tanh()...)
 nnom_layer_t * model.active(nnom_activation_t* act, nnom_layer_t * target)
 ~~~
-For `model.active()` check Activation APIs below. 
+For `model.active()`, please check Activation APIs below. 
 
 
 
