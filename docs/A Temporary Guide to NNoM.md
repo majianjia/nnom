@@ -100,7 +100,7 @@ Pooling as they are
 ~~~c
 // Pooling, kernel, strides, padding
 nnom_layer_t* MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
-nnom_layer_t* AvePool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+nnom_layer_t* AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
 ~~~
 
 Activation's **Layers API** are started with capital letter. They are differed from the **Activation API**, which start with `act_*` and retrun an activation instance.
