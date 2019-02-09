@@ -29,17 +29,17 @@ Layer APIs can create and return a new layer instance. Model APIs uses layer ins
 
 
 For example, to add a convolution layer into sequencial model:
->
-> **model.add(&model,** *Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b)* **);**
->
-> A layer is created by Conv2D, then being hooked to the previous layer. 
+~~~c
+model.add(&model,** *Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b)* **);
+~~~
+
 
 
 In functional model, the links between layer is specified explicitly by using `model.hook()`
->	
-> x = **model.hook(** *Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b)* **, input_layer);**
->
-> x = **model.hook(** *MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID)* **, x);**
+~~~c
+x = model.hook(Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b), input_layer);
+x = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x);
+~~~
 
 
 ## Construction APIs
