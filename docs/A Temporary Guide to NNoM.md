@@ -103,7 +103,7 @@ nnom_layer_t* MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
 nnom_layer_t* AvePool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
 ~~~
 
-Activation **Layers API** are started with capital letter. They are differed from the **Activation API**, starts with `act_*`.
+Activation's **Layers API** are started with capital letter. They are differed from the **Activation API**, which start with `act_*` and retrun an activation instance.
 Pleas check the Activation APIs below for more detail. 
 
 They return a **layer** instance. 
@@ -120,9 +120,9 @@ nnom_layer_t* TanH(void);
 Matrix API. They are the "merging method", which must be used by `model.merge(method, in1, in2)`
 ~~~c
 // Matrix
-nnom_layer_t * Add(void);
-nnom_layer_t * Sub(void);
-nnom_layer_t * Mult(void);
+nnom_layer_t* Add(void);
+nnom_layer_t* Sub(void);
+nnom_layer_t* Mult(void);
 nnom_layer_t* Concat(int8_t axis);
 ~~~
 
@@ -132,7 +132,8 @@ Flatten change the shapes to (x, 1, 1)
 nnom_layer_t* Flatten(void);
 ~~~
 
-Currently are stable NN layers. For more developing layers, please check the source codes. 
+Stable NN layers.
+For more developing layers, please check the source codes. 
 
 ~~~c
 // conv2d
@@ -210,7 +211,7 @@ The evaluation methods are listed in `nnom_utils.h`
 
 They run the model with testing data, then evaluate the model. Includes Top-k accuracy, confusion matrix, runtime stat...
 
-Please refer to UCI HAR example for usage. 
+Please refer to [UCI HAR example](https://github.com/majianjia/nnom/tree/master/examples/uci-inception) for usage. 
 ~~~c
 // create a prediction
 // input model, the buf pointer to the softwmax output (Temporary, this can be extract from model)
