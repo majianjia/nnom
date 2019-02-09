@@ -117,7 +117,9 @@ nnom_layer_t* Sigmoid(void);
 nnom_layer_t* TanH(void);
 ~~~
 
-Matrix API. They are the "merging method", which must be used by `model.merge(method, in1, in2)`
+Matrix API. 
+These layers normally take 2 or more layer's output as their inputs. 
+They also called "merging method", which must be used by `model.merge(method, in1, in2)`or `model.mergex(method, num of input, in1, in2, 1n3 ...)`
 ~~~c
 // Matrix
 nnom_layer_t* Add(void);
