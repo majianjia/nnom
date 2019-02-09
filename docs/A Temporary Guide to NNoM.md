@@ -28,14 +28,12 @@ Layer APIs can create and return a new layer instance, while construction APIs u
 **Construction APIs** such as `model.hook(), model.merge(), model.add()` ... which you can find in `new_model()` at *nnom.c*
 
 
-For example, to add a convolution layer into sequencial model:
+For example, to add a convolution layer into a sequencial model, use `model.add()`:
 ~~~c
 model.add(&model, Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b));
 ~~~
 
-
-
-In functional model, the links between layer is specified explicitly by using `model.hook()`
+In functional model, the links between layer are specified explicitly by using `model.hook() or model.merge()`
 ~~~c
 x = model.hook(Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b), input_layer);
 x = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x);
