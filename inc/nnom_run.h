@@ -10,7 +10,6 @@
  * 2019-02-05     Jianjia Ma   The first version
  */
 
-
 #ifndef __NNOM_RUN_H__
 #define __NNOM_RUN_H__
 
@@ -42,8 +41,3 @@ nnom_status_t sub_run(nnom_layer_t *layer);
 nnom_status_t mult_run(nnom_layer_t *layer);
 
 #endif
-
-
-
-
-

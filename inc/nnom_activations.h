@@ -10,7 +10,6 @@
  * 2019-02-05     Jianjia Ma   The first version
  */
 
-
 #ifndef __NNOM_ACTIVATIONS_H__
 #define __NNOM_ACTIVATIONS_H__
 
@@ -21,10 +20,9 @@
 #include "nnom.h"
 
 // Activation
-nnom_activation_t* act_relu(void);
-nnom_activation_t* act_softmax(void);
-nnom_activation_t* act_sigmoid(void);
-nnom_activation_t* act_tanh(void);
+nnom_activation_t *act_relu(void);
+nnom_activation_t *act_softmax(void);
+nnom_activation_t *act_sigmoid(void);
+nnom_activation_t *act_tanh(void);
 
 #endif
-

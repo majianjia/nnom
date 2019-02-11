@@ -10,7 +10,6 @@
  * 2019-02-05     Jianjia Ma   The first version
  */
 
-
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -21,68 +20,52 @@
 #include "arm_nnfunctions.h"
 
 // porting
-static nnom_status_t relu_run(nnom_layer_t* layer, nnom_activation_t* act)
+static nnom_status_t relu_run(nnom_layer_t *layer, nnom_activation_t *act)
 {
 	arm_relu_q7(act->data, act->size);
 	return NN_SUCCESS;
 }
 
-static nnom_status_t tanh_run(nnom_layer_t* layer, nnom_activation_t* act)
+static nnom_status_t tanh_run(nnom_layer_t *layer, nnom_activation_t *act)
 {
-	arm_nn_activations_direct_q7(act->data, 
-		act->size,
-		act->fmt.n,
-		ARM_TANH);
-	
+	arm_nn_activations_direct_q7(act->data,
+								 act->size,
+								 act->fmt.n,
+								 ARM_TANH);
+
 	return NN_SUCCESS;
 }
 
-static nnom_status_t sigmoid_run(nnom_layer_t* layer, nnom_activation_t* act)
+static nnom_status_t sigmoid_run(nnom_layer_t *layer, nnom_activation_t *act)
 {
-	arm_nn_activations_direct_q7(act->data, 
-		act->size,
-		act->fmt.n,
-		ARM_SIGMOID);
+	arm_nn_activations_direct_q7(act->data,
+								 act->size,
+								 act->fmt.n,
+								 ARM_SIGMOID);
 	return NN_SUCCESS;
 }
 
-// 
-nnom_activation_t* act_relu(void)
+//
+nnom_activation_t *act_relu(void)
 {
-	nnom_activation_t * act = nnom_mem(sizeof(nnom_activation_t));
-	act->run 	= relu_run;
-	act->type 	= ACT_RELU;
+	nnom_activation_t *act = nnom_mem(sizeof(nnom_activation_t));
+	act->run = relu_run;
+	act->type = ACT_RELU;
 	return act;
 }
 
-nnom_activation_t*  act_tanh(void)
+nnom_activation_t *act_tanh(void)
 {
-	nnom_activation_t * act = nnom_mem(sizeof(nnom_activation_t));
-	act->run 	= tanh_run;
-	act->type 	= ACT_TANH;
+	nnom_activation_t *act = nnom_mem(sizeof(nnom_activation_t));
+	act->run = tanh_run;
+	act->type = ACT_TANH;
 	return act;
 }
 
-nnom_activation_t*  act_sigmoid(void)
+nnom_activation_t *act_sigmoid(void)
 {
-	nnom_activation_t * act = nnom_mem(sizeof(nnom_activation_t));
-	act->run 	= sigmoid_run;
-	act->type 	= ACT_SIGMOID;
+	nnom_activation_t *act = nnom_mem(sizeof(nnom_activation_t));
+	act->run = sigmoid_run;
+	act->type = ACT_SIGMOID;
 	return act;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
