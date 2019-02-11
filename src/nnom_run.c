@@ -30,7 +30,7 @@ nnom_status_t input_run(nnom_layer_t *layer)
 nnom_status_t output_run(nnom_layer_t *layer)
 {
 	nnom_io_layer_t *cl = (nnom_io_layer_t*)layer;
-	memcpy(cl->buf, layer->out->mem->blk , shape_size(&layer->out->shape));
+	memcpy(cl->buf, layer->in->mem->blk , shape_size(&layer->in->shape)); // in->memory -> user memory
 	return NN_SUCCESS;
 }
 nnom_status_t flatten_run(nnom_layer_t *layer)

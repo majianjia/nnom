@@ -185,11 +185,11 @@ void prediction_summary(nnom_predic_t* pre)
 {
 	// sumamry 
 	printf("\nPrediction summary:\n");
-	printf("Total test frame: %d\n", pre->predic_count);
-	printf("Total running time: %d ms\n", pre->t_run_total);
+	printf("Test frames: %d\n", pre->predic_count);
 	printf("Test running time: %d sec\n", pre->t_predic_total / 1000);
-	printf("Average time per round: %d us\n", (pre->t_run_total* 1000)/pre->predic_count );
-	printf("Average effeciency %.2f ops/us\n", (float)(pre->model->total_ops * pre->predic_count) / (float)(pre->t_run_total* 1000));
+	printf("Model running time: %d ms\n", pre->t_run_total);
+	printf("Average prediction time: %d us\n", (pre->t_run_total* 1000)/pre->predic_count );
+	printf("Average effeciency: %.2f ops/us\n", (float)(pre->model->total_ops * pre->predic_count) / (float)(pre->t_run_total* 1000));
 	printf("Average frame rate: %.1f Hz\n", (float)1000 /((float)pre->t_run_total / pre->predic_count) );
 
 	// print top-k
@@ -267,10 +267,10 @@ void model_stat(nnom_model_t *m)
 			break;
 		layer = layer->shortcut;
 	}
-	printf("\nSummary:\n");
-	printf("INFO: Total ops %d\n", total_ops);
-	printf("INFO: Total time %dus\n", total_time);
-	printf("INFO: Efficiency %d.%02d ops/us\n", 
+	printf("\nSummary.\n");
+	printf("Total ops (MAC): %d\n", total_ops);
+	printf("Prediction time :%dus\n", total_time);
+	printf("Efficiency %d.%02d ops/us\n", 
 			(total_ops / total_time), 
 			(total_ops *100) / (total_time) % 100);
 	

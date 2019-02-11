@@ -48,7 +48,6 @@ nnom_status_t input_out_shape(nnom_layer_t * layer)
 	// output shape
 	layer->in->mem->blk   = cl->buf;
 	layer->in->shape = cl->shape;
-	layer->out->mem->blk  = cl->buf;
 	layer->out->shape= cl->shape;
 
 	return NN_SUCCESS;
@@ -66,7 +65,6 @@ nnom_status_t output_out_shape(nnom_layer_t * layer)
 	
 	// output shape
 	layer->in->mem->blk  = cl->buf;
-	layer->out->mem->blk = cl->buf;
 
 	layer->in->shape 	= cl->shape;
 	layer->out->shape	= cl->shape;

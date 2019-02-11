@@ -38,6 +38,21 @@ size_t nnom_mem_stat(void )
 	return memory_taken;
 }
 
+// get the size of an module model
+static size_t io_mem_size(nnom_layer_io_t* io)
+{
+	size_t size = 0;
+	if(io != NULL)
+	{
+		while(io)
+		{
+			size += shape_size(&io->shape);
+			io = io->aux;
+		}
+	}
+	return size;
+}
+
 size_t alignto(size_t value, uint32_t alignment)
 {
 	if(value%alignment == 0)
@@ -290,7 +305,7 @@ static nnom_mem_block_t * allocate_block(nnom_mem_block_t *list)
 	
 	for(idx = 0; idx < NNOM_BLOCK_NUM; idx ++)
 	{
-		if(list[idx].owner == NULL)
+		if(list[idx].owners == 0)
 			break;
 	}
 	free = &list[idx];
@@ -299,7 +314,10 @@ static nnom_mem_block_t * allocate_block(nnom_mem_block_t *list)
 
 static void release_block(nnom_mem_block_t *block)
 {
-	block->owner = NULL;
+	if(block->owners > 0)
+		block->owners -= 1;
+	if(block->owners == 0)
+		block->state = NNOM_BUF_EMPTY; 			// test, marked empty
 }
 
 static void release_input_mem(nnom_layer_t *layer)
@@ -309,8 +327,7 @@ static void release_input_mem(nnom_layer_t *layer)
 	in = layer->in;
 	while(in != NULL)
 	{
-		if(in->mem->owner == layer) // release those only belong to us, avoid releasing buf in single layer.
-			release_block(in->mem);
+		release_block(in->mem);
 		in = in->aux;
 	}
 }
@@ -321,6 +338,18 @@ static void release_comp_mem(nnom_layer_t *layer)
 	{
 		release_block(layer->comp->mem);
 	}
+}
+
+static uint8_t hook_length(nnom_layer_hook_t * hook)
+{
+	uint8_t num = 0;
+	if(hook == NULL) return 0;
+	while(hook != NULL)
+	{
+		num ++;
+		hook = hook->next;
+	}
+	return num;
 }
 
 // call while iteration. the shorcut is for fast running and fast iliterating. 
@@ -336,6 +365,10 @@ nnom_status_t layer_shortcut_add(nnom_layer_t *start, nnom_layer_t* curr)
 	// find the end of the list, and add curr layer to the end of it. 
 	while(layer->shortcut != NULL)
 	{
+		// if the layer is alread in shortcut list, tell upper. 
+		if(curr == layer)
+			return NN_LENGTH_ERROR;
+			
 		layer = layer->shortcut;
 	}
 	layer->shortcut = curr;
@@ -370,11 +403,12 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t* block_pool)
 			if(in->mem == NULL)
 			{
 				in_blk = allocate_block(block_pool);
-				in_blk->owner = layer; 
+				in_blk->owners += 1; 						// add 1
 				mem_size = alignto(shape_size(&in->shape),4);
 				in_blk->size = mem_size> in_blk->size ? mem_size : in_blk->size;
 				// set the blk to the layer IO
 				in->mem = in_blk;
+				in->mem->state = NNOM_BUF_FILLED; //mark input buff filled
 			}
 		}
 		else
@@ -387,29 +421,31 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t* block_pool)
 			}
 		}
 		
-		// if there are mutiple input, wait till all block belong to us(current layer). 
-		// otherwise the blk might be retained by last layer for other parallel layers to current layer.
+		// if there are mutiple input, wait till all block filled
 		in = layer->in;
 		if(in != NULL && in->aux != NULL)
 		{
 			while(in != NULL) 
 			{
-				if(in->mem->owner != layer)
+				//if(in->mem->owner != layer)
+				if(in->mem == NULL || in->mem->state != NNOM_BUF_FILLED)	
 					return NN_MORE_TODO;
 				in = in->aux;
 			}
 		}
+
 		
 		// calculate output shape while all inputs are filled
 		layer->comp_out_shape(layer);
-		layer_shortcut_add(start, layer); // test, add shorcuts in model runing order. 
+		layer_shortcut_add(start, layer); 
 		
 		// assign for computational buf
 		if(layer->comp != NULL)
 		{
 			layer->comp->mem = allocate_block(block_pool);
-			layer->comp->mem->owner = layer;
-			// record maximu mem size in this block
+			layer->comp->mem->owners += 1;				// add users
+			layer->comp->mem->state = NNOM_BUF_FILLED; 	// test
+			// record maximum mem size in this block
 			mem_size = alignto(shape_size(&layer->comp->shape),4);
 			layer->comp->mem->size = 
 				mem_size > layer->comp->mem->size ? mem_size : layer->comp->mem->size;
@@ -417,6 +453,8 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t* block_pool)
 		
 		// show block size
 		{
+			size_t in_size = io_mem_size(layer->in);
+			size_t out_size = io_mem_size(layer->out);
 			size_t compsize;
 			if(layer->comp != NULL)
 				compsize = shape_size(&layer->comp->shape);
@@ -431,12 +469,11 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t* block_pool)
 			LOG("(%4d,%4d,%4d)  %7d   (%5d,%5d,%5d)",
 				layer->out->shape.h, layer->out->shape.w, layer->out->shape.c,
 				layer->stat.macc, 
-				shape_size(&layer->in->shape), 
-				shape_size(&layer->out->shape),
+				in_size, 
+				out_size,
 				compsize);
 	    }
 		
-
 		// show assigned blocks
 		{
 			LOG("   ");
@@ -444,7 +481,10 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t* block_pool)
 			{
 				if(i % 4 == 0)
 					LOG(" ");
-				LOG("%d,", !(!block_pool[i].owner));
+				if(block_pool[i].owners)
+					LOG("%d ", block_pool[i].owners);
+				else
+					LOG("- ");
 			}
 			LOG("\n");
 		}
@@ -460,9 +500,10 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t* block_pool)
 			// single buf layer. 
 			if(layer->in->type == LAYER_BUF_NULL || layer->out->type == LAYER_BUF_NULL)
 			{
-				out->mem = layer->in->mem;
-				if(layer->in->mem->owner == layer) // only transfer owner if we own this buf
-					out->mem->owner = layer->out->hook.io->owner; 
+				// we dont release the io buf, pass to next layer directly
+				layer->out->mem = layer->in->mem;
+				// computational buf
+				release_comp_mem(layer);
 			}
 			else
 			{
@@ -471,7 +512,8 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t* block_pool)
 				if(out_blk == NULL)
 					return NN_NO_MEMORY;
 				// set output mem owner to next layer. 
-				out_blk->owner = layer->out->hook.io->owner; 
+				out_blk->owners += 1; 
+				out_blk->state = NNOM_BUF_FILLED; 				// marked filled
 				// record maximu mem size in this block
 				mem_size = alignto(shape_size(&out->shape),4);
 				out_blk->size = mem_size > out_blk->size ? mem_size : out_blk->size;
@@ -481,12 +523,10 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t* block_pool)
 				// once we allocate for output, we can now release input and comput. 
 				// release input mem and comp mem
 				release_input_mem(layer);
-				release_comp_mem(layer);
-				
+				release_comp_mem(layer);	
 			}
-
 		}
-		// Multiple output
+		// Multiple output hooks
 		else
 		{
 			// single buf layer will use the input buf for the first output 
@@ -494,8 +534,9 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t* block_pool)
 			{
 				// we dont allocate new buf, but use the input
 				// the ownership will be set to next layer later 
-				out_blk = layer->in->mem; 
-				// sure we release input. 
+				layer->out->mem = layer->in->mem; 
+				layer->out->mem->owners = hook_length(&layer->out->hook); // set the mem lifetime. 
+				// we dont release input. 
 				release_comp_mem(layer);
 			}
 			// mutiple buf layer. (I/O uses different memory)
@@ -511,9 +552,10 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t* block_pool)
 						return NN_NO_MEMORY;
 					// record maximum mem size in this block
 					mem_size = alignto(shape_size(&out->shape), 4);
-					out->mem->size = mem_size > out_blk->size ? mem_size : out_blk->size;
+					out->mem->size = mem_size > out->mem->size ? mem_size : out->mem->size;
 					// keep the block untill the last hooked layer is called.  
-					out->mem->owner = layer;
+					out->mem->owners = hook_length(&out->hook);	// set lifetime
+					out->mem->state = NNOM_BUF_FILLED; 			// test, marked filled
 					
 					out = out->aux;
 				}
@@ -531,16 +573,20 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t* block_pool)
 				hook = &out->hook;
 				while(hook != NULL && hook->io != NULL)
 				{
-					// if this layer is the last one that hooked on the buf.
-					// then swith the block owner to him. 
-					if(hook->next == NULL)
-						out->mem->owner = hook->io->owner;
+					nnom_status_t result;
+//					// if this layer is the last one that hooked on the buf.
+//					// then swith the block owner to him. 
+//					if(hook->next == NULL)
+//						out->mem->owners = hook->io->owner;
 					
 					// test, add shorcut before nested call 
 					// put the "hooked layer" to the END of the list, which START at current "layer"
-					layer_shortcut_add(layer, hook->io->owner); 
-					// nested call
-					compile_layers(hook->io->owner, block_pool);					
+					result = layer_shortcut_add(layer, hook->io->owner); 
+					
+					// if the layer is already in the list, then it is already compiled. 
+					if(result == NN_SUCCESS)
+						// nested call
+						compile_layers(hook->io->owner, block_pool);					
 					// next hook
 					hook = hook->next;
 				}
@@ -558,21 +604,20 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t* block_pool)
 			}
 			
 			// when all the out is called. this should stop here. 
-			// release memory
+			// once enter mutiple output iterating, the function will always return. 
 			return NN_SUCCESS;
 		}
 		// Multiple output ended. 
-
 		
 		// return if this is output layer. 
 		// the output layer's output io is hooked to nothing.  
 		if(layer->out->hook.io == NULL)	
 			return NN_SUCCESS;
-		
+
+		// single output layer, this function continue to analyse next layer.
 		// switch to next layer.
 		layer = layer->out->hook.io->owner;
 	}
-
 	return NN_SUCCESS;
 }
 
@@ -665,7 +710,7 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t* input, nnom_layer_t* 
 		m->tail = find_last(input);
 	
 	LOG("\nINFO: Start compile...\n");
-	LOG("Layer        Activation    output shape      ops          memory           assigned mem block\n");
+	LOG("Layer        Activation    output shape      ops          memory            mem life-time\n");
 	LOG("----------------------------------------------------------------------------------------------\n");
 	
 	// compile layers, started from list head
