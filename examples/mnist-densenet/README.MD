@@ -1,4 +1,4 @@
-## MNIST DenseNet Example 
+# MNIST DenseNet Example 
 
 **(Source code and models under developing)**
 
@@ -6,7 +6,7 @@
 
 This is an example of DenseNet classifier using [THE MNIST DATABASE](http://yann.lecun.com/exdb/mnist/). 
 
-# DenseNet
+## DenseNet
 The detial of DenseNet is available in [the paper](https://arxiv.org/abs/1608.06993).
 
 Which award the best paper in CVPR 2017 
@@ -89,7 +89,7 @@ int main()
 ~~~
 
 
-# Environments 
+## Environments 
 The example implementation is based on [RT-Thread](https://github.com/RT-Thread/rt-thread).
 
 It uses Y-Modem, memory apis, consolse, ringbuffers which provided by RT-Thread
