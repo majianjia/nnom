@@ -13,10 +13,12 @@ Which award the best paper in CVPR 2017
 
 The two typical graphs shows the basic ideas:
 
-![Dense Net]()
-![Dense Block]()
+![Dense Net](https://github.com/majianjia/nnom/blob/master/examples/mnist-densenet/docs/densenet-1.png)
+![Dense Block](https://github.com/majianjia/nnom/blob/master/examples/mnist-densenet/docs/densenet-2.jpeg)
 
-To implement the DenseNet using NNoM is quite straightforward. 
+
+Implementing the DenseNet using NNoM is quite straightforward. 
+
 The codes below shows an exmaple of using 1 dense block.
 
 ~~~C
@@ -49,8 +51,9 @@ nnom_layer_t * dense_block(nnom_model_t* model, nnom_layer_t * in)
 	// the output channels should be input + 4 x 32
 	return model->mergex(Concat(-1), 5, x[0], x[1], x[2], x[3], x[4]);
 }
-
-
+~~~
+Now we can use the Dense Block to build a complete DenseNet
+~~~C
 int main()
 {
 	// input format
