@@ -1,6 +1,8 @@
 # MNIST DenseNet Example 
 
-**(Source code and models under developing)**
+**(Source code and models are under developing)**
+
+They will be released shortly. 
 
 
 
