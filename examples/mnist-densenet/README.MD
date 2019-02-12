@@ -31,6 +31,10 @@ nnom_layer_t * dense_block(nnom_model_t* model, nnom_layer_t * in)
 	
 	x[1] = model->hook(Conv2D(32, kernel(3, 3), stride(1, 1), PADDING_SAME, &c1_w, &c1_b), x[0]);
 	x[1] = model->active(act_relu(), x[1]);
+	// the above line can be replaced by one of the next 2 line, logically perfrom the same
+	// please check "actail" and activation api for details
+	// x[1] = model->hook(ReLU(), x[1]); 
+	// x[1] = model->hook(Activation(act_relu()), x[1]); 
 
 	// concate 1,2 
 	x[2] = model->mergex(Concat(-1), 2, x[0], x[1]); 
