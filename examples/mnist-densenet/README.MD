@@ -33,12 +33,12 @@ nnom_layer_t * dense_block(nnom_model_t* model, nnom_layer_t * in)
 	
 	x[1] = model->hook(Conv2D(32, kernel(3, 3), stride(1, 1), PADDING_SAME, &c1_w, &c1_b), x[0]);
 	x[1] = model->active(act_relu(), x[1]);
-	// the above line can be replaced by one of the next 2 line, logically perfrom the same
-	// please check "actail" and activation api for details
+	// the above line can be replaced by one of the next 2 line. They logically perfrom the same
+	// please check "actail" and activation API for more detail
 	// x[1] = model->hook(ReLU(), x[1]); 
 	// x[1] = model->hook(Activation(act_relu()), x[1]); 
 
-	// concate 1,2 
+	// concate 1,2 (Concate(-1), means concat by last axis, which is channel in HWC format)
 	x[2] = model->mergex(Concat(-1), 2, x[0], x[1]); 
 	x[2] = model->hook(Conv2D(32, kernel(3, 3), stride(1, 1), PADDING_SAME, &c2_w, &c2_b), x[2]);
 	x[2] = model->active(act_relu(), x[2]);
@@ -69,7 +69,7 @@ int main()
 	x = model->hook(Conv2D(16, kernel(3, 3), stride(2, 2), PADDING_SAME, &c0_w, &c0_b),);
 	
 	// The dense block
-	x = dense_block(&model, input_layer);
+	x = dense_block(&model, x);
 	
 	// the output of denseblock is 14 x 14 x 144(CH)
 	// we need to reduce channels num to 10 for global average pooling
