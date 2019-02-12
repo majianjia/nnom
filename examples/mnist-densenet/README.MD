@@ -74,7 +74,7 @@ int main()
 	x = model->hook(Conv2D(10, kernel(3, 3), stride(1, 1), PADDING_SAME, &c5_w, &c5_b),);
 
 	// average pool
-	x = model.hook(AvgPool(kernel(14, 14), stride(14, 14), PADDING_SAME), x);
+	x = model.hook(AvgPool(kernel(14, 14), stride(1, 1), PADDING_VALID), x);
 	
 	// output
 	x = model.hook(Softmax(), x);
