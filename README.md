@@ -17,11 +17,12 @@ The aims of NNoM is to provide a light-weight, user-friendly and flexible interf
 
 **NNoM can help you to build those complex structures in the same way as you did in Keras.**
 
-Inception example:[uci-inception](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)
-DenseNet example:[mnist-densenet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)
+**Inception example: [uci-inception](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)**
+
+**DenseNet example: [mnist-densenet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)**
 
 
-Most importantly, your implementation can be evaluated directly on MCU with NNoM.
+Additianly, your implementation can be evaluated directly on MCU with NNoM.
 ![](https://github.com/majianjia/nnom/blob/master/docs/gifs/uci_har_results.png)
 
 
