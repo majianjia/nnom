@@ -75,10 +75,11 @@ int main()
 	// we need to reduce channels num to 10 for global average pooling
 	x = model->hook(Conv2D(10, kernel(3, 3), stride(1, 1), PADDING_SAME, &c5_w, &c5_b),);
 
-	// average pool
+	// global average pool
 	x = model.hook(AvgPool(kernel(14, 14), stride(1, 1), PADDING_VALID), x);
 	
 	// output
+	x = model.hook(Flatten(), x)
 	x = model.hook(Softmax(), x);
 	x = model.hook(Output(shape(10,1,1), qformat(7, 0), nnom_output_data), x);
 	
