@@ -76,7 +76,7 @@ int main()
 	x = model->hook(Conv2D(10, kernel(3, 3), stride(1, 1), PADDING_SAME, &c5_w, &c5_b),);
 
 	// global average pool
-	x = model.hook(AvgPool(kernel(14, 14), stride(1, 1), PADDING_VALID), x);
+	x = model.hook(GlobalAvgPool()), x);
 	
 	// output
 	x = model.hook(Flatten(), x)
