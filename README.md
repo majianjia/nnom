@@ -146,8 +146,8 @@ Activation can be used by itself as layer, or can be attached to the previous la
 | ------ |-- |--|--|
 | Max Pooling  | Beta|MaxPool()||
 | Average Pooling | Beta|AvgPool()||
-| Global Max Pooling  | Beta|MaxPool()||
-| Global Average Pooling | Beta|AvgPool()||
+| Global Max Pooling  | Beta|GlobalMaxPool()||
+| Global Average Pooling | Beta|GlobalAvgPool()||
 
 **Matrix Operations Layers**
 
