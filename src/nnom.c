@@ -75,7 +75,7 @@ static uint32_t find_index(nnom_layer_t *start, nnom_layer_t *layer)
 	uint32_t i = 1;
 	if (start == NULL)
 		return 0;
-	// iterate every layer until the last one on the list, then return the last instance
+	// iterate every layer until the last one on the list, then return the index number
 	while (start->out->hook.io != NULL)
 	{
 		i++;
@@ -100,7 +100,7 @@ static nnom_status_t model_add(nnom_model_t *model, nnom_layer_t *layer)
 	last = find_last(model->head);
 	curr = layer;
 
-	// when the list is empty, the find_last() return list->head.
+	// when the layer list is empty, the find_last() return model->head.
 	if (last == NULL)
 	{
 		model->head = curr;
@@ -210,7 +210,7 @@ static nnom_layer_io_t *allocate_input_io(nnom_layer_io_t *io)
 
 // merge a few layers using specified method
 // num = the number of layer that will be merged
-// method = functional layer such as (concat(), dot(), mult(), add())
+// method = functional layer such as (concat(), mult(), add(), sub())
 static nnom_layer_t *model_mergex(nnom_layer_t *method, int num, ...)
 {
 	nnom_layer_t *in_layer;
@@ -244,13 +244,13 @@ static nnom_layer_t *model_mergex(nnom_layer_t *method, int num, ...)
 
 // merge 2 input
 // this is an older interface
-// method = functional layer such as (concat(), dot(), mult(), add())
+// method = functional layer such as (concat(), mult(), add(), sub())
 static nnom_layer_t *model_merge(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2)
 {
 	return model_mergex(method, 2, in1, in2);
 }
 
-// This api will merge activation to layer's to reduce the extra layer for activation
+// This api will merge activation to layer's actail to avoid the extra layer for activation
 static nnom_layer_t *model_active(nnom_activation_t *act, nnom_layer_t *target)
 {
 	// simple and easy
@@ -286,13 +286,14 @@ nnom_model_t *new_model(nnom_model_t *model)
 void model_delete(nnom_model_t *m)
 {
 	// free all mem in list first
+	// TODO
 
 	// free model, if the model is created by nnom
 	if (m->is_alloc)
 		nnom_free(m);
 }
 
-// find and available memory block.
+// find an available memory block.
 static nnom_mem_block_t *allocate_block(nnom_mem_block_t *list)
 {
 	nnom_mem_block_t *free = NULL;
@@ -312,7 +313,7 @@ static void release_block(nnom_mem_block_t *block)
 	if (block->owners > 0)
 		block->owners -= 1;
 	if (block->owners == 0)
-		block->state = NNOM_BUF_EMPTY; // test, marked empty
+		block->state = NNOM_BUF_EMPTY;
 }
 
 static void release_input_mem(nnom_layer_t *layer)
@@ -335,6 +336,7 @@ static void release_comp_mem(nnom_layer_t *layer)
 	}
 }
 
+// return the length of the hook lists
 static uint8_t hook_length(nnom_layer_hook_t *hook)
 {
 	uint8_t num = 0;
@@ -348,7 +350,8 @@ static uint8_t hook_length(nnom_layer_hook_t *hook)
 	return num;
 }
 
-// call while iteration. the shorcut is for fast running and fast iliterating.
+// call while compiling.
+// the shorcut is for fast running and fast iliterating.
 // simply link every layer as a list. ordered by its runing order
 nnom_status_t layer_shortcut_add(nnom_layer_t *start, nnom_layer_t *curr)
 {
@@ -361,9 +364,9 @@ nnom_status_t layer_shortcut_add(nnom_layer_t *start, nnom_layer_t *curr)
 	// find the end of the list, and add curr layer to the end of it.
 	while (layer->shortcut != NULL)
 	{
-		// if the layer is alread in shortcut list, tell upper.
+		// if the layer is already in shortcut list, tell upper.
 		if (curr == layer)
-			return NN_LENGTH_ERROR;
+			return NN_ARGUMENT_ERROR;
 
 		layer = layer->shortcut;
 	}
@@ -372,6 +375,13 @@ nnom_status_t layer_shortcut_add(nnom_layer_t *start, nnom_layer_t *curr)
 	return NN_SUCCESS;
 }
 
+// This is a nested called functions.
+// to analyse the topology of the model, calculate the output_shape of each layer and create shortcut lists.
+// Nest will happend when a layer have multiple output module or mutiple output hooks.
+// This function will return when
+// 	1) if the layer has multiple input but not all of them are filled by last layers. returns NN_MORE_TODO
+//	2) if all the output hooked are nested called. return NN_SUCCESS
+//	3) if the layer is output layer. return NN_SUCCESS
 nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 {
 	size_t mem_size = 0;
@@ -438,15 +448,15 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 		if (layer->comp != NULL)
 		{
 			layer->comp->mem = allocate_block(block_pool);
-			layer->comp->mem->owners += 1;						 // add users
-			layer->comp->mem->state = NNOM_BUF_FILLED; // test
+			layer->comp->mem->owners += 1; // add us to buffer users
+			layer->comp->mem->state = NNOM_BUF_FILLED;
 			// record maximum mem size in this block
 			mem_size = alignto(shape_size(&layer->comp->shape), 4);
 			layer->comp->mem->size =
-					mem_size > layer->comp->mem->size ? mem_size : layer->comp->mem->size;
+				mem_size > layer->comp->mem->size ? mem_size : layer->comp->mem->size;
 		}
 
-		// show block size
+		// show names, activations, mem block size
 		{
 			size_t in_size = io_mem_size(layer->in);
 			size_t out_size = io_mem_size(layer->out);
@@ -455,21 +465,24 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 				compsize = shape_size(&layer->comp->shape);
 			else
 				compsize = 0;
+			// names
 			LOG(" %10.s - ", &default_layer_names[layer->type]);
+			// activations
 			if (layer->actail != NULL)
 				LOG("%8.s - ", &default_activation_names[layer->actail->type]);
 			else
 				LOG("         - ");
 
+			// outshape (h, w, c), ops, input buf, output buf, computational buf.
 			LOG("(%4d,%4d,%4d)  %7d   (%5d,%5d,%5d)",
-					layer->out->shape.h, layer->out->shape.w, layer->out->shape.c,
-					layer->stat.macc,
-					in_size,
-					out_size,
-					compsize);
+				layer->out->shape.h, layer->out->shape.w, layer->out->shape.c,
+				layer->stat.macc,
+				in_size,
+				out_size,
+				compsize);
 		}
 
-		// show assigned blocks
+		// show the memory blocks's lifetime (number of owners)
 		{
 			LOG("   ");
 			for (int i = 0; i < NNOM_BLOCK_NUM; i++)
@@ -485,12 +498,11 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 		}
 
 		// check output
-		out = layer->out;
-		if (out == NULL)
+		if (layer->out == NULL)
 			return NN_SUCCESS;
 
 		// if the layer is Single Output, continue the loop directly. To reduce nested level
-		if (out->aux == NULL && out->hook.next == NULL)
+		if (layer->out->aux == NULL && layer->out->hook.next == NULL)
 		{
 			// single buf layer.
 			if (layer->in->type == LAYER_BUF_NULL || layer->out->type == LAYER_BUF_NULL)
@@ -510,10 +522,10 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 				out_blk->owners += 1;
 				out_blk->state = NNOM_BUF_FILLED; // marked filled
 				// record maximu mem size in this block
-				mem_size = alignto(shape_size(&out->shape), 4);
+				mem_size = alignto(shape_size(&layer->out->shape), 4);
 				out_blk->size = mem_size > out_blk->size ? mem_size : out_blk->size;
 				// set the blk to the layer IO
-				out->mem = out_blk;
+				layer->out->mem = out_blk;
 
 				// once we allocate for output, we can now release input and comput.
 				// release input mem and comp mem
@@ -525,16 +537,17 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 		else
 		{
 			// single buf layer will use the input buf for the first output
-			if (in->type == LAYER_BUF_NULL || out->type == LAYER_BUF_NULL)
+			if (layer->in->type == LAYER_BUF_NULL || layer->out->type == LAYER_BUF_NULL)
 			{
 				// we dont allocate new buf, but use the input
 				// the ownership will be set to next layer later
 				layer->out->mem = layer->in->mem;
 				layer->out->mem->owners = hook_length(&layer->out->hook); // set the mem lifetime.
-				// we dont release input.
+				// release computational buff
+				// we dont release input buff here, since it will be passed to the next layer as input buff.
 				release_comp_mem(layer);
 			}
-			// mutiple buf layer. (I/O uses different memory)
+			// mutiple buf layer. (I/O use different memory blocks)
 			else
 			{
 				// allocate for every output
@@ -549,18 +562,19 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 					mem_size = alignto(shape_size(&out->shape), 4);
 					out->mem->size = mem_size > out->mem->size ? mem_size : out->mem->size;
 					// keep the block untill the last hooked layer is called.
-					out->mem->owners = hook_length(&out->hook); // set lifetime
-					out->mem->state = NNOM_BUF_FILLED;					// test, marked filled
+					out->mem->owners = hook_length(&out->hook); // set lifetime of the buffer = the num of hooked layers
+					out->mem->state = NNOM_BUF_FILLED;
 
 					out = out->aux;
 				}
-				// once we allocate for output, we can now release input and comput.
+				// once we allocate for output, we can now release input and comput (or reduce the lifetime).
 				// release input mem and comp mem
 				release_input_mem(layer);
 				release_comp_mem(layer);
 			}
 
-			// iterate all hooked layers.
+			// while all the out module(s) receive a memory block, it is ready to be sent to other layers.
+			// iterate all hooked layers in each out module.
 			out = layer->out;
 			while (out != NULL)
 			{
@@ -569,18 +583,12 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 				while (hook != NULL && hook->io != NULL)
 				{
 					nnom_status_t result;
-					//					// if this layer is the last one that hooked on the buf.
-					//					// then swith the block owner to him.
-					//					if(hook->next == NULL)
-					//						out->mem->owners = hook->io->owner;
-
 					// test, add shorcut before nested call
-					// put the "hooked layer" to the END of the list, which START at current "layer"
+					// put the "hooked layer" to the END of the shortcut list, which STARTed at current "layer"
+					// if the layer is already in the list, then it is already compiled by other layer's nested call, returns NN_ARGUMENT_ERROR
 					result = layer_shortcut_add(layer, hook->io->owner);
-
-					// if the layer is already in the list, then it is already compiled.
 					if (result == NN_SUCCESS)
-						// nested call
+						// nested call only when the layer hasnt been compiled
 						compile_layers(hook->io->owner, block_pool);
 					// next hook
 					hook = hook->next;
@@ -588,18 +596,11 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 
 				// next io
 				out = out->aux;
-
-				//
-				if (out != NULL)
-				{
-					out_blk = allocate_block(block_pool);
-					if (out_blk == NULL)
-						return NN_NO_MEMORY;
-				}
 			}
 
 			// when all the out is called. this should stop here.
 			// once enter mutiple output iterating, the function will always return.
+			// because at least one of the nested called by this function will run till the end of the model.
 			return NN_SUCCESS;
 		}
 		// Multiple output ended.
@@ -613,6 +614,8 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 		// switch to next layer.
 		layer = layer->out->hook.io->owner;
 	}
+
+	// seems to be redundants
 	return NN_SUCCESS;
 }
 
@@ -621,16 +624,19 @@ size_t mem_analysis_result(nnom_model_t *m)
 	uint32_t index;
 	uint32_t total_mem = 0;
 	LOG("INFO: memory analysis result\n ");
+	// print size of memory blocks
 	for (index = 0; index < NNOM_BLOCK_NUM; index++)
 	{
 		total_mem += m->blocks[index].size;
 		LOG("Block%d: %d  ", index, m->blocks[index].size);
 	}
-	LOG("\n Total memory cost by network: %d bytes\n", total_mem);
+	// size of total memory cost by networks buffer
+	LOG("\n Total memory cost by network buffers: %d bytes\n", total_mem);
 
 	return total_mem;
 }
 
+// allocate memory, and set them to each block according to the mem analysis results.
 nnom_status_t block_mem_set(nnom_model_t *m, void *buf)
 {
 	uint32_t index;
@@ -646,8 +652,8 @@ nnom_status_t block_mem_set(nnom_model_t *m, void *buf)
 	return NN_SUCCESS;
 }
 
-// this function has to be use after memory is assigned to the layers.
-// it means it has to be call after compile_model as well.
+// this function has to be used after memory is assigned to the layers.
+// it means it has to be call after compile_model() as well.
 // it simply get the output buffer and set the buffer to tailed activation of each layer..
 nnom_status_t set_tailed_activation(nnom_model_t *m)
 {
@@ -655,7 +661,7 @@ nnom_status_t set_tailed_activation(nnom_model_t *m)
 	NNOM_NULL_CHECK(m->head);
 	nnom_layer_t *layer = m->head;
 
-	// if tailed activation, set it to the output.
+	// if tailed activation is exist, set it to the output.
 	while (layer)
 	{
 		if (layer->actail != NULL)
@@ -689,7 +695,7 @@ static uint64_t model_set_ops(nnom_model_t *m)
 	return total_ops;
 }
 
-// a compile can be use for both sequencial / functional model.
+// a compiler can be use for both sequencial / functional model.
 // the output layer is optional, if output = NULL, the compile set the
 nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *output)
 {
@@ -707,7 +713,7 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	LOG("Layer        Activation    output shape      ops          memory            mem life-time\n");
 	LOG("----------------------------------------------------------------------------------------------\n");
 
-	// compile layers, started from list head
+	// compile layers, started from list head, nested run till the end of models
 	compile_layers(m->head, m->blocks);
 
 	LOG("----------------------------------------------------------------------------------------------\n");
@@ -715,27 +721,32 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	// if model's tail is not the last layer which built by user.
 	if (output != find_last(input))
 		LOG("WARNING: model returned at #%d %s layer, but this layer is not the end of shortcut list \n",
-				find_index(m->head, output), &default_layer_names[output->type]);
+			find_index(m->head, output), &default_layer_names[output->type]);
 
 	// get the total (aligned) memory requirement
 	buf_size = mem_analysis_result(m);
 
-	// allocate memory
+	// allocate one big memory block
 	buf = nnom_mem(buf_size);
+	if(buf == NULL)
+	{
+		LOG("ERROR: No enough memory for network buffer, required %d bytes\n", buf_size);
+		return NN_NO_MEMORY;
+	}
 
-	// set allocated memory for layer
+	// split the memory for every memory block
 	block_mem_set(m, buf);
 
-	// finally set the output buff to tailed activation on each layer.
+	// finally set the output buff to tailed activation on each layer
 	set_tailed_activation(m);
 
-	// set model total ops
+	// calculate the total operations and set it to the model
 	model_set_ops(m);
 
 	return NN_SUCCESS;
 }
 
-// a simpler api for compile models with sequencial model
+// This is a simplified API for compile models with sequencial model only
 // this does not require specified Input / Output layers
 nnom_status_t sequencial_compile(nnom_model_t *m)
 {
@@ -745,27 +756,28 @@ nnom_status_t sequencial_compile(nnom_model_t *m)
 	return model_compile(m, input, output);
 }
 
+// run that layer
 nnom_status_t layer_run(nnom_layer_t *layer)
 {
 	nnom_status_t result;
 	uint32_t start;
 	NNOM_NULL_CHECK(layer);
 
-	// start
+	// start 
 	start = nnom_us_get();
 	// run main layer first
 	result = layer->run(layer);
-	// check tailed-activation
+	// run tailed-activation if it is presented
 	if (layer->actail != NULL)
 	{
 		layer->actail->run(layer, layer->actail);
 	}
-	// end
+	// done
 	layer->stat.time = nnom_us_get() - start;
 	return result;
 }
 
-// run the model, until the end_layer. If end_layer == NULL, run all layer.
+// run the model, until the end_layer. If end_layer == NULL, run all layers.
 nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 {
 	uint32_t layer_num = 1;
@@ -789,7 +801,7 @@ nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 			return result;
 		}
 
-		//LOG("INFO:Run - %10s, time: %d \n", &default_layer_names[layer->type], layer->stat.time);
+		//LOG("INFO:Run - %10s, time: %d \n", &default_layer_names[layer->type], layer->stat.time); // test
 		if (layer->shortcut == NULL)
 			break;
 		layer = layer->shortcut;
@@ -799,7 +811,7 @@ nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 	return NN_SUCCESS;
 }
 
-// run all model.
+// run all layers.
 nnom_status_t model_run(nnom_model_t *m)
 {
 	return model_run_to(m, NULL);

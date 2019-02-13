@@ -250,6 +250,8 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 			RT_NULL,
 			layer->out->mem->blk);
 	}
+	else 
+		return NN_ARGUMENT_ERROR;
 
 	return NN_SUCCESS;
 }
@@ -282,6 +284,8 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 			RT_NULL,
 			layer->out->mem->blk);
 	}
+	else
+		return NN_ARGUMENT_ERROR;
 
 	return NN_SUCCESS;
 }

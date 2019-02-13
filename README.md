@@ -17,7 +17,12 @@ The aims of NNoM is to provide a light-weight, user-friendly and flexible interf
 
 **NNoM can help you to build those complex structures in the same way as you did in Keras.**
 
-Most importantly, your implementation can be evaluated directly on MCU with NNoM.
+**Inception example: [uci-inception](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)**
+
+**DenseNet example: [mnist-densenet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)**
+
+
+Additianly, your implementation can be evaluated directly on MCU with NNoM.
 ![](https://github.com/majianjia/nnom/blob/master/docs/gifs/uci_har_results.png)
 
 
@@ -53,7 +58,7 @@ The above codes shows how a sequential model is built, compiled, and ran.
 
 
 ## Functional Model
-Functional APIs are much more flexible. An example is shown in [uci-inception example](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)
+Functional APIs are much more flexible. 
 
 It allows developer to build complex structures in MCU, such as [Inception](https://www.cs.unc.edu/~wliu/papers/GoogLeNet.pdf) and [ResNet](https://arxiv.org/abs/1512.03385). 
 

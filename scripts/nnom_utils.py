@@ -20,7 +20,6 @@
 '''
 
 
-
 import tensorflow as tf
 from keras.layers import Lambda
 from keras.models import Model
@@ -76,7 +75,8 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
 
     # get test data
     dat = x.astype(dtype="byte")  # test data
-    dat = np.reshape(dat, (dat.shape[0] * dat.shape[1] * dat.shape[2]))
+    block_size = x.shape[1] * x.shape[2] * x.shape[3] # size of one sample for exampe, mnist = 28*28*1
+    dat = np.reshape(dat, (dat.shape[0] * block_size))
 
     label_batch = 128       # the Y-modem example uses 128 batch
     channel = x.shape[-1]   # channel last
@@ -84,7 +84,7 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
         start = 0
         while start <= (test_label.size - label_batch):
             test_label[start: start + label_batch].tofile(f)
-            dat[128 * channel * start: 128 * channel * (start + label_batch)].tofile(f)
+            dat[block_size * start: block_size * (start + label_batch)].tofile(f)
             start += label_batch
 
         # the rest data
@@ -93,7 +93,7 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
             new_labls = test_label[start:]
             new_labls = np.pad(new_labls, (0, label_batch - rest_len), mode='constant')
             new_labls.tofile(f)
-            dat[128 * channel * start:].tofile(f)
+            dat[block_size * start:].tofile(f)
 
     print("binary test file generated:", name)
     print("test data length:", test_label.size)
@@ -250,7 +250,8 @@ def layers_output_ranges(model, x_test):
         if("input" in layer.name
                 or "dropout" in layer.name
                 or "softmax" in layer.name
-                or "lambda" in layer.name):
+                or "lambda" in layer.name
+                or "concat" in layer.name):
             continue
         layer_model = Model(inputs=model.input, outputs=layer.output)
         features = layer_model.predict(x_test)
@@ -349,12 +350,12 @@ if __name__ == "__main__":
     import os
     from keras.models import  load_model
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
     # get best model
-    MODEL_PATH = 'best_model.h5'
-    model = load_model(MODEL_PATH)
+    #MODEL_PATH = 'best_model.h5'
+    #model = load_model(MODEL_PATH)
     # save weight
     #generate_weights_test(model)
 
