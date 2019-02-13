@@ -16,7 +16,7 @@ Dont be scared, check this:
 
 ![](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM/nnom_structures.png)
 
-Next, we need APIs to create layers and build the model structures.  
+Those APIs listed below will help you to create layers and build the model structures.  
 
 # APIs
 **layer APIs** and **construction APIs** are used to build a model. 
@@ -39,6 +39,17 @@ x = model.hook(Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b
 x = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x);
 ~~~
 
+The NNoM currently supports HWC format. 
+
+Whcih also called "channel last", where H = number of rows or y axis, W = number of column or x axis, C = number of channes. 
+
+> For example:
+>
+> In the above codes, both `kernal(H, W)` and `stride(H, W)` returns a 'shape' instance.
+> The shape instance in format of (H, W, ?)
+
+All convolutional layers and poolings support both 1D / 2D data input. 
+However, when using 1D input, the H must be set to 1. 
 
 ## Construction APIs
 Construction APIs are statics functions located in nnom.c
@@ -99,6 +110,11 @@ Pooling as they are
 // Pooling, kernel, strides, padding
 nnom_layer_t* MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
 nnom_layer_t* AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+
+// The Global poolings simplly do better 
+nnom_layer_t *GlobalMaxPool(void);
+nnom_layer_t *GlobalAvgPool(void);
+
 ~~~
 
 Activation's **Layers API** are started with capital letter. They are differed from the **Activation API**, which start with `act_*` and retrun an activation instance.
@@ -108,6 +124,7 @@ They return a **layer** instance.
 ~~~c
 // Activation layers take activation instance as input.  
 nnom_layer_t* Activation(nnom_activation_t *act);		
+
 // Activation's layer API. 
 nnom_layer_t* ReLU(void);
 nnom_layer_t* Softmax(void);
@@ -186,6 +203,8 @@ nnom_activation_t* act_tanh(void);
 ## Model API
 
 A model instance contains the starting layer, the end layer and other neccessary info. 
+
+Please refer to the examples for usage
 
 
 ~~~c

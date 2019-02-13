@@ -144,8 +144,10 @@ Activation can be used by itself as layer, or can be attached to the previous la
 
 | Pooling | Status |Layer API|Comments|
 | ------ |-- |--|--|
-| Max Pooling  | Beta|MaxPool()|Support 1/2D|
-| Average Pooling | Beta|AvgPool()|Support 1/2D|
+| Max Pooling  | Beta|MaxPool()||
+| Average Pooling | Beta|AvgPool()||
+| Global Max Pooling  | Beta|MaxPool()||
+| Global Average Pooling | Beta|AvgPool()||
 
 **Matrix Operations Layers**
 

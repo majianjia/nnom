@@ -18,6 +18,7 @@ import os
 from keras.models import Sequential, load_model
 from keras.models import Model
 from keras.datasets import mnist
+from keras.datasets import cifar10 #test
 from keras.layers import *
 from keras.utils import to_categorical
 from keras.callbacks import ModelCheckpoint
@@ -25,7 +26,7 @@ from keras.callbacks import ModelCheckpoint
 from nnom_utils import *
 
 
-model_name = 'keras_mnist_model.h5'
+model_name = 'keras_cifar10_model.h5'
 save_dir = model_name #os.path.join(os.getcwd(), model_name)
 
 def dense_block(x, k):
@@ -54,7 +55,7 @@ def dense_block(x, k):
 def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
 
     inputs = Input(shape=x_train.shape[1:])
-    x = Conv2D(16, kernel_size=(7, 7), strides=(1, 1), padding='same')(inputs)
+    x = Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding='same')(inputs)
     x = fake_clip()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 2),strides=(2, 2), padding="same")(x)
@@ -72,8 +73,8 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     x = dense_block(x, k=24)
 
     # global avg.
-    #x = AvgPool2D((7, 7), strides=(7, 7), padding="valid")(x)
-    x = MaxPool2D((7, 7), strides=(7, 7), padding="valid")(x)
+    x = AvgPool2D((7, 7), strides=(7, 7), padding="valid")(x)
+    #x = MaxPool2D((7, 7), strides=(7, 7), padding="valid")(x)
     x = fake_clip()(x)
 
     # output
@@ -90,7 +91,7 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     model = Model(inputs=inputs, outputs=predictions)
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer='adadelta',
+                  optimizer='adam',
                   metrics=['accuracy'])
 
     model.summary()
@@ -126,11 +127,12 @@ if __name__ == "__main__":
 
     #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-    epochs = 10
+    epochs = 5
     num_classes = 10
 
     # The data, split between train and test sets:
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
+    #(x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
     print(x_train.shape[0], 'train samples')
     print(x_test.shape[0], 'test samples')
@@ -144,9 +146,9 @@ if __name__ == "__main__":
     x_test = x_test.reshape(x_test.shape[0], x_test.shape[1], x_test.shape[2], 1)
     print('x_train shape:', x_train.shape)
 
-    # quantize the range to q7
-    x_test = np.clip(((x_test)/2), -128, 127).round(0)
-    x_train = np.clip(((x_train)/2), -128, 127).round(0)
+    # quantize the range to q7 without bias
+    x_test = np.clip(np.floor((x_test)/2), -128, 127)
+    x_train = np.clip(np.floor((x_train)/2), -128, 127)
 
     print("data range", x_test.min(), x_test.max())
 
@@ -154,7 +156,7 @@ if __name__ == "__main__":
     generate_test_bin(x_test, y_test, name='mnist_test_data.bin')
 
     # train model
-    history = train(x_train,y_train, x_test, y_test, batch_size=64, epochs=epochs)
+    history = train(x_train,y_train, x_test, y_test, batch_size=256, epochs=epochs)
 
     # get best model
     model_path = os.path.join(save_dir, model_name)
@@ -167,7 +169,7 @@ if __name__ == "__main__":
     generate_weights(model, name='weights.h')
 
     # test, show the output ranges
-    #layers_output_ranges(model, x_train)
+    layers_output_ranges(model, x_train)
 
 
     # plot

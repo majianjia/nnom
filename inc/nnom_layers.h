@@ -150,6 +150,8 @@ nnom_layer_t *Output(nnom_shape_t output_shape, nnom_qformat_t fmt, void *p_buf)
 // Pooling
 nnom_layer_t *MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
 nnom_layer_t *AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+nnom_layer_t *GlobalMaxPool(void);
+nnom_layer_t *GlobalAvgPool(void);
 
 // Activation
 nnom_layer_t *Activation(nnom_activation_t *act);

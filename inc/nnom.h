@@ -49,7 +49,9 @@ typedef enum
 	NNOM_TANH,
 	NNOM_SOFTMAX,
 	NNOM_MAXPOOL,
+	NNOM_GLOBAL_MAXPOOL,
 	NNOM_AVGPOOL,
+	NNOM_GLOBAL_AVGPOOL,
 	NNOM_FLATTEN,
 	NNOM_LAMBDA,
 	NNOM_CONCAT,
@@ -74,7 +76,9 @@ typedef enum
 			"tanh",         \
 			"softmax",      \
 			"maxpool",      \
+			"gl_maxpool",	\
 			"avgpool",      \
+			"gl_avgpool",	\
 			"flatten",      \
 			"lambda",       \
 			"concat",       \

@@ -400,10 +400,44 @@ nnom_layer_t *AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
 	{
 		layer->type = NNOM_AVGPOOL;
 		layer->run = avgpool_run;
-		layer->comp_out_shape = maxpooling_out_shape; // same as max pool
+		layer->comp_out_shape = avgpooling_out_shape; // same as max pool
 	}
 	return (nnom_layer_t *)layer;
 }
+
+nnom_layer_t *GlobalMaxPool(void)
+{
+	// create the normal pooling layer, the parameters are left empty to fill in later.
+	// parameters will be filled in in global_pooling_out_shape()
+	nnom_layer_t *layer = MaxPool(kernel(0,0), stride(0,0), PADDING_VALID);
+
+	// change to global max pool
+	if (layer != NULL)
+	{
+		layer->type = NNOM_GLOBAL_MAXPOOL;
+		layer->comp_out_shape = global_pooling_out_shape; 
+	}
+	
+	return (nnom_layer_t *)layer;
+}
+
+nnom_layer_t *GlobalAvgPool(void)
+{
+	// create the normal pooling layer, the parameters are left empty to fill in later.
+	// parameters will be filled in global_pooling_out_shape() remotely
+	nnom_layer_t *layer = MaxPool(kernel(0,0), stride(0,0), PADDING_VALID);
+
+	// change some parameters to be recognised as avg pooling
+	if (layer != NULL)
+	{
+		layer->type = NNOM_GLOBAL_AVGPOOL;
+		layer->run = avgpool_run;			// global and basic pooling share the same runner
+		layer->comp_out_shape = global_pooling_out_shape; 
+	}
+	
+	return (nnom_layer_t *)layer;
+}
+
 
 nnom_layer_t *Flatten(void)
 {

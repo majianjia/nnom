@@ -232,9 +232,6 @@ nnom_status_t maxpooling_out_shape(nnom_layer_t *layer)
 	layer->in->qfmt = layer->in->hook.io->qfmt;
 	layer->out->qfmt = layer->in->qfmt;
 
-	// output shape
-	out->mem->blk = in->mem->blk;
-
 	if (cl->padding_type == PADDING_SAME)
 	{
 		out->shape.h = ceilf((float)(in->shape.h) / (float)(cl->stride.h));
@@ -250,6 +247,51 @@ nnom_status_t maxpooling_out_shape(nnom_layer_t *layer)
 
 	return NN_SUCCESS;
 }
+
+nnom_status_t avgpooling_out_shape(nnom_layer_t *layer)
+{
+	// avg pooling share the same output shape, stride, padding setting. 
+	maxpooling_out_shape(layer);
+	
+	// however, avg pooling require a computational buffer. 
+	layer->comp->shape = shape(2 * 1 * layer->in->shape.c, 1, 1);
+
+	return NN_SUCCESS;
+}
+
+nnom_status_t global_pooling_out_shape(nnom_layer_t *layer)
+{
+	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)layer;
+	nnom_layer_io_t *in = layer->in;
+	nnom_layer_io_t *out = layer->out;
+	//get the last layer's output as input shape
+	in->shape = in->hook.io->shape;
+
+	// test, output fmt and out shift
+	layer->in->qfmt = layer->in->hook.io->qfmt;
+	layer->out->qfmt = layer->in->qfmt;
+	
+	// global pooling
+	// output (h = 1, w = 1, same channels)
+	out->shape.h = 1;
+	out->shape.w = 1;
+	out->shape.c = in->shape.c; 
+	
+	// different from other output_shape(), the kernel..padding left by layer API needs to be set in here
+	// due to the *_run() methods of global pooling are using the normall pooling's. 
+	// fill in the parameters left by layer APIs (GlobalAvgPool and MaxAvgPool) 
+	cl->kernel = in->shape;
+	cl->stride = shape(1, 1, 1);
+	cl->pad = shape(0, 0, 0);
+	cl->padding_type = PADDING_VALID;
+	
+	// additionally avg pooling require computational buffer, which is  2*dim_im_out*ch_im_in
+	if(layer->type == NNOM_AVGPOOL || layer->type == NNOM_GLOBAL_AVGPOOL)
+		layer->comp->shape = shape(2 * 1 * layer->in->shape.c, 1, 1);
+
+	return NN_SUCCESS;
+}
+
 
 nnom_status_t concatenate_out_shape(nnom_layer_t *layer)
 {
