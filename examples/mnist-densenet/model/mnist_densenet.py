@@ -26,7 +26,7 @@ from keras.callbacks import ModelCheckpoint
 from nnom_utils import *
 
 
-model_name = 'keras_cifar10_model.h5'
+model_name = 'mnist_model.h5'
 save_dir = model_name #os.path.join(os.getcwd(), model_name)
 
 def dense_block(x, k):
@@ -55,7 +55,7 @@ def dense_block(x, k):
 def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
 
     inputs = Input(shape=x_train.shape[1:])
-    x = Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding='same')(inputs)
+    x = Conv2D(16, kernel_size=(5, 5), strides=(1, 1), padding='same')(inputs)
     x = fake_clip()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 2),strides=(2, 2), padding="same")(x)
@@ -95,11 +95,6 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
                   metrics=['accuracy'])
 
     model.summary()
-
-    # Save model and weights
-    if not os.path.isdir(save_dir):
-        os.makedirs(save_dir)
-    model_path = os.path.join(save_dir, model_name)
 
     # save best
     checkpoint = ModelCheckpoint(filepath=model_path,
