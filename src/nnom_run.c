@@ -235,7 +235,7 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 			cl->kernel.w, cl->pad.w,
 			cl->stride.w,
 			layer->out->shape.w,
-			RT_NULL,
+			NULL,
 			layer->out->mem->blk);
 	}
 	// 2D, square
@@ -247,7 +247,7 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 			cl->kernel.w, cl->pad.w,
 			cl->stride.w,
 			layer->out->shape.w,
-			RT_NULL,
+			NULL,
 			layer->out->mem->blk);
 	}
 	else 
@@ -269,7 +269,7 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 			cl->kernel.w, cl->pad.w,
 			cl->stride.w,
 			layer->out->shape.w,
-			RT_NULL,
+			layer->comp->mem->blk,
 			layer->out->mem->blk);
 	}
 	// 2D, square
@@ -281,7 +281,7 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 			cl->kernel.w, cl->pad.w,
 			cl->stride.w,
 			layer->out->shape.w,
-			RT_NULL,
+			layer->comp->mem->blk,
 			layer->out->mem->blk);
 	}
 	else

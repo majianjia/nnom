@@ -79,7 +79,7 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
     dat = np.reshape(dat, (dat.shape[0] * block_size))
 
     label_batch = 128       # the Y-modem example uses 128 batch
-    channel = x.shape[-1]   # channel last
+
     with open(name, 'wb') as f:
         start = 0
         while start <= (test_label.size - label_batch):
@@ -251,7 +251,8 @@ def layers_output_ranges(model, x_test):
                 or "dropout" in layer.name
                 or "softmax" in layer.name
                 or "lambda" in layer.name
-                or "concat" in layer.name):
+                or "concat" in layer.name
+                or "re_lu" in layer.name):
             continue
         layer_model = Model(inputs=model.input, outputs=layer.output)
         features = layer_model.predict(x_test)

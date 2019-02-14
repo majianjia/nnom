@@ -55,38 +55,43 @@ def dense_block(x, k):
 def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
 
     inputs = Input(shape=x_train.shape[1:])
-    x = Conv2D(16, kernel_size=(5, 5), strides=(1, 1), padding='same')(inputs)
+    x = Conv2D(8, kernel_size=(7, 7), strides=(1, 1), padding='same')(inputs)
     x = fake_clip()(x)
     x = ReLU()(x)
-    x = MaxPool2D((2, 2),strides=(2, 2), padding="same")(x)
+    x = MaxPool2D((4, 4),strides=(4, 4), padding="same")(x)
 
     # dense block
-    x = dense_block(x, k=12)
-
-    # bottleneck -1
-    x = Conv2D(48, kernel_size=(1, 1), strides=(1, 1), padding='same')(x)
-    x = fake_clip()(x)
-    x = ReLU()(x)
-    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
-
-    # dense block -2
     x = dense_block(x, k=24)
 
-    # global avg.
-    x = AvgPool2D((7, 7), strides=(7, 7), padding="valid")(x)
-    #x = MaxPool2D((7, 7), strides=(7, 7), padding="valid")(x)
-    x = fake_clip()(x)
+    # bottleneck -1
+    #x = Conv2D(32, kernel_size=(1, 1), strides=(1, 1), padding='same')(x)
+    #x = fake_clip()(x)
+    #x = ReLU()(x)
+    #x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
 
+    # dense block -2
+    #x = dense_block(x, k=12)
+
+    #x = Conv2D(10, kernel_size=(1, 1), strides=(1, 1), padding='same')(x)
+    #x = fake_clip()(x)
+    #x = ReLU()(x)
+
+    # global avg.
+    #x = GlobalAvgPool2D()(x)
+    x = GlobalMaxPool2D()(x)
+
+    '''
     # output
-    x = Flatten()(x)
+    #x = Flatten()(x)
     x = Dense(128)(x)
     x = fake_clip()(x)
     x = ReLU()(x)
-    x = Dropout(0.3)(x)
+    '''
+    x = Dropout(0.2)(x)
     x = Dense(10)(x)
     x = fake_clip()(x)
-    predictions = Softmax()(x)
 
+    predictions = Softmax()(x)
 
     model = Model(inputs=inputs, outputs=predictions)
 
@@ -97,7 +102,7 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     model.summary()
 
     # save best
-    checkpoint = ModelCheckpoint(filepath=model_path,
+    checkpoint = ModelCheckpoint(filepath=save_dir,
             monitor='val_acc',
             verbose=0,
             save_best_only='True',
@@ -142,8 +147,8 @@ if __name__ == "__main__":
     print('x_train shape:', x_train.shape)
 
     # quantize the range to q7 without bias
-    x_test = np.clip(np.floor((x_test)/2), -128, 127)
-    x_train = np.clip(np.floor((x_train)/2), -128, 127)
+    x_test = np.clip(np.floor((x_test)/8), -128, 127)
+    x_train = np.clip(np.floor((x_train)/8), -128, 127)
 
     print("data range", x_test.min(), x_test.max())
 
@@ -151,11 +156,10 @@ if __name__ == "__main__":
     generate_test_bin(x_test, y_test, name='mnist_test_data.bin')
 
     # train model
-    history = train(x_train,y_train, x_test, y_test, batch_size=256, epochs=epochs)
+    history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
 
     # get best model
-    model_path = os.path.join(save_dir, model_name)
-    model = load_model(model_path)
+    model = load_model(save_dir)
 
     # evaluate
     evaluate_model(model, x_test, y_test)
