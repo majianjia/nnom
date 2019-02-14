@@ -60,6 +60,13 @@ nnom_predic_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, size_t
 	nnom_predic_t *pre = _predic_create_instance(m, label_num, top_k_size);
 	if (!pre)
 		return NULL;
+	if (!m)
+	{
+		nnom_free(pre);
+		return NULL;
+	}
+
+	// set the output buffer of model to the prediction instance
 	pre->buf_prediction = buf_prediction;
 
 	// mark start time.
@@ -72,12 +79,15 @@ nnom_predic_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, size_t
 // feed data to prediction
 // input the current label, (range from 0 to total number of label -1)
 // (the current input data should be set by user manully to the input buffer of the model.)
-uint32_t prediction_run(nnom_predic_t *pre, uint32_t label)
+int32_t prediction_run(nnom_predic_t *pre, uint32_t label)
 {
 	int max_val;
 	int max_index;
 	uint32_t true_ranking = 0;
 	uint32_t start;
+
+	if (!pre)
+		return NN_ARGUMENT_ERROR;
 
 	// now run model
 	start = nnom_ms_get();
@@ -126,18 +136,24 @@ uint32_t prediction_run(nnom_predic_t *pre, uint32_t label)
 	return max_index;
 }
 
-void prediction_end(nnom_predic_t *prediction)
+void prediction_end(nnom_predic_t *pre)
 {
-	prediction->t_predic_total = nnom_ms_get() - prediction->t_predic_start;
+	if (!pre)
+		return;
+	pre->t_predic_total = nnom_ms_get() - pre->t_predic_start;
 }
 
-void predicetion_delete(nnom_predic_t *prediction)
+void predicetion_delete(nnom_predic_t *pre)
 {
-	nnom_free(prediction);
+	if (!pre)
+		return;
+	nnom_free(pre);
 }
 
 void prediction_matrix(nnom_predic_t *pre)
 {
+	if (!pre)
+		return;
 	// print titles
 	printf("\nConfusion matrix:\n");
 	printf("predic");
@@ -168,6 +184,8 @@ void prediction_matrix(nnom_predic_t *pre)
 void prediction_top_k(nnom_predic_t *pre)
 {
 	uint32_t top = 0;
+	if (!pre)
+		return;
 
 	for (int i = 0; i < pre->top_k_size; i++)
 	{
@@ -182,6 +200,8 @@ void prediction_top_k(nnom_predic_t *pre)
 // this function is to print sumarry
 void prediction_summary(nnom_predic_t *pre)
 {
+	if (!pre)
+		return;
 	// sumamry
 	printf("\nPrediction summary:\n");
 	printf("Test frames: %d\n", pre->predic_count);
@@ -202,9 +222,13 @@ void prediction_summary(nnom_predic_t *pre)
 // this api test one set of data, return the prediction
 // input the model's input and output bufer
 // return the predicted label
-uint32_t nnom_predic_one(nnom_model_t *m, int8_t *input, int8_t *output)
+int32_t nnom_predic_one(nnom_model_t *m, int8_t *input, int8_t *output)
 {
 	int32_t max_val, max_index;
+
+	if (!m)
+		return NN_ARGUMENT_ERROR;
+
 	// copy data to input buf if the data is not in the same physical memory address
 	if (input != m->head->in->mem->blk)
 		memcpy(m->head->in->mem->blk, input, shape_size(&m->head->in->shape));
@@ -248,6 +272,9 @@ void model_stat(nnom_model_t *m)
 	size_t total_time = 0;
 	nnom_layer_t *layer;
 	size_t run_num = 0;
+
+	if (!m)
+		return;
 
 	layer = m->head;
 

@@ -197,12 +197,12 @@ Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/po
 # Current Critical Limitations 
 - Support 8-bit quantisation only. 
 - Support only one Q-format in one model.
-- Cannot free the memory allocated by model. 
+
 
 # TODO 
 - Support RNN types layers.
 - Support mutiple Q-formats
-- support memory releasing. 
+- ~~support memory releasing.~~（Done）
 
 # Contacts
 Jianjia Ma

@@ -250,7 +250,7 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 			NULL,
 			layer->out->mem->blk);
 	}
-	else 
+	else
 		return NN_ARGUMENT_ERROR;
 
 	return NN_SUCCESS;

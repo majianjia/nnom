@@ -250,10 +250,10 @@ nnom_status_t maxpooling_out_shape(nnom_layer_t *layer)
 
 nnom_status_t avgpooling_out_shape(nnom_layer_t *layer)
 {
-	// avg pooling share the same output shape, stride, padding setting. 
+	// avg pooling share the same output shape, stride, padding setting.
 	maxpooling_out_shape(layer);
-	
-	// however, avg pooling require a computational buffer. 
+
+	// however, avg pooling require a computational buffer.
 	layer->comp->shape = shape(2 * 1 * layer->in->shape.c, 1, 1);
 
 	return NN_SUCCESS;
@@ -270,28 +270,27 @@ nnom_status_t global_pooling_out_shape(nnom_layer_t *layer)
 	// test, output fmt and out shift
 	layer->in->qfmt = layer->in->hook.io->qfmt;
 	layer->out->qfmt = layer->in->qfmt;
-	
+
 	// global pooling
 	// output (h = 1, w = 1, same channels)
 	out->shape.h = 1;
 	out->shape.w = 1;
-	out->shape.c = in->shape.c; 
-	
+	out->shape.c = in->shape.c;
+
 	// different from other output_shape(), the kernel..padding left by layer API needs to be set in here
-	// due to the *_run() methods of global pooling are using the normall pooling's. 
-	// fill in the parameters left by layer APIs (GlobalAvgPool and MaxAvgPool) 
+	// due to the *_run() methods of global pooling are using the normall pooling's.
+	// fill in the parameters left by layer APIs (GlobalAvgPool and MaxAvgPool)
 	cl->kernel = in->shape;
 	cl->stride = shape(1, 1, 1);
 	cl->pad = shape(0, 0, 0);
 	cl->padding_type = PADDING_VALID;
-	
+
 	// additionally avg pooling require computational buffer, which is  2*dim_im_out*ch_im_in
-	if(layer->type == NNOM_AVGPOOL || layer->type == NNOM_GLOBAL_AVGPOOL)
+	if (layer->type == NNOM_AVGPOOL || layer->type == NNOM_GLOBAL_AVGPOOL)
 		layer->comp->shape = shape(2 * 1 * layer->in->shape.c, 1, 1);
 
 	return NN_SUCCESS;
 }
-
 
 nnom_status_t concatenate_out_shape(nnom_layer_t *layer)
 {
@@ -354,33 +353,6 @@ nnom_status_t concatenate_out_shape(nnom_layer_t *layer)
 		*(nnom_shape_data_t *)((uint32_t)(&layer->out->shape) + i) =
 			*(nnom_shape_data_t *)((uint32_t)(&layer->in->shape) + i);
 	}
-
-	return NN_SUCCESS;
-}
-
-// deprecated.
-nnom_status_t same_shape_2in_1out_out_shape(nnom_layer_t *layer)
-{
-	//get the last layer's output as input shape
-	layer->in->shape = layer->in->hook.io->shape;			// primary input
-	layer->in->aux->shape = layer->in->aux->hook.io->shape; // aux input
-
-	// test, output fmt and out shift
-	layer->in->qfmt = layer->in->hook.io->qfmt;
-	layer->in->aux->qfmt = layer->in->aux->hook.io->qfmt;
-	// mutiple input, check if adjust Qnm is necessary.
-	// layer->out->qfmt.m = layer->in->qfmt.m;
-	// get the bigger one, the smaller one will then be shift while doing concatenation
-	layer->out->qfmt.n = layer->in->qfmt.n < layer->in->aux->qfmt.n ? layer->in->qfmt.n : layer->in->aux->qfmt.n;
-
-	if (layer->in->shape.h != layer->in->aux->shape.h ||
-		layer->in->shape.w != layer->in->aux->shape.w ||
-		layer->in->shape.c != layer->in->aux->shape.c)
-		return NN_ARGUMENT_ERROR;
-
-	layer->out->shape.h = layer->in->shape.h;
-	layer->out->shape.w = layer->in->shape.w;
-	layer->out->shape.c = layer->in->shape.c;
 
 	return NN_SUCCESS;
 }
