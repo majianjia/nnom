@@ -265,10 +265,15 @@ void *nnom_mem(size_t size);
 size_t nnom_mem_stat(void);
 
 // Model APIs
+// create or init a model
 nnom_model_t *new_model(nnom_model_t *m);
-void model_delete(nnom_model_t *m);
+// compile as sequencial model
 nnom_status_t sequencial_compile(nnom_model_t *m);
+// compile as functional model
 nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *output);
+// run a prediction
 nnom_status_t model_run(nnom_model_t *m);
+// delete layer model. 
+void model_delete(nnom_model_t *m);
 
 #endif

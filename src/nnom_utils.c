@@ -116,12 +116,13 @@ uint32_t prediction_run(nnom_predic_t *pre, uint32_t label)
 		}
 	}
 
-	// draw confusion matrix
+	// fill confusion matrix
 	pre->confusion_mat[label * pre->label_num + max_index] += 1;
 
 	// prediction count
 	pre->predic_count++;
 
+	// return the prediction
 	return max_index;
 }
 
@@ -187,7 +188,7 @@ void prediction_summary(nnom_predic_t *pre)
 	printf("Test running time: %d sec\n", pre->t_predic_total / 1000);
 	printf("Model running time: %d ms\n", pre->t_run_total);
 	printf("Average prediction time: %d us\n", (pre->t_run_total * 1000) / pre->predic_count);
-	printf("Average effeciency: %.2f ops/us\n", (float)(pre->model->total_ops * pre->predic_count) / (float)(pre->t_run_total * 1000));
+	printf("Average effeciency: %.2f ops/us\n", (double)((double)pre->model->total_ops * pre->predic_count) / ((double)pre->t_run_total * 1000));
 	printf("Average frame rate: %.1f Hz\n", (float)1000 / ((float)pre->t_run_total / pre->predic_count));
 
 	// print top-k
