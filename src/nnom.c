@@ -8,6 +8,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2019-02-05     Jianjia Ma   The first version
+ * 2019-02-14	  Jianjia Ma   Add layer.free() method.
  */
 
 #include <stdint.h>
@@ -114,42 +115,6 @@ static nnom_status_t model_add(nnom_model_t *model, nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
-// hook the current layer to the input layer
-// this function only to connect (single output layer) to (single input layer).
-static nnom_layer_t *model_hook(nnom_layer_t *curr, nnom_layer_t *last)
-{
-	if (last == NULL || curr == NULL)
-		return NULL;
-
-	// check if the output hook is empty and can be use by us
-	if (last->out->hook.io == NULL)
-	{
-		// hook the io in both layer
-		last->out->hook.io = curr->in;
-		curr->in->hook.io = last->out;
-	}
-	// if the output of last is already hooked. we need to create a new hook.
-	else
-	{
-		nnom_layer_hook_t *hook = &last->out->hook;
-		nnom_layer_hook_t *new_hook = NULL;
-		while (hook->next != NULL)
-		{
-			hook = hook->next;
-		}
-		new_hook = nnom_mem(sizeof(nnom_layer_hook_t));
-		if (new_hook == NULL)
-			return NULL;
-		hook->next = new_hook;
-
-		// now connect them
-		// the new_hook is the new hook allocate in last layer.
-		new_hook->io = curr->in; //primary IO.
-		curr->in->hook.io = last->out;
-	}
-	return curr;
-}
-
 // find an available hook on the io module, normally used by output io module.
 // input, the output io module that wants to hook on
 // output, the new hook that added to the end of the hook list on the io
@@ -179,10 +144,10 @@ static nnom_layer_hook_t *allocate_hook(nnom_layer_io_t *io)
 	}
 }
 
-// to check if an input io is hooked to other layer
-// input the primary io of a layer's input
-// return, the new io that added to the input io list.
-static nnom_layer_io_t *allocate_input_io(nnom_layer_io_t *io)
+// to check if an io is hooked to other layer
+// input the primary io of a layer's input or output
+// return, the new io that added to the io list.
+static nnom_layer_io_t *allocate_io(nnom_layer_io_t *io)
 {
 	if (io == NULL)
 		return NULL;
@@ -206,6 +171,28 @@ static nnom_layer_io_t *allocate_input_io(nnom_layer_io_t *io)
 		io->aux->owner = io->owner;
 		return io->aux;
 	}
+}
+
+// hook the current layer to the input layer
+// this function only to connect (single output layer) to (single input layer).
+static nnom_layer_t *model_hook(nnom_layer_t *curr, nnom_layer_t *last)
+{
+	nnom_layer_io_t *curr_in_io;
+	nnom_layer_hook_t *last_io_hook;
+
+	if (last == NULL || curr == NULL)
+		return NULL;
+
+	// add a new hook to the output io of the last layer
+	last_io_hook = allocate_hook(last->out);
+	// add a new input io to the current layer's input list.
+	curr_in_io = allocate_io(curr->in);
+
+	// manually hook them togeter.
+	last_io_hook->io = curr_in_io;
+	curr_in_io->hook.io = last->out;
+
+	return curr;
 }
 
 // merge a few layers using specified method
@@ -232,7 +219,7 @@ static nnom_layer_t *model_mergex(nnom_layer_t *method, int num, ...)
 		// add a new hook to the output io of the input layer
 		output_io_hook = allocate_hook(in_layer->out);
 		// add a new input io to the method layer's input list.
-		method_in_io = allocate_input_io(method->in);
+		method_in_io = allocate_io(method->in);
 
 		// manually hook them togeter.
 		output_io_hook->io = method_in_io;
@@ -283,14 +270,99 @@ nnom_model_t *new_model(nnom_model_t *model)
 	return m;
 }
 
+// delete all the aux hooks
+// delete aux io only, keep the primary io.
+static void io_list_delete(nnom_layer_io_t *io)
+{
+	nnom_layer_hook_t *hook, *next_hook;
+	nnom_layer_io_t *next_io;
+	while (io)
+	{
+		// store the next io
+		next_io = io->aux;
+
+		// release hooks list first
+		hook = io->hook.next;
+		while (hook)
+		{
+			next_hook = hook->next;
+			nnom_free(hook);
+			hook = next_hook;
+		}
+		// now we can release the aux io itself
+		// but if this io is the primary input/out of the layer, it will be freed with they layer's instance since they are allocated together.
+		if (io != io->owner->in && io != io->owner->out)
+			nnom_free(io);
+
+		// next aux io
+		io = next_io;
+	}
+}
+
+// there are 2 type of memory in a layer
+// *primary memory* is allocated when a layer instance is created, they are created by layer API (Conv2D()...).
+// 		it includes the layer instance, primary input, primary output, and an optional computational memory buffer instance
+//		each io module also has one primary hook.
+// *secondary memory* are axiliary io modules, axiliary hooks and activations which created by model.xx() APIs (model.hook(), model.active()...)
+//		it includes the list of aux io modules, the list of aux hooks.
+//
+// Additionaly, layer's private free method must be called to free layer's private resources
+// Such as activation instance passed to Activation() layer, and private memory allcated within Lambda layer.
+//
+// A layer is consist of a few io modules. primary io are allocated with layers instance.
+// each of the io has a few hooks. primary hooks are included in the io module.
+// so only "aux" hooks and ios need to be freed separately.
+static void layer_delete(nnom_layer_t *layer)
+{
+	if (layer == NULL)
+		return;
+
+	// release secondary memory on the layers.
+	// they are io lists and hooks list
+	io_list_delete(layer->in);
+	io_list_delete(layer->out);
+
+	// release activations (it takes null too)
+	nnom_free(layer->actail);
+
+	// call private free of the layer
+	if (layer->free)
+		layer->free(layer);
+
+	// release primary memory
+	nnom_free(layer);
+	return;
+}
+
 void model_delete(nnom_model_t *m)
 {
-	// free all mem in list first
-	// TODO
+	nnom_layer_t *layer;
+	nnom_layer_t *next;
+	if (m == NULL)
+		return;
 
-	// free model, if the model is created by nnom
+	// uses shortcut list to iterate the model,
+	// start from head
+	layer = m->head;
+	while (layer)
+	{
+		// get the next before releasing current
+		next = layer->shortcut;
+		// your term
+		layer_delete(layer);
+		// who's next!
+		layer = next;
+	}
+
+	// free the memory blocks for the network's buffer
+	nnom_free(m->blocks->blk);
+
+	// free model instance itself
 	if (m->is_alloc)
 		nnom_free(m);
+	else
+		nnom_memset(m, 0, sizeof(nnom_model_t));
+	return;
 }
 
 // find an available memory block.
@@ -728,7 +800,7 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 
 	// allocate one big memory block
 	buf = nnom_mem(buf_size);
-	if(buf == NULL)
+	if (buf == NULL)
 	{
 		LOG("ERROR: No enough memory for network buffer, required %d bytes\n", buf_size);
 		return NN_NO_MEMORY;
@@ -763,7 +835,7 @@ nnom_status_t layer_run(nnom_layer_t *layer)
 	uint32_t start;
 	NNOM_NULL_CHECK(layer);
 
-	// start 
+	// start
 	start = nnom_us_get();
 	// run main layer first
 	result = layer->run(layer);

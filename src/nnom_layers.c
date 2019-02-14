@@ -248,6 +248,14 @@ nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence)
 	return (nnom_layer_t *)layer;
 }
 
+// activation takes act instance which is created. therefore, it must be free when activation is deleted.
+// this is the callback in layer->free
+static nnom_status_t activation_free(nnom_layer_t *layer)
+{
+	nnom_free(((nnom_activation_layer_t *)layer)->act);
+	return NN_SUCCESS;
+}
+
 nnom_layer_t *Activation(nnom_activation_t *act)
 {
 	nnom_activation_layer_t *layer;
@@ -276,6 +284,9 @@ nnom_layer_t *Activation(nnom_activation_t *act)
 
 	// set activation to layer
 	layer->act = act;
+
+	// set free method
+	layer->super.free = activation_free;
 
 	return (nnom_layer_t *)layer;
 }
@@ -409,15 +420,15 @@ nnom_layer_t *GlobalMaxPool(void)
 {
 	// create the normal pooling layer, the parameters are left empty to fill in later.
 	// parameters will be filled in in global_pooling_out_shape()
-	nnom_layer_t *layer = MaxPool(kernel(0,0), stride(0,0), PADDING_VALID);
+	nnom_layer_t *layer = MaxPool(kernel(0, 0), stride(0, 0), PADDING_VALID);
 
 	// change to global max pool
 	if (layer != NULL)
 	{
 		layer->type = NNOM_GLOBAL_MAXPOOL;
-		layer->comp_out_shape = global_pooling_out_shape; 
+		layer->comp_out_shape = global_pooling_out_shape;
 	}
-	
+
 	return (nnom_layer_t *)layer;
 }
 
@@ -425,19 +436,18 @@ nnom_layer_t *GlobalAvgPool(void)
 {
 	// create the normal pooling layer, the parameters are left empty to fill in later.
 	// parameters will be filled in global_pooling_out_shape() remotely
-	nnom_layer_t *layer = MaxPool(kernel(0,0), stride(0,0), PADDING_VALID);
+	nnom_layer_t *layer = MaxPool(kernel(0, 0), stride(0, 0), PADDING_VALID);
 
 	// change some parameters to be recognised as avg pooling
 	if (layer != NULL)
 	{
 		layer->type = NNOM_GLOBAL_AVGPOOL;
-		layer->run = avgpool_run;			// global and basic pooling share the same runner
-		layer->comp_out_shape = global_pooling_out_shape; 
+		layer->run = avgpool_run; // global and basic pooling share the same runner
+		layer->comp_out_shape = global_pooling_out_shape;
 	}
-	
+
 	return (nnom_layer_t *)layer;
 }
-
 
 nnom_layer_t *Flatten(void)
 {
@@ -517,7 +527,10 @@ nnom_layer_t *Output(nnom_shape_t output_shape, nnom_qformat_t fmt, void *p_buf)
 }
 
 // TODO: extended to multiple IO layer
-nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *), nnom_status_t (*oshape)(nnom_layer_t *), void *parameters)
+nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),
+					 nnom_status_t (*oshape)(nnom_layer_t *),
+					 nnom_status_t (*free)(nnom_layer_t *),
+					 void *parameters)
 {
 	nnom_lambda_layer_t *layer;
 	nnom_layer_io_t *in, *out;
@@ -546,43 +559,15 @@ nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *), nnom_status_t (*oshap
 	layer->super.run = run;
 	layer->parameters = parameters;
 
+	// free method
+	layer->super.free = free;
+
 	// output shape method. pass NULL in will use the default outshape method, which set the output shape same as input shape.
 	if (oshape == NULL)
 		layer->super.comp_out_shape = default_out_shape;
 	else
 		layer->super.comp_out_shape = oshape;
 	return (nnom_layer_t *)layer;
-}
-
-static nnom_layer_t *_same_shape_2in_1out_layer()
-{
-	nnom_layer_t *layer;
-	nnom_layer_io_t *in1, *in2, *out;
-	size_t mem_size;
-
-	// apply a block memory for all the sub handles.
-	mem_size = sizeof(nnom_layer_t) + sizeof(nnom_layer_io_t) * 3;
-	layer = nnom_mem(mem_size);
-	if (layer == NULL)
-		return NULL;
-
-	// distribut the memory to sub handles.
-	in1 = (void *)((uint32_t)layer + sizeof(nnom_layer_t));
-	in2 = (void *)((uint32_t)in1 + sizeof(nnom_layer_io_t));
-	out = (void *)((uint32_t)in2 + sizeof(nnom_layer_io_t));
-
-	// set type in layer parent
-	layer->comp_out_shape = same_shape_2in_1out_out_shape;
-	// set buf state
-	in1->type = LAYER_BUF_TEMP;
-	in2->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
-	// put in & out on the layer.
-	layer->in = io_init(layer, in1);
-	layer->in->aux = io_init(layer, in2); // set the second input to the aux input.
-	layer->out = io_init(layer, out);
-
-	return layer;
 }
 
 // init a base layer instance with same shape 1 in 1 out. More IO can be added later

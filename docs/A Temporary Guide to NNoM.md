@@ -165,6 +165,16 @@ nnom_layer_t* DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nno
 
 // fully connected, dense
 nnom_layer_t* Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b);
+
+// Lambda Layers
+// layer.run()   , required
+// layer.oshape(), optional, call default_output_shape() if left NULL
+// layer.free()  , optional, called while model is deleting, to free private resources
+// parameters    , private parameters for run method, left NULL if not needed.
+nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),	
+		nnom_status_t (*oshape)(nnom_layer_t *), 
+		nnom_status_t (*free)(nnom_layer_t *),   
+		void *parameters);						  
 ~~~
 
 About the missing **Batch Normalization Layer**
@@ -211,7 +221,7 @@ Please refer to the examples for usage
 // Create or initial a new model() 
 nnom_model_t* 	new_model(nnom_model_t* m);
 
-// Delete the model. This is not functional currently. 
+// Delete the model completely (new). 
 void model_delete(nnom_model_t* m);  
 
 // Compile a sequencial model. 

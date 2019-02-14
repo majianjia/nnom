@@ -183,7 +183,14 @@ nnom_layer_t *Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b);
 
 // rnn layer based
 nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence);
+
 // RNN cells
 nnom_rnn_cell_t *SimpleCell(size_t unit, uint32_t activation, nnom_weight_t *w, nnom_bias_t *b);
+
+// Lambda Layers
+nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),	// run method, required
+					 nnom_status_t (*oshape)(nnom_layer_t *), // optional, call default_output_shape() if left null
+					 nnom_status_t (*free)(nnom_layer_t *),   // not required if no resources needs to be deleted, can be left null.
+					 void *parameters);						  // user private parameters for run method, left null if not needed.
 
 #endif

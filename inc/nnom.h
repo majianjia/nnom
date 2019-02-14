@@ -199,10 +199,11 @@ typedef struct _nnom_layer_io_t
 // layers base
 typedef struct _nnom_layer_t
 {
-	nnom_status_t (*run)(nnom_layer_t *layer);
-	nnom_status_t (*comp_out_shape)(nnom_layer_t *layer);
-	nnom_buf_t *comp;		   // computational buf
-	nnom_activation_t *actail; // I have an activation, I have a taill, wooo haaaa, acti-tail!!!
+	nnom_status_t (*run)(nnom_layer_t *layer);				// run method. required
+	nnom_status_t (*comp_out_shape)(nnom_layer_t *layer);	// compute output buffer shape. can be left null, will call default_output_shape()
+	nnom_status_t (*free)(nnom_layer_t *layer);				// a callback to free private resources (comp buf not included) can be left null
+	nnom_buf_t *comp;		   								// computational buf
+	nnom_activation_t *actail; 								// I have an activation, I have a taill, wooo haaaa, acti-tail!!!
 
 	nnom_layer_type_t type;
 	nnom_layer_io_t *in;	// IO buff, last*layer, states
@@ -265,10 +266,15 @@ void *nnom_mem(size_t size);
 size_t nnom_mem_stat(void);
 
 // Model APIs
+// create or init a model
 nnom_model_t *new_model(nnom_model_t *m);
-void model_delete(nnom_model_t *m);
+// compile as sequencial model
 nnom_status_t sequencial_compile(nnom_model_t *m);
+// compile as functional model
 nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *output);
+// run a prediction
 nnom_status_t model_run(nnom_model_t *m);
+// delete model. 
+void model_delete(nnom_model_t *m);
 
 #endif

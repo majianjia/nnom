@@ -21,13 +21,13 @@
 
 typedef struct _nnom_predic_t
 {
-	uint16_t *confusion_mat;
-	uint32_t *top_k;		// which, example: TOP2 num = top_k[0]+top_k[1]
+	uint16_t *confusion_mat;// confusiong matrix 
+	uint32_t *top_k;		// which stored the num of prediction in rank_k, example: Top-2 = top_k[0]+top_k[1]
 	nnom_model_t *model;	// the model to run
 	int8_t *buf_prediction; // the pointer to the output of softmax layer(normally the end of classifier).
 
 	// setting
-	uint32_t label_num;  // classification
+	uint32_t label_num;  // number of types in classification
 	uint32_t top_k_size; // number of k that wants to know.
 
 	// running
@@ -49,7 +49,8 @@ nnom_predic_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, size_t
 // feed data to prediction
 // input the current label, (range from 0 to total number of label -1)
 // (the current input data should be set by user manully to the input buffer of the model.)
-uint32_t prediction_run(nnom_predic_t *pre, uint32_t label);
+// return NN_ARGUMENT_ERROR if parameter error
+int32_t prediction_run(nnom_predic_t *pre, uint32_t label);
 
 // to mark prediction finished
 void prediction_end(nnom_predic_t *pre);
@@ -72,7 +73,8 @@ void prediction_summary(nnom_predic_t *pre);
 // this api test one set of data, return the prediction
 // input the model's input and output bufer
 // return the predicted label
-uint32_t nnom_predic_one(nnom_model_t *m, int8_t *input, int8_t *output); // currently int8_t
+// return NN_ARGUMENT_ERROR if parameter error
+int32_t nnom_predic_one(nnom_model_t *m, int8_t *input, int8_t *output); // currently int8_t
 
 void model_stat(nnom_model_t *m);
 

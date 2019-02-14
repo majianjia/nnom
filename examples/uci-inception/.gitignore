@@ -1,0 +1,9 @@
+.idea
+.vscode
+__pycache__
+fully_connected_opt_weight_generation*
+nnom_utils*
+*test_data*
+*.h5
+
+
