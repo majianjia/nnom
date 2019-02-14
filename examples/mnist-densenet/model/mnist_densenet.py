@@ -55,41 +55,42 @@ def dense_block(x, k):
 def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
 
     inputs = Input(shape=x_train.shape[1:])
-    x = Conv2D(16, kernel_size=(7, 7), strides=(1, 1), padding='same')(inputs)
+    x = Conv2D(8, kernel_size=(7, 7), strides=(1, 1), padding='same')(inputs)
     x = fake_clip()(x)
     x = ReLU()(x)
-    x = MaxPool2D((2, 2),strides=(2, 2), padding="same")(x)
+    x = MaxPool2D((4, 4),strides=(4, 4), padding="same")(x)
 
     # dense block
-    x = dense_block(x, k=12)
-
-    # bottleneck -1
-    x = Conv2D(32, kernel_size=(1, 1), strides=(1, 1), padding='same')(x)
-    x = fake_clip()(x)
-    x = ReLU()(x)
-    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
-
-    # dense block -2
     x = dense_block(x, k=24)
 
-    x = Conv2D(10, kernel_size=(1, 1), strides=(1, 1), padding='same')(x)
-    x = fake_clip()(x)
-    x = ReLU()(x)
+    # bottleneck -1
+    #x = Conv2D(32, kernel_size=(1, 1), strides=(1, 1), padding='same')(x)
+    #x = fake_clip()(x)
+    #x = ReLU()(x)
+    #x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
+
+    # dense block -2
+    #x = dense_block(x, k=12)
+
+    #x = Conv2D(10, kernel_size=(1, 1), strides=(1, 1), padding='same')(x)
+    #x = fake_clip()(x)
+    #x = ReLU()(x)
 
     # global avg.
-    x = GlobalAvgPool2D()(x)
-    x = fake_clip()(x)
+    #x = GlobalAvgPool2D()(x)
+    x = GlobalMaxPool2D()(x)
 
-    """
+    '''
     # output
     #x = Flatten()(x)
     x = Dense(128)(x)
     x = fake_clip()(x)
     x = ReLU()(x)
-    x = Dropout(0.3)(x)
+    '''
+    x = Dropout(0.2)(x)
     x = Dense(10)(x)
     x = fake_clip()(x)
-    """
+
     predictions = Softmax()(x)
 
     model = Model(inputs=inputs, outputs=predictions)

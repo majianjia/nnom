@@ -63,28 +63,28 @@ typedef enum
 
 #define DEFUALT_LAYER_NAMES \
 	{                       \
-		"invalid",          \
-			"input",        \
-			"output",       \
-			"conv2d",       \
-			"dw_conv2d",    \
-			"dense",        \
-			"rnn",          \
-			"activation",   \
-			"relu",         \
-			"sigmoid",      \
-			"tanh",         \
-			"softmax",      \
-			"maxpool",      \
-			"gl_maxpool",	\
-			"avgpool",      \
-			"gl_avgpool",	\
-			"flatten",      \
-			"lambda",       \
-			"concat",       \
-			"add",          \
-			"sub",          \
-			"mult",         \
+		"UNKNOWN",          \
+			"Input",        \
+			"Output",       \
+			"Conv2D",       \
+			"DW_Conv2D",    \
+			"Dense",        \
+			"RNN",          \
+			"Activation",   \
+			"ReLU",         \
+			"Sigmoid",      \
+			"Tanh",         \
+			"Softmax",      \
+			"Maxpool",      \
+			"GL_MaxPool",	\
+			"Avg Pool",      \
+			"GL_AvgPool",	\
+			"Flatten",      \
+			"Lambda",       \
+			"Concat",       \
+			"Add",          \
+			"Sub",          \
+			"Mult",         \
 	}
 extern const char default_layer_names[][12];
 
@@ -98,9 +98,9 @@ typedef enum
 
 #define ACTIVATION_NAMES \
 	{                    \
-		"relu",          \
-			"tanh",      \
-			"sigmoid",   \
+		"ReLU",          \
+			"TanH",      \
+			"Sigmoid",   \
 	}
 extern const char default_activation_names[][8];
 
