@@ -283,14 +283,86 @@ nnom_model_t *new_model(nnom_model_t *model)
 	return m;
 }
 
+// delete all the aux hooks
+// delete aux io only, keep the primary io. 
+static void io_list_delete(nnom_layer_io_t *io)
+{
+	nnom_layer_hook_t *hook, *next_hook;
+	nnom_layer_io_t *next_io;
+	while(io)
+	{
+		// store the next io
+		next_io = io->aux;
+
+		// release hooks list first
+		hook = io.hook->next
+		while(hook)
+		{
+			next_hook = hook->next;
+			nnom_free(hook);
+			hook = next_hook;
+		}
+		// now we can release the aux io itself
+		// but if it is the primary input/out of the layer, it will be freed with they layer's instance since they are allocated together. 
+		if(io != io->owner->in && io != io->owner->out)
+			nnom_free(io);
+
+		// next aux io 
+		io = next_io;
+	}
+}
+
+// there are 2 type of memory in a layer
+// *primary memory* is allocated when a layer instance is created, they are created by layer API (Conv2D()...). 
+// 		it includes the layer instance, primary input, primary output, and an optional computational memory buffer instance
+//		each io module also has one primary hook. 
+// *secondary memory* are io modules and hooks which created by model.xx() APIs (model.hook()...)
+//		it includes the list of aux io modules, the list of aux hooks. 
+
+// A layer is consist of a few io modules. primary io are allocated with layers instance. 
+// each of the io has a few hooks. primary hooks are included in the io module.
+// so only "aux" hooks and ios need to be freed separately. 
+static void layer_delete(nnom_layer_t *layer)
+{
+	if(layer == NULL)
+		return;
+
+	// release secondary memory on the layers. 
+	// they are io lists and hooks list
+	io_list_delete(layer->in);
+	io_list_delete(layer->out);
+
+	// release primary memory
+	nnom_free(layer);
+	return;
+}
+
 void model_delete(nnom_model_t *m)
 {
-	// free all mem in list first
-	// TODO
+	nnom_layer_t *layer;
+	nnom_layer_t *next; 
+	if(m == NULL)
+		return;
 
-	// free model, if the model is created by nnom
+	// uses shortcut list to iterate the model,
+	// start from head   
+	layer = m->head;
+	while(layer)
+	{
+		// get the next before releasing current
+		next = layer->shortcut;
+		// your term
+		layer_delete(layer);
+		// who's next!
+		layer = next;
+	}
+
+	// free model instance itself
 	if (m->is_alloc)
 		nnom_free(m);
+	else
+		nnom_memset(m, 0, sizeof(nnom_model_t));
+	return;
 }
 
 // find an available memory block.
