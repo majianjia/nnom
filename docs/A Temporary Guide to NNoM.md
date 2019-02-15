@@ -234,7 +234,70 @@ nnom_status_t 	model_compile(nnom_model_t *m, nnom_layer_t* input, nnom_layer_t*
 // Run the model.
 nnom_status_t 	model_run(nnom_model_t *m);
 ~~~
- 
+
+## Known Issues
+
+### Shared output buffer destroyed by single buffer layers (input-destructive)
+Single buffer layers (Such as most of the Activations, additionally MaxPool/AvgPool) are working directly on its input buffer. While its input buffer is shared with other parallel layers, and it is placed before other layers in a parallel structure (such as Inception), the shared buffer will be destroyed by those input-destructive before other parallel layer can access it. 
+
+Additionally, although, MaxPool & AvgPool are not single buffer layers, they will destroy the input buffer as they are mentioned with input-destructive in CMSIS-NN. So they should be treated as same as single buffer layers. 
+
+**Fix plan of the issue**
+
+Not planned. 
+
+Possiblly, add an invisible copying layer/functions to copy data for single input layer before passing to other parallel layers. 
+
+**Current work around**
+
+**Work around 1** 
+
+If the Inception has only one single buffer layer, always hook the single buffer layer at the end. For example, instead of doing `MaxPool - Conv2D - Conv2D`, do `Conv2D - Conv2D - MaxPool`
+
+
+~~~C
+// the codes are faked and simplified, please rewrite them according to corresponding APIs. 
+
+// original
+x1 = model.hook(MaxPool(), input); // Single buffer layer, this will destroyed the buffer
+x2 = model.hook(Conv2D(), input);  // buffer destroyed.
+x3 = model.hook(Conv2D(), input);  // buffer destroyed.
+output = model.mergex(Concat(-1), 3, x1, x2, x3);
+
+// This will fixed the problem without affacting the concatenate order.
+// notice that the order of x1,x2,x3 will change, 
+// the different is the order that the inception layers hooked to the input layer. 
+x3 = model.hook(Conv2D(), input);  // multiple buffers layer
+x2 = model.hook(Conv2D(), input);  // 
+x1 = model.hook(MaxPool(), input); // this will destroyed the buffer, but it doesnt matter now. 
+output = model.mergex(Concat(-1), 3, x1, x2, x3);
+	
+~~~
+
+**Work around 2** 
+
+If there is multiple, add an extra multiple bufer layer before the single buffer layer. Such as using Lambda() layer to copy buffer.
+~~~C
+// the codes are faked and simplified, please rewrite them according to corresponding APIs. 
+
+lambda_run(layer)
+{
+    memcpy(layer->output, layer->input, sizeof(inputshape);
+}
+
+x1 = model.hook(Lambda(lambda_run), input); // add a lambda to copy data
+x1 = model.hook(MaxPool(), x1);  	    // now it is only destroying Lambda's output buffer instead of the input layer's. 
+
+x2 = model.hook(Lambda(lambda_run), input); // add a lambda to copy data
+x2 = model.hook(MaxPool(), x2); 
+
+x3 = model.hook(Conv2D(), input);  
+output = model.mergex(Concat(-1), 3, x1, x2, x3);
+		
+~~~
+
+
+
 
 # Evaluation
 
@@ -254,27 +317,32 @@ nnom_predic_t* prediction_create(nnom_model_t* m, int8_t* buf_prediction, size_t
 // feed data to prediction
 // input the current label, (range from 0 to total number of label -1)
 // (the current input data should be set by user manully to the input buffer of the model.)
-uint32_t prediction_run(nnom_predic_t* pre, uint32_t label);
+// return NN_ARGUMENT_ERROR if parameter error
+int32_t prediction_run(nnom_predic_t *pre, uint32_t label);
 
 // to mark prediction finished
-void prediction_end(nnom_predic_t* pre);
+void prediction_end(nnom_predic_t *pre);
 
 // free all resources
-void predicetion_delete(nnom_predic_t* pre);
+void predicetion_delete(nnom_predic_t *pre);
 
 // print matrix
-void prediction_matrix(nnom_predic_t* pre);
+void prediction_matrix(nnom_predic_t *pre);
 
-// this function is to print sumarry 
-void prediction_summary(nnom_predic_t* pre);
+// print top-k
+void prediction_top_k(nnom_predic_t *pre);
+
+// this function is to print sumarry
+void prediction_summary(nnom_predic_t *pre);
 
 // -------------------------------
 
 // stand alone prediction API
-// this api test one set of data, return the prediction 
+// this api test one set of data, return the prediction
 // input the model's input and output bufer
 // return the predicted label
-uint32_t nnom_predic_one(nnom_model_t* m, int8_t* input, int8_t* output); // currently int8_t 
+// return NN_ARGUMENT_ERROR if parameter error
+int32_t nnom_predic_one(nnom_model_t *m, int8_t *input, int8_t *output); // currently int8_t
 
 // print last runtime stat of the model
 void model_stat(nnom_model_t *m);

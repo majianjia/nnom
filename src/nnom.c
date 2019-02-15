@@ -473,11 +473,11 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 		// check input
 		in = layer->in;
 
-		// check if this layer is input layer
-		// first layer has no input hooked, and is not initialized
+		// check if this layer is the input layer
+		// the first layer has no input hooked, and the io is not initialized
 		if (in->hook.io == NULL)
 		{
-			// if not initalized
+			// if the input is not initalized
 			if (in->mem == NULL)
 			{
 				in_blk = allocate_block(block_pool);
@@ -491,7 +491,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 		}
 		else
 		{
-			// check every in
+			// get the mem for every input from its hooked output. 
 			while (in != NULL)
 			{
 				in->mem = in->hook.io->mem;
@@ -499,24 +499,36 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 			}
 		}
 
-		// if there are mutiple input, wait till all block filled
+		// if there are mutiple inputs, wait utill all blocks filled
 		in = layer->in;
 		if (in != NULL && in->aux != NULL)
 		{
 			while (in != NULL)
 			{
-				//if(in->mem->owner != layer)
+				// if the mem (of its hooked output) is not allocated or is not filled. 
+				// It not the time to run the layer yet, return and waits for next nested called. 
 				if (in->mem == NULL || in->mem->state != NNOM_BUF_FILLED)
 					return NN_MORE_TODO;
 				in = in->aux;
 			}
 		}
 
-		// calculate output shape while all inputs are filled
+		// if run to this point, then it is the right time to compile(run) this layer. 
+		// compiling are seperated into the steps below. 
+		// 1. to calculate the output shape. 
+		// 2. to put the current layer to the end of shortcut list.
+		// 3. allocate computational buffer.
+		// 4. allocate output buffer for each output module. 
+		// 5.1 if there is only one layer hooked to the output. we dont use nested call, but continue in this big while loop. 
+		// 5.2 nested call the hooked output layers (if there are > 1 hooked to the output of this layer)
+
+		// 1. calculate output shape while all inputs are filled
 		layer->comp_out_shape(layer);
+
+		// 2. add to shortcut list. 
 		layer_shortcut_add(start, layer);
 
-		// assign for computational buf
+		// 3. assign for computational buf
 		if (layer->comp != NULL)
 		{
 			layer->comp->mem = allocate_block(block_pool);
@@ -528,6 +540,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 				mem_size > layer->comp->mem->size ? mem_size : layer->comp->mem->size;
 		}
 
+		// print current layer's info. 
 		// show names, activations, mem block size
 		{
 			size_t in_size = io_mem_size(layer->in);
@@ -569,31 +582,34 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 			LOG("\n");
 		}
 
+		// 4. allocate output buffer for each output module. 
 		// check output
 		if (layer->out == NULL)
 			return NN_SUCCESS;
 
+		// 5.1 if there is only one layer hooked to the output. we dont use nested call, but continue in this big while loop. 
 		// if the layer is Single Output, continue the loop directly. To reduce nested level
 		if (layer->out->aux == NULL && layer->out->hook.next == NULL)
 		{
 			// single buf layer.
 			if (layer->in->type == LAYER_BUF_NULL || layer->out->type == LAYER_BUF_NULL)
 			{
-				// we dont release the io buf, pass to next layer directly
+				// pass to next layer directly, like we never touch the buffer(dont change life-time)
 				layer->out->mem = layer->in->mem;
 				// computational buf
 				release_comp_mem(layer);
 			}
+			// not a single buf layer
 			else
 			{
-				// not a single buf layer
+				// allocate mem block for the output
 				out_blk = allocate_block(block_pool);
 				if (out_blk == NULL)
 					return NN_NO_MEMORY;
-				// set output mem owner to next layer.
-				out_blk->owners += 1;
+				// set the life time, only one hooked layer, so the life time is 1
+				out_blk->owners = 1;
 				out_blk->state = NNOM_BUF_FILLED; // marked filled
-				// record maximu mem size in this block
+				// record maximum mem size in this block
 				mem_size = alignto(shape_size(&layer->out->shape), 4);
 				out_blk->size = mem_size > out_blk->size ? mem_size : out_blk->size;
 				// set the blk to the layer IO
@@ -605,7 +621,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 				release_comp_mem(layer);
 			}
 		}
-		// Multiple output hooks
+		// Multiple output and/or mutiple hooks
 		else
 		{
 			// single buf layer will use the input buf for the first output
@@ -614,9 +630,9 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 				// we dont allocate new buf, but use the input
 				// the ownership will be set to next layer later
 				layer->out->mem = layer->in->mem;
-				layer->out->mem->owners = hook_length(&layer->out->hook); // set the mem lifetime.
-				// release computational buff
-				// we dont release input buff here, since it will be passed to the next layer as input buff.
+				layer->out->mem->owners += hook_length(&layer->out->hook); // set the mem lifetime.// test
+				// release computational buff and input buffer // test
+				release_input_mem(layer);
 				release_comp_mem(layer);
 			}
 			// mutiple buf layer. (I/O use different memory blocks)
@@ -645,6 +661,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 				release_comp_mem(layer);
 			}
 
+			// 5.12 nested call the hooked output layers (if there are > 1 hooked to the output of this layer)
 			// while all the out module(s) receive a memory block, it is ready to be sent to other layers.
 			// iterate all hooked layers in each out module.
 			out = layer->out;
