@@ -234,6 +234,62 @@ nnom_status_t 	model_compile(nnom_model_t *m, nnom_layer_t* input, nnom_layer_t*
 // Run the model.
 nnom_status_t 	model_run(nnom_model_t *m);
 ~~~
+
+## Known Issues
+
+### Buffer Destroyed by Single Buffer Layers
+Since a single buffer layer (Such as most of the Activations, additionally MaxPool/AvgPool) working directly from input buffer and make it as output, if it is put before other layers in mutiple output structure (Inception), the output buffer will be destroyed before other layer can access to it. 
+
+**TODO**
+
+Possiblly, add an invisible copying layer/functions to copy data for single input layer before passing to other parallel layers. 
+
+**Current work around**
+
+1. If the Inception has only one single buffer layer, always hook the single buffer layer at the end. For example, instead of doing `MaxPool - Conv2D - Conv2D`, do `Conv2D - Conv2D - MaxPool`
+
+Additionally, MaxPool & AvgPool are not single buffer layer but they will destroy the input buffer as mentioned with  input-destructive. So they should be treated same as single buffer layers. 
+~~~
+	// the codes are faked and simplified, please rewrite them according to corresponding APIs. 
+	
+	// original
+	x1 = model.hook(MaxPool(), input); // Single buffer layer, this will destroyed the buffer
+	x2 = model.hook(Conv2D(), input);  // buffer destroyed.
+	x3 = model.hook(Conv2D(), input);  // buffer destroyed.
+	output = model.mergex(Concat(-1), 3, x1, x2, x3);
+	
+	// This will fixed the problem without affacting the concatenate order.
+	// notice that the order of x1,x2,x3 will change, 
+	// the different is the order that the inception layers hooked to the input layer. 
+	x3 = model.hook(Conv2D(), input);  // multiple buffers layer
+	x2 = model.hook(Conv2D(), input);  // 
+	x1 = model.hook(MaxPool(), input); // this will destroyed the buffer, but it doesnt matter now. 
+	output = model.mergex(Concat(-1), 3, x1, x2, x3);
+	
+~~~
+
+2. If there is multiple, add an extra multiple bufer layer before the single buffer layer. using Lambda() layer to copy buffer.
+~~~
+	// the codes are faked and simplified, please rewrite them according to corresponding APIs. 
+	
+	lambda_run(layer)
+	{
+		memcpy(layer->output, layer->input, sizeof(inputshape);
+	}
+
+	// original
+	x1 = model.hook(Lambda(lambda_run), input);
+	x1 = model.hook(MaxPool(), x1);  
+	
+	x2 = model.hook(Lambda(lambda_run), input);
+	x2 = model.hook(MaxPool(), x2); 
+	
+	x3 = model.hook(Conv2D(), input);  
+	output = model.mergex(Concat(-1), 3, x1, x2, x3);
+		
+~~~
+
+
  
 
 # Evaluation
