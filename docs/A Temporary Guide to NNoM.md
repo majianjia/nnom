@@ -237,18 +237,18 @@ nnom_status_t 	model_run(nnom_model_t *m);
 
 ## Known Issues
 
-### Buffer Destroyed by Single Buffer Layers
-Since a single buffer layer (Such as most of the Activations, additionally MaxPool/AvgPool) working directly from input buffer and make it as output, if it is put before other layers in mutiple output structure (Inception), the output buffer will be destroyed before other layer can access to it. 
+### Buffer Destroyed by Single Buffer Layers (input-destructive)
+Since a single buffer layer (Such as most of the Activations, additionally MaxPool/AvgPool) working directly from input buffer. If they are place before other layers in a parallel structure (such as Inception), the shared output buffer of last layer will be destroyed by those input-destructive before other layer can access to it. 
 
-**TODO**
-
+**Fix plan of the issue**
+Not planned. 
 Possiblly, add an invisible copying layer/functions to copy data for single input layer before passing to other parallel layers. 
 
 **Current work around**
 
 1. If the Inception has only one single buffer layer, always hook the single buffer layer at the end. For example, instead of doing `MaxPool - Conv2D - Conv2D`, do `Conv2D - Conv2D - MaxPool`
 
-Additionally, MaxPool & AvgPool are not single buffer layer but they will destroy the input buffer as mentioned with  input-destructive. So they should be treated same as single buffer layers. 
+Additionally, MaxPool & AvgPool are not single buffer layer but they will destroy the input buffer as mentioned with input-destructive. So they should be treated same as single buffer layers. 
 ~~~C
 // the codes are faked and simplified, please rewrite them according to corresponding APIs. 
 
