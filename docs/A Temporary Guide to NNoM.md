@@ -237,8 +237,10 @@ nnom_status_t 	model_run(nnom_model_t *m);
 
 ## Known Issues
 
-### Buffer Destroyed by Single Buffer Layers (input-destructive)
-Since a single buffer layer (Such as most of the Activations, additionally MaxPool/AvgPool) working directly from input buffer. If they are place before other layers in a parallel structure (such as Inception), the shared output buffer of last layer will be destroyed by those input-destructive before other layer can access to it. 
+### Shared output buffer destroyed by single buffer layers (input-destructive)
+Single buffer layers (Such as most of the Activations, additionally MaxPool/AvgPool) are working directly on its input buffer. While its input buffer is shared with other parallel layers, and it is placed before other layers in a parallel structure (such as Inception), the shared output buffer of last layer will be destroyed by those input-destructive before other parallel layer can access to it. 
+
+Additionally, although, MaxPool & AvgPool are not single buffer layer, they will destroy the input buffer as they are mentioned with input-destructive in CMSIS-NN. So they should be treated as same as single buffer layers. 
 
 **Fix plan of the issue**
 Not planned. 
@@ -246,9 +248,11 @@ Possiblly, add an invisible copying layer/functions to copy data for single inpu
 
 **Current work around**
 
-1. If the Inception has only one single buffer layer, always hook the single buffer layer at the end. For example, instead of doing `MaxPool - Conv2D - Conv2D`, do `Conv2D - Conv2D - MaxPool`
+**Work around 1** 
 
-Additionally, MaxPool & AvgPool are not single buffer layer but they will destroy the input buffer as mentioned with input-destructive. So they should be treated same as single buffer layers. 
+If the Inception has only one single buffer layer, always hook the single buffer layer at the end. For example, instead of doing `MaxPool - Conv2D - Conv2D`, do `Conv2D - Conv2D - MaxPool`
+
+
 ~~~C
 // the codes are faked and simplified, please rewrite them according to corresponding APIs. 
 
@@ -268,7 +272,9 @@ output = model.mergex(Concat(-1), 3, x1, x2, x3);
 	
 ~~~
 
-2. If there is multiple, add an extra multiple bufer layer before the single buffer layer. using Lambda() layer to copy buffer.
+**Work around 2** 
+
+If there is multiple, add an extra multiple bufer layer before the single buffer layer. Such as using Lambda() layer to copy buffer.
 ~~~C
 // the codes are faked and simplified, please rewrite them according to corresponding APIs. 
 
@@ -277,11 +283,10 @@ lambda_run(layer)
     memcpy(layer->output, layer->input, sizeof(inputshape);
 }
 
-// original
-x1 = model.hook(Lambda(lambda_run), input);
-x1 = model.hook(MaxPool(), x1);  
+x1 = model.hook(Lambda(lambda_run), input); // add a lambda to copy data
+x1 = model.hook(MaxPool(), x1);  	    // now it is only destroying Lambda's output buffer instead of the input layer's. 
 
-x2 = model.hook(Lambda(lambda_run), input);
+x2 = model.hook(Lambda(lambda_run), input); // add a lambda to copy data
 x2 = model.hook(MaxPool(), x2); 
 
 x3 = model.hook(Conv2D(), input);  
@@ -290,7 +295,7 @@ output = model.mergex(Concat(-1), 3, x1, x2, x3);
 ~~~
 
 
- 
+
 
 # Evaluation
 
