@@ -238,12 +238,14 @@ nnom_status_t 	model_run(nnom_model_t *m);
 ## Known Issues
 
 ### Shared output buffer destroyed by single buffer layers (input-destructive)
-Single buffer layers (Such as most of the Activations, additionally MaxPool/AvgPool) are working directly on its input buffer. While its input buffer is shared with other parallel layers, and it is placed before other layers in a parallel structure (such as Inception), the shared output buffer of last layer will be destroyed by those input-destructive before other parallel layer can access to it. 
+Single buffer layers (Such as most of the Activations, additionally MaxPool/AvgPool) are working directly on its input buffer. While its input buffer is shared with other parallel layers, and it is placed before other layers in a parallel structure (such as Inception), the shared buffer will be destroyed by those input-destructive before other parallel layer can access it. 
 
-Additionally, although, MaxPool & AvgPool are not single buffer layer, they will destroy the input buffer as they are mentioned with input-destructive in CMSIS-NN. So they should be treated as same as single buffer layers. 
+Additionally, although, MaxPool & AvgPool are not single buffer layers, they will destroy the input buffer as they are mentioned with input-destructive in CMSIS-NN. So they should be treated as same as single buffer layers. 
 
 **Fix plan of the issue**
+
 Not planned. 
+
 Possiblly, add an invisible copying layer/functions to copy data for single input layer before passing to other parallel layers. 
 
 **Current work around**
