@@ -21,6 +21,12 @@
 #include "nnom_run.h"
 #include "nnom_activations.h"
 
+// RNN Options
+#define SEQUENCE_RETURN		true
+#define SEQUENCE_NO			false
+#define STATEFUL			true
+#define UN_STATEFUL			false
+
 // child layers parameters
 typedef struct _nnom_conv2d_layer_t
 {
@@ -31,7 +37,7 @@ typedef struct _nnom_conv2d_layer_t
 	int8_t bias_shift;
 	nnom_shape_t pad;
 	nnom_padding_t padding_type;
-	uint32_t filter_mult; // filter size (for conv) or multilplier (for depthwise)
+	uint32_t filter_mult; 							// filter size (for conv) or multilplier (for depthwise)
 	nnom_weight_t *weights;
 	nnom_bias_t *bias;
 } nnom_conv2d_layer_t;
@@ -51,7 +57,7 @@ typedef struct _nnom_dense_layer_t
 typedef struct _nnom_lambda_layer_t
 {
 	nnom_layer_t super;
-	nnom_status_t (*run)(nnom_layer_t *layer);	//
+	nnom_status_t (*run)(nnom_layer_t *layer);	  //
 	nnom_status_t (*oshape)(nnom_layer_t *layer); // equal to other layer's xxx_output_shape() method, which is to calculate the output shape.
 	void *parameters;							  // parameters for lambda
 } nnom_lambda_layer_t;
@@ -60,7 +66,7 @@ typedef struct _nnom_lambda_layer_t
 typedef struct _nnom_activation_layer_t
 {
 	nnom_layer_t super;
-	nnom_activation_t *act; //
+	nnom_activation_t *act; 
 } nnom_activation_layer_t;
 
 // RNN
@@ -69,14 +75,14 @@ typedef struct _nnom_rnn_cell_t
 	nnom_status_t (*run)(nnom_layer_t *layer); // simple RNN, GRU, LSTM runner
 	void *input_buf;						   // the input buf and output buf for current cell.
 	void *output_buf;						   // These will be set in rnn_run() before entre cell.run()
+	void *state_buf;						   // state
 	size_t unit;							   //
 } nnom_rnn_cell_t;
 
 typedef struct _nnom_simple_rnn_cell_t
 {
 	nnom_rnn_cell_t super;
-	//nnom_status_t(*activation)(nnom_layer_t *layer);
-	uint32_t activation;
+	nnom_activation_t*  activation;
 
 	nnom_weight_t *weights;
 	nnom_bias_t *bias;
@@ -85,8 +91,8 @@ typedef struct _nnom_simple_rnn_cell_t
 typedef struct _nnom_gru_cell_t
 {
 	nnom_rnn_cell_t super;
-	uint32_t activation;
-	uint32_t recurrent_activation;
+	nnom_activation_t* activation;
+	nnom_activation_t* recurrent_activation;
 	//nnom_status_t(*activation)(nnom_layer_t *layer);
 	//nnom_status_t(*activation)(nnom_layer_t *layer);
 
@@ -100,6 +106,7 @@ typedef struct _nnom_rnn_layer
 	nnom_rnn_cell_t *cell;
 
 	bool return_sequence; // return sequence?
+	bool stateful;
 } nnom_rnn_layer_t;
 
 // Max Pooling
@@ -185,7 +192,10 @@ nnom_layer_t *Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b);
 nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence);
 
 // RNN cells
-nnom_rnn_cell_t *SimpleCell(size_t unit, uint32_t activation, nnom_weight_t *w, nnom_bias_t *b);
+// The shape for RNN input is (batch, timestamp, feature), where batch is always 1. 
+//
+// SimpleRNNCell
+nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t* activation, nnom_weight_t *w, nnom_bias_t *b);
 
 // Lambda Layers
 nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),	// run method, required

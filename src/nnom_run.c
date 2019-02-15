@@ -145,7 +145,51 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 
 nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer)
 {
-
+	nnom_status_t result;
+	// cell / layer
+	nnom_rnn_layer_t* cl 	= (nnom_rnn_layer_t *)layer;
+	nnom_simple_rnn_cell_t* cell = (nnom_simple_rnn_cell_t*)cl->cell;
+	// parameters
+	size_t input_size 		= layer->in->shape.c;				// in rnn, h = 1, w = timestamp, c = feature size. 
+	size_t output_size 		= cell->super.unit;					// output size = state size in keras. 
+	q7_t* weight 			= (q7_t*)cell->weights->p_value;
+	q7_t* re_weight 		= (q7_t*)cell->weights->p_value + input_size;
+	q7_t* bias				= (q7_t*)cell->bias->p_value;
+	q7_t* bias_dummy		= (q7_t*)cell->bias->p_value + output_size;// this must be a dummy bias for all zero. 
+	uint16_t bias_shift 	= cell->bias->shift; 			 	// not sure
+	uint16_t output_shift 	= cell->weights->shift; 			// not correct
+	uint8_t* vector_buf 	= layer->comp->mem->blk;			// not correct, buf for calculation
+	
+	// h = tanh or relu(w*x + b_dummy + h*x + bias)
+	
+	// w*x + b_dummy
+	result = (nnom_status_t)arm_fully_connected_q7(
+		cell->super.input_buf,
+		weight,
+		input_size, output_size,
+		bias_shift, output_shift,
+		bias_dummy,
+		cell->super.output_buf, (q15_t*)vector_buf);
+	
+	// h*x + bias (paramters are wrong)
+	result = (nnom_status_t)arm_fully_connected_q7(
+		cell->super.input_buf,
+		re_weight,
+		input_size, output_size,
+		bias_shift, output_shift,
+		bias,
+		cell->super.output_buf, (q15_t*)vector_buf);
+	
+	// add (paramters are wrong)
+	arm_add_q7(layer->in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, output_size);
+	
+	// finally the activation (thinking of changing the activation's run interfaces. )
+	// activation.run(layer, activation, data, size)
+	cell->activation->data = cell->super.output_buf;
+	cell->activation->size = output_size;
+	cell->activation->fmt  = layer->in->qfmt;
+	cell->activation->run(layer, cell->activation);
+	
 	return NN_SUCCESS;
 }
 
@@ -153,9 +197,27 @@ nnom_status_t rnn_run(nnom_layer_t *layer)
 {
 	nnom_status_t result;
 	nnom_rnn_layer_t *cl = (nnom_rnn_layer_t *)(layer);
+	size_t timestamps_size = layer->in->shape.w;
+	size_t feature_size = layer->in->shape.c;
 
-	for (uint32_t round = 0; round < cl->cell->unit; round++)
+	// set the state buffer
+	cl->cell->state_buf = layer->comp->mem;
+
+	// currently not support stateful. and not support reserved mem block
+	if(!cl->stateful)
+		memset(cl->cell->state_buf, 0, shape_size(&layer->comp->shape));
+
+	// run
+	for (uint32_t round = 0; round < timestamps_size; round++)
 	{
+		// set input buffer
+		cl->cell->input_buf = (q7_t*)layer->in->mem->blk + feature_size * round;
+		if(cl->return_sequence)
+			cl->cell->output_buf = (q7_t*)layer->out->mem->blk + feature_size * round;
+		else
+			cl->cell->output_buf = layer->out->mem->blk;
+
+		// run it
 		result = cl->cell->run(layer);
 	}
 	return result;
@@ -375,66 +437,6 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
-nnom_status_t concat_run_bk(nnom_layer_t *layer)
-{
-	// by default, concat layer has 2 input and 1 output.
-	nnom_concat_layer_t *cl = (nnom_concat_layer_t *)layer;
-	uint32_t shape_element_num = sizeof(nnom_shape_t) / sizeof(nnom_shape_data_t);
-	size_t width = sizeof(nnom_shape_data_t);
-	nnom_shape_axis_t *out_shape = (nnom_shape_axis_t *)(&layer->out->shape); // get the shape.axis[0,1,2...] access to shape type
-	uint32_t offset;
-	nnom_layer_io_t *in1, *in2, *out;
-
-	in1 = layer->in;
-	in2 = layer->in->aux;
-	out = layer->out;
-
-	// last axis, shape c
-	if (cl->axis < 0)
-		offset = (shape_element_num + cl->axis);
-	else
-		offset = cl->axis;
-
-	// concat by different axis, TODO, change to nested for loop
-	if (offset == 0)
-	{
-		memcpy(out->mem->blk, in1->mem->blk, shape_size(&in1->shape));
-		memcpy((void *)((uint32_t)out->mem->blk + shape_size(&in1->shape)),
-			   in2->mem->blk, shape_size(&in2->shape));
-	}
-	else if (offset == 1)
-	{
-		uint8_t *pout = out->mem->blk;
-		uint8_t *pin1 = in1->mem->blk;
-		uint8_t *pin2 = in2->mem->blk;
-
-		for (int j = 0; j < out_shape->axis[0]; j++)
-		{
-			memcpy(pout, pin1, in1->shape.c * in1->shape.w);
-			memcpy(pout + in1->shape.c * in1->shape.w, pin2, in2->shape.c * in2->shape.w);
-			pin1 += in1->shape.c * in1->shape.w;
-			pin2 += in2->shape.c * in2->shape.w;
-			pout += in1->shape.c * in1->shape.w + in2->shape.c * in2->shape.w;
-		}
-	}
-	else if (offset == 2)
-	{
-		uint8_t *pout = out->mem->blk;
-		uint8_t *pin1 = in1->mem->blk;
-		uint8_t *pin2 = in2->mem->blk;
-
-		for (int j = 0; j < out_shape->axis[1] * out_shape->axis[0]; j++)
-		{
-			memcpy(pout, pin1, in1->shape.c);
-			memcpy(pout + in1->shape.c, pin2, in2->shape.c);
-			pin1 += in1->shape.c;
-			pin2 += in2->shape.c;
-			pout += in1->shape.c + in2->shape.c;
-		}
-	}
-
-	return NN_SUCCESS;
-}
 
 nnom_status_t add_run(nnom_layer_t *layer)
 {

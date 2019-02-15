@@ -190,7 +190,7 @@ nnom_layer_t *Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b)
 // Simple RNN
 // unit = output shape
 // type of activation
-nnom_rnn_cell_t *SimpleCell(size_t unit, uint32_t activation, nnom_weight_t *w, nnom_bias_t *b)
+nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t* activation, nnom_weight_t *w, nnom_bias_t *b)
 {
 	nnom_simple_rnn_cell_t *cell;
 	cell = nnom_mem(sizeof(nnom_simple_rnn_cell_t));
@@ -198,7 +198,7 @@ nnom_rnn_cell_t *SimpleCell(size_t unit, uint32_t activation, nnom_weight_t *w, 
 		return (nnom_rnn_cell_t *)cell;
 	// set parameters
 	cell->activation = activation;
-	cell->super.unit = unit;
+	cell->super.unit = units;
 	cell->super.run = cell_simple_rnn_run;
 
 	cell->bias = b;
