@@ -69,3 +69,13 @@ nnom_activation_t *act_sigmoid(void)
 	act->type = ACT_SIGMOID;
 	return act;
 }
+
+// a direct api, 
+// to run an activation directly by passing parameters
+nnom_status_t act_direct_run(nnom_layer_t *layer, nnom_activation_t* act, void* data, size_t size, nnom_qformat_t fmt)
+{
+	act->data = data;
+	act->size = size;
+	act->fmt = fmt;
+	return act->run(layer, act);
+}
