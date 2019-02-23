@@ -41,7 +41,7 @@ x = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x);
 
 The NNoM currently supports HWC format. 
 
-Whcih also called "channel last", where H = number of rows or y axis, W = number of column or x axis, C = number of channes. 
+Which also called "channel last", where H = number of rows or y axis, W = number of column or x axis, C = number of channes. 
 
 > For example:
 >
@@ -204,7 +204,6 @@ The Activation APIs are listed in *nnom_activations.h*
 ~~~c
 // Activation
 nnom_activation_t* act_relu(void);
-nnom_activation_t* act_softmax(void);
 nnom_activation_t* act_sigmoid(void);
 nnom_activation_t* act_tanh(void);
 ~~~
@@ -240,7 +239,7 @@ nnom_status_t 	model_run(nnom_model_t *m);
 ### Shared output buffer destroyed by single buffer layers (input-destructive)
 Single buffer layers (Such as most of the Activations, additionally MaxPool/AvgPool) are working directly on its input buffer. While its input buffer is shared with other parallel layers, and it is placed before other layers in a parallel structure (such as Inception), the shared buffer will be destroyed by those input-destructive before other parallel layer can access it. 
 
-Additionally, although, MaxPool & AvgPool are not single buffer layers, they will destroy the input buffer as they are mentioned with input-destructive in CMSIS-NN. So they should be treated as same as single buffer layers. 
+Additionally, although, MaxPool & AvgPool are not single buffer layers, they will destroy the input buffer as they are mentioned with input-destructive layers in CMSIS-NN. So they should be treated as same as single buffer layers. 
 
 **Fix plan of the issue**
 
