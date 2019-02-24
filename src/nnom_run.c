@@ -143,6 +143,7 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 	}
 }
 
+
 nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer)
 {
 	nnom_status_t result;
@@ -151,7 +152,7 @@ nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer)
 	nnom_simple_rnn_cell_t* cell = (nnom_simple_rnn_cell_t*)cl->cell;
 	// parameters
 	size_t input_size 		= layer->in->shape.c;				// in rnn, h = 1, w = timestamp, c = feature size. 
-	size_t output_size 		= cell->super.unit;					// output size = state size in keras. 
+	size_t output_size 		= cell->super.units;					// output size = state size in keras. 
 	q7_t* weight 			= (q7_t*)cell->weights->p_value;
 	q7_t* re_weight 		= (q7_t*)cell->weights->p_value + input_size;
 	q7_t* bias				= (q7_t*)cell->bias->p_value;
@@ -160,9 +161,13 @@ nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer)
 	uint16_t output_shift 	= cell->weights->shift; 			// not correct
 	uint8_t* vector_buf 	= layer->comp->mem->blk;			// not correct, buf for calculation
 	
+	// layer->comp buf is use to store states and intermmediate buffer
+	// state buf | B1	|compute buf;  Additionaly, cell->output buffer can be used for calulation
+	// 
 	// h = tanh or relu(w*x + b_dummy + h*x + bias)
-	
+
 	// w*x + b_dummy
+	// buff: input -> B1
 	result = (nnom_status_t)arm_fully_connected_q7(
 		cell->super.input_buf,
 		weight,
@@ -172,6 +177,7 @@ nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer)
 		cell->super.output_buf, (q15_t*)vector_buf);
 	
 	// h*x + bias (paramters are wrong)
+	// buff: state -> output
 	result = (nnom_status_t)arm_fully_connected_q7(
 		cell->super.input_buf,
 		re_weight,
@@ -181,15 +187,16 @@ nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer)
 		cell->super.output_buf, (q15_t*)vector_buf);
 	
 	// add (paramters are wrong)
+	// buff: B1 + output -> state 
 	arm_add_q7(layer->in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, output_size);
 	
 	// finally the activation (thinking of changing the activation's run interfaces. )
-	// activation.run(layer, activation, data, size)
-	cell->activation->data = cell->super.output_buf;
-	cell->activation->size = output_size;
-	cell->activation->fmt  = layer->in->qfmt;
-	cell->activation->run(layer, cell->activation);
-	
+	// buff: state
+	result = act_direct_run(layer, cell->activation,  cell->super.output_buf, output_size, layer->in->qfmt);
+
+	// copy to output
+	//memcpy(cell->super.output_buf, state, output_size);
+
 	return NN_SUCCESS;
 }
 
@@ -198,7 +205,8 @@ nnom_status_t rnn_run(nnom_layer_t *layer)
 	nnom_status_t result;
 	nnom_rnn_layer_t *cl = (nnom_rnn_layer_t *)(layer);
 	size_t timestamps_size = layer->in->shape.w;
-	size_t feature_size = layer->in->shape.c;
+	size_t feature_size    = layer->in->shape.c;
+	size_t output_size     = cl->cell->units;
 
 	// set the state buffer
 	cl->cell->state_buf = layer->comp->mem;
@@ -213,7 +221,7 @@ nnom_status_t rnn_run(nnom_layer_t *layer)
 		// set input buffer
 		cl->cell->input_buf = (q7_t*)layer->in->mem->blk + feature_size * round;
 		if(cl->return_sequence)
-			cl->cell->output_buf = (q7_t*)layer->out->mem->blk + feature_size * round;
+			cl->cell->output_buf = (q7_t*)layer->out->mem->blk + output_size * round;
 		else
 			cl->cell->output_buf = layer->out->mem->blk;
 

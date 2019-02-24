@@ -76,7 +76,7 @@ typedef struct _nnom_rnn_cell_t
 	void *input_buf;						   // the input buf and output buf for current cell.
 	void *output_buf;						   // These will be set in rnn_run() before entre cell.run()
 	void *state_buf;						   // state
-	size_t unit;							   //
+	size_t units;							   //
 } nnom_rnn_cell_t;
 
 typedef struct _nnom_simple_rnn_cell_t

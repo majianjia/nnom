@@ -198,7 +198,7 @@ nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t* activation, nnom_we
 		return (nnom_rnn_cell_t *)cell;
 	// set parameters
 	cell->activation = activation;
-	cell->super.unit = units;
+	cell->super.units = units;
 	cell->super.run = cell_simple_rnn_run;
 
 	cell->bias = b;

@@ -187,6 +187,12 @@ nnom_status_t dense_out_shape(nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
+// the state buffer and computational buffer shape of the cell
+nnom_status_t simplecell_out_shape(nnom_layer_t* layer, nnom_rnn_cell_t* cell)
+{
+
+}
+
 // TODO
 nnom_status_t rnn_out_shape(nnom_layer_t *layer)
 {
@@ -209,13 +215,13 @@ nnom_status_t rnn_out_shape(nnom_layer_t *layer)
 	{
 		layer->out->shape.h = 1;				  // batch?
 		layer->out->shape.w = layer->in->shape.w; // timestamp (same timestamps)
-		layer->out->shape.c = cl->cell->unit;	 // output unit
+		layer->out->shape.c = cl->cell->units;	 // output unit
 	}
 	else
 	{
 		layer->out->shape.h = 1;			  // batch?
 		layer->out->shape.w = 1;			  // timestamp
-		layer->out->shape.c = cl->cell->unit; // output unit
+		layer->out->shape.c = cl->cell->units; // output unit
 	}
 	return NN_SUCCESS;
 }

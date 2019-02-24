@@ -127,7 +127,7 @@ Detail documentation comes later.
 | Simple RNN | Under Dev. | SimpleCell()| Under Developpment |
 | Gated Recurrent Network (GRU)| Under Dev. | GRUCell()| Under Developpment |
 | Flatten|Beta | Flatten()| |
-| SoftMax|Beta | SoftMax()| |
+| SoftMax|Beta | SoftMax()| Softmax only has layer API| 
 | Activation|Beta| Activation()|A layer instance for activation|
 
 **Activations**
@@ -163,7 +163,7 @@ NNoM requires dynamic memory allocating during model building and compiling.
 
 No memory allocating in running the model. 
 
-RAM requirement is about 100 to 150 bytes per layer for NNoM instance, plus the maximum data buf cost.
+RAM requirement is about 100 to 200 bytes per layer for NNoM instance, plus the maximum data buf cost.
 
 >The sequential exmaple above includes 9 layer instances. So, the memory cost for instances is 130 x 9 = 1170 Bytes.
 >
