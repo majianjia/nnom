@@ -17,6 +17,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 // memory interfaces
 #define nnom_malloc(n)   	malloc(n) 
@@ -31,28 +33,6 @@
 // NNoM configuration
 #define NNOM_BLOCK_NUM  	(8)		// maximum number of memory block  
 #define DENSE_WEIGHT_OPT 	(1)		// if used fully connected layer optimized weights. 
-
-
-// An porting example shows below
-/*
-
-#include "rtthread.h"
-extern uint32_t us_timer_get(void);
-
-// memory interfaces
-#define nnom_malloc(n)   	rt_malloc(n) 
-#define nnom_free(p)		rt_free(p)
-#define nnom_memset(p,v,s)  rt_memset(p,v,s)
-
-// runtime & debuges
-#define nnom_us_get()		us_timer_get()
-#define nnom_ms_get()		rt_tick_get()
-#define LOG(...)			rt_kprintf(__VA_ARGS__)
-
-// NNoM configuration
-#define NNOM_BLOCK_NUM  	(8)		
-#define DENSE_WEIGHT_OPT 	(1)		
-*/
 
 #endif
 

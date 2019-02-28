@@ -80,7 +80,7 @@ nnom_layer_io_t *io_add_aux(nnom_layer_io_t *targeted_io)
 // multiplier of (output/input channel),
 // shape of kernal, shape of strides, weight struct, bias struct
 nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type,
-					 nnom_weight_t *w, nnom_bias_t *b)
+					 const nnom_weight_t *w, const nnom_bias_t *b)
 {
 	nnom_conv2d_layer_t *layer;
 	nnom_buf_t *comp;
@@ -117,7 +117,7 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 	layer->bias = b;
 	layer->weights = w;
 	layer->output_shift = w->shift;
-	layer->bias_shift = w->shift - b->shift; // bias is quantized to have maximum shift of weights
+	layer->bias_shift = b->shift; // bias is quantized to have maximum shift of weights
 	layer->filter_mult = filters;			 // for convs, this means filter number
 	layer->padding_type = pad_type;
 
@@ -133,7 +133,7 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 }
 
 nnom_layer_t *DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type,
-						nnom_weight_t *w, nnom_bias_t *b)
+						const nnom_weight_t *w, const nnom_bias_t *b)
 {
 	nnom_layer_t *layer = Conv2D(multiplier, k, s, pad_type, w, b); // passing multiplier in .
 	if (layer != NULL)
@@ -146,7 +146,7 @@ nnom_layer_t *DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nno
 }
 
 // No, there is nothing call "fully_connected()", the name just too long
-nnom_layer_t *Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b)
+nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_t *b)
 {
 	nnom_dense_layer_t *layer;
 	nnom_buf_t *comp;
@@ -181,7 +181,7 @@ nnom_layer_t *Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b)
 	layer->bias = b;
 	layer->weights = w;
 	layer->output_shift = w->shift;
-	layer->bias_shift = w->shift - b->shift; // bias is quantized to have maximum shift of weights
+	layer->bias_shift = b->shift; // bias is quantized to have maximum shift of weights
 	layer->output_unit = output_unit;
 
 	return (nnom_layer_t *)layer;
@@ -190,7 +190,7 @@ nnom_layer_t *Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b)
 // Simple RNN
 // unit = output shape
 // type of activation
-nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t* activation, nnom_weight_t *w, nnom_bias_t *b)
+nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t* activation, const nnom_weight_t *w, const nnom_bias_t *b)
 {
 	nnom_simple_rnn_cell_t *cell;
 	cell = nnom_mem(sizeof(nnom_simple_rnn_cell_t));

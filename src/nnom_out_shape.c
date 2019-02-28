@@ -19,6 +19,8 @@
 #include "nnom_run.h"
 #include "math.h"
 
+#define NN_CEILIF(x,y) ((x+y-1)/y)
+
 // this is call while output shape is not defined.
 // this will set the output shape same as input shape, and it set only the primary IO
 // this cannot be used as first layer, of course...
@@ -102,15 +104,15 @@ nnom_status_t conv2d_out_shape(nnom_layer_t *layer)
 	// output shape
 	if (cl->padding_type == PADDING_SAME)
 	{
-		out->shape.h = ceilf((float)in->shape.h / (float)cl->stride.h);
-		out->shape.w = ceilf((float)in->shape.w / (float)cl->stride.w);
+		out->shape.h = NN_CEILIF(in->shape.h ,cl->stride.h);
+		out->shape.w = NN_CEILIF(in->shape.w ,cl->stride.w);
 		out->shape.c = cl->filter_mult; // output filter num
 	}
 	// new_height = new_width = (W-F+1)/S, round up
 	else
 	{
-		out->shape.h = ceilf((float)(in->shape.h - cl->kernel.h + 1) / (float)(cl->stride.h));
-		out->shape.w = ceilf((float)(in->shape.w - cl->kernel.w + 1) / (float)(cl->stride.w));
+		out->shape.h = NN_CEILIF((in->shape.h - cl->kernel.h + 1) ,(cl->stride.h));
+		out->shape.w = NN_CEILIF((in->shape.w - cl->kernel.w + 1) ,(cl->stride.w));
 		out->shape.c = cl->filter_mult;
 	}
 	// bufferA size: (1D shape)
@@ -135,15 +137,15 @@ nnom_status_t dw_conv2d_out_shape(nnom_layer_t *layer)
 
 	if (cl->padding_type == PADDING_SAME)
 	{
-		out->shape.h = ceilf((float)in->shape.h / (float)cl->stride.h);
-		out->shape.w = ceilf((float)in->shape.w / (float)cl->stride.w);
+		out->shape.h = NN_CEILIF(in->shape.h ,cl->stride.h);
+		out->shape.w = NN_CEILIF(in->shape.w ,cl->stride.w);
 		out->shape.c = in->shape.c * cl->filter_mult; // for dw, is the multiplier for input channels
 	}
 	// new_height = new_width = (W-F+1)/S, round up
 	else
 	{
-		out->shape.h = ceilf((float)(in->shape.h - cl->kernel.h + 1) / (float)(cl->stride.h));
-		out->shape.w = ceilf((float)(in->shape.w - cl->kernel.w + 1) / (float)(cl->stride.w));
+		out->shape.h = NN_CEILIF((in->shape.h - cl->kernel.h + 1) ,(cl->stride.h));
+		out->shape.w = NN_CEILIF((in->shape.w - cl->kernel.w + 1) ,(cl->stride.w));
 		out->shape.c = in->shape.c * cl->filter_mult;
 	}
 	// bufferA size: (1D shape)
@@ -240,14 +242,14 @@ nnom_status_t maxpooling_out_shape(nnom_layer_t *layer)
 
 	if (cl->padding_type == PADDING_SAME)
 	{
-		out->shape.h = ceilf((float)(in->shape.h) / (float)(cl->stride.h));
-		out->shape.w = ceilf((float)(in->shape.w) / (float)(cl->stride.w));
+		out->shape.h = NN_CEILIF((in->shape.h) ,(cl->stride.h));
+		out->shape.w = NN_CEILIF((in->shape.w) ,(cl->stride.w));
 		out->shape.c = in->shape.c;
 	}
 	else
 	{
-		out->shape.h = ceilf((float)(in->shape.h - cl->kernel.h + 1) / (float)(cl->stride.h));
-		out->shape.w = ceilf((float)(in->shape.w - cl->kernel.w + 1) / (float)(cl->stride.w));
+		out->shape.h = NN_CEILIF((in->shape.h - cl->kernel.h + 1) ,(cl->stride.h));
+		out->shape.w = NN_CEILIF((in->shape.w - cl->kernel.w + 1) ,(cl->stride.w));
 		out->shape.c = in->shape.c;
 	}
 

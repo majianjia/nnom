@@ -139,7 +139,7 @@ typedef struct _nnom_qformat
 
 typedef struct _nnom_weights
 {
-	void *p_value;
+	const void *p_value;
 	size_t shift;
 } nnom_weight_t;
 
