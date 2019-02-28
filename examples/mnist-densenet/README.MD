@@ -66,14 +66,14 @@ int main()
 	input_layer = Input(shape(INPUT_HIGHT, INPUT_WIDTH, INPUT_CH), qformat(7, 0), nnom_input_data);
 	
 	// preprocessing
-	x = model->hook(Conv2D(16, kernel(3, 3), stride(2, 2), PADDING_SAME, &c0_w, &c0_b),);
+	x = model.hook(Conv2D(16, kernel(3, 3), stride(2, 2), PADDING_SAME, &c0_w, &c0_b),);
 	
 	// The dense block
 	x = dense_block(&model, x);
 	
 	// the output of denseblock is 14 x 14 x 144(CH)
 	// we need to reduce channels num to 10 for global average pooling
-	x = model->hook(Conv2D(10, kernel(3, 3), stride(1, 1), PADDING_SAME, &c5_w, &c5_b),);
+	x = model.hook(Conv2D(10, kernel(3, 3), stride(1, 1), PADDING_SAME, &c5_w, &c5_b),);
 
 	// global average pool
 	x = model.hook(GlobalAvgPool()), x);
