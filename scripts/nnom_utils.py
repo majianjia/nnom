@@ -271,31 +271,39 @@ def layers_output_ranges(model, x_test):
 
 
 
-
-def evaluate_model(model, x_test, y_test, running_time=False):
+def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluation.txt'):
     # Score trained model.
     scores = model.evaluate(x_test, y_test, verbose=2)
     print('Test loss:', scores[0])
     print('Top 1:', scores[1])
 
     predictions = model.predict(x_test)
-    output = tf.keras.metrics.top_k_categorical_accuracy(y_test, predictions, k=3)
+    output = tf.keras.metrics.top_k_categorical_accuracy(y_test, predictions, k=2)
     with tf.Session() as sess:
         result = sess.run(output)
     print("Top 2:",result)
 
+    run_time = 0
     if running_time:
         # try to calculate the time
         T = time.time()
         for i in range(10):
             model.predict(x_test)
         T = time.time() - T
-        print("Runing time:", round((T/10/x_test.shape[0] *1000*1000), 2), "us" )
+        run_time = round((T / 10 / x_test.shape[0] * 1000 * 1000), 2)
+        print("Runing time:",run_time , "us" )
 
     predictions = model.predict(x_test)
     matrix = metrics.confusion_matrix(y_test.argmax(axis=1), predictions.argmax(axis=1))
     print(matrix)
     #
+    with open(to_file, 'w') as f:
+        f.write('Test loss:'+ str(scores[0]) + "\n")
+        f.write('Top 1:'+ str(scores[1])+ "\n")
+        f.write("Top 2:"+ str(result)+ "\n")
+        f.write("Runing time: "+ str(run_time) + "us" + "\n")
+        f.write(str(matrix))
+
 
     # try to check the weight and bias dec ranges
     for layer in model.layers:
@@ -313,6 +321,7 @@ def evaluate_model(model, x_test, y_test, running_time=False):
             intt = int(np.ceil(np.log2(max(abs(min_value), abs(max_value)))))
             dec = 7 - intt
             print(var_name, "Dec num:", dec)
+
 
 
 class nnom:
