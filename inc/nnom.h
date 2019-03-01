@@ -58,6 +58,7 @@ typedef enum
 	NNOM_ADD,
 	NNOM_SUB,
 	NNOM_MULT,
+	NNOM_TYPE_MAX
 
 } nnom_layer_type_t;
 

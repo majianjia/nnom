@@ -335,13 +335,13 @@ nnom_status_t concatenate_out_shape(nnom_layer_t *layer)
 		// exclue the concat axies
 		if (i == offset * sizeof(nnom_shape_data_t))
 		{
-			nnom_shape_data_t *out_axis = (nnom_shape_data_t *)((uint32_t)(&layer->out->shape) + i);
+			nnom_shape_data_t *out_axis = (nnom_shape_data_t *)((unsigned long)(&layer->out->shape) + i);
 			*out_axis = 0;
 
 			in = layer->in;
 			while (in != NULL)
 			{
-				*out_axis += *(nnom_shape_data_t *)((uint32_t)(&in->shape) + i);
+				*out_axis += *(nnom_shape_data_t *)((unsigned long)(&in->shape) + i);
 				in = in->aux;
 			}
 			continue;
@@ -351,15 +351,15 @@ nnom_status_t concatenate_out_shape(nnom_layer_t *layer)
 		in = layer->in;
 		while (in != NULL && in->aux != NULL)
 		{
-			if (*(nnom_shape_data_t *)((uint32_t)(&in->shape) + i) !=
-				*(nnom_shape_data_t *)((uint32_t)(&in->aux->shape) + i))
+			if (*(nnom_shape_data_t *)((unsigned long)(&in->shape) + i) !=
+				*(nnom_shape_data_t *)((unsigned long)(&in->aux->shape) + i))
 				return NN_ARGUMENT_ERROR;
 			in = in->aux;
 		}
 
 		// now set other axis
-		*(nnom_shape_data_t *)((uint32_t)(&layer->out->shape) + i) =
-			*(nnom_shape_data_t *)((uint32_t)(&layer->in->shape) + i);
+		*(nnom_shape_data_t *)((unsigned long)(&layer->out->shape) + i) =
+			*(nnom_shape_data_t *)((unsigned long)(&layer->in->shape) + i);
 	}
 
 	return NN_SUCCESS;
