@@ -73,13 +73,14 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
     test_label = np.argwhere(y == 1).astype(dtype="byte")  # test data
     test_label = test_label[:, 1]
 
-    # get test data
-    dat = x.astype(dtype="byte")  # test data
-    block_size = x.shape[1] * x.shape[2] * x.shape[3] # size of one sample for exampe, mnist = 28*28*1
-    dat = np.reshape(dat, (dat.shape[0] * block_size))
+	# get data
+	dat = x.astype(dtype="byte")  # test data
+    batch_size = dat.shape[0]		  # total pices of data	
+	dat = dat.flatten()			  # flatten to get the total size.
+    block_size = int(dat.size / batch_size) # this must be integer but... just to confirm
 
+	# write (label x 128) (data_block x 128)
     label_batch = 128       # the Y-modem example uses 128 batch
-
     with open(name, 'wb') as f:
         start = 0
         while start <= (test_label.size - label_batch):

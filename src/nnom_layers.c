@@ -42,7 +42,7 @@ nnom_shape_t stride(size_t h, size_t w)
 {
 	return shape(h, w, 1);
 }
-nnom_qformat_t qformat(int8_t n, int8_t m)
+nnom_qformat_t qformat(int8_t m, int8_t n)
 {
 	nnom_qformat_t fmt;
 	fmt.n = n;

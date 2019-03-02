@@ -136,10 +136,10 @@ typedef struct _nnom_concat_layer
 } nnom_concat_layer_t;
 
 // properties
-nnom_shape_t shape(size_t w, size_t h, size_t c);
-nnom_shape_t kernel(size_t w, size_t h);
-nnom_shape_t stride(size_t w, size_t h);
-nnom_qformat_t qformat(int8_t n, int8_t m);
+nnom_shape_t shape(size_t h, size_t w, size_t c);
+nnom_shape_t kernel(size_t h, size_t w);
+nnom_shape_t stride(size_t h, size_t w);
+nnom_qformat_t qformat(int8_t m, int8_t n);
 size_t shape_size(nnom_shape_t *s);
 
 // utils
