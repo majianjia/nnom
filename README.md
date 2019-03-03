@@ -1,5 +1,5 @@
 # Neural Network on Microcontroller (NNoM)
-NNoM is a higher-level layer-based static Graph Neural Network library specifically for microcontrollers. 
+NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. 
 
 NNoM is released under LGPL-V3.0, please check the license file for detail. 
 
