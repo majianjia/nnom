@@ -116,14 +116,14 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
               verbose=2,
               validation_data=(x_test, y_test),
               shuffle=True, callbacks=callback_lists)
-			  
+
     # free the session to avoid nesting naming while we load the best model after.
     del model
     K.clear_session()
     return history
 
 
-if __name__ == "__main__":
+def main(weights='weights.h'):
 
     #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
@@ -153,26 +153,12 @@ if __name__ == "__main__":
     print("data range", x_test.min(), x_test.max())
 
     # generate binary
-    generate_test_bin(x_test, y_test, name='mnist_test_data.bin')
+    if(not os.path.exists('mnist_test_data.bin')):
+        generate_test_bin(x_test, y_test, name='mnist_test_data.bin')
 
     # train model
-    history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
-
-    # get best model
-    model = load_model(save_dir)
-
-    # evaluate
-    evaluate_model(model, x_test, y_test)
-
-    # save weight
-    generate_weights(model, name='weights.h')
-
-    # test, show the output ranges
-    layers_output_ranges(model, x_train)
-
-
-    # plot
-    if(1):
+    if(not os.path.exists(save_dir)):
+        history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
         acc = history.history['acc']
         val_acc = history.history['val_acc']
 
@@ -183,8 +169,23 @@ if __name__ == "__main__":
         plt.ylabel('Loss')
         plt.legend()
         plt.show()
+  
+    # get best model
+    model = load_model(save_dir)
 
+    # evaluate
+    evaluate_model(model, x_test, y_test)
 
+    # save weight
+    generate_weights(model, name=weights)
+
+    # test, show the output ranges
+    layers_output_ranges(model, x_test)
+
+    return model,x_train,y_train,x_test,y_test
+
+if __name__ == "__main__":
+    main()
 
 
 

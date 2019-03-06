@@ -1,3 +1,9 @@
 SConscript*
 .vscode
+*.o
+*.txt
+*.bin
+__pycache__
+*.h5
+.ipynb_checkpoints
 

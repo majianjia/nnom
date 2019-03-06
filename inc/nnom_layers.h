@@ -38,16 +38,16 @@ typedef struct _nnom_conv2d_layer_t
 	nnom_shape_t pad;
 	nnom_padding_t padding_type;
 	uint32_t filter_mult; 							// filter size (for conv) or multilplier (for depthwise)
-	nnom_weight_t *weights;
-	nnom_bias_t *bias;
+	const nnom_weight_t *weights;
+	const nnom_bias_t *bias;
 } nnom_conv2d_layer_t;
 
 typedef struct _nnom_dense_layer_t
 {
 	nnom_layer_t super;
 	size_t output_unit;
-	nnom_weight_t *weights;
-	nnom_bias_t *bias;
+	const nnom_weight_t *weights;
+	const nnom_bias_t *bias;
 	int8_t output_shift;
 	int8_t bias_shift;
 
@@ -84,8 +84,8 @@ typedef struct _nnom_simple_rnn_cell_t
 	nnom_rnn_cell_t super;
 	nnom_activation_t*  activation;
 
-	nnom_weight_t *weights;
-	nnom_bias_t *bias;
+	const nnom_weight_t *weights;
+	const nnom_bias_t *bias;
 } nnom_simple_rnn_cell_t;
 
 typedef struct _nnom_gru_cell_t
@@ -96,8 +96,8 @@ typedef struct _nnom_gru_cell_t
 	//nnom_status_t(*activation)(nnom_layer_t *layer);
 	//nnom_status_t(*activation)(nnom_layer_t *layer);
 
-	nnom_weight_t *weights;
-	nnom_bias_t *bias;
+	const nnom_weight_t *weights;
+	const nnom_bias_t *bias;
 } nnom_gru_cell_t;
 
 typedef struct _nnom_rnn_layer
@@ -179,14 +179,14 @@ nnom_layer_t *Concat(int8_t axis);
 // NN Constructers
 // conv2d
 nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad,
-					 nnom_weight_t *w, nnom_bias_t *b);
+					 const nnom_weight_t *w, const nnom_bias_t *b);
 
 // depthwise_convolution
 nnom_layer_t *DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad,
-						nnom_weight_t *w, nnom_bias_t *b);
+						const nnom_weight_t *w, const nnom_bias_t *b);
 
 // fully connected, dense
-nnom_layer_t *Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b);
+nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_t *b);
 
 // rnn layer based
 nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence);
@@ -195,7 +195,7 @@ nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence);
 // The shape for RNN input is (batch, timestamp, feature), where batch is always 1. 
 //
 // SimpleRNNCell
-nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t* activation, nnom_weight_t *w, nnom_bias_t *b);
+nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t* activation, const nnom_weight_t *w, const nnom_bias_t *b);
 
 // Lambda Layers
 nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),	// run method, required

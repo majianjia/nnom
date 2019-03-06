@@ -551,10 +551,10 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 			else
 				compsize = 0;
 			// names
-			LOG(" %10.s - ", &default_layer_names[layer->type]);
+			LOG(" %-10s - ", &default_layer_names[layer->type]);
 			// activations
 			if (layer->actail != NULL)
-				LOG("%8.s - ", &default_activation_names[layer->actail->type]);
+				LOG("%-8s - ", &default_activation_names[layer->actail->type]);
 			else
 				LOG("         - ");
 
@@ -735,7 +735,7 @@ nnom_status_t block_mem_set(nnom_model_t *m, void *buf)
 	{
 		if (m->blocks[index].size == 0)
 			break;
-		m->blocks[index].blk = (void *)((uint32_t)buf + mem_offset);
+		m->blocks[index].blk = (void *)((unsigned long)buf + mem_offset);
 		mem_offset += m->blocks[index].size;
 	}
 	return NN_SUCCESS;
@@ -865,7 +865,29 @@ nnom_status_t layer_run(nnom_layer_t *layer)
 	layer->stat.time = nnom_us_get() - start;
 	return result;
 }
+#ifdef USE_NNOM_OUTPUT_SAVE
+void nnom_save_output(nnom_layer_t* layer) {
 
+	static int outputIndex[NNOM_TYPE_MAX] = { 0 , } ;
+	char name[32];
+	FILE* fp;
+
+	outputIndex[layer->type]++;
+	snprintf(name, sizeof(name),"tmp/%s%d.raw",
+			default_layer_names[layer->type],
+			outputIndex[layer->type]);
+	fp = fopen(name,"w");
+	if(fp != NULL)
+	{
+		fwrite(layer->out->mem->blk, 1, shape_size(&layer->out->shape), fp);
+		fclose(fp);
+	}
+	else
+	{
+		printf("failed to save %s\n",name);
+	}
+}
+#endif
 // run the model, until the end_layer. If end_layer == NULL, run all layers.
 nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 {
@@ -885,6 +907,9 @@ nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 			LOG("Error: #%d %s layer return error code:%d\n", layer_num, &default_layer_names[layer->type], result);
 			return result;
 		}
+		#ifdef USE_NNOM_OUTPUT_SAVE
+		nnom_save_output(layer);
+		#endif
 		if (layer == end_layer)
 		{
 			return result;

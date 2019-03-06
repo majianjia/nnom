@@ -58,6 +58,7 @@ typedef enum
 	NNOM_ADD,
 	NNOM_SUB,
 	NNOM_MULT,
+	NNOM_TYPE_MAX
 
 } nnom_layer_type_t;
 
@@ -139,7 +140,7 @@ typedef struct _nnom_qformat
 
 typedef struct _nnom_weights
 {
-	void *p_value;
+	const void *p_value;
 	size_t shift;
 } nnom_weight_t;
 

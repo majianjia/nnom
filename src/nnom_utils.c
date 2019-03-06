@@ -191,7 +191,8 @@ void prediction_top_k(nnom_predic_t *pre)
 	{
 		top += pre->top_k[i];
 		if (top != pre->predic_count)
-			printf("Top %d Accuracy: %.2f%% \n", i + 1, ((float)top * 100) / pre->predic_count);
+			printf("Top %d Accuracy: %d.%02d%% \n", i + 1, (top * 100) / pre->predic_count,
+					((top * 100 * 100) / pre->predic_count)%100);
 		else
 			printf("Top %d Accuracy: 100%% \n", i + 1);
 	}
@@ -208,8 +209,10 @@ void prediction_summary(nnom_predic_t *pre)
 	printf("Test running time: %d sec\n", pre->t_predic_total / 1000);
 	printf("Model running time: %d ms\n", pre->t_run_total);
 	printf("Average prediction time: %d us\n", (pre->t_run_total * 1000) / pre->predic_count);
-	printf("Average effeciency: %.2f ops/us\n", (double)((double)pre->model->total_ops * pre->predic_count) / ((double)pre->t_run_total * 1000));
-	printf("Average frame rate: %.1f Hz\n", (float)1000 / ((float)pre->t_run_total / pre->predic_count));
+	printf("Average effeciency: %d.%02d ops/us\n", (int)((uint64_t)pre->model->total_ops * pre->predic_count) / (pre->t_run_total * 100),
+			(int)(((uint64_t)pre->model->total_ops * pre->predic_count)*100 / (pre->t_run_total * 1000))%100);
+	printf("Average frame rate: %d.%d Hz\n", 1000 / (pre->t_run_total / pre->predic_count),
+			(1000*10 / (pre->t_run_total / pre->predic_count))%10);
 
 	// print top-k
 	prediction_top_k(pre);

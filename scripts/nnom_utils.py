@@ -19,7 +19,7 @@
     Currently, this script does not support RNN (type) layers.
 '''
 
-
+import matplotlib.pyplot as plt
 import tensorflow as tf
 from keras.layers import Lambda
 from keras.models import Model
@@ -73,13 +73,13 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
     test_label = np.argwhere(y == 1).astype(dtype="byte")  # test data
     test_label = test_label[:, 1]
 
-	# get data
-	dat = x.astype(dtype="byte")  # test data
-    batch_size = dat.shape[0]		  # total pices of data	
-	dat = dat.flatten()			  # flatten to get the total size.
+    # get data
+    dat = x.astype(dtype="byte")  # test data
+    batch_size = dat.shape[0]     # total pices of data	
+    dat = dat.flatten()           # flatten to get the total size.
     block_size = int(dat.size / batch_size) # this must be integer but... just to confirm
 
-	# write (label x 128) (data_block x 128)
+    # write (label x 128) (data_block x 128)
     label_batch = 128       # the Y-modem example uses 128 batch
     with open(name, 'wb') as f:
         start = 0
@@ -103,7 +103,7 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
 
 def generate_weights(model, name='weights.h'):
     # Quantize weights to 8-bits using (min,max) and write to file
-    f = open('weights.h', 'wb')
+    f = open(name, 'w')
     f.close()
 
     for layer in model.layers:
@@ -179,7 +179,7 @@ def generate_weights(model, name='weights.h'):
 
 def generate_weights_outputshift(model, name='weights.h'):
     # Quantize weights to 8-bits using (min,max) and write to file
-    f = open('weights.h', 'wb')
+    f = open(name, 'w')
     f.close()
 
     dict = {}
@@ -270,8 +270,6 @@ def layers_output_ranges(model, x_test):
 
     print("shift list", shift_list)
 
-
-
 def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluation.txt'):
     # Score trained model.
     scores = model.evaluate(x_test, y_test, verbose=2)
@@ -355,6 +353,80 @@ class nnom:
         print("output shift", self.shift_dict)
         np.save(file, self.shift_dict)
 
+def f2q(d, Q):
+    '''To convert a number from floating point to Qm.n format:
+        1. Multiply the floating point number by 2n
+        2. Round to the nearest integer
+    '''
+    return np.round(d*2**Q)
+
+
+def q2f(d, Q):
+    '''To convert a number from Qm.n format to floating point:
+        1. Convert the number to floating point as if it were an integer, in other words remove the binary point
+        2. Multiply by 2−n
+    '''
+    return d*2**-Q
+
+def show_weights(w, name):
+    sz = 1
+    for s in w.shape:
+        sz = sz*s
+    aL = w.reshape(sz,)
+    MIN,MAX=min(aL),max(aL)
+    Q = int(np.ceil(np.log2(max(abs(MIN),abs(MAX)))))
+    Q = 7-Q
+    qL = f2q(aL,Q)
+    qL = q2f(qL,Q)
+    plt.figure(figsize=(18, 3))  
+    plt.subplot(131)
+    plt.title(name)
+    plt.plot(aL)
+    plt.grid()
+    aL.sort()
+    plt.plot(aL,'r')
+    plt.grid()
+    plt.subplot(132)
+    plt.title('Q%s'%(Q))
+    qL.sort()
+    plt.plot(aL,'r')
+    plt.plot(qL,'g')
+    plt.grid()
+    plt.subplot(133)
+    plt.hist(aL,100)
+    plt.title('hist')
+    plt.grid()
+    plt.show()
+
+def compare(a,b,name):
+    sz = 1
+    for s in a.shape:
+        sz = sz*s
+    aL = a.reshape(sz,)
+    bL = b.reshape(sz,)
+    assert(len(aL) == len(bL))
+    Z = list(zip(aL,bL))
+    Z.sort(key=lambda x: x[0])
+    aL1,bL1=zip(*Z)
+    plt.figure(figsize=(18, 3))
+    plt.subplot(131)
+    plt.plot(aL)
+    plt.plot(aL1,'r')
+    plt.grid()
+    plt.title('tf-%s'%(name))
+    plt.subplot(133)
+    plt.plot(bL1,'g')
+    plt.plot(aL1,'r')
+    plt.grid()
+    plt.title('compare')
+    plt.subplot(132)
+    bL1=list(bL1)
+    bL1.sort()
+    plt.plot(bL)
+    plt.plot(bL1,'g')
+    plt.grid()
+    plt.title('nn-%s'%(name))
+    plt.show()
 
 # for test only
 if __name__ == "__main__":
