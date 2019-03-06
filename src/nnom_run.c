@@ -297,13 +297,13 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)(layer);
 
 	// 1D
+	// this 1D implementation will be replace by none-quare 2D after it has beed tested
 	if (layer->in->shape.h == 1)
 	{
 		arm_maxpool_1d_q7_HWC(
 			layer->in->mem->blk,
 			layer->in->shape.w, layer->in->shape.c,
-			cl->kernel.w, cl->pad.w,
-			cl->stride.w,
+			cl->kernel.w, cl->pad.w, cl->stride.w,
 			layer->out->shape.w,
 			NULL,
 			layer->out->mem->blk);
@@ -314,14 +314,24 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 		arm_maxpool_q7_HWC(
 			layer->in->mem->blk,
 			layer->in->shape.w, layer->in->shape.c,
-			cl->kernel.w, cl->pad.w,
-			cl->stride.w,
+			cl->kernel.w, cl->pad.w, cl->stride.w,
 			layer->out->shape.w,
 			NULL,
 			layer->out->mem->blk);
 	}
+	// none square 2D
 	else
-		return NN_ARGUMENT_ERROR;
+	{
+		// CMSIS-NN does not support none-square pooling, we have to use local implementation
+		local_maxpool_q7_HWC(layer->in->mem->blk, 				
+				layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+				cl->kernel.w, cl->kernel.h, 
+				cl->pad.w, cl->pad.h,
+				cl->stride.w, cl->stride.h,
+				layer->out->shape.w, layer->out->shape.h,
+				NULL,
+				layer->out->mem->blk);
+	}
 
 	return NN_SUCCESS;
 }
@@ -330,14 +340,13 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 {
 	nnom_avgpool_layer_t *cl = (nnom_avgpool_layer_t *)(layer);
 
-	// 1D is not working yet.
+	// this 1D implementation will be replace by none-quare 2D after it has beed tested
 	if (layer->in->shape.h == 1)
 	{
 		arm_avepool_1d_q7_HWC(
 			layer->in->mem->blk,
 			layer->in->shape.w, layer->in->shape.c,
-			cl->kernel.w, cl->pad.w,
-			cl->stride.w,
+			cl->kernel.w, cl->pad.w, cl->stride.w,
 			layer->out->shape.w,
 			layer->comp->mem->blk,
 			layer->out->mem->blk);
@@ -348,14 +357,24 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 		arm_avepool_q7_HWC(
 			layer->in->mem->blk,
 			layer->in->shape.w, layer->in->shape.c,
-			cl->kernel.w, cl->pad.w,
-			cl->stride.w,
+			cl->kernel.w, cl->pad.w, cl->stride.w,
 			layer->out->shape.w,
 			layer->comp->mem->blk,
 			layer->out->mem->blk);
 	}
+	// none square 2D
 	else
-		return NN_ARGUMENT_ERROR;
+	{
+		// CMSIS-NN does not support none-square pooling, we have to use local implementation
+		local_avepool_q7_HWC(layer->in->mem->blk, 				
+				layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+				cl->kernel.w, cl->kernel.h, 
+				cl->pad.w, cl->pad.h,
+				cl->stride.w, cl->stride.h,
+				layer->out->shape.w, layer->out->shape.h,
+				NULL,
+				layer->out->mem->blk);
+	}
 
 	return NN_SUCCESS;
 }
