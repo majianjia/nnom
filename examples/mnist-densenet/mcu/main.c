@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2018-2019
+ * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * majianjia@live.com
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: LGPL-3.0
  *
  * Change Logs:
  * Date           Author       Notes
- * 2018-05-14     ZYH          first implementation
+ * 2019-02-05     Jianjia Ma   The first version
  */
  
+#include <stdint.h>
+#include <stdlib.h>
 #include <stdio.h>
-#include "stm32l4xx_hal.h"
-#include "rtthread.h"
-#include "rtdevice.h"
+#include <assert.h>
+
 #include "nnom.h"
 
 #include "weights.h"
-#include "ymodem.h"
-
 
 #define INPUT_CH			1	 
 #define INPUT_WIDTH			28
@@ -58,7 +59,7 @@ nnom_weight_t c1_w = {
 
 nnom_bias_t c1_b = {
 	.p_value = (void*)conv1_b,
-	.shift = CONV2D_1_BIAS_0_SHIFT};
+	.shift =  CONV2D_1_KERNEL_0_SHIFT-CONV2D_1_BIAS_0_SHIFT};
 
 nnom_weight_t c2_w = {
 	.p_value = (void*)conv2_wt,
@@ -66,7 +67,7 @@ nnom_weight_t c2_w = {
 
 nnom_bias_t c2_b = {
 	.p_value = (void*)conv2_b,
-	.shift = CONV2D_2_BIAS_0_SHIFT};
+	.shift = CONV2D_2_KERNEL_0_SHIFT-CONV2D_2_BIAS_0_SHIFT};
 
 nnom_weight_t c3_w = {
 	.p_value = (void*)conv3_wt,
@@ -74,7 +75,7 @@ nnom_weight_t c3_w = {
 
 nnom_bias_t c3_b = {
 	.p_value = (void*)conv3_b,
-	.shift = CONV2D_3_BIAS_0_SHIFT};
+	.shift = CONV2D_3_KERNEL_0_SHIFT-CONV2D_3_BIAS_0_SHIFT};
 
 nnom_weight_t c4_w = {
 	.p_value = (void*)conv4_wt,
@@ -82,7 +83,7 @@ nnom_weight_t c4_w = {
 
 nnom_bias_t c4_b = {
 	.p_value = (void*)conv4_b,
-	.shift = CONV2D_4_BIAS_0_SHIFT};
+	.shift = CONV2D_4_KERNEL_0_SHIFT-CONV2D_4_BIAS_0_SHIFT};
 
 nnom_weight_t c5_w = {
 	.p_value = (void*)conv5_wt,
@@ -90,7 +91,7 @@ nnom_weight_t c5_w = {
 
 nnom_bias_t c5_b = {
 	.p_value = (void*)conv5_b,
-	.shift = CONV2D_5_BIAS_0_SHIFT};
+	.shift = CONV2D_5_KERNEL_0_SHIFT-CONV2D_5_BIAS_0_SHIFT};
 
 //nnom_weight_t c6_w = {
 //	.p_value = (void*)conv6_wt,
@@ -146,7 +147,7 @@ nnom_weight_t ip1_w = {
 
 nnom_bias_t ip1_b = {
 	.p_value = (void*)fc1_b,
-	.shift = DENSE_1_BIAS_0_SHIFT};
+	.shift = DENSE_1_KERNEL_0_SHIFT - DENSE_1_BIAS_0_SHIFT};
 
 //nnom_weight_t ip2_w = {
 //	.p_value = (void*)fc2_wt,
@@ -159,28 +160,6 @@ nnom_bias_t ip1_b = {
 nnom_model_t model = {0}; // to use finsh to print
 int8_t nnom_input_data[INPUT_HIGHT * INPUT_WIDTH * INPUT_CH];
 int8_t nnom_output_data[NUM_CLASS];
-
-
-static TIM_HandleTypeDef s_TimerInstance = { 
-    .Instance = TIM2
-};
-void us_timer_enable()
-{
-    __TIM2_CLK_ENABLE();
-    s_TimerInstance.Init.Prescaler = 80;
-    s_TimerInstance.Init.CounterMode = TIM_COUNTERMODE_UP;
-    s_TimerInstance.Init.Period = 0xffffffff;
-    s_TimerInstance.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    s_TimerInstance.Init.RepetitionCounter = 0;
-    HAL_TIM_Base_Init(&s_TimerInstance);
-    HAL_TIM_Base_Start(&s_TimerInstance);
-}
-
-uint32_t us_timer_get()
-{
-	return __HAL_TIM_GET_COUNTER(&s_TimerInstance);
-}
-
 
 nnom_layer_t * dense_block1(nnom_model_t* model, nnom_layer_t * in, uint32_t k)
 {
@@ -230,14 +209,27 @@ nnom_layer_t * dense_block1(nnom_model_t* model, nnom_layer_t * in, uint32_t k)
 //	return model->mergex(Concat(-1), 5, x[0], x[1], x[2], x[3], x[4]);
 //}
 
+int8_t* load(const char* file)
+{
+	size_t sz;
+	int8_t* in;
+	FILE* fp = fopen(file,"rb");
+	assert(fp);
+	fseek(fp, 0, SEEK_END);
+	sz = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+	in = malloc(sz);
+	fread(in, 1, sz, fp);
+	fclose(fp);
+	return in;
+}
 
-void thread_nnom(void *p)
+int main(int argc, char* argv[])
 {
 	nnom_layer_t *input_layer;
 	nnom_layer_t *x;
+	int8_t* input;
 	
-	rt_thread_delay(10);
-
 	// inital a model
 	new_model(&model);
 	
@@ -284,182 +276,13 @@ void thread_nnom(void *p)
 	
 	// compile and check
 	model_compile(&model, input_layer, x);
-	
-	while(1)
-	{
-		model_run(&model);
-		
-		while(1)
-		{
-			rt_thread_delay(RT_TICK_PER_SECOND);
-		}
-	}
+
+	input = load("tmp/input.raw");
+
+	memcpy(nnom_input_data, input, INPUT_HIGHT*INPUT_WIDTH*INPUT_CH);
+	model_run(&model);
+
+    free(input);
+
+	return 0;
 }
-
-int main(void)
-{
-	rt_thread_t tid;
-	us_timer_enable();
-	
-	tid = rt_thread_create("nnom", thread_nnom, RT_NULL, 2048, 30, 500);
-	rt_thread_startup(tid);
-}
-
-
-#ifdef RT_USING_FINSH
-#include <finsh.h>
-#include "math.h"
-void nn_stat()
-{
-	model_stat(&model);
-	rt_kprintf("Total Memory cost (Network and NNoM): %d\n", nnom_mem_stat());
-}
-MSH_CMD_EXPORT(nn_stat, print nn model);
-FINSH_FUNCTION_EXPORT(nn_stat, nn_stat() to print data);
-
-#endif
-
-
-// test -------------------------- Using Y-modem to send test data set. 
-
-#ifdef RT_USING_FINSH
-#include <finsh.h>
-
-#define DATA_SIZE (INPUT_CH * INPUT_WIDTH * INPUT_HIGHT)
-#define LABEL_SIZE 128
-
-static size_t file_total_size, file_cur_size;
-
-//test
-struct rt_ringbuffer*  ringbuffer = RT_NULL;
-nnom_predic_t *prediction = NULL;
-
-// parameters
-uint8_t	 test_label[LABEL_SIZE] = {0};  // where a batch of label stores
-uint32_t test_label_countdown = 0;		// count down of that batch
-uint32_t test_total_count = 0;			// 
-
-static enum rym_code ymodem_on_begin(struct rym_ctx *ctx, rt_uint8_t *buf, rt_size_t len) {
-	char *file_name, *file_size;
-
-	/* calculate and store file size */
-	file_name = (char *) &buf[0];
-	file_size = (char *) &buf[rt_strlen(file_name) + 1];
-	file_total_size = atol(file_size);
-	/* 4 bytes align */
-	file_total_size = (file_total_size + 3) / 4 * 4;
-	file_cur_size = 0;
-	
-	// local data size
-	test_label_countdown = 0;
-	test_total_count = 0;
-	memset(test_label, 0, LABEL_SIZE);
-	
-	return RYM_CODE_ACK;
-}
-
-static enum rym_code ymodem_on_data(struct rym_ctx *ctx, rt_uint8_t *buf, rt_size_t len) 
-{
-	// put data in buffer, then get it as block. 
-	rt_ringbuffer_put(ringbuffer, buf, len);
-	
-	while(1)
-	{
-		// get label. 
-		if(test_label_countdown == 0 && rt_ringbuffer_data_len(ringbuffer) >= LABEL_SIZE)
-		{
-			// get the label, reset the label countdown. 	
-			rt_ringbuffer_get(ringbuffer, &test_label[0], LABEL_SIZE);
-			test_label_countdown = LABEL_SIZE;
-		}
-		
-		// if there is enough data and the label is still availble. 
-		if(test_label_countdown > 0 && rt_ringbuffer_data_len(ringbuffer) >= DATA_SIZE)
-		{
-			// use one lata
-			test_label_countdown --;
-			
-			// get input data
-			rt_ringbuffer_get(ringbuffer, (uint8_t*)nnom_input_data, DATA_SIZE);
-			
-			// do this prediction round.
-			prediction_run(prediction, test_label[test_total_count % LABEL_SIZE]);
-			
-			// we can use the count in prediction as well.
-			test_total_count += 1;
-		}
-		// return while there isnt enough data
-		else
-		{
-			return RYM_CODE_ACK;
-		}
-	}
-}
-
-
-void predic() 
-{
-	struct rym_ctx rctx;
-
-	rt_kprintf("Please select the NNoM binary test file and use Ymodem-128/1024  to send.\n");
-
-	// preparing for prediction 
-	us_timer_enable();
-	
-	ringbuffer = rt_ringbuffer_create(4096);
-	
-	// delete first if it its not freed
-	if(prediction!=NULL)
-		predicetion_delete(prediction);
-	// create new instance (test with all k)
-	prediction = prediction_create(&model, nnom_output_data, NUM_CLASS, NUM_CLASS-1);
-	
-	// begin
-	// data is feed in receiving callback
-	if (!rym_recv_on_device(&rctx, rt_console_get_device(), RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
-			ymodem_on_begin, ymodem_on_data, NULL, RT_TICK_PER_SECOND)) {
-		/* wait some time for terminal response finish */
-		rt_thread_delay(RT_TICK_PER_SECOND / 10);
-		rt_kprintf("\nPrediction done.\n");
-
-	} else {
-		/* wait some time for terminal response finish */
-		rt_thread_delay(RT_TICK_PER_SECOND / 10);
-		rt_kprintf("Test file incompleted. \n Partial results are shown below:\n");
-	}
-	// finished
-	prediction_end(prediction);
-	// print sumarry & matrix
-	prediction_summary(prediction);
-	
-	// free buffer
-	rt_ringbuffer_destroy(ringbuffer);
-	// predicetion_delete(prediction); // optional to free data now
-
-
-}
-FINSH_FUNCTION_EXPORT(predic, validate NNoM model implementation with test set);
-MSH_CMD_EXPORT(predic, validate NNoM model implementation with test set);
-
-void matrix()
-{
-	if(prediction != NULL)
-		prediction_matrix(prediction);
-}
-FINSH_FUNCTION_EXPORT(matrix, matrix() to print confusion matrix);
-MSH_CMD_EXPORT(matrix, print confusion matrix);
-
-void reboot() 
-{
-	printf("\nThe answer is...%f\n", 42.0f);
-	rt_thread_delay(RT_TICK_PER_SECOND);
-	NVIC_SystemReset();
-}
-
-FINSH_FUNCTION_EXPORT(reboot, reboot() );
-MSH_CMD_EXPORT(reboot, reboot system);
-#endif
-
-
-
-

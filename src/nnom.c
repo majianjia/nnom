@@ -551,10 +551,10 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 			else
 				compsize = 0;
 			// names
-			LOG(" %10.s - ", &default_layer_names[layer->type]);
+			LOG(" %-10s - ", &default_layer_names[layer->type]);
 			// activations
 			if (layer->actail != NULL)
-				LOG("%8.s - ", &default_activation_names[layer->actail->type]);
+				LOG("%-8s - ", &default_activation_names[layer->actail->type]);
 			else
 				LOG("         - ");
 
