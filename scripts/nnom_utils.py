@@ -51,10 +51,10 @@ def fake_clip(frac_bit=0, bit=8):
     '''
     max = 2**(bit - frac_bit) / 2 - (1/(2**frac_bit))
     min = -2**(bit - frac_bit) / 2
-    return Lambda(quant_layer, output_shape=quant_shape, arguments={'clip_range': [min, max], 'bits': bit})
+    return Lambda(quant_layer, output_shape=quant_shape, arguments={'clip_range': [min, max], 'bits': bit}, name="Quant")
 
 def fake_clip_min_max(min=0, max =1,  bit=8):
-    return Lambda(quant_layer, output_shape=quant_shape, arguments={'clip_range': [min, max], 'bits': bit})
+    return Lambda(quant_layer, output_shape=quant_shape, arguments={'clip_range': [min, max], 'bits': bit}, name="Quant")
 
 """ 
 this is the generate the test set data to a bin file
@@ -177,6 +177,7 @@ def layers_output_ranges(model, x_test, name=None):
         else:
             #FIXME: add more which will change the output shift
             if('conv2d' in layer.name or
+               'conv1d' in layer.name or
                'dense' in layer.name or
                'softmax' in layer.name):
                 layer_model = Model(inputs=model.input, outputs=layer.output)
@@ -253,6 +254,7 @@ def layers_output_ranges(model, x_test, name=None):
         fp.write('\n/* bias shift and output shift for each layer */\n')
         for layer in model.layers:
             if('conv2d' in layer.name
+               or 'conv1d' in layer.name
                or 'dense' in layer.name):
                 iname = layer.name.upper()
                 if('input' in layer.input.name):
