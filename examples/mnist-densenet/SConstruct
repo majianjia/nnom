@@ -20,8 +20,10 @@ objs = []
 
 objs += Glob('CMSIS_5/CMSIS/NN/Source/*/*.c')
 objs += Glob('CMSIS_5/CMSIS/DSP/Source/BasicMathFunctions/*.c')
-
-objs += Glob('mcu/*.c')
+if(os.getenv('USE_CNN')=='YES'):
+    objs += Glob('mcu/main_cnn.c')
+else:
+    objs += Glob('mcu/main.c')
 
 env.Append(CPPPATH=['CMSIS_5/CMSIS/NN/Include',
                       'CMSIS_5/CMSIS/DSP/Include',

@@ -146,7 +146,7 @@ typedef struct _nnom_weights
 
 typedef struct _nnom_bias
 {
-	void *p_value;
+	const void *p_value;
 	size_t shift;
 } nnom_bias_t;
 
