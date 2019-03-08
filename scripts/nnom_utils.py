@@ -127,15 +127,7 @@ def generate_weights(model, name='weights.h'):
 
             int_bits = int(np.ceil(np.log2(max(abs(min_value), abs(max_value)))))
             dec_bits = 7 - int_bits
-            print("original dec bit", dec_bits)
-
-            # check if bias shift > weight shift, then reduce bias shift to weight shift
-            if ("kernel" in var_name):
-                weight_dec_shift = dec_bits
-            else:
-                if(dec_bits > weight_dec_shift):
-                    dec_bits = weight_dec_shift
-            print("new dec bit", dec_bits)
+            print("dec bit", dec_bits)
 
             # convert to [-128,128) or int8
             var_values = np.round(var_values * 2 ** dec_bits)
@@ -176,87 +168,24 @@ def generate_weights(model, name='weights.h'):
                   ' max: (' + str(np.max(var_values)) + ',' + str(max_value) + ')' + \
                   ' min: (' + str(np.min(var_values)) + ',' + str(min_value) + ')')
 
-
-def generate_weights_outputshift(model, name='weights.h'):
-    # Quantize weights to 8-bits using (min,max) and write to file
-    f = open(name, 'w')
-    f.close()
-
-    dict = {}
-    index = 0
-    for layer in model.layers:
-        if (not layer.weights):
-            continue
-        # use a dictionary to store configs
-        dict_name = layer.name
-        dict[dict_name] = {}
-
-        weight_dec_shift = 0
-        for var in layer.weights:
-            var_name = str(var.name)
-            if("kernel" in var_name):
-                var_values = layer.get_weights()[0] # weight
-                print("weight:", var_name)
-            else:
-                var_values = layer.get_weights()[1] # bias
-                print("bias: ",var_name)
-
-            min_value = np.min(var_values)
-            max_value = np.max(var_values)
-
-            int_bits = int(np.ceil(np.log2(max(abs(min_value), abs(max_value)))))
-            dec_bits = 7 - int_bits
-            print("original dec bit", dec_bits)
-
-            # check if bias shift > weight shift, then reduce bias shift to weight shift
-            if ("kernel" in var_name):
-                weight_dec_shift = dec_bits
-            else:
-                if(dec_bits > weight_dec_shift):
-                    dec_bits = weight_dec_shift
-            print("new dec bit", dec_bits)
-
-            # convert to [-128,128) or int8
-            var_values = np.round(var_values * 2 ** dec_bits)
-            var_name = var_name.replace('/', '_')
-            var_name = var_name.replace(':', '_')
-            with open(name, 'a') as f:
-                f.write('#define ' + var_name.upper() + ' {')
-
-            if (len(var_values.shape) == 3):  # 1D convolution layer weights
-                transposed_wts = np.transpose(var_values, (2, 0, 1))
-
-            elif (len(var_values.shape) > 2):  # 2D convolution layer weights
-                transposed_wts = np.transpose(var_values, (3, 0, 1, 2))
-
-            else:  # fully connected layer weights or biases of any layer
-                # test, use opt weight reorder
-                if "dense" in var_name and "kernel" in var_name:
-                    transposed_wts = np.transpose(var_values)
-                    transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
-                else:
-                    transposed_wts = np.transpose(var_values)
-
-            # save to dict
-            dict[dict_name][var_name] = transposed_wts
-            dict[dict_name][var_name+"_shift"] = dec_bits
-
-    # all weight is quantized and saved to dictionary
-    print(dict)
-
-def layers_output_ranges(model, x_test):
+def layers_output_ranges(model, x_test, name=None):
     # test, show the output ranges
-    shift_list = np.array([])
+    shift_list = {}
     for layer in model.layers:
-        if("input" in layer.name
-                or "dropout" in layer.name
-                or "softmax" in layer.name
-                or "lambda" in layer.name
-                or "concat" in layer.name
-                or "re_lu" in layer.name):
-            continue
-        layer_model = Model(inputs=model.input, outputs=layer.output)
-        features = layer_model.predict(x_test)
+        if("input" in layer.name):
+            features = x_test
+        else:
+            #FIXME: add more which will change the output shift
+            if('conv2d' in layer.name or
+               'dense' in layer.name or
+               'softmax' in layer.name):
+                layer_model = Model(inputs=model.input, outputs=layer.output)
+                features = layer_model.predict(x_test)
+            else:
+                # leave the features not changed, so this layer shift will be the same
+                # as its inputs
+                pass
+        
         max_val = features.max()
         min_val = features.min()
         print( layer.name)
@@ -266,9 +195,74 @@ def layers_output_ranges(model, x_test):
         dec_bits = 7 - int_bits
         print("         dec bit", dec_bits)
         # record the shift
-        shift_list = np.append(shift_list, dec_bits)
+        shift_list[layer.name] = dec_bits
+    if(name is None):
+        print("shift list", shift_list)
+        return
+    LM = {}
+    for layer in model.layers:
+        LM[layer.name] = layer
+    L = [l for l in model.layers[1:]]
+    L.reverse()
 
+    def is_shift_layer(layer):
+        if('input' in iname or
+           'conv2d' in iname or
+           'dense' in iname):
+            return True
+        return False
+
+    def update_previous_layer_shift(layer, Q):
+        if(type(layer.input) == list):
+            for inp in layer.input:
+                iname = inp.name.split('/')[0]
+                if('input' in iname):
+                    continue
+                shift_list[iname] = Qmin
+                if(not is_shift_layer(LM[iname])):
+                    update_previous_layer_shift(LM[iname], Q)
+        else:
+            iname = layer.input.name.split('/')[0]
+            if('input' in iname):
+                return
+            shift_list[iname] = Qmin
+            if(not is_shift_layer(LM[iname])):
+                update_previous_layer_shift(LM[iname], Q)
+    for layer in L:
+        if(type(layer.input) == list):
+            iname = layer.input[0].name.split('/')[0]
+            Qmin = shift_list[iname]
+            for inp in layer.input:
+                iname = inp.name.split('/')[0]
+                if(shift_list[iname] < Qmin):
+                    Qmin = shift_list[iname]
+                if(shift_list[iname] != Qmin):
+                    bFlag = True
+            for inp in layer.input:
+                iname = inp.name.split('/')[0]
+                shift_list[iname] = Qmin
+                if(not is_shift_layer(LM[iname])):
+                    update_previous_layer_shift(LM[iname], Qmin)
+            print('set shift', Qmin, 'for', layer.name, ':', [inp.name.split('/')[0] for inp in layer.input])
+            shift_list[layer.name] = Qmin
     print("shift list", shift_list)
+    with open(name,'a') as fp:
+        fp.write('\n/* output enconding for each layer */\n')
+        for layer in model.layers:
+            fp.write('#define %s_OUTPUT_SHIFT %s\n'%(layer.name.upper(), shift_list[layer.name]))
+        fp.write('\n/* bias shift and output shift for each layer */\n')
+        for layer in model.layers:
+            if('conv2d' in layer.name
+               or 'dense' in layer.name):
+                iname = layer.name.upper()
+                if('input' in layer.input.name):
+                    inp = layer.input.name.split(':')[0].upper()
+                else:
+                    inp = layer.input.name.split('/')[0].upper()
+                fp.write('#define {0}_OUTPUT_RSHIFT ({1}_OUTPUT_SHIFT+{0}_KERNEL_0_SHIFT-{0}_OUTPUT_SHIFT)\n'.format(iname, inp))
+                fp.write('#define {0}_BIAS_LSHIFT   ({1}_OUTPUT_SHIFT+{0}_KERNEL_0_SHIFT-{0}_BIAS_0_SHIFT)\n'.format(iname, inp))
+    with open('.shift_list','w') as fp:
+        fp.write(str(shift_list))
 
 def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluation.txt'):
     # Score trained model.
