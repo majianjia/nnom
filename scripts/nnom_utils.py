@@ -69,8 +69,15 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
     :param y:  input label (one hot label)
     :return:
     '''
+    # quantize input x
+    min_value = np.min(x)
+    max_value = np.max(x)
+
+    int_bits = int(np.ceil(np.log2(max(abs(min_value), abs(max_value)))))
+    dec_bits = 7 - int_bits
+    x = np.round(x*2**dec_bits).astype(np.int8)
     # get label
-    test_label = np.argwhere(y == 1).astype(dtype="byte")  # test data
+    test_label = np.argwhere(y == 1).astype(np.int8)  # test data
     test_label = test_label[:, 1]
 
     # get data
@@ -100,8 +107,19 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
     print("test data length:", test_label.size)
     return
 
+def is_shift_layer(layer):
+    ''' layer which can change the output encoding'''
+    #FIXME: add more which will change the output shift
+    if('input' in layer.name or
+       'conv2d' in layer.name or
+       'conv1d' in layer.name or
+       'dense' in layer.name or
+       'softmax' in layer.name
+    ):
+        return True
+    return False
 
-def generate_weights(model, name='weights.h'):
+def generate_weights(model, name='weights.h', shift_list=None):
     # Quantize weights to 8-bits using (min,max) and write to file
     f = open(name, 'w')
     f.close()
@@ -109,25 +127,46 @@ def generate_weights(model, name='weights.h'):
     for layer in model.layers:
         if (not layer.weights):
             continue
-
         weight_dec_shift = 0
+        print('weights for layer', layer.name)
         for var in layer.weights:
             var_name = str(var.name)
             if("kernel" in var_name):
                 var_values = layer.get_weights()[0] # weight
-                print("weight:", var_name)
-                #print(var_values)
+                print("  weight:", var_name)
             else:
                 var_values = layer.get_weights()[1] # bias
-                print("bias: ",var_name)
-            print("original shape: ", var_values.shape)
+                print("  bias: ",var_name)
+            print("  original shape: ", var_values.shape)
 
             min_value = np.min(var_values)
             max_value = np.max(var_values)
 
             int_bits = int(np.ceil(np.log2(max(abs(min_value), abs(max_value)))))
             dec_bits = 7 - int_bits
-            print("dec bit", dec_bits)
+            print("  dec bit", dec_bits)
+            bSameAsKernel = False
+            if(is_shift_layer(layer)):
+                bSameAsKernel = False
+                if('input' in layer.input.name):
+                    inp = layer.input.name.split(':')[0]
+                else:
+                    inp = layer.input.name.split('/')[0]
+                input_encoding = shift_list[inp]
+                if ("kernel" in var_name):
+                    weight_dec_shift = dec_bits
+                else:
+                    shift = input_encoding+weight_dec_shift-dec_bits
+                    if(shift < 0):
+                        bSameAsKernel = True
+            if(shift_list is None or bSameAsKernel):
+                # check if bias shift > weight shift, then reduce bias shift to weight shift	
+                if ("kernel" in var_name):	
+                    weight_dec_shift = dec_bits	
+                else:	
+                    if(dec_bits > weight_dec_shift):	
+                        dec_bits = weight_dec_shift	
+                print("  new dec bit", dec_bits)
 
             # convert to [-128,128) or int8
             var_values = np.round(var_values * 2 ** dec_bits)
@@ -149,7 +188,7 @@ def generate_weights(model, name='weights.h'):
                 else:
                     transposed_wts = np.transpose(var_values)
 
-            print("reshape to:",transposed_wts.shape)
+            print("  reshape to:",transposed_wts.shape)
 
             with open(name, 'a') as f:
                 transposed_wts.tofile(f, sep=", ", format="%d")
@@ -163,23 +202,19 @@ def generate_weights(model, name='weights.h'):
                 # convert back original range but quantized to 8-bits or 256 levels
                 var_values = var_values / (2 ** dec_bits)
                 var_values = session.run(K.tf.assign(var, var_values))
-                print(var_name + ' number of wts/bias: ' + str(var_values.shape) + \
+                print('  '+var_name + ' number of wts/bias: ' + str(var_values.shape) + \
                   ' dec bits: ' + str(dec_bits) + \
                   ' max: (' + str(np.max(var_values)) + ',' + str(max_value) + ')' + \
                   ' min: (' + str(np.min(var_values)) + ',' + str(min_value) + ')')
 
-def layers_output_ranges(model, x_test, name=None):
+def layers_output_ranges(model, x_test):
     # test, show the output ranges
     shift_list = {}
     for layer in model.layers:
         if("input" in layer.name):
             features = x_test
         else:
-            #FIXME: add more which will change the output shift
-            if('conv2d' in layer.name or
-               'conv1d' in layer.name or
-               'dense' in layer.name or
-               'softmax' in layer.name):
+            if(is_shift_layer(layer)):
                 layer_model = Model(inputs=model.input, outputs=layer.output)
                 features = layer_model.predict(x_test)
             else:
@@ -197,21 +232,11 @@ def layers_output_ranges(model, x_test, name=None):
         print("         dec bit", dec_bits)
         # record the shift
         shift_list[layer.name] = dec_bits
-    if(name is None):
-        print("shift list", shift_list)
-        return
     LM = {}
     for layer in model.layers:
         LM[layer.name] = layer
     L = [l for l in model.layers[1:]]
     L.reverse()
-
-    def is_shift_layer(layer):
-        if('input' in iname or
-           'conv2d' in iname or
-           'dense' in iname):
-            return True
-        return False
 
     def update_previous_layer_shift(layer, Q):
         if(type(layer.input) == list):
@@ -247,25 +272,37 @@ def layers_output_ranges(model, x_test, name=None):
             print('set shift', Qmin, 'for', layer.name, ':', [inp.name.split('/')[0] for inp in layer.input])
             shift_list[layer.name] = Qmin
     print("shift list", shift_list)
+    return shift_list
+
+def generate_model(model, x_test, name='weights.h'):
+    shift_list = layers_output_ranges(model, x_test)
+    generate_weights(model, name=name, shift_list=shift_list)
     with open(name,'a') as fp:
         fp.write('\n/* output enconding for each layer */\n')
         for layer in model.layers:
             fp.write('#define %s_OUTPUT_SHIFT %s\n'%(layer.name.upper(), shift_list[layer.name]))
         fp.write('\n/* bias shift and output shift for each layer */\n')
         for layer in model.layers:
-            if('conv2d' in layer.name
-               or 'conv1d' in layer.name
-               or 'dense' in layer.name):
+            if(is_shift_layer(layer)):
                 iname = layer.name.upper()
-                if('input' in layer.input.name):
-                    inp = layer.input.name.split(':')[0].upper()
-                else:
-                    inp = layer.input.name.split('/')[0].upper()
-                fp.write('#define {0}_OUTPUT_RSHIFT ({1}_OUTPUT_SHIFT+{0}_KERNEL_0_SHIFT-{0}_OUTPUT_SHIFT)\n'.format(iname, inp))
-                fp.write('#define {0}_BIAS_LSHIFT   ({1}_OUTPUT_SHIFT+{0}_KERNEL_0_SHIFT-{0}_BIAS_0_SHIFT)\n'.format(iname, inp))
+                if(len(layer.weights) == 2 and
+                   'kernel' in layer.weights[0].name and
+                   'bias' in layer.weights[1].name):
+                    kname = layer.weights[0].name.upper().replace('/', '_').replace(':', '_')
+                    bname = layer.weights[1].name.upper().replace('/', '_').replace(':', '_')
+                    if('input' in layer.input.name):
+                        inp = layer.input.name.split(':')[0].upper()
+                    else:
+                        inp = layer.input.name.split('/')[0].upper()
+                    fp.write('#define {0}_OUTPUT_RSHIFT ({1}_OUTPUT_SHIFT+{2}_SHIFT-{0}_OUTPUT_SHIFT)\n'.format(
+                            iname, inp, kname))
+                    fp.write('#define {0}_BIAS_LSHIFT   ({1}_OUTPUT_SHIFT+{2}_SHIFT-{3}_SHIFT)\n'.format(
+                            iname, inp, kname, bname))
+                    fp.write('#if {0}_OUTPUT_RSHIFT < 0\n#error {0}_OUTPUT_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
+                    fp.write('#if {0}_BIAS_LSHIFT < 0\n#error {0}_BIAS_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
     with open('.shift_list','w') as fp:
         fp.write(str(shift_list))
-
+    
 def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluation.txt'):
     # Score trained model.
     scores = model.evaluate(x_test, y_test, verbose=2)

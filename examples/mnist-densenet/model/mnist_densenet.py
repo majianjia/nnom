@@ -176,32 +176,10 @@ def main(weights='weights.h'):
     # evaluate
     evaluate_model(model, x_test, y_test)
 
-    # save weight
-    generate_weights(model, name=weights)
-
-    # test, show the output ranges
-    layers_output_ranges(model, x_test)
+    # convert to model on nnom
+    generate_model(model, x_test[:10], name=weights)
 
     return model,x_train,y_train,x_test,y_test
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

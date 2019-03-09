@@ -59,103 +59,103 @@ nnom_weight_t c1_w = {
 
 nnom_bias_t c1_b = {
 	.p_value = (void*)conv1_b,
-	.shift =  CONV2D_1_KERNEL_0_SHIFT-CONV2D_1_BIAS_0_SHIFT};
+	.shift =  CONV2D_1_BIAS_LSHIFT};
 
 nnom_weight_t c2_w = {
 	.p_value = (void*)conv2_wt,
-	.shift = CONV2D_2_KERNEL_0_SHIFT};
+	.shift = CONV2D_2_OUTPUT_RSHIFT};
 
 nnom_bias_t c2_b = {
 	.p_value = (void*)conv2_b,
-	.shift = CONV2D_2_KERNEL_0_SHIFT-CONV2D_2_BIAS_0_SHIFT};
+	.shift = CONV2D_2_BIAS_LSHIFT};
 
 nnom_weight_t c3_w = {
 	.p_value = (void*)conv3_wt,
-	.shift = CONV2D_3_KERNEL_0_SHIFT};
+	.shift = CONV2D_3_OUTPUT_RSHIFT};
 
 nnom_bias_t c3_b = {
 	.p_value = (void*)conv3_b,
-	.shift = CONV2D_3_KERNEL_0_SHIFT-CONV2D_3_BIAS_0_SHIFT};
+	.shift = CONV2D_3_BIAS_LSHIFT};
 
 nnom_weight_t c4_w = {
 	.p_value = (void*)conv4_wt,
-	.shift = CONV2D_4_KERNEL_0_SHIFT};
+	.shift = CONV2D_4_OUTPUT_RSHIFT};
 
 nnom_bias_t c4_b = {
 	.p_value = (void*)conv4_b,
-	.shift = CONV2D_4_KERNEL_0_SHIFT-CONV2D_4_BIAS_0_SHIFT};
+	.shift = CONV2D_4_BIAS_LSHIFT};
 
 nnom_weight_t c5_w = {
 	.p_value = (void*)conv5_wt,
-	.shift = CONV2D_5_KERNEL_0_SHIFT};
+	.shift = CONV2D_5_OUTPUT_RSHIFT};
 
 nnom_bias_t c5_b = {
 	.p_value = (void*)conv5_b,
-	.shift = CONV2D_5_KERNEL_0_SHIFT-CONV2D_5_BIAS_0_SHIFT};
+	.shift = CONV2D_5_BIAS_LSHIFT};
 
 //nnom_weight_t c6_w = {
 //	.p_value = (void*)conv6_wt,
-//	.shift = CONV2D_6_KERNEL_0_SHIFT};
+//	.shift = CONV2D_6_OUTPUT_RSHIFT};
 
 //nnom_bias_t c6_b = {
 //	.p_value = (void*)conv6_b,
-//	.shift = CONV2D_6_BIAS_0_SHIFT};
+//	.shift = CONV2D_6_BIAS_LSHIFT};
 
 //nnom_weight_t c7_w = {
 //	.p_value = (void*)conv7_wt,
-//	.shift = CONV2D_7_KERNEL_0_SHIFT};
+//	.shift = CONV2D_7_OUTPUT_RSHIFT};
 
 //nnom_bias_t c7_b = {
 //	.p_value = (void*)conv7_b,
-//	.shift = CONV2D_7_BIAS_0_SHIFT};
+//	.shift = CONV2D_7_BIAS_LSHIFT};
 
 //nnom_weight_t c8_w = {
 //	.p_value = (void*)conv8_wt,
-//	.shift = CONV2D_8_KERNEL_0_SHIFT};
+//	.shift = CONV2D_8_OUTPUT_RSHIFT};
 
 //nnom_bias_t c8_b = {
 //	.p_value = (void*)conv8_b,
-//	.shift = CONV2D_8_BIAS_0_SHIFT};
+//	.shift = CONV2D_8_BIAS_LSHIFT};
 
 //nnom_weight_t c9_w = {
 //	.p_value = (void*)conv9_wt,
-//	.shift = CONV2D_9_KERNEL_0_SHIFT};
+//	.shift = CONV2D_9_OUTPUT_RSHIFT};
 
 //nnom_bias_t c9_b = {
 //	.p_value = (void*)conv9_b,
-//	.shift = CONV2D_9_BIAS_0_SHIFT};
+//	.shift = CONV2D_9_BIAS_LSHIFT};
 
 //nnom_weight_t c10_w = {
 //	.p_value = (void*)conv10_wt,
-//	.shift = CONV2D_10_KERNEL_0_SHIFT};
+//	.shift = CONV2D_10_OUTPUT_RSHIFT};
 
 //nnom_bias_t c10_b = {
 //	.p_value = (void*)conv10_b,
-//	.shift = CONV2D_10_BIAS_0_SHIFT};
+//	.shift = CONV2D_10_BIAS_LSHIFT};
 
 //nnom_weight_t c11_w = {
 //	.p_value = (void*)conv11_wt,
-//	.shift = CONV2D_11_KERNEL_0_SHIFT};
+//	.shift = CONV2D_11_OUTPUT_RSHIFT};
 
 //nnom_bias_t c11_b = {
 //	.p_value = (void*)conv11_b,
-//	.shift = CONV2D_11_BIAS_0_SHIFT};
+//	.shift = CONV2D_11_BIAS_LSHIFT};
 
 nnom_weight_t ip1_w = {
 	.p_value = (void*)fc1_wt,
-	.shift = DENSE_1_KERNEL_0_SHIFT};
+	.shift = DENSE_1_OUTPUT_RSHIFT};
 
 nnom_bias_t ip1_b = {
 	.p_value = (void*)fc1_b,
-	.shift = DENSE_1_KERNEL_0_SHIFT - DENSE_1_BIAS_0_SHIFT};
+	.shift = DENSE_1_BIAS_LSHIFT};
 
 //nnom_weight_t ip2_w = {
 //	.p_value = (void*)fc2_wt,
-//	.shift = DENSE_2_KERNEL_0_SHIFT};
+//	.shift = DENSE_2_OUTPUT_RSHIFT};
 
 //nnom_bias_t ip2_b = {
 //	.p_value = (void*)fc2_b,
-//	.shift = DENSE_2_BIAS_0_SHIFT};
+//	.shift = DENSE_2_BIAS_LSHIFT};
 
 nnom_model_t model = {0}; // to use finsh to print
 int8_t nnom_input_data[INPUT_HIGHT * INPUT_WIDTH * INPUT_CH];
