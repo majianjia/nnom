@@ -28,9 +28,6 @@ nnom_status_t default_out_shape(nnom_layer_t *layer)
 {
 	// get the last layer's output as input shape
 	layer->in->shape = layer->in->hook.io->shape;
-	// test,
-	layer->in->qfmt = layer->in->hook.io->qfmt;
-	layer->out->qfmt = layer->in->qfmt;
 	// output shape
 	layer->out->shape = layer->in->shape;
 
@@ -40,10 +37,6 @@ nnom_status_t default_out_shape(nnom_layer_t *layer)
 nnom_status_t input_out_shape(nnom_layer_t *layer)
 {
 	nnom_io_layer_t *cl = (nnom_io_layer_t *)layer;
-
-	// the input layer's input shape will be set previously, we dont manually set it.
-	layer->in->qfmt = cl->format;
-	layer->out->qfmt = layer->in->qfmt;
 
 	// output shape
 	layer->in->mem->blk = cl->buf;
@@ -59,10 +52,6 @@ nnom_status_t output_out_shape(nnom_layer_t *layer)
 	// get the last layer's output as input shape
 	layer->in->shape = layer->in->hook.io->shape;
 
-	// test,
-	layer->in->qfmt = layer->in->hook.io->qfmt;
-	layer->out->qfmt = layer->in->qfmt;
-
 	// output shape
 	layer->in->mem->blk = cl->buf;
 
@@ -74,10 +63,6 @@ nnom_status_t output_out_shape(nnom_layer_t *layer)
 nnom_status_t flatten_out_shape(nnom_layer_t *layer)
 { // get the last layer's output as input shape
 	layer->in->shape = layer->in->hook.io->shape;
-
-	// test,
-	layer->in->qfmt = layer->in->hook.io->qfmt;
-	layer->out->qfmt = layer->in->qfmt;
 
 	// output shape
 	layer->out->shape.h = layer->in->shape.h * layer->in->shape.w * layer->in->shape.c;
@@ -95,11 +80,6 @@ nnom_status_t conv2d_out_shape(nnom_layer_t *layer)
 
 	// get the last layer's output as input shape
 	in->shape = in->hook.io->shape;
-
-	// test,
-	layer->in->qfmt = layer->in->hook.io->qfmt;
-	// test, output fmt and out shift
-	layer->out->qfmt = layer->in->qfmt;
 
 	// output shape
 	if (cl->padding_type == PADDING_SAME)
@@ -129,11 +109,6 @@ nnom_status_t dw_conv2d_out_shape(nnom_layer_t *layer)
 
 	//get the last layer's output as input shape
 	in->shape = in->hook.io->shape;
-
-	// test,
-	layer->in->qfmt = layer->in->hook.io->qfmt;
-	// test, output fmt and out shift
-	layer->out->qfmt = layer->in->qfmt;
 
 	if (cl->padding_type == PADDING_SAME)
 	{
@@ -165,13 +140,6 @@ nnom_status_t dense_out_shape(nnom_layer_t *layer)
 	//get the last layer's output as input shape
 	in->shape = in->hook.io->shape;
 
-	// test,
-	layer->in->qfmt = layer->in->hook.io->qfmt;
-	// test, output fmt and out shift
-	layer->out->qfmt = layer->in->qfmt;
-	//cl->output_shift =
-	//cl->bias_shift =
-
 	// incase the input hasnt been flattened.
 	in->shape.h = in->shape.h * in->shape.w * in->shape.c;
 	in->shape.w = 1;
@@ -202,9 +170,7 @@ nnom_status_t rnn_out_shape(nnom_layer_t *layer)
 
 	// get the last layer's output as input shape
 	layer->in->shape = layer->in->hook.io->shape;
-	// test,
-	layer->in->qfmt = layer->in->hook.io->qfmt;
-	layer->out->qfmt = layer->in->qfmt;
+
 	// output shape
 	//layer->out->shape = layer->in->shape;
 
@@ -235,10 +201,6 @@ nnom_status_t maxpooling_out_shape(nnom_layer_t *layer)
 	nnom_layer_io_t *out = layer->out;
 	//get the last layer's output as input shape
 	in->shape = in->hook.io->shape;
-
-	// test, output fmt and out shift
-	layer->in->qfmt = layer->in->hook.io->qfmt;
-	layer->out->qfmt = layer->in->qfmt;
 
 	if (cl->padding_type == PADDING_SAME)
 	{
@@ -274,10 +236,6 @@ nnom_status_t global_pooling_out_shape(nnom_layer_t *layer)
 	nnom_layer_io_t *out = layer->out;
 	//get the last layer's output as input shape
 	in->shape = in->hook.io->shape;
-
-	// test, output fmt and out shift
-	layer->in->qfmt = layer->in->hook.io->qfmt;
-	layer->out->qfmt = layer->in->qfmt;
 
 	// global pooling
 	// output (h = 1, w = 1, same channels)
@@ -370,9 +328,6 @@ nnom_status_t same_io_shape_base_layer_out_shape(nnom_layer_t *layer)
 {
 	//get the last layer's output as input shape
 	layer->in->shape = layer->in->hook.io->shape;
-
-	// test, output fmt and out shift
-	layer->in->qfmt = layer->in->hook.io->qfmt;
 
 	layer->out->shape.h = layer->in->shape.h;
 	layer->out->shape.w = layer->in->shape.w;

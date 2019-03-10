@@ -125,7 +125,6 @@ typedef struct _nnom_io_layer
 {
 	nnom_layer_t super;
 	nnom_shape_t shape;
-	nnom_qformat_t format;
 	void *buf; //input or output
 } nnom_io_layer_t;
 
@@ -151,8 +150,8 @@ nnom_layer_io_t *io_add_aux(nnom_layer_io_t *targeted_io);
 // Layer APIs ******
 
 // input/output
-nnom_layer_t *Input(nnom_shape_t input_shape, nnom_qformat_t fmt, void *p_buf);
-nnom_layer_t *Output(nnom_shape_t output_shape, nnom_qformat_t fmt, void *p_buf);
+nnom_layer_t *Input(nnom_shape_t input_shape, void *p_buf);
+nnom_layer_t *Output(nnom_shape_t output_shape, void *p_buf);
 
 // Pooling
 nnom_layer_t *MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
