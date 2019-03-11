@@ -348,7 +348,7 @@ def generate_model(model, x_test, name='weights.h'):
             elif('conv1d' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
-                fp.write('\tlayer[{0}] = model.hook(Conv1D({1}, kernel({2},1), stride({3},1), PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
+                fp.write('\tlayer[{0}] = model.hook(Conv1D({1}, kernel(1,{2}), stride(1,{3}), PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
                     id, layer.output.shape[-1], cfg['kernel_size'][0], cfg['strides'][0], cfg['padding'].upper(),
                     layer.name, LI[inp][0]));
             elif('conv2d' in layer.name):
