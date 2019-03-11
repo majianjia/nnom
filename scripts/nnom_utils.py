@@ -148,10 +148,7 @@ def generate_weights(model, name='weights.h', shift_list=None):
             bSameAsKernel = False
             if(is_shift_layer(layer)):
                 bSameAsKernel = False
-                if('input' in layer.input.name):
-                    inp = layer.input.name.split(':')[0]
-                else:
-                    inp = layer.input.name.split('/')[0]
+                inp = layer.input.name.replace(':','/').split('/')[0]
                 input_encoding = shift_list[inp]
                 if ("kernel" in var_name):
                     weight_dec_shift = dec_bits
@@ -290,19 +287,117 @@ def generate_model(model, x_test, name='weights.h'):
                    'bias' in layer.weights[1].name):
                     kname = layer.weights[0].name.upper().replace('/', '_').replace(':', '_')
                     bname = layer.weights[1].name.upper().replace('/', '_').replace(':', '_')
-                    if('input' in layer.input.name):
-                        inp = layer.input.name.split(':')[0].upper()
-                    else:
-                        inp = layer.input.name.split('/')[0].upper()
+                    inp = layer.input.name.replace(':','/').split('/')[0]
                     fp.write('#define {0}_OUTPUT_RSHIFT ({1}_OUTPUT_SHIFT+{2}_SHIFT-{0}_OUTPUT_SHIFT)\n'.format(
                             iname, inp, kname))
                     fp.write('#define {0}_BIAS_LSHIFT   ({1}_OUTPUT_SHIFT+{2}_SHIFT-{3}_SHIFT)\n'.format(
                             iname, inp, kname, bname))
                     fp.write('#if {0}_OUTPUT_RSHIFT < 0\n#error {0}_OUTPUT_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
                     fp.write('#if {0}_BIAS_LSHIFT < 0\n#error {0}_BIAS_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
+        fp.write('\n/* weights for each layer */\n')
+        LI = {}
+        ID = 0
+        def is_skipable_layer(layer):
+            # FIXME: add more that could be skiped
+            if('lambda' in layer.name or
+               'dropout' in layer.name or
+               'flatten' in layer.name):
+                return True
+            return False
+        for id,layer in enumerate(model.layers):
+            if(is_skipable_layer(layer)):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                LI[layer.name] = (LI[inp][0], layer)
+            else:
+                LI[layer.name] = (ID, layer)
+                ID += 1
+            
+            if (not layer.weights):
+                continue
+            for var in layer.weights:
+                var_name = str(var.name).replace('/', '_').replace(':', '_')
+                if("kernel" in var_name):
+                    fp.write('static const int8_t %s_weights[] = %s;\n'%(layer.name, var_name.upper()))
+                    fp.write('static const nnom_weight_t %s_w = { (const void*)%s_weights, %s_OUTPUT_RSHIFT};\n'%(layer.name,layer.name, layer.name.upper()))
+                else:
+                    fp.write('static const int8_t %s_bias[] = %s;\n'%(layer.name, var_name.upper()))
+                    fp.write('static const nnom_bias_t %s_b = { (const void*)%s_bias, %s_BIAS_LSHIFT};\n'%(layer.name,layer.name, layer.name.upper()))
+        fp.write('\n/* nnom model */\n')
+        # FIXME: now only support one input and one output
+        sz = 1
+        for d in model.input.shape[1:]:
+            sz = sz*d
+        fp.write('static int8_t nnom_input_data[%d];\n'%(sz))
+        sz = 1
+        for d in model.output.shape[1:]:
+            sz = sz*d
+        fp.write('static int8_t nnom_output_data[%d];\n'%(sz))
+        fp.write('static nnom_model_t* nnom_model_create(void)\n{\n')
+        fp.write('\tstatic nnom_model_t model;\n')
+        if(ID>32):
+            fp.write('\tnnom_layer_t ** layer = malloc(sizeof(nnom_layer_t *)*%d)\n'%(ID+1))
+            fp.write('\tif(NULL == layer) return NULL;\n')
+        else:
+            fp.write('\tnnom_layer_t* layer[%d];\n'%(ID+1))
+        fp.write('\n\tnew_model(&model);\n\n')
+        for _,(id,layer) in LI.items():
+            if(is_skipable_layer(layer)):
+                continue
+            if('input' in layer.name):
+                fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n'%(id,layer.input_shape[1:]))
+            elif('conv1d' in layer.name):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                cfg = layer.get_config()
+                fp.write('\tlayer[{0}] = model.hook(Conv1D({1}, kernel(1,{2}), stride(1,{3}), PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
+                    id, layer.output.shape[-1], cfg['kernel_size'][0], cfg['strides'][0], cfg['padding'].upper(),
+                    layer.name, LI[inp][0]));
+            elif('conv2d' in layer.name):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                cfg = layer.get_config()
+                fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel{2}, stride{3}, PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
+                    id, layer.output.shape[-1], cfg['kernel_size'], cfg['strides'], cfg['padding'].upper(),
+                    layer.name, LI[inp][0]));
+            elif('re_lu' in layer.name):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n'%(id, LI[inp][0]))
+            elif('global_max_pooling2d' in layer.name):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                fp.write('\tlayer[%s] = model.hook(GlobalMaxPool(),  layer[%s]);\n'%(id, LI[inp][0]))
+            elif('max_pooling2d' in layer.name):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                cfg = layer.get_config()
+                fp.write('\tlayer[%s] = model.hook(MaxPool(kernel%s, stride%s, PADDING_%s), layer[%d]);\n'%(
+                    id, cfg['pool_size'], cfg['strides'], cfg['padding'].upper(), LI[inp][0]))
+            elif('concatenate' in layer.name):
+                inps = [input.name.replace(':','/').split('/')[0] for input in layer.input]
+                inX = ''
+                for inp in inps:
+                    inX += ' ,layer[%d]'%(LI[inp][0])
+                cfg = layer.get_config()
+                fp.write('\tlayer[%s] = model.mergex(Concat(%s), %s%s);\n'%(
+                    id, cfg['axis'], len(inps), inX))
+            elif('dense' in layer.name):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                cfg = layer.get_config()
+                fp.write('\tlayer[{0}] = model.hook(Dense({1}, &{2}_w, &{2}_b), layer[{3}]);\n'.format(
+                    id, cfg['units'], layer.name, LI[inp][0]))
+            elif('softmax' in layer.name):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n'%(id, LI[inp][0]))
+            else:
+                raise Exception('unsupported layer', layer.name, layer)
+        # the last layer is the output layer
+        if('softmax' in layer.name):
+            fp.write('\tlayer[%s] = model.hook(Output(shape(%s,1,1), nnom_output_data), layer[%s]);\n'%(id+1, layer.input.shape[1], id))
+        else:
+            fp.write('\tlayer[%s] = model.hook(Output(shape%s, nnom_output_data), layer[%s]);\n'%(id+1, layer.shape[1:], id))
+        fp.write('\tmodel_compile(&model, layer[0], layer[%s]);\n'%(id+1))
+        if(ID>32):
+            fp.write('\tfree(layer);\n')
+        fp.write('\treturn &model;\n}\n')
     with open('.shift_list','w') as fp:
         fp.write(str(shift_list))
-    
+
 def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluation.txt'):
     # Score trained model.
     scores = model.evaluate(x_test, y_test, verbose=2)
@@ -460,54 +555,4 @@ def compare(a,b,name):
     plt.grid()
     plt.title('nn-%s'%(name))
     plt.show()
-
-# for test only
-if __name__ == "__main__":
-    import os
-    from keras.models import  load_model
-
-    #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
-
-    # get best model
-    #MODEL_PATH = 'best_model.h5'
-    #model = load_model(MODEL_PATH)
-    # save weight
-    #generate_weights_test(model)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

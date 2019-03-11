@@ -130,3 +130,63 @@
 #if DENSE_1_BIAS_LSHIFT < 0
 #error DENSE_1_BIAS_RSHIFT must be bigger than 0
 #endif
+
+/* weights for each layer */
+static const int8_t conv2d_1_weights[] = CONV2D_1_KERNEL_0;
+static const nnom_weight_t conv2d_1_w = { (const void*)conv2d_1_weights, CONV2D_1_OUTPUT_RSHIFT};
+static const int8_t conv2d_1_bias[] = CONV2D_1_BIAS_0;
+static const nnom_bias_t conv2d_1_b = { (const void*)conv2d_1_bias, CONV2D_1_BIAS_LSHIFT};
+static const int8_t conv2d_2_weights[] = CONV2D_2_KERNEL_0;
+static const nnom_weight_t conv2d_2_w = { (const void*)conv2d_2_weights, CONV2D_2_OUTPUT_RSHIFT};
+static const int8_t conv2d_2_bias[] = CONV2D_2_BIAS_0;
+static const nnom_bias_t conv2d_2_b = { (const void*)conv2d_2_bias, CONV2D_2_BIAS_LSHIFT};
+static const int8_t conv2d_3_weights[] = CONV2D_3_KERNEL_0;
+static const nnom_weight_t conv2d_3_w = { (const void*)conv2d_3_weights, CONV2D_3_OUTPUT_RSHIFT};
+static const int8_t conv2d_3_bias[] = CONV2D_3_BIAS_0;
+static const nnom_bias_t conv2d_3_b = { (const void*)conv2d_3_bias, CONV2D_3_BIAS_LSHIFT};
+static const int8_t conv2d_4_weights[] = CONV2D_4_KERNEL_0;
+static const nnom_weight_t conv2d_4_w = { (const void*)conv2d_4_weights, CONV2D_4_OUTPUT_RSHIFT};
+static const int8_t conv2d_4_bias[] = CONV2D_4_BIAS_0;
+static const nnom_bias_t conv2d_4_b = { (const void*)conv2d_4_bias, CONV2D_4_BIAS_LSHIFT};
+static const int8_t conv2d_5_weights[] = CONV2D_5_KERNEL_0;
+static const nnom_weight_t conv2d_5_w = { (const void*)conv2d_5_weights, CONV2D_5_OUTPUT_RSHIFT};
+static const int8_t conv2d_5_bias[] = CONV2D_5_BIAS_0;
+static const nnom_bias_t conv2d_5_b = { (const void*)conv2d_5_bias, CONV2D_5_BIAS_LSHIFT};
+static const int8_t dense_1_weights[] = DENSE_1_KERNEL_0;
+static const nnom_weight_t dense_1_w = { (const void*)dense_1_weights, DENSE_1_OUTPUT_RSHIFT};
+static const int8_t dense_1_bias[] = DENSE_1_BIAS_0;
+static const nnom_bias_t dense_1_b = { (const void*)dense_1_bias, DENSE_1_BIAS_LSHIFT};
+
+/* nnom model */
+static int8_t nnom_input_data[784];
+static int8_t nnom_output_data[10];
+static nnom_model_t* nnom_model_create(void)
+{
+	static nnom_model_t model;
+	nnom_layer_t* layer[19+1];
+
+	new_model(&model);
+
+	layer[0] = Input(shape(28, 28, 1), nnom_input_data);
+	layer[1] = model.hook(Conv2D(8, kernel(7, 7), stride(1, 1), PADDING_SAME, &conv2d_1_w, &conv2d_1_b), layer[0]);
+	layer[2] = model.active(act_relu(), layer[1]);
+	layer[3] = model.hook(MaxPool(kernel(4, 4), stride(4, 4), PADDING_SAME), layer[2]);
+	layer[4] = model.hook(Conv2D(24, kernel(3, 3), stride(1, 1), PADDING_SAME, &conv2d_2_w, &conv2d_2_b), layer[3]);
+	layer[5] = model.active(act_relu(), layer[4]);
+	layer[6] = model.mergex(Concat(-1), 2 ,layer[3] ,layer[5]);
+	layer[7] = model.hook(Conv2D(24, kernel(3, 3), stride(1, 1), PADDING_SAME, &conv2d_3_w, &conv2d_3_b), layer[6]);
+	layer[8] = model.active(act_relu(), layer[7]);
+	layer[9] = model.mergex(Concat(-1), 3 ,layer[3] ,layer[5] ,layer[8]);
+	layer[10] = model.hook(Conv2D(24, kernel(3, 3), stride(1, 1), PADDING_SAME, &conv2d_4_w, &conv2d_4_b), layer[9]);
+	layer[11] = model.active(act_relu(), layer[10]);
+	layer[12] = model.mergex(Concat(-1), 4 ,layer[3] ,layer[5] ,layer[8] ,layer[11]);
+	layer[13] = model.hook(Conv2D(24, kernel(3, 3), stride(1, 1), PADDING_SAME, &conv2d_5_w, &conv2d_5_b), layer[12]);
+	layer[14] = model.active(act_relu(), layer[13]);
+	layer[15] = model.mergex(Concat(-1), 5 ,layer[3] ,layer[5] ,layer[8] ,layer[11] ,layer[14]);
+	layer[16] = model.hook(GlobalMaxPool(),  layer[15]);
+	layer[17] = model.hook(Dense(10, &dense_1_w, &dense_1_b), layer[16]);
+	layer[18] = model.hook(Softmax(), layer[17]);
+	layer[19] = model.hook(Output(shape(10,1,1), nnom_output_data), layer[18]);
+	model_compile(&model, layer[0], layer[19]);
+	return &model;
+}

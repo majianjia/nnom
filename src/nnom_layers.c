@@ -478,7 +478,7 @@ nnom_layer_t *Flatten(void)
 	return layer;
 }
 
-nnom_layer_t *Input(nnom_shape_t input_shape, nnom_qformat_t fmt, void *p_buf)
+nnom_layer_t *Input(nnom_shape_t input_shape, void *p_buf)
 {
 	nnom_io_layer_t *layer;
 	nnom_layer_io_t *in, *out;
@@ -507,16 +507,15 @@ nnom_layer_t *Input(nnom_shape_t input_shape, nnom_qformat_t fmt, void *p_buf)
 
 	// set parameters
 	layer->shape = input_shape;
-	layer->format = fmt;
 	layer->buf = p_buf;
 
 	return (nnom_layer_t *)layer;
 }
 
-nnom_layer_t *Output(nnom_shape_t output_shape, nnom_qformat_t fmt, void *p_buf)
+nnom_layer_t *Output(nnom_shape_t output_shape, void *p_buf)
 {
 	// they are acturally the same.. expect the type defined
-	nnom_layer_t *layer = Input(output_shape, fmt, p_buf);
+	nnom_layer_t *layer = Input(output_shape, p_buf);
 	if (layer != NULL)
 	{
 		layer->type = NNOM_OUTPUT;
