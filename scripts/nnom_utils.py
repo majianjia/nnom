@@ -21,7 +21,7 @@
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from keras.layers import Lambda
+from keras.layers import Lambda, Input
 from keras.models import Model
 from keras import backend as K
 from sklearn import metrics
@@ -207,7 +207,12 @@ def generate_weights(model, name='weights.h', shift_list=None):
 def layers_output_ranges(model, x_test):
     # test, show the output ranges
     shift_list = {}
-    for layer in model.layers:
+    # FIXME: only support one input
+    if(type(model.input) != Input):
+        L = [model.input] + model.layers
+    else:
+        L = model.layers
+    for layer in L:
         if("input" in layer.name):
             features = x_test
         else:
@@ -228,7 +233,10 @@ def layers_output_ranges(model, x_test):
         dec_bits = 7 - int_bits
         print("         dec bit", dec_bits)
         # record the shift
-        shift_list[layer.name] = dec_bits
+        if(type(model.input) != Input and model.input == layer):
+            shift_list[layer.name.split(':')[0]] = dec_bits
+        else:
+            shift_list[layer.name] = dec_bits
     LM = {}
     for layer in model.layers:
         LM[layer.name] = layer
@@ -274,10 +282,18 @@ def layers_output_ranges(model, x_test):
 def generate_model(model, x_test, name='weights.h'):
     shift_list = layers_output_ranges(model, x_test)
     generate_weights(model, name=name, shift_list=shift_list)
+    if(type(model.input) != Input):
+        L = [model.input] + model.layers
+    else:
+        L = model.layers
     with open(name,'a') as fp:
         fp.write('\n/* output enconding for each layer */\n')
-        for layer in model.layers:
-            fp.write('#define %s_OUTPUT_SHIFT %s\n'%(layer.name.upper(), shift_list[layer.name]))
+        for layer in L:
+            if(type(model.input) != Input and model.input == layer):
+                iname = layer.name.split(':')[0]
+            else:
+                iname = layer.name
+            fp.write('#define %s_OUTPUT_SHIFT %s\n'%(iname.upper(), shift_list[iname]))
         fp.write('\n/* bias shift and output shift for each layer */\n')
         for layer in model.layers:
             if(is_shift_layer(layer)):
@@ -287,7 +303,7 @@ def generate_model(model, x_test, name='weights.h'):
                    'bias' in layer.weights[1].name):
                     kname = layer.weights[0].name.upper().replace('/', '_').replace(':', '_')
                     bname = layer.weights[1].name.upper().replace('/', '_').replace(':', '_')
-                    inp = layer.input.name.replace(':','/').split('/')[0]
+                    inp = layer.input.name.replace(':','/').split('/')[0].upper()
                     fp.write('#define {0}_OUTPUT_RSHIFT ({1}_OUTPUT_SHIFT+{2}_SHIFT-{0}_OUTPUT_SHIFT)\n'.format(
                             iname, inp, kname))
                     fp.write('#define {0}_BIAS_LSHIFT   ({1}_OUTPUT_SHIFT+{2}_SHIFT-{3}_SHIFT)\n'.format(
@@ -304,15 +320,18 @@ def generate_model(model, x_test, name='weights.h'):
                'flatten' in layer.name):
                 return True
             return False
-        for id,layer in enumerate(model.layers):
+        for id,layer in enumerate(L):
             if(is_skipable_layer(layer)):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 LI[layer.name] = (LI[inp][0], layer)
             else:
-                LI[layer.name] = (ID, layer)
+                if(type(model.input) != Input and model.input == layer):
+                    LI[layer.name.split(':')[0]] = (ID, layer)
+                else:
+                    LI[layer.name] = (ID, layer)
                 ID += 1
-            
-            if (not layer.weights):
+
+            if ('input' in layer.name or not layer.weights):
                 continue
             for var in layer.weights:
                 var_name = str(var.name).replace('/', '_').replace(':', '_')
@@ -344,7 +363,7 @@ def generate_model(model, x_test, name='weights.h'):
             if(is_skipable_layer(layer)):
                 continue
             if('input' in layer.name):
-                fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n'%(id,layer.input_shape[1:]))
+                fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n'%(id,layer.shape[1:]))
             elif('conv1d' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
@@ -357,6 +376,13 @@ def generate_model(model, x_test, name='weights.h'):
                 fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel{2}, stride{3}, PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
                     id, layer.output.shape[-1], cfg['kernel_size'], cfg['strides'], cfg['padding'].upper(),
                     layer.name, LI[inp][0]));
+            elif('activation' in layer.name):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                cfg = layer.get_config()
+                if(cfg['activation'] == 'relu'):
+                    fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n'%(id, LI[inp][0]))
+                elif(cfg['activation'] == 'softmax'):
+                    fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n'%(id, LI[inp][0]))
             elif('re_lu' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n'%(id, LI[inp][0]))
@@ -387,7 +413,8 @@ def generate_model(model, x_test, name='weights.h'):
             else:
                 raise Exception('unsupported layer', layer.name, layer)
         # the last layer is the output layer
-        if('softmax' in layer.name):
+        if('softmax' in layer.name
+           or ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')):
             fp.write('\tlayer[%s] = model.hook(Output(shape(%s,1,1), nnom_output_data), layer[%s]);\n'%(id+1, layer.input.shape[1], id))
         else:
             fp.write('\tlayer[%s] = model.hook(Output(shape%s, nnom_output_data), layer[%s]);\n'%(id+1, layer.shape[1:], id))
