@@ -296,20 +296,8 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 {
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)(layer);
 
-	// 1D
-	// this 1D implementation will be replace by none-quare 2D after it has beed tested
-	if (layer->in->shape.h == 1)
-	{
-		arm_maxpool_1d_q7_HWC(
-			layer->in->mem->blk,
-			layer->in->shape.w, layer->in->shape.c,
-			cl->kernel.w, cl->pad.w, cl->stride.w,
-			layer->out->shape.w,
-			NULL,
-			layer->out->mem->blk);
-	}
 	// 2D, square
-	else if (layer->in->shape.w == layer->in->shape.h)
+	if (layer->in->shape.w == layer->in->shape.h)
 	{
 		arm_maxpool_q7_HWC(
 			layer->in->mem->blk,
@@ -319,7 +307,7 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 			NULL,
 			layer->out->mem->blk);
 	}
-	// none square 2D
+	// none square 2D, or 1D
 	else
 	{
 		// CMSIS-NN does not support none-square pooling, we have to use local implementation
@@ -340,19 +328,8 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 {
 	nnom_avgpool_layer_t *cl = (nnom_avgpool_layer_t *)(layer);
 
-	// this 1D implementation will be replace by none-quare 2D after it has beed tested
-	if (layer->in->shape.h == 1)
-	{
-		arm_avepool_1d_q7_HWC(
-			layer->in->mem->blk,
-			layer->in->shape.w, layer->in->shape.c,
-			cl->kernel.w, cl->pad.w, cl->stride.w,
-			layer->out->shape.w,
-			layer->comp->mem->blk,
-			layer->out->mem->blk);
-	}
 	// 2D, square
-	else if (layer->in->shape.w == layer->in->shape.h)
+	if (layer->in->shape.w == layer->in->shape.h)
 	{
 		arm_avepool_q7_HWC(
 			layer->in->mem->blk,
@@ -362,7 +339,7 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 			layer->comp->mem->blk,
 			layer->out->mem->blk);
 	}
-	// none square 2D
+	// none square 2D, or 1D
 	else
 	{
 		// CMSIS-NN does not support none-square pooling, we have to use local implementation
@@ -381,7 +358,8 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 
 nnom_status_t softmax_run(nnom_layer_t *layer)
 {
-	arm_softmax_q7(layer->in->mem->blk, layer->out->shape.h, layer->out->mem->blk);
+	// temporary fixed for mutiple dimension input. 
+	arm_softmax_q7(layer->in->mem->blk, shape_size(&layer->out->shape), layer->out->mem->blk);
 	return NN_SUCCESS;
 }
 
