@@ -51,10 +51,10 @@ def fake_clip(frac_bit=0, bit=8):
     '''
     max = 2**(bit - frac_bit) / 2 - (1/(2**frac_bit))
     min = -2**(bit - frac_bit) / 2
-    return Lambda(quant_layer, output_shape=quant_shape, arguments={'clip_range': [min, max], 'bits': bit}, name="Quant")
+    return Lambda(quant_layer, output_shape=quant_shape, arguments={'clip_range': [min, max], 'bits': bit})
 
 def fake_clip_min_max(min=0, max =1,  bit=8):
-    return Lambda(quant_layer, output_shape=quant_shape, arguments={'clip_range': [min, max], 'bits': bit}, name="Quant")
+    return Lambda(quant_layer, output_shape=quant_shape, arguments={'clip_range': [min, max], 'bits': bit})
 
 """ 
 this is the generate the test set data to a bin file
