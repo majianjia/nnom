@@ -21,7 +21,8 @@
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from keras.layers import Lambda, Input
+from keras.engine.input_layer import InputLayer
+from keras.layers import Lambda
 from keras.models import Model
 from keras import backend as K
 from sklearn import metrics
@@ -114,7 +115,8 @@ def is_shift_layer(layer):
        'conv2d' in layer.name or
        'conv1d' in layer.name or
        'dense' in layer.name or
-       'softmax' in layer.name
+       'softmax' in layer.name or
+       ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')
     ):
         return True
     return False
@@ -208,7 +210,7 @@ def layers_output_ranges(model, x_test):
     # test, show the output ranges
     shift_list = {}
     # FIXME: only support one input
-    if(type(model.input) != Input):
+    if(type(model.layers[0]) != InputLayer):
         L = [model.input] + model.layers
     else:
         L = model.layers
@@ -233,7 +235,7 @@ def layers_output_ranges(model, x_test):
         dec_bits = 7 - int_bits
         print("         dec bit", dec_bits)
         # record the shift
-        if(type(model.input) != Input and model.input == layer):
+        if(model.input == layer and type(model.layers[0]) != InputLayer):
             shift_list[layer.name.split(':')[0]] = dec_bits
         else:
             shift_list[layer.name] = dec_bits
@@ -282,14 +284,14 @@ def layers_output_ranges(model, x_test):
 def generate_model(model, x_test, name='weights.h'):
     shift_list = layers_output_ranges(model, x_test)
     generate_weights(model, name=name, shift_list=shift_list)
-    if(type(model.input) != Input):
+    if(type(model.layers[0]) != InputLayer):
         L = [model.input] + model.layers
     else:
         L = model.layers
     with open(name,'a') as fp:
         fp.write('\n/* output enconding for each layer */\n')
         for layer in L:
-            if(type(model.input) != Input and model.input == layer):
+            if(model.input == layer and type(model.layers[0]) != InputLayer):
                 iname = layer.name.split(':')[0]
             else:
                 iname = layer.name
@@ -325,7 +327,7 @@ def generate_model(model, x_test, name='weights.h'):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 LI[layer.name] = (LI[inp][0], layer)
             else:
-                if(type(model.input) != Input and model.input == layer):
+                if(model.input == layer and type(model.layers[0]) != InputLayer):
                     LI[layer.name.split(':')[0]] = (ID, layer)
                 else:
                     LI[layer.name] = (ID, layer)
@@ -359,11 +361,15 @@ def generate_model(model, x_test, name='weights.h'):
         else:
             fp.write('\tnnom_layer_t* layer[%d];\n'%(ID+1))
         fp.write('\n\tnew_model(&model);\n\n')
-        for _,(id,layer) in LI.items():
+        for layer in L:
             if(is_skipable_layer(layer)):
                 continue
+            id,_ = LI[layer.name]
             if('input' in layer.name):
-                fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n'%(id,layer.shape[1:]))
+                try:
+                    fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n'%(id,layer.input_shape[1:]))
+                except:
+                    fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n'%(id,layer.shape[1:]))
             elif('conv1d' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
@@ -519,7 +525,7 @@ def f2q(d, Q):
 def q2f(d, Q):
     '''To convert a number from Qm.n format to floating point:
         1. Convert the number to floating point as if it were an integer, in other words remove the binary point
-        2. Multiply by 2−n
+        2. Multiply by 2-n
     '''
     return d*2**-Q
 

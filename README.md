@@ -1,4 +1,6 @@
 # Neural Network on Microcontroller (NNoM)
+[![Build Status](https://travis-ci.org/majianjia/nnom.svg?branch=master)](https://travis-ci.org/majianjia/nnom)
+
 NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. 
 
 NNoM is released under LGPL-V3.0, please check the license file for detail. 

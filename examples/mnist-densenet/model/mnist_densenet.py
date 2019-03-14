@@ -161,14 +161,14 @@ def main(weights='weights.h'):
         history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
         acc = history.history['acc']
         val_acc = history.history['val_acc']
-
-        plt.plot(range(0, epochs), acc, color='red', label='Training acc')
-        plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')
-        plt.title('Training and validation accuracy')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.legend()
-        plt.show()
+        if(os.getenv('NNOM_ON_CI') == None):
+            plt.plot(range(0, epochs), acc, color='red', label='Training acc')
+            plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')
+            plt.title('Training and validation accuracy')
+            plt.xlabel('Epochs')
+            plt.ylabel('Loss')
+            plt.legend()
+            plt.show()
   
     # get best model
     model = load_model(save_dir)
