@@ -29,7 +29,7 @@ env.Append(CPPPATH=['CMSIS_5/CMSIS/NN/Include',
                       'CMSIS_5/CMSIS/DSP/Include',
                       'CMSIS_5/CMSIS/Core/Include'])
 env.Append(CPPDEFINES=['__ARM_ARCH_8M_BASE__'])
-env.Append(CCFLAGS=['-g','-O0'])
+env.Append(CCFLAGS=['-g','-O0','-std=gnu99'])
 
 objs +=Glob('%s/src/*.c'%(ROOT))
 env.Append(CPPPATH=['%s/inc'%(ROOT),'%s/port'%(ROOT)])
