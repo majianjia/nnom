@@ -19,7 +19,7 @@ env.Replace(
 objs = []
 
 objs += Glob('CMSIS_5/CMSIS/NN/Source/*/*.c')
-objs += Glob('CMSIS_5/CMSIS/DSP/Source/BasicMathFunctions/*.c')
+objs += Glob('CMSIS_5/CMSIS/DSP/Source/BasicMathFunctions/arm_*.c')
 if(os.getenv('USE_CNN')=='YES'):
     objs += Glob('mcu/main_cnn.c')
 else:
