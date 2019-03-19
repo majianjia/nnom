@@ -19,6 +19,12 @@ The aims of NNoM is to provide a light-weight, user-friendly and flexible interf
 
 Nowadays, neural network in wider, deeper, and denser.
 ![](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM/nnom_wdd.png)
+>[1] Szegedy, C., Liu, W., Jia, Y., Sermanet, P., Reed, S., Anguelov, D., ... & Rabinovich, A. (2015). Going deeper with convolutions. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 1-9).
+>
+>[2] He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 770-778).
+>
+>[3] Huang, G., Liu, Z., Van Der Maaten, L., & Weinberger, K. Q. (2017). Densely connected convolutional networks. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 4700-4708).
+
 
 **If you would like to try more up-to-date, decent and complex structures on MCU** (such as `Inception, SqueezeNet, ResNet, DenseNet...`)
 
