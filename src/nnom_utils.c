@@ -209,7 +209,7 @@ void prediction_summary(nnom_predic_t *pre)
 	printf("Test running time: %d sec\n", pre->t_predic_total / 1000);
 	printf("Model running time: %d ms\n", pre->t_run_total);
 	printf("Average prediction time: %d us\n", (pre->t_run_total * 1000) / pre->predic_count);
-	printf("Average effeciency: %d.%02d ops/us\n", (int)((uint64_t)pre->model->total_ops * pre->predic_count) / (pre->t_run_total * 100),
+	printf("Average effeciency: %d.%02d ops/us\n", (int)((uint64_t)pre->model->total_ops * pre->predic_count) / (pre->t_run_total * 1000),
 			(int)(((uint64_t)pre->model->total_ops * pre->predic_count)*100 / (pre->t_run_total * 1000))%100);
 	printf("Average frame rate: %d.%d Hz\n", 1000 / (pre->t_run_total / pre->predic_count),
 			(1000*10 / (pre->t_run_total / pre->predic_count))%10);

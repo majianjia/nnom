@@ -8,24 +8,27 @@ NNoM is released under LGPL-V3.0, please check the license file for detail.
 [A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md)
 
 ## Dependencies
-NNoM currently runs on top of [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) backend. 
 
-Therefore, it runs on ARM Cortex-M 32-bit RISC processor only. 
+NNoM now use its local pure C backend implementation by default. Thus, there is no special dependency. 
+
+However, it can select[CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) backend for about 5x optimisation on ARM-cores. 
+
 
 ## Why NNoM?
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
 
+Nowadays, neural network in wider, deeper, and denser.
+![](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM/nnom_wdd.png)
+
 **If you would like to try more up-to-date, decent and complex structures on MCU** (such as `Inception, SqueezeNet, ResNet, DenseNet...`)
 
-**NNoM can help you to build those complex structures in the same way as you did in Keras.**
-
-**Inception example: [uci-inception](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)**
-
-**DenseNet example: [mnist-densenet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)**
+**NNoM can build them with only a few lines of C codes**, same as you did with Python in [**Keras**](https://keras.io/)
 
 
-Additianly, your implementation can be evaluated directly on MCU with NNoM.
-![](https://github.com/majianjia/nnom/blob/master/docs/gifs/uci_har_results.png)
+Inception example: [uci-inception](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)
+
+DenseNet example: [mnist-densenet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)
+
 
 
 A simple example:
@@ -51,7 +54,7 @@ while(1){
     model_run(&model);
 }
 ~~~~
-The NNoM interfaces are similar to [**Keras**](https://keras.io/)
+
 
 It supports both sequential and functional API. 
 
@@ -111,9 +114,9 @@ while(1){
     model_run(&model);
 }
 ~~~~
-Please check [A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md)
+Please check [A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md) for more API details. 
 
-Detail documentation comes later. 
+
 ## Available Operations
 
 **Layers**
@@ -148,8 +151,10 @@ Activation can be used by itself as layer, or can be attached to the previous la
 | ------ |-- |--|--|
 | Max Pooling  | Beta|MaxPool()||
 | Average Pooling | Beta|AvgPool()||
+| Sum Pooling | Beta|SumPool()| |
 | Global Max Pooling  | Beta|GlobalMaxPool()||
 | Global Average Pooling | Beta|GlobalAvgPool()||
+| Global Sum Pooling | Beta|GlobalSumPool()|A better alternative to Global average pooling in MCU before Softmax|
 
 **Matrix Operations Layers**
 
@@ -167,7 +172,7 @@ No memory allocating in running the model.
 
 RAM requirement is about 100 to 200 bytes per layer for NNoM instance, plus the maximum data buf cost.
 
->The sequential exmaple above includes 9 layer instances. So, the memory cost for instances is 130 x 9 = 1170 Bytes.
+>The sequential example above includes 9 layer instances. So, the memory cost for instances is 130 x 9 = 1170 Bytes.
 >
 >The maximum data buffer is in the convolutional layer.
 >
@@ -180,30 +185,29 @@ In NNoM, we dont analysis memory cost manually like above.
 Memory analysis will be printed when compiling the model.  
 
 # Deploying Keras model to NNoM
-No, there is no single script to convert a pre-trained model to NNoM.
+You can now use [generate_model(model, x_data)](https://github.com/majianjia/nnom/blob/0cf1b248385e000caee50b891ac72af209e88edc/scripts/nnom_utils.py#L284) to deploy your model to `weights.h` directly. 
 
-However, NNoM provides simple python scripts to help developers train, quantise and deploy a keras model to NNoM.
+Then simply call `nnom_model_create()` in your `main()` to compile the model on your platform.
 
 Please check [A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md)
-and [UCI HAR example](https://github.com/majianjia/nnom/tree/master/examples/uci-inception).
+and [MNIST-DenseNet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet).
 
-The tutorial comes later. 
+
 
 # Porting
-It is required to include the [CMSIS-NN lib](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) in your projects.
 
-The porting is easy on ARM-Cortex-M microcontroller. 
+Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/port/nnom_port.h) 
 
-Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/port/nnom_port.h) refer to the example in the file. 
+> To optimise for ARM chips, it is required to include the [CMSIS-NN lib](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) in your projects.
+> Then define `#define NNOM_USE_CMSIS_NN` in the `nnom_port.h`
 
 # Current Critical Limitations 
 - Support 8-bit quantisation only. 
-- Support only one Q-format in one model.
 
 
 # TODO 
 - Support RNN types layers.
-- Support mutiple Q-formats
+- ~~Support mutiple Q-formats~~（Done, by @parai）
 - ~~support memory releasing.~~（Done）
 
 # Contacts

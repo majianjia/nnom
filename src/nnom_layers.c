@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+
 #include "nnom.h"
 #include "nnom_run.h"
 #include "nnom_layers.h"
@@ -118,7 +119,7 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 	layer->weights = w;
 	layer->output_shift = w->shift;
 	layer->bias_shift = b->shift; // bias is quantized to have maximum shift of weights
-	layer->filter_mult = filters;			 // for convs, this means filter number
+	layer->filter_mult = filters; // for convs, this means filter number
 	layer->padding_type = pad_type;
 
 	// padding
@@ -190,7 +191,7 @@ nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_
 // Simple RNN
 // unit = output shape
 // type of activation
-nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t* activation, const nnom_weight_t *w, const nnom_bias_t *b)
+nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t *activation, const nnom_weight_t *w, const nnom_bias_t *b)
 {
 	nnom_simple_rnn_cell_t *cell;
 	cell = nnom_mem(sizeof(nnom_simple_rnn_cell_t));
@@ -411,7 +412,20 @@ nnom_layer_t *AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
 	{
 		layer->type = NNOM_AVGPOOL;
 		layer->run = avgpool_run;
-		layer->comp_out_shape = avgpooling_out_shape; // same as max pool
+		layer->comp_out_shape = avgpooling_out_shape;
+	}
+	return (nnom_layer_t *)layer;
+}
+
+nnom_layer_t *SumPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
+{
+	nnom_layer_t *layer = MaxPool(k, s, pad_type);
+
+	if (layer != NULL)
+	{
+		layer->type = NNOM_SUMPOOL;
+		layer->run = sumpool_run;
+		layer->comp_out_shape = sumpooling_out_shape;
 	}
 	return (nnom_layer_t *)layer;
 }
@@ -443,6 +457,23 @@ nnom_layer_t *GlobalAvgPool(void)
 	{
 		layer->type = NNOM_GLOBAL_AVGPOOL;
 		layer->run = avgpool_run; // global and basic pooling share the same runner
+		layer->comp_out_shape = global_pooling_out_shape;
+	}
+
+	return (nnom_layer_t *)layer;
+}
+
+nnom_layer_t *GlobalSumPool(void)
+{
+	// create the normal pooling layer, the parameters are left empty to fill in later.
+	// parameters will be filled in global_pooling_out_shape() remotely
+	nnom_layer_t *layer = MaxPool(kernel(0, 0), stride(0, 0), PADDING_VALID);
+
+	// change some parameters to be recognised as avg pooling
+	if (layer != NULL)
+	{
+		layer->type = NNOM_GLOBAL_SUMPOOL;
+		layer->run = sumpool_run; // global and basic pooling share the same runner
 		layer->comp_out_shape = global_pooling_out_shape;
 	}
 
@@ -627,8 +658,13 @@ nnom_layer_t *Concat(int8_t axis)
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
 
-	// parameters
-	layer->axis = axis;
+	// check the axis
+	{
+		uint32_t shape_element_num = sizeof(nnom_shape_t) / sizeof(nnom_shape_data_t);
+		if (axis < 0)
+			axis = (shape_element_num + axis);
+		layer->axis = axis;
+	}
 
 	return (nnom_layer_t *)layer;
 }

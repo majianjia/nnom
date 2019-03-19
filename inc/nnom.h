@@ -21,6 +21,10 @@
 
 #include "nnom_port.h"
 
+#define q7_t 	int8_t
+#define q15_t 	int16_t
+#define q31_t 	int32_t
+
 typedef enum
 {
 	NN_SUCCESS = 0,			/**< No error */
@@ -52,6 +56,8 @@ typedef enum
 	NNOM_GLOBAL_MAXPOOL,
 	NNOM_AVGPOOL,
 	NNOM_GLOBAL_AVGPOOL,
+	NNOM_SUMPOOL,
+	NNOM_GLOBAL_SUMPOOL,
 	NNOM_FLATTEN,
 	NNOM_LAMBDA,
 	NNOM_CONCAT,
@@ -76,10 +82,12 @@ typedef enum
 			"Sigmoid",      \
 			"Tanh",         \
 			"Softmax",      \
-			"Maxpool",      \
+			"Max_Pool",      \
 			"GL_MaxPool",	\
-			"Avg Pool",      \
+			"Avg_Pool",      \
 			"GL_AvgPool",	\
+			"Sum_Pool",		\
+			"GL_SumPool",	\
 			"Flatten",      \
 			"Lambda",       \
 			"Concat",       \

@@ -34,6 +34,8 @@
 #define NNOM_BLOCK_NUM  	(8)		// maximum number of memory block  
 #define DENSE_WEIGHT_OPT 	(1)		// if used fully connected layer optimized weights. 
 
+//#define NNOM_USING_CMSIS_NN       // uncomment if use CMSIS-NN for optimation 
+
 #endif
 
 

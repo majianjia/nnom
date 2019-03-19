@@ -15,33 +15,43 @@
 #include <stdbool.h>
 #include "nnom.h"
 #include "nnom_activations.h"
+#include "nnom_local.h"
 
+#ifdef NNOM_USING_CMSIS_NN
 #include "arm_math.h"
 #include "arm_nnfunctions.h"
+#endif
 
 // porting
 static nnom_status_t relu_run(nnom_layer_t *layer, nnom_activation_t *act)
 {
-	arm_relu_q7(act->data, act->size);
+	#ifdef NNOM_USING_CMSIS_NN
+		arm_relu_q7(act->data, act->size);
+	#else
+		local_relu_q7(act->data, act->size);
+	#endif
 	return NN_SUCCESS;
 }
 
 static nnom_status_t tanh_run(nnom_layer_t *layer, nnom_activation_t *act)
 {
-	arm_nn_activations_direct_q7(act->data,
-								 act->size,
-								 act->fmt.n,
-								 ARM_TANH);
+	#ifdef NNOM_USING_CMSIS_NN
+		arm_nn_activations_direct_q7(act->data, act->size, act->fmt.n, ARM_TANH);
+	#else
+		local_tanh_q7(act->data, act->size, act->fmt.n);
+	#endif
 
 	return NN_SUCCESS;
 }
 
 static nnom_status_t sigmoid_run(nnom_layer_t *layer, nnom_activation_t *act)
 {
-	arm_nn_activations_direct_q7(act->data,
-								 act->size,
-								 act->fmt.n,
-								 ARM_SIGMOID);
+	#ifdef NNOM_USING_CMSIS_NN
+		arm_nn_activations_direct_q7(act->data, act->size, act->fmt.n, ARM_SIGMOID);
+	#else
+		local_sigmoid_q7(act->data, act->size, act->fmt.n);
+	#endif
+	
 	return NN_SUCCESS;
 }
 

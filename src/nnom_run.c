@@ -13,12 +13,16 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+
 #include "nnom.h"
 #include "nnom_layers.h"
 #include "nnom_run.h"
 #include "nnom_local.h"
 
+#ifdef NNOM_USING_CMSIS_NN
 #include "arm_math.h"
+#include "arm_nnfunctions.h"
+#endif
 
 nnom_status_t input_run(nnom_layer_t *layer)
 {
@@ -40,7 +44,7 @@ nnom_status_t flatten_run(nnom_layer_t *layer)
 
 nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 {
-	nnom_status_t result;
+	nnom_status_t result = NN_SUCCESS;
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
 
 	// CMSIS-NN only support 1 mulplipier in depthwise conv
@@ -48,7 +52,11 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 		return NN_ARGUMENT_ERROR;
 
 	// cmsis-nn dw does not support multiplier, we need to do it by our own
+#ifdef NNOM_USING_CMSIS_NN
 	result = (nnom_status_t)arm_depthwise_separable_conv_HWC_q7_nonsquare(
+#else
+	local_depthwise_separable_conv_HWC_q7_nonsquare(
+#endif
 		layer->in->mem->blk,
 		layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
 		cl->weights->p_value,
@@ -67,6 +75,8 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 nnom_status_t conv2d_run(nnom_layer_t *layer)
 {
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
+
+#ifdef NNOM_USING_CMSIS_NN
 
 	//RGB
 	// ch_im_in = 3, w = h
@@ -141,11 +151,25 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 				layer->out->mem->blk,
 				layer->out->shape.w, layer->out->shape.h, (q15_t *)(layer->comp->mem->blk), NULL);
 	}
+// end of cmsis nn
+#else
+	// local implementation
+	local_convolve_HWC_q7_nonsquare(
+				layer->in->mem->blk,
+				layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+				cl->weights->p_value, layer->out->shape.c,
+				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
+				cl->bias->p_value, cl->bias_shift, cl->output_shift,
+				layer->out->mem->blk,
+				layer->out->shape.w, layer->out->shape.h, (q15_t *)(layer->comp->mem->blk), NULL);
+	return NN_SUCCESS;
+#endif
 }
 
 
 nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer)
 {
+	/*
 	nnom_status_t result;
 	// cell / layer
 	nnom_rnn_layer_t* cl 	= (nnom_rnn_layer_t *)layer;
@@ -197,6 +221,7 @@ nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer)
 	// copy to output
 	//memcpy(cell->super.output_buf, state, output_size);
 
+	*/
 	return NN_SUCCESS;
 }
 
@@ -233,26 +258,34 @@ nnom_status_t rnn_run(nnom_layer_t *layer)
 
 nnom_status_t dense_run(nnom_layer_t *layer)
 {
-	nnom_status_t result;
+	nnom_status_t result = NN_SUCCESS;
 	nnom_dense_layer_t *cl = (nnom_dense_layer_t *)(layer);
 
 	// test, optimize
 #if !(DENSE_WEIGHT_OPT)
-	result = (nnom_status_t)arm_fully_connected_q7(
-		layer->in->mem->blk,
-		cl->weights->p_value,
-		layer->in->shape.h, layer->out->shape.h,
-		cl->bias_shift, cl->output_shift,
-		cl->bias->p_value,
-		layer->out->mem->blk, (q15_t *)(layer->comp->mem->blk));
+	#ifdef NNOM_USING_CMSIS_NN
+		result = (nnom_status_t)arm_fully_connected_q7(
+	#else
+		local_fully_connected_q7(
+	#endif
+			layer->in->mem->blk,
+			cl->weights->p_value,
+			layer->in->shape.h, layer->out->shape.h,
+			cl->bias_shift, cl->output_shift,
+			cl->bias->p_value,
+			layer->out->mem->blk, (q15_t *)(layer->comp->mem->blk));
 #else
-	result = (nnom_status_t)arm_fully_connected_q7_opt(
-		layer->in->mem->blk,
-		cl->weights->p_value,
-		layer->in->shape.h, layer->out->shape.h,
-		cl->bias_shift, cl->output_shift,
-		cl->bias->p_value,
-		layer->out->mem->blk, (q15_t *)(layer->comp->mem->blk));
+	#ifdef NNOM_USING_CMSIS_NN
+		result = (nnom_status_t)arm_fully_connected_q7_opt(
+	#else
+		local_fully_connected_q7_opt(
+	#endif
+			layer->in->mem->blk,
+			cl->weights->p_value,
+			layer->in->shape.h, layer->out->shape.h,
+			cl->bias_shift, cl->output_shift,
+			cl->bias->p_value,
+			layer->out->mem->blk, (q15_t *)(layer->comp->mem->blk));
 #endif
 
 	return result;
@@ -268,34 +301,13 @@ nnom_status_t activation_run(nnom_layer_t *layer)
 	return cl->act->run(layer, cl->act);
 }
 
-nnom_status_t relu_run(nnom_layer_t *layer)
-{
-	arm_relu_q7(layer->in->mem->blk, layer->out->shape.h * layer->out->shape.w * layer->out->shape.c);
 
-	return NN_SUCCESS;
-}
-nnom_status_t tanh_run(nnom_layer_t *layer)
-{
-	arm_nn_activations_direct_q7(layer->in->mem->blk,
-								 layer->out->shape.h * layer->out->shape.w * layer->out->shape.c,
-								 layer->in->qfmt.n,
-								 ARM_TANH);
-
-	return NN_SUCCESS;
-}
-nnom_status_t sigmoid_run(nnom_layer_t *layer)
-{
-	arm_nn_activations_direct_q7(layer->in->mem->blk,
-								 layer->out->shape.h * layer->out->shape.w * layer->out->shape.c,
-								 layer->in->qfmt.n,
-								 ARM_SIGMOID);
-	return NN_SUCCESS;
-}
 
 nnom_status_t maxpool_run(nnom_layer_t *layer)
 {
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)(layer);
 
+#ifdef NNOM_USING_CMSIS_NN
 	// 2D, square
 	if (layer->in->shape.w == layer->in->shape.h)
 	{
@@ -309,6 +321,7 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 	}
 	// none square 2D, or 1D
 	else
+#endif
 	{
 		// CMSIS-NN does not support none-square pooling, we have to use local implementation
 		local_maxpool_q7_HWC(layer->in->mem->blk, 				
@@ -328,6 +341,7 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 {
 	nnom_avgpool_layer_t *cl = (nnom_avgpool_layer_t *)(layer);
 
+#ifdef NNOM_USING_CMSIS_NN
 	// 2D, square
 	if (layer->in->shape.w == layer->in->shape.h)
 	{
@@ -341,6 +355,7 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 	}
 	// none square 2D, or 1D
 	else
+#endif
 	{
 		// CMSIS-NN does not support none-square pooling, we have to use local implementation
 		local_avepool_q7_HWC(layer->in->mem->blk, 				
@@ -356,10 +371,30 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
+// sum pooling, dynamic change Q format, must be used in the last layer
+nnom_status_t sumpool_run(nnom_layer_t *layer)
+{
+	nnom_sumpool_layer_t *cl = (nnom_sumpool_layer_t *)(layer);
+	local_sumpool_q7_HWC(layer->in->mem->blk, 				
+			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+			cl->kernel.w, cl->kernel.h, 
+			cl->pad.w, cl->pad.h,
+			cl->stride.w, cl->stride.h,
+			layer->out->shape.w, layer->out->shape.h,
+			layer->comp->mem->blk,
+			layer->out->mem->blk);
+
+	return NN_SUCCESS;
+}
+
 nnom_status_t softmax_run(nnom_layer_t *layer)
 {
+#ifdef NNOM_USING_CMSIS_NN
 	// temporary fixed for mutiple dimension input. 
 	arm_softmax_q7(layer->in->mem->blk, shape_size(&layer->out->shape), layer->out->mem->blk);
+#else
+	local_softmax_q7(layer->in->mem->blk, shape_size(&layer->out->shape), layer->out->mem->blk);
+#endif
 	return NN_SUCCESS;
 }
 
@@ -367,27 +402,19 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 {
 	// by default, concat layer has mutiple (>=2) input and 1 output.
 	nnom_concat_layer_t *cl = (nnom_concat_layer_t *)layer;
-	uint32_t shape_element_num = sizeof(nnom_shape_t) / sizeof(nnom_shape_data_t);
-	size_t width = sizeof(nnom_shape_data_t);
 	nnom_shape_axis_t *out_shape = (nnom_shape_axis_t *)(&layer->out->shape); // get the shape.axis[0,1,2...] access to shape type
 	uint32_t offset;
-	nnom_layer_io_t *in, *out;
-
-	in = layer->in;
-	out = layer->out;
+	nnom_layer_io_t *in;
 
 	// last axis, shape c
-	if (cl->axis < 0)
-		offset = (shape_element_num + cl->axis);
-	else
-		offset = cl->axis;
+	offset = cl->axis;
 
 	// concat by different axis, TODO, change to nested loop
 	// the concat axis might be different, means that, the block size for each input could be different
 	if (offset == 0)
 	{
 		uint8_t *pin;
-		uint8_t *pout = out->mem->blk;
+		uint8_t *pout = layer->out->mem->blk;
 		in = layer->in;
 		while (in != NULL)
 		{
@@ -401,7 +428,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	else if (offset == 1)
 	{
 		uint8_t *pin;
-		uint8_t *pout = out->mem->blk;
+		uint8_t *pout = layer->out->mem->blk;
 		uint32_t block_size;
 
 		for (int j = 0; j < out_shape->axis[0]; j++)
@@ -421,7 +448,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	else if (offset == 2)
 	{
 		uint8_t *pin;
-		uint8_t *pout = out->mem->blk;
+		uint8_t *pout = layer->out->mem->blk;
 		uint32_t block_size;
 
 		for (int j = 0; j < out_shape->axis[1] * out_shape->axis[0]; j++)
@@ -449,22 +476,23 @@ nnom_status_t add_run(nnom_layer_t *layer)
 	size_t size = shape_size(&layer->in->shape);
 
 	// adding the first 2 matrix
-	arm_add_q7(layer->in->mem->blk,
-			   layer->in->aux->mem->blk,
-			   layer->out->mem->blk,
-			   size);
-
+#ifdef NNOM_USING_CMSIS_NN
+	arm_add_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, size);
+#else
+	local_add_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk,0, size);
+#endif
+	
 	// if there is 3rd or more
 	if (layer->in->aux->aux != NULL)
 	{
 		in = layer->in->aux->aux;
 		while (in != NULL)
 		{
-			arm_add_q7(in->mem->blk,
-					   layer->out->mem->blk,
-					   layer->out->mem->blk,
-					   size);
-
+			#ifdef NNOM_USING_CMSIS_NN
+				arm_add_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, size);
+			#else
+				local_add_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk,0, size);
+			#endif
 			in = in->aux;
 		}
 	}
@@ -477,22 +505,23 @@ nnom_status_t sub_run(nnom_layer_t *layer)
 	nnom_layer_io_t *in;
 	size_t size = shape_size(&layer->in->shape);
 
-	// adding the first 2 matrix
-	arm_sub_q7(layer->in->mem->blk,
-			   layer->in->aux->mem->blk,
-			   layer->out->mem->blk,
-			   size);
-
+	// the first 2 matrix
+#ifdef NNOM_USING_CMSIS_NN
+	arm_sub_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, size);
+#else
+	local_sub_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, 0, size);
+#endif
 	// if there is 3rd or more
 	if (layer->in->aux->aux != NULL)
 	{
 		in = layer->in->aux->aux;
 		while (in != NULL)
 		{
-			arm_sub_q7(in->mem->blk,
-					   layer->out->mem->blk,
-					   layer->out->mem->blk,
-					   size);
+			#ifdef NNOM_USING_CMSIS_NN
+				arm_sub_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, size);
+			#else
+				local_sub_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, 0, size);
+			#endif
 
 			in = in->aux;
 		}
@@ -506,10 +535,11 @@ nnom_status_t mult_run(nnom_layer_t *layer)
 	size_t size = shape_size(&layer->in->shape);
 
 	// adding the first 2 matrix
-	arm_mult_q7(layer->in->mem->blk,
-				layer->in->aux->mem->blk,
-				layer->out->mem->blk,
-				size);
+#ifdef NNOM_USING_CMSIS_NN
+	arm_mult_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, size);
+#else
+	local_mult_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, 0, size);
+#endif
 
 	// if there is 3rd or more
 	if (layer->in->aux->aux != NULL)
@@ -517,10 +547,11 @@ nnom_status_t mult_run(nnom_layer_t *layer)
 		in = layer->in->aux->aux;
 		while (in != NULL)
 		{
-			arm_mult_q7(in->mem->blk,
-						layer->out->mem->blk,
-						layer->out->mem->blk,
-						size);
+			#ifdef NNOM_USING_CMSIS_NN
+				arm_mult_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, size);
+			#else
+				local_mult_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, 0, size);
+			#endif
 
 			in = in->aux;
 		}

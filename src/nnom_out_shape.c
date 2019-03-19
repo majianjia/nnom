@@ -229,6 +229,18 @@ nnom_status_t avgpooling_out_shape(nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
+nnom_status_t sumpooling_out_shape(nnom_layer_t *layer)
+{
+	// avg pooling share the same output shape, stride, padding setting.
+	maxpooling_out_shape(layer);
+
+	// however, avg pooling require a computational buffer.
+	layer->comp->shape = shape(4 * layer->out->shape.h * layer->out->shape.w * layer->out->shape.c, 1, 1);
+
+	return NN_SUCCESS;
+}
+
+
 nnom_status_t global_pooling_out_shape(nnom_layer_t *layer)
 {
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)layer;
@@ -254,6 +266,10 @@ nnom_status_t global_pooling_out_shape(nnom_layer_t *layer)
 	// additionally avg pooling require computational buffer, which is  2*dim_im_out*ch_im_in
 	if (layer->type == NNOM_AVGPOOL || layer->type == NNOM_GLOBAL_AVGPOOL)
 		layer->comp->shape = shape(2 * 1 * layer->in->shape.c, 1, 1);
+	
+	// additionally sumpool
+	if (layer->type == NNOM_SUMPOOL || layer->type == NNOM_GLOBAL_SUMPOOL)
+		layer->comp->shape = shape(4 * layer->out->shape.h * layer->out->shape.w * layer->out->shape.c, 1, 1);
 
 	return NN_SUCCESS;
 }
