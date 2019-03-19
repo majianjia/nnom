@@ -4,13 +4,13 @@ The simplest first.
 
 Deploying is much easier than before. (Thanks to @parai)
 
-Simply use `generate_model(model, x_data)` to generate a C header `weights.h` after you have train your model in Keras. It is available in  [nnom_utils.py](https://github.com/majianjia/nnom/blob/1b365c51959fd4a1da0180c57fba6691e59e055c/scripts/nnom_utils.py#L209)
+Simply use `generate_model(model, x_data)` to generate a C header `weights.h` after you have trained your model in Keras. It is available in  [nnom_utils.py](https://github.com/majianjia/nnom/blob/1b365c51959fd4a1da0180c57fba6691e59e055c/scripts/nnom_utils.py#L209)
 
-Include it in your project, then call `nnom_model_create()` to create and compile on the MCU. Finaly, `model_run()` to do your prediction.
+Include the `weights.h` in your project, then call `nnom_model_create()` to create and compile the model on the MCU. Finaly, call `model_run()` to do your prediction.
 
-Please check [MNIST-DenseNet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)
+Please check [MNIST-DenseNet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet) example for usage
 
-> The `generate_model(model, x_data)` might not be updated with NNoM. For new features and customized layers, you can still use NNoM APIs to build your model. 
+> The `generate_model(model, x_data)` might not be updated with NNoM from time to time. For new features and customized layers, you can still use NNoM APIs to build your model. 
 
 
 # NNoM Structure
@@ -52,7 +52,7 @@ x = model.hook(Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b
 x = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x);
 ~~~
 
-The NNoM currently supports HWC format. 
+NNoM currently supports HWC format. 
 
 Which also called "channel last", where H = number of rows or y axis, W = number of column or x axis, C = number of channes. 
 
@@ -61,11 +61,12 @@ Which also called "channel last", where H = number of rows or y axis, W = number
 > In the above codes, both `kernal(H, W)` and `stride(H, W)` returns a 'shape' instance.
 > The shape instance in format of (H, W, ?)
 
-All convolutional layers and poolings support both 1D / 2D data input. 
+All convolutional layers and poolings layers support both 1D / 2D data input. 
 However, when using 1D input, the H must be set to 1. 
 
 ## Construction APIs
 Construction APIs are statics functions located in nnom.c
+
 Currently are:
 
 Sequencial Construction API 
@@ -118,15 +119,21 @@ nnom_layer_t* Input(nnom_shape_t input_shape, nnom_qformat_t fmt, void* p_buf);
 nnom_layer_t* Output(nnom_shape_t output_shape, nnom_qformat_t fmt, void* p_buf);
 ~~~
 
-Pooling as they are
+Pooling as they are:
+
+>The sum pooling here will dynamicly change its ourput shift to avoid overflowing. 
+>
+>It is recommened to replace the Global Average Pooling by Global Sum Pooling for better accuracy in MCU side. 
 ~~~c
 // Pooling, kernel, strides, padding
 nnom_layer_t* MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
 nnom_layer_t* AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+nnom_layer_t* SumPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
 
 // The Global poolings simplly do better 
 nnom_layer_t *GlobalMaxPool(void);
 nnom_layer_t *GlobalAvgPool(void);
+nnom_layer_t *GlobalSumPool(void);
 
 ~~~
 

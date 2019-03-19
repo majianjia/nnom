@@ -9,15 +9,17 @@ NNoM is released under LGPL-V3.0, please check the license file for detail.
 
 ## Dependencies
 
-NNoM now use its local pure C backend implementation by default. Thus, there is no special dependency. 
+NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. 
 
-However, it can select[CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) backend for about 5x optimisation on ARM-cores. 
+>However, you can still select [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) as the backend for about 5x performance on MCUs with ARM-Cortex-M4/7/33/7. 
+>
+>Simply `#define NNOM_USING_CMSIS_NN` in `nnom_port.h` and include CMSIS-NN in your project. 
 
 
 ## Why NNoM?
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
 
-Nowadays, neural network in wider, deeper, and denser.
+Nowadays, neural networks are **wider**, **deeper**, and **denser**.
 ![](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM/nnom_wdd.png)
 >[1] Szegedy, C., Liu, W., Jia, Y., Sermanet, P., Reed, S., Anguelov, D., ... & Rabinovich, A. (2015). Going deeper with convolutions. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 1-9).
 >
@@ -26,9 +28,9 @@ Nowadays, neural network in wider, deeper, and denser.
 >[3] Huang, G., Liu, Z., Van Der Maaten, L., & Weinberger, K. Q. (2017). Densely connected convolutional networks. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 4700-4708).
 
 
-**If you would like to try more up-to-date, decent and complex structures on MCU** (such as `Inception, SqueezeNet, ResNet, DenseNet...`)
+**If you would like to try those more up-to-date, decent and complex structures on MCU** 
 
-**NNoM can build them with only a few lines of C codes**, same as you did with Python in [**Keras**](https://keras.io/)
+**NNoM can help you to build them with only a few lines of C codes**, same as you did with Python in [**Keras**](https://keras.io/)
 
 
 Inception example: [uci-inception](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)
@@ -196,13 +198,13 @@ You can now use [generate_model(model, x_data)](https://github.com/majianjia/nno
 Then simply call `nnom_model_create()` in your `main()` to compile the model on your platform.
 
 Please check [A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md)
-and [MNIST-DenseNet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet).
+and [MNIST-DenseNet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet) example.
 
 
 
 # Porting
 
-Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/port/nnom_port.h) 
+Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/port/nnom_port.h) according to your platform.
 
 > To optimise for ARM chips, it is required to include the [CMSIS-NN lib](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) in your projects.
 > Then define `#define NNOM_USE_CMSIS_NN` in the `nnom_port.h`
