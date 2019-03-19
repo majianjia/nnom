@@ -172,7 +172,7 @@ No memory allocating in running the model.
 
 RAM requirement is about 100 to 200 bytes per layer for NNoM instance, plus the maximum data buf cost.
 
->The sequential exmaple above includes 9 layer instances. So, the memory cost for instances is 130 x 9 = 1170 Bytes.
+>The sequential example above includes 9 layer instances. So, the memory cost for instances is 130 x 9 = 1170 Bytes.
 >
 >The maximum data buffer is in the convolutional layer.
 >
@@ -199,8 +199,7 @@ and [MNIST-DenseNet](https://github.com/majianjia/nnom/tree/master/examples/mnis
 Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/port/nnom_port.h) 
 
 > To optimise for ARM chips, it is required to include the [CMSIS-NN lib](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) in your projects.
-
-> and then define `#define NNOM_USE_CMSIS_NN` in the `nnom_port.h`
+> Then define `#define NNOM_USE_CMSIS_NN` in the `nnom_port.h`
 
 # Current Critical Limitations 
 - Support 8-bit quantisation only. 
