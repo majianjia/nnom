@@ -118,8 +118,12 @@ typedef struct _nnom_maxpool_layer
 	nnom_shape_t pad;
 	nnom_padding_t padding_type;
 } nnom_maxpool_layer_t;
-// Avg pooling
+
+// Avg Pooling
 typedef nnom_maxpool_layer_t nnom_avgpool_layer_t;
+
+// Sum Pooling
+typedef nnom_maxpool_layer_t nnom_sumpool_layer_t;
 
 typedef struct _nnom_io_layer
 {
@@ -156,8 +160,10 @@ nnom_layer_t *Output(nnom_shape_t output_shape, void *p_buf);
 // Pooling
 nnom_layer_t *MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
 nnom_layer_t *AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+nnom_layer_t *SumPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
 nnom_layer_t *GlobalMaxPool(void);
 nnom_layer_t *GlobalAvgPool(void);
+nnom_layer_t *GlobalSumPool(void);
 
 // Activation
 nnom_layer_t *Activation(nnom_activation_t *act);

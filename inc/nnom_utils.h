@@ -21,10 +21,10 @@
 
 typedef struct _nnom_predic_t
 {
-	uint16_t *confusion_mat;// confusiong matrix 
-	uint32_t *top_k;		// which stored the num of prediction in rank_k, example: Top-2 = top_k[0]+top_k[1]
-	nnom_model_t *model;	// the model to run
-	int8_t *buf_prediction; // the pointer to the output of softmax layer(normally the end of classifier).
+	uint16_t *confusion_mat; // confusiong matrix
+	uint32_t *top_k;		 // which stored the num of prediction in rank_k, example: Top-2 = top_k[0]+top_k[1]
+	nnom_model_t *model;	 // the model to run
+	int8_t *buf_prediction;  // the pointer to the output of softmax layer(normally the end of classifier).
 
 	// setting
 	uint32_t label_num;  // number of types in classification

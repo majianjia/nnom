@@ -26,6 +26,6 @@ nnom_activation_t *act_sigmoid(void);
 nnom_activation_t *act_tanh(void);
 
 // direct API
-nnom_status_t act_direct_run(nnom_layer_t *layer, nnom_activation_t* act, void* data, size_t size, nnom_qformat_t fmt);
+nnom_status_t act_direct_run(nnom_layer_t *layer, nnom_activation_t *act, void *data, size_t size, nnom_qformat_t fmt);
 
 #endif

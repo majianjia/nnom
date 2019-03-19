@@ -1,10 +1,23 @@
 
+The simplest first.
+# Deploying
+
+Deploying is much easier than before. (Thanks to @parai)
+
+Simply use `generate_model(model, x_data)` to generate a C header `weights.h` after you have train your model in Keras. It is available in  [nnom_utils.py](https://github.com/majianjia/nnom/blob/1b365c51959fd4a1da0180c57fba6691e59e055c/scripts/nnom_utils.py#L209)
+
+Include it in your project, then call `nnom_model_create()` to create and compile on the MCU. Finaly, `model_run()` to do your prediction.
+
+Please check [MNIST-DenseNet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)
+
+> The `generate_model(model, x_data)` might not be updated with NNoM. For new features and customized layers, you can still use NNoM APIs to build your model. 
+
 
 # NNoM Structure
 
 NNoM uses a layer-based structure. 
 
-Layer is a container. Every operation (convolution, concat...) must be wrapped into a layer. 
+A layer is a container. Every operation (convolution, concat...) must be wrapped into a layer. 
 
 A basic layer contains a list of **Input/Ouput modules** (I/O). Each of I/O contains a list of **Hook** (similar to Nodes in Keras).
 
@@ -19,7 +32,7 @@ Dont be scared, check this:
 Those APIs listed below will help you to create layers and build the model structures.  
 
 # APIs
-**layer APIs** and **construction APIs** are used to build a model. 
+**Layer APIs** and **Construction APIs** are used to build a model. 
 
 Layer APIs can create and return a new layer instance, while construction APIs use layer instances to build a model. 
 
