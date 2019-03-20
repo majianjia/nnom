@@ -82,11 +82,11 @@ typedef enum
 			"Sigmoid",      \
 			"Tanh",         \
 			"Softmax",      \
-			"Max_Pool",      \
+			"MaxPool",      \
 			"GL_MaxPool",	\
-			"Avg_Pool",      \
+			"AvgPool",      \
 			"GL_AvgPool",	\
-			"Sum_Pool",		\
+			"SumPool",		\
 			"GL_SumPool",	\
 			"Flatten",      \
 			"Lambda",       \
@@ -159,7 +159,7 @@ typedef struct _nnom_bias
 } nnom_bias_t;
 
 // nn wrappers
-typedef struct _nnom_layer_t nnom_layer_t;
+typedef struct _nnom_layer_t 	nnom_layer_t;
 typedef struct _nnom_layer_io_t nnom_layer_io_t;
 typedef struct _nnom_layer_hook_t nnom_layer_hook_t;
 typedef struct _nnom_mem_block_t nnom_mem_block_t;
@@ -246,8 +246,8 @@ typedef struct _nnom_model
 	nnom_layer_t *tail;
 
 	nnom_status_t (*add)(struct _nnom_model *m, nnom_layer_t *layer);					// has too pass a raw value
-	nnom_layer_t *(*hook)(nnom_layer_t *curr, nnom_layer_t *last);						// create hook 2 layer's primary IO.
-	nnom_layer_t *(*merge)(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2); // an older interface of merge 2 input.
+	nnom_layer_t *(*hook)(nnom_layer_t *curr, nnom_layer_t *last);						// create hook between 2 layers' primary IO.
+	nnom_layer_t *(*merge)(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2); // an older interface of merge 2 inputs.
 	nnom_layer_t *(*mergex)(nnom_layer_t *method, int num, ...);						// merge a few layers using mutiple input method (concate, add, ...)
 	nnom_layer_t *(*active)(nnom_activation_t *act, nnom_layer_t *target_layer);		// add the activation to the existing layer's tail
 
@@ -257,7 +257,7 @@ typedef struct _nnom_model
 	size_t total_ops;
 
 	bool is_inited; //	is this structure initialized
-	bool is_alloc;  //	is this structure allocated by nnom or user
+	bool is_alloc;  //	is this structure allocated by nnom (not by user)
 } nnom_model_t;
 
 #define NNOM_NULL_CHECK(p)            \
