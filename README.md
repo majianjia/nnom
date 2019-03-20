@@ -5,7 +5,7 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 
 NNoM is released under LGPL-V3.0, please check the license file for detail. 
 
-[A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md)
+[A brief manual](docs/A%20Temporary%20Guide%20to%20NNoM.md)
 
 ## Dependencies
 
@@ -20,7 +20,7 @@ NNoM now use the local pure C backend implementation by default. Thus, there is 
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
 
 Nowadays, neural networks are **wider**, **deeper**, and **denser**.
-![](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM/nnom_wdd.png)
+![](docs/A%20Temporary%20Guide%20to%20NNoM/nnom_wdd.png)
 >[1] Szegedy, C., Liu, W., Jia, Y., Sermanet, P., Reed, S., Anguelov, D., ... & Rabinovich, A. (2015). Going deeper with convolutions. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 1-9).
 >
 >[2] He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 770-778).
@@ -33,9 +33,9 @@ Nowadays, neural networks are **wider**, **deeper**, and **denser**.
 **NNoM can help you to build them with only a few lines of C codes**, same as you did with Python in [**Keras**](https://keras.io/)
 
 
-Inception example: [uci-inception](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)
+Inception example: [uci-inception](examples/uci-inception)
 
-DenseNet example: [mnist-densenet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)
+DenseNet example: [mnist-densenet](examples/mnist-densenet)
 
 
 
@@ -122,7 +122,7 @@ while(1){
     model_run(&model);
 }
 ~~~~
-Please check [A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md) for more API details. 
+Please check [A brief manual](docs/A%20Temporary%20Guide%20to%20NNoM.md) for more API details. 
 
 
 ## Available Operations
@@ -145,7 +145,7 @@ Please check [A brief manual](https://github.com/majianjia/nnom/blob/master/docs
 
 **Activations**
 
-Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md#addictionlly-activation-apis) to reduce memory cost.
+Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](docs/A%20Temporary%20Guide%20to%20NNoM.md#addictionlly-activation-apis) to reduce memory cost.
 
 | Actrivation | Status |Layer API|Activation API|Comments|
 | ------ |-- |--|--|--|
@@ -193,18 +193,18 @@ In NNoM, we dont analysis memory cost manually like above.
 Memory analysis will be printed when compiling the model.  
 
 # Deploying Keras model to NNoM
-You can now use [generate_model(model, x_data)](https://github.com/majianjia/nnom/blob/0cf1b248385e000caee50b891ac72af209e88edc/scripts/nnom_utils.py#L284) to deploy your model to `weights.h` directly. 
+You can now use [generate_model(model, x_data)](scripts/nnom_utils.py#L284) to deploy your model to `weights.h` directly. 
 
 Then simply call `nnom_model_create()` in your `main()` to compile the model on your platform.
 
-Please check [A brief manual](https://github.com/majianjia/nnom/blob/master/docs/A%20Temporary%20Guide%20to%20NNoM.md)
-and [MNIST-DenseNet](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet) example.
+Please check [A brief manual](docs/A%20Temporary%20Guide%20to%20NNoM.md)
+and [MNIST-DenseNet](examples/mnist-densenet) example.
 
 
 
 # Porting
 
-Simply modify the [nnom_port.h](https://github.com/majianjia/nnom/blob/master/port/nnom_port.h) according to your platform.
+Simply modify the [nnom_port.h](port/nnom_port.h) according to your platform.
 
 > To optimise for ARM chips, it is required to include the [CMSIS-NN lib](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) in your projects.
 > Then define `#define NNOM_USE_CMSIS_NN` in the `nnom_port.h`
