@@ -370,18 +370,30 @@ def generate_model(model, x_test, name='weights.h'):
                     fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n'%(id,layer.input_shape[1:]))
                 except:
                     fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n'%(id,layer.shape[1:]))
+            # convlutional
             elif('conv1d' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
-                fp.write('\tlayer[{0}] = model.hook(Conv1D({1}, kernel(1,{2}), stride(1,{3}), PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
-                    id, layer.output.shape[-1], cfg['kernel_size'][0], cfg['strides'][0], cfg['padding'].upper(),
-                    layer.name, LI[inp][0]));
+                if('depthwise' in layer.name):
+                    fp.write('\tlayer[{0}] = model.hook(DW_Conv2D({1}, kernel(1,{2}), stride(1,{3}), PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
+                        id, 1, cfg['kernel_size'][0], cfg['strides'][0], cfg['padding'].upper(),
+                        layer.name, LI[inp][0]))
+                else:
+                    fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel(1,{2}), stride(1,{3}), PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
+                        id, cfg['filters'], cfg['kernel_size'][0], cfg['strides'][0], cfg['padding'].upper(),
+                        layer.name, LI[inp][0]))
             elif('conv2d' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
-                fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel{2}, stride{3}, PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
-                    id, layer.output.shape[-1], cfg['kernel_size'], cfg['strides'], cfg['padding'].upper(),
-                    layer.name, LI[inp][0]));
+                if ('depthwise' in layer.name):
+                    fp.write('\tlayer[{0}] = model.hook(DW_Conv2D({1}, kernel{2}, stride{3}, PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
+                        id, 1, cfg['kernel_size'], cfg['strides'], cfg['padding'].upper(),
+                        layer.name, LI[inp][0]))
+                else:
+                    fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel{2}, stride{3}, PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
+                        id, cfg['filters'], cfg['kernel_size'], cfg['strides'], cfg['padding'].upper(),
+                        layer.name, LI[inp][0]))
+            # activations
             elif('activation' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
@@ -392,14 +404,30 @@ def generate_model(model, x_test, name='weights.h'):
             elif('re_lu' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n'%(id, LI[inp][0]))
-            elif('global_max_pooling2d' in layer.name):
-                inp = layer.input.name.replace(':','/').split('/')[0]
-                fp.write('\tlayer[%s] = model.hook(GlobalMaxPool(),  layer[%s]);\n'%(id, LI[inp][0]))
-            elif('max_pooling2d' in layer.name):
+            # pooling
+            elif('max_pooling' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
-                fp.write('\tlayer[%s] = model.hook(MaxPool(kernel%s, stride%s, PADDING_%s), layer[%d]);\n'%(
-                    id, cfg['pool_size'], cfg['strides'], cfg['padding'].upper(), LI[inp][0]))
+                if ('global' in layer.name):
+                    fp.write('\tlayer[%s] = model.hook(GlobalMaxPool(),  layer[%s]);\n' % (id, LI[inp][0]))
+                elif('2d' in layer.name):
+                    fp.write('\tlayer[%s] = model.hook(MaxPool(kernel%s, stride%s, PADDING_%s), layer[%d]);\n'%(
+                        id, cfg['pool_size'], cfg['strides'], cfg['padding'].upper(), LI[inp][0]))
+                elif('1d' in layer.name):
+                    fp.write('\tlayer[{0}] = model.hook(MaxPool(kernel(1,{1}), stride(1,{2}), PADDING_{3}), layer[{4}]);\n'.format(
+                        id, cfg['pool_size'][0], cfg['strides'][0], cfg['padding'].upper(), LI[inp][0]))
+            elif('average_pooling' in layer.name):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                cfg = layer.get_config()
+                if ('global' in layer.name):
+                    fp.write('\tlayer[%s] = model.hook(GlobalAvgPool(),  layer[%s]);\n' % (id, LI[inp][0]))
+                elif('2d' in layer.name):
+                    fp.write('\tlayer[%s] = model.hook(AvgPool(kernel%s, stride%s, PADDING_%s), layer[%d]);\n'%(
+                        id, cfg['pool_size'], cfg['strides'], cfg['padding'].upper(), LI[inp][0]))
+                elif('1d' in layer.name):
+                    fp.write('\tlayer[{0}] = model.hook(AvgPool(kernel(1,{1}), stride(1,{2}), PADDING_{3}), layer[{4}]);\n'.format(
+                        id, cfg['pool_size'][0], cfg['strides'][0], cfg['padding'].upper(), LI[inp][0]))
+            # others
             elif('concatenate' in layer.name):
                 inps = [input.name.replace(':','/').split('/')[0] for input in layer.input]
                 inX = ''
@@ -496,7 +524,6 @@ class nnom:
     def __exit__(self, type, value, traceback):
         print("output shift",dict)
         np.save('output_shifts.npy', self.shift_dict)
-
 
     # to record the shift range for interested layers (outputs)
     shift_dict = {}
