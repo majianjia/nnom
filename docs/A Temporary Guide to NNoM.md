@@ -4,7 +4,7 @@ The simplest first.
 
 Deploying is much easier than before. (Thanks to @parai)
 
-Simply use `generate_model(model, x_data)` to generate a C header `weights.h` after you have trained your model in Keras. It is available in  [nnom_utils.py](https://github.com/majianjia/nnom/blob/1b365c51959fd4a1da0180c57fba6691e59e055c/scripts/nnom_utils.py#L209)
+Simply use `generate_model(model, x_data)` to generate a C header `weights.h` after you have trained your model in Keras. It is available in  [nnom_utils.py](https://github.com/majianjia/nnom/blob/master/scripts/nnom_utils.py)
 
 Include the `weights.h` in your project, then call `nnom_model_create()` to create and compile the model on the MCU. Finaly, call `model_run()` to do your prediction.
 
@@ -115,8 +115,8 @@ Input/output layers are neccessary for a model. They are responsible to copy dat
 ~~~c
 // Layer APIs 
 // input/output
-nnom_layer_t* Input(nnom_shape_t input_shape, nnom_qformat_t fmt, void* p_buf);
-nnom_layer_t* Output(nnom_shape_t output_shape, nnom_qformat_t fmt, void* p_buf);
+nnom_layer_t* Input(nnom_shape_t input_shape，void* p_buf);
+nnom_layer_t* Output(nnom_shape_t output_shape, void* p_buf);
 ~~~
 
 Pooling as they are:
@@ -175,11 +175,11 @@ Stable NN layers.
 For more developing layers, please check the source codes. 
 
 ~~~c
-// conv2d
+// conv1D/2d
 nnom_layer_t* Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad,
 	nnom_weight_t *w, nnom_bias_t *b);
 
-// depthwise_convolution
+// depthwise_convolution 1D/2D
 nnom_layer_t* DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad, 
 	nnom_weight_t *w, nnom_bias_t *b);
 
