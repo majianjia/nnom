@@ -152,6 +152,28 @@ def main(weights='weights.h'):
 
     print("data range", x_test.min(), x_test.max())
 
+    if(os.getenv('NNOM_TEST_ON_CI') == 'YES'):
+        shift_list = eval(open('.shift_list').read())
+        rP = 0.0
+        for i,im in enumerate(x_test):
+            X = im.reshape(1,28,28,1)
+            f2q(X, shift_list['input_1']).astype(np.int8).tofile('tmp/input.raw')
+            if(0 == os.system('./mnist > /dev/null')):
+                out = q2f(np.fromfile('tmp/Softmax1.raw',dtype=np.int8),7)
+                out = np.asarray(out)
+                num, prop = out.argmax(), out[out.argmax()]
+                rnum = y_test[i].argmax()
+                if((rnum == num) and (prop > 0.8)):
+                    #print('test image %d is %d, predict correctly with prop %s'%(i, rnum, prop))
+                    rP += 1.0
+                if((i>0) and ((i%1000)==0)):
+                    print('%.1f%%(%s) out of %s is correct predicted'%(rP*100.0/i, rP, i))
+        print('%.1f%%(%s) out of %s is correct predicted'%(rP*100.0/i, rP, i))
+        if(rP/i > 0.8):
+            return
+        else:
+            raise Exception('test failed, accuracy is %.1f%% < 80%%'%(rP*100.0/i))
+
     # generate binary
     if(not os.path.exists('mnist_test_data.bin')):
         generate_test_bin(x_test, y_test, name='mnist_test_data.bin')

@@ -35,5 +35,8 @@ objs +=Glob('%s/src/*.c'%(ROOT))
 env.Append(CPPPATH=['%s/inc'%(ROOT),'%s/port'%(ROOT)])
 env.Append(CPPDEFINES=['USE_NNOM_OUTPUT_SAVE'])
 
+if(os.getenv('USE_CMSIS_NN') == 'YES'):
+	env.Append(CPPDEFINES=['NNOM_USING_CMSIS_NN'])
+
 env.Program('mnist',objs)
 
