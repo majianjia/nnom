@@ -180,6 +180,41 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
     return output_shift;
 }
 
+// customised up sample pooling
+void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
+                          const uint16_t dim_im_in_x,  // input image dimension x or W
+                          const uint16_t dim_im_in_y,  // input image dimension y or H
+                          const uint16_t ch_im_in,     // number of input image channels
+                          const uint16_t dim_kernel_x, // window kernel size
+                          const uint16_t dim_kernel_y, // window kernel size
+                          const uint16_t dim_im_out_x, // output image dimension x or W
+                          const uint16_t dim_im_out_y, // output image dimension y or H
+                          q7_t *bufferA,               // a buffer for local storage, NULL by now
+                          q7_t *Im_out)
+{
+    int16_t i_x, i_y;
+
+
+    // for loop for each pixel in input image.
+    for (i_y = 0; i_y < dim_im_in_x; i_y++)
+    {
+        for (i_x = 0; i_x < dim_im_in_y; i_x++)
+        {
+            // copy all the channels together. 
+            const q7_t *pin = Im_in + (i_y * dim_im_in_x + i_x ) * ch_im_in;
+            q7_t *pout = Im_out + (i_y * dim_im_in_x * dim_kernel_x * dim_kernel_y + i_x * dim_kernel_y) * ch_im_in;
+
+            // cpy along x axis
+            for(int i = 0; i<dim_kernel_x; i++)
+                memcpy(pout + i*ch_im_in, pin, ch_im_in);
+            // duplicate the copied x data into y axis. 
+            for(int i = 0; i<dim_kernel_y-1; i++)
+                memcpy(pout + (i+1) * ch_im_in * dim_im_in_x * dim_kernel_x, pout, ch_im_in * dim_kernel_x);
+        }
+    }
+}
+
+
 //
 /// ******************* convolutional *************************
 //

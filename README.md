@@ -163,6 +163,7 @@ Activation can be used by itself as layer, or can be attached to the previous la
 | Global Max Pooling  | Beta|GlobalMaxPool()||
 | Global Average Pooling | Beta|GlobalAvgPool()||
 | Global Sum Pooling | Beta|GlobalSumPool()|A better alternative to Global average pooling in MCU before Softmax|
+| Up Sampling | Beta|UpSample()|or Unpooling|
 
 **Matrix Operations Layers**
 

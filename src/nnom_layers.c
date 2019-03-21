@@ -188,6 +188,42 @@ nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_
 	return (nnom_layer_t *)layer;
 }
 
+// up sampling or unpooling layer
+nnom_layer_t *UpSample(nnom_shape_t kernel)
+{
+	nnom_upsample_layer_t *layer;
+	nnom_layer_io_t *in, *out;
+
+	// apply a block memory for all the sub handles.
+	size_t mem_size = sizeof(nnom_upsample_layer_t) + sizeof(nnom_layer_io_t) * 2;
+	layer = nnom_mem(mem_size);
+	if (layer == NULL)
+		return NULL;
+
+	// distribut the memory to sub handles.
+	in = (void *)((unsigned long)layer + sizeof(nnom_upsample_layer_t));
+	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
+
+	// set type in layer parent
+	layer->super.type = NNOM_UPSAMPLE;
+	// set buf state
+	in->type = LAYER_BUF_TEMP;
+	out->type = LAYER_BUF_TEMP;
+	// put in & out on the layer.
+	layer->super.in = io_init(layer, in);
+	layer->super.out = io_init(layer, out);
+	// set run and outshape methods
+	layer->super.run = upsample_run;
+	layer->super.comp_out_shape = upsample_out_shape;
+
+	// set parameters
+	layer->kernel = kernel;
+	
+	return (nnom_layer_t*)layer;
+}
+
+
+
 // Simple RNN
 // unit = output shape
 // type of activation

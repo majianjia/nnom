@@ -241,6 +241,20 @@ nnom_status_t sumpooling_out_shape(nnom_layer_t *layer)
 }
 
 
+nnom_status_t upsample_out_shape(nnom_layer_t *layer)
+{
+	nnom_upsample_layer_t *cl = (nnom_upsample_layer_t *)layer;
+	layer->in->shape = layer->in->hook.io->shape;
+
+	layer->out->shape.c = layer->in->shape.c;
+	layer->out->shape.h = layer->in->shape.h * cl->kernel.h;
+	layer->out->shape.w = layer->in->shape.w * cl->kernel.w;
+
+	return NN_SUCCESS;
+}
+
+
+
 nnom_status_t global_pooling_out_shape(nnom_layer_t *layer)
 {
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)layer;

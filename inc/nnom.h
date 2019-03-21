@@ -58,6 +58,7 @@ typedef enum
 	NNOM_GLOBAL_AVGPOOL,
 	NNOM_SUMPOOL,
 	NNOM_GLOBAL_SUMPOOL,
+	NNOM_UPSAMPLE,
 	NNOM_FLATTEN,
 	NNOM_LAMBDA,
 	NNOM_CONCAT,
@@ -88,6 +89,7 @@ typedef enum
 			"GL_AvgPool",	\
 			"SumPool",		\
 			"GL_SumPool",	\
+			"UpSample",		\
 			"Flatten",      \
 			"Lambda",       \
 			"Concat",       \

@@ -35,8 +35,9 @@ nnom_status_t softmax_run(nnom_layer_t *layer);
 nnom_status_t maxpool_run(nnom_layer_t *layer);
 nnom_status_t avgpool_run(nnom_layer_t *layer);
 nnom_status_t sumpool_run(nnom_layer_t *layer);
-nnom_status_t concat_run(nnom_layer_t *layer);
+nnom_status_t upsample_run(nnom_layer_t *layer);
 
+nnom_status_t concat_run(nnom_layer_t *layer);
 nnom_status_t add_run(nnom_layer_t *layer);
 nnom_status_t sub_run(nnom_layer_t *layer);
 nnom_status_t mult_run(nnom_layer_t *layer);

@@ -387,6 +387,21 @@ nnom_status_t sumpool_run(nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
+// up sampling, or so called unpooling
+nnom_status_t upsample_run(nnom_layer_t *layer)
+{
+	nnom_upsample_layer_t *cl = (nnom_upsample_layer_t *)(layer);
+	local_up_sampling_q7_HWC(layer->in->mem->blk, 				
+			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+			cl->kernel.w, cl->kernel.h, 
+			layer->out->shape.w, layer->out->shape.h,
+			NULL,
+			layer->out->mem->blk);
+
+	return NN_SUCCESS;
+}
+
+
 nnom_status_t softmax_run(nnom_layer_t *layer)
 {
 #ifdef NNOM_USING_CMSIS_NN

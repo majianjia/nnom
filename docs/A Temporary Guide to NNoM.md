@@ -135,6 +135,9 @@ nnom_layer_t *GlobalMaxPool(void);
 nnom_layer_t *GlobalAvgPool(void);
 nnom_layer_t *GlobalSumPool(void);
 
+// Upsampling layer / Unpooling layer
+nnom_layer_t* UpSample(nnom_shape_t kernel);
+
 ~~~
 
 Activation's **Layers API** are started with capital letter. They are differed from the **Activation API**, which start with `act_*` and retrun an activation instance.
