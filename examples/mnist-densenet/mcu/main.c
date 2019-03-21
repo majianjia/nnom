@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 {
 	nnom_model_t* model;
 	int8_t* input;
-	
+
 	model = nnom_model_create();
 
 	input = load("tmp/input.raw");
