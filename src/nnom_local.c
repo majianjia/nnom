@@ -483,10 +483,10 @@ void local_fully_connected_q7(const q7_t *pV,               // pointer to vector
     }
 }
 
-void local_softmax_q7(const q7_t *vec_in, const uint16_t dim_vec, q7_t *p_out)
+void local_softmax_q7(const q7_t *vec_in, const uint32_t dim_vec, q7_t *p_out)
 {
     q31_t sum;
-    int16_t i;
+    int32_t i;
     uint8_t shift;
     q15_t base;
     base = -257;
@@ -541,9 +541,9 @@ void local_softmax_q7(const q7_t *vec_in, const uint16_t dim_vec, q7_t *p_out)
     }
 }
 
-void local_sigmoid_q7(q7_t *data, uint16_t size, uint16_t int_width)
+void local_sigmoid_q7(q7_t *data, uint32_t size, uint16_t int_width)
 {
-    uint16_t i = size;
+    uint32_t i = size;
     q7_t *pIn = data;
     q7_t *pOut = data;
     q7_t in;
@@ -558,9 +558,9 @@ void local_sigmoid_q7(q7_t *data, uint16_t size, uint16_t int_width)
     }
 }
 
-void local_tanh_q7(q7_t *data, uint16_t size, uint16_t int_width)
+void local_tanh_q7(q7_t *data, uint32_t size, uint16_t int_width)
 {
-    uint16_t i = size;
+    uint32_t i = size;
     q7_t *pIn = data;
     q7_t *pOut = data;
     q7_t in;
@@ -574,9 +574,9 @@ void local_tanh_q7(q7_t *data, uint16_t size, uint16_t int_width)
         i--;
     }
 }
-void local_relu_q7(q7_t *data, uint16_t size)
+void local_relu_q7(q7_t *data, uint32_t size)
 {
-    uint16_t i;
+    uint32_t i;
 
     for (i = 0; i < size; i++)
     {
@@ -592,7 +592,7 @@ void local_mult_q7(q7_t *pSrcA,
                    const uint16_t out_shift,
                    uint32_t blockSize)
 {
-    uint16_t i;
+    uint32_t i;
 
     for (i = 0; i < blockSize; i++)
     {
@@ -612,7 +612,7 @@ void local_add_q7(q7_t *pSrcA,
                   const uint16_t out_shift,
                   uint32_t blockSize)
 {
-    uint16_t i;
+    uint32_t i;
 
     for (i = 0; i < blockSize; i++)
     {
@@ -632,7 +632,7 @@ void local_sub_q7(q7_t *pSrcA,
                   const uint16_t out_shift,
                   uint32_t blockSize)
 {
-    uint16_t i;
+    uint32_t i;
 
     for (i = 0; i < blockSize; i++)
     {
