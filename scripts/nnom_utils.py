@@ -220,6 +220,7 @@ def layers_output_ranges(model, x_test):
         else:
             if(is_shift_layer(layer)):
                 layer_model = Model(inputs=model.input, outputs=layer.output)
+                # FIXME, when the test data is too large, it might return memory error. need to slice data into small pices
                 features = layer_model.predict(x_test)
             else:
                 # leave the features not changed, so this layer shift will be the same
@@ -364,12 +365,18 @@ def generate_model(model, x_test, name='weights.h'):
         for layer in L:
             if(is_skipable_layer(layer)):
                 continue
-            id,_ = LI[layer.name]
+            #FIXME: need a better solution to seperate the input 'tensor' from other layers
+            if (model.input == layer and type(model.layers[0]) != InputLayer):
+                id,_ = LI[layer.name.split(':')[0]]
+            else:
+                id,_ = LI[layer.name]
+
             if('input' in layer.name):
                 try:
                     fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n'%(id,layer.input_shape[1:]))
                 except:
                     fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n'%(id,layer.shape[1:]))
+
             # convlutional
             elif('conv1d' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
@@ -420,13 +427,27 @@ def generate_model(model, x_test, name='weights.h'):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
                 if ('global' in layer.name):
-                    fp.write('\tlayer[%s] = model.hook(GlobalAvgPool(),  layer[%s]);\n' % (id, LI[inp][0]))
+                    # a global avg pool before softmax can be replace by sumpool in MCU (recommend)
+                    if(layer == model.layers[-2] and 'Softmax' in model.layers[-1].output.name):
+                        print(layer.name, 'has been replaced by GlobalSumPool()')
+                        fp.write('\tlayer[%s] = model.hook(GlobalSumPool(),  layer[%s]);\n' % (id, LI[inp][0]))
+                    else:
+                        fp.write('\tlayer[%s] = model.hook(GlobalAvgPool(),  layer[%s]);\n' % (id, LI[inp][0]))
                 elif('2d' in layer.name):
                     fp.write('\tlayer[%s] = model.hook(AvgPool(kernel%s, stride%s, PADDING_%s), layer[%d]);\n'%(
                         id, cfg['pool_size'], cfg['strides'], cfg['padding'].upper(), LI[inp][0]))
                 elif('1d' in layer.name):
                     fp.write('\tlayer[{0}] = model.hook(AvgPool(kernel(1,{1}), stride(1,{2}), PADDING_{3}), layer[{4}]);\n'.format(
                         id, cfg['pool_size'][0], cfg['strides'][0], cfg['padding'].upper(), LI[inp][0]))
+            elif ('up_sampling' in layer.name):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                cfg = layer.get_config()
+                if('2d' in layer.name):
+                    fp.write('\tlayer[%s] = model.hook(UpSample(kernel%s), layer[%d]);\n'%(id, cfg['size'],  LI[inp][0]))
+                elif('1d' in layer.name):
+                    fp.write('\tlayer[{0}] = model.hook(UpSample(kernel(1,{1})), layer[{2}]);\n'.format(
+                        id,  cfg['size'][0], LI[inp][0]))
+
             # others
             elif('concatenate' in layer.name):
                 inps = [input.name.replace(':','/').split('/')[0] for input in layer.input]
