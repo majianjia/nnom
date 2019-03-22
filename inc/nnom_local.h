@@ -4,11 +4,15 @@
  * majianjia@live.com
  *
  * SPDX-License-Identifier: LGPL-3.0
+ * 
+ * Notice: 
+ * Code in this file inlcudes derivative works from CMSIS, which is released under alternative license.
+ * Please check the LICENSE file for detial.
  *
  * Change Logs:
  * Date           Author       Notes
  * 2019-02-05     Jianjia Ma   The first version
- * 2019-03-19     Jianjia Ma   Local C implementation from CMSIS-NN
+ * 2019-03-19     Jianjia Ma   Local C implementation partly from CMSIS-NN
  */
 
 #ifndef __NNOM_LOCAL_H__

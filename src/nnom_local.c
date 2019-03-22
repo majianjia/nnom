@@ -4,6 +4,10 @@
  * majianjia@live.com
  *
  * SPDX-License-Identifier: LGPL-3.0
+ * 
+ * Notice: 
+ * Code in this file inlcudes derivative works from CMSIS, which is released under alternative license.
+ * Please check the LICENSE file for detial.
  *
  * Change Logs:
  * Date           Author       Notes
@@ -102,6 +106,7 @@ void local_maxpool_q7_HWC(const q7_t *Im_in,           // input image
         }
     }
 }
+
 
 // temporary for the thesis
 // shift according to the maximum
@@ -213,6 +218,7 @@ void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
         }
     }
 }
+
 
 
 //
