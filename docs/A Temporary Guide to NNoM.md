@@ -27,7 +27,7 @@ A basic layer contains a list of **Input/Ouput modules** (I/O). Each of I/O cont
 
 Dont be scared, check this:
 
-![](A%20Temporary%20Guide%20to%20NNoM/nnom_structures.png)
+![](figures/nnom_structures.png)
 
 Those APIs listed below will help you to create layers and build the model structures.  
 
@@ -377,16 +377,16 @@ The UCI HAR example runs on RT-Thread, uses Y-Modem to receive testing dataset, 
 
 The layer order, activation, output shape, operation, memory of I/O, and assigned memory block are shown. 
 It also summarised the memory cost by neural network. 
-![Model Compiling](gifs/nnom_compile.gif)
+![Model Compiling](figures/nnom_compile.gif)
 
 Type `predic`, then use Y-Modem to send the data file. The model will run once enough data is received.
-![Start Prediction](gifs/nnom_predic_start.gif)
+![Start Prediction](figures/nnom_predic_start.gif)
 
 When the file copying done, the runtime summary, Top-k and confusion matrix will be printed
-![Prediction finished](gifs/nnom_predic_finished.gif)
+![Prediction finished](figures/nnom_predic_finished.gif)
 
 Optionally, the runtime stat detail of each layer can be printed by `nn_stat`
-![Print stat](gifs/nnom_stat.gif)
+![Print stat](figures/nnom_stat.gif)
  
 PS: The "runtime stat" in the animation is not correct, due to the test chip is overclocking (STM32L476 @ 160MHz, 2x overclocking), and the timer is overclocking as well. 
 

@@ -5,22 +5,25 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 
 NNoM is released under LGPL-V3.0, please check the license file for detail. 
 
-[A brief manual](docs/A%20Temporary%20Guide%20to%20NNoM.md)
+[The Temporary Guide](docs/A%20Temporary%20Guide%20to%20NNoM.md)
+
+[Porting and Optimising Guide](docs/Porting%20and%20Optimisation%20Guide.md)
 
 ## Dependencies
 
 NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. 
 
->However, you can still select [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) as the backend for about 5x performance on MCUs with ARM-Cortex-M4/7/33/7. 
+>However, you can still select [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. 
 >
 >Simply `#define NNOM_USING_CMSIS_NN` in `nnom_port.h` and include CMSIS-NN in your project. 
+>Check [Porting and Optimising Guide](docs/Porting%20and%20Optimisation%20Guide.md) for detail. 
 
 
 ## Why NNoM?
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
 
 Nowadays, neural networks are **wider**, **deeper**, and **denser**.
-![](docs/A%20Temporary%20Guide%20to%20NNoM/nnom_wdd.png)
+![](docs/figures/nnom_wdd.png)
 >[1] Szegedy, C., Liu, W., Jia, Y., Sermanet, P., Reed, S., Anguelov, D., ... & Rabinovich, A. (2015). Going deeper with convolutions. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 1-9).
 >
 >[2] He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 770-778).
@@ -209,6 +212,8 @@ Simply modify the [nnom_port.h](port/nnom_port.h) according to your platform.
 
 > To optimise for ARM chips, it is required to include the [CMSIS-NN lib](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) in your projects.
 > Then define `#define NNOM_USE_CMSIS_NN` in the `nnom_port.h`
+
+Please check [Porting and Optimising Guide](docs/Porting%20and%20Optimisation%20Guide.md) for detial. 
 
 # Current Critical Limitations 
 - Support 8-bit quantisation only. 
