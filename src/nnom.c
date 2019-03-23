@@ -551,10 +551,10 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 			else
 				compsize = 0;
 			// names
-			LOG(" %-10s - ", &default_layer_names[layer->type]);
+			LOG(" %-10s - ", default_layer_names[layer->type]);
 			// activations
 			if (layer->actail != NULL)
-				LOG("%-8s - ", &default_activation_names[layer->actail->type]);
+				LOG("%-8s - ", default_activation_names[layer->actail->type]);
 			else
 				LOG("         - ");
 
@@ -810,7 +810,7 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	// if model's tail is not the last layer which built by user.
 	if (output != find_last(input))
 		LOG("WARNING: model returned at #%d %s layer, but this layer is not the end of shortcut list \n",
-			find_index(m->head, output), &default_layer_names[output->type]);
+			find_index(m->head, output), default_layer_names[output->type]);
 
 	// get the total (aligned) memory requirement
 	buf_size = mem_analysis_result(m);
@@ -904,7 +904,7 @@ nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 		result = layer_run(layer);
 		if (result != NN_SUCCESS)
 		{
-			LOG("Error: #%d %s layer return error code:%d\n", layer_num, &default_layer_names[layer->type], result);
+			LOG("Error: #%d %s layer return error code:%d\n", layer_num, default_layer_names[layer->type], result);
 			return result;
 		}
 		#ifdef USE_NNOM_OUTPUT_SAVE
