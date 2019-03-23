@@ -129,6 +129,10 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
     int16_t k_x, k_y;
     uint16_t shift = 0;
     int32_t *buf = (int32_t *)bufferA;
+	// stage2
+    int32_t max_abs = 0;
+    int32_t output_shift;
+    size_t output_size = dim_im_out_x * dim_im_out_x * ch_im_in;
 
     // save in 32bit
     for (i_ch_in = 0; i_ch_in < ch_im_in; i_ch_in++)
@@ -156,12 +160,7 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
         }
     }
 
-    // check maximum, fine the best shift
-    int32_t max_abs = 0;
-    int32_t output_shift;
-    size_t output_size = dim_im_out_x * dim_im_out_x * ch_im_in;
-
-    //max
+    // find max amount results
     for (int i = 0; i < output_size; i++)
     {
         int32_t val = buf[i];
@@ -170,14 +169,14 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
         if (val > max_abs)
             max_abs = val;
     }
-    // best shift
+    // find best shift to cover the max
     for (output_shift = 0;; output_shift++)
     {
         if (127 * (1 + output_shift) >= max_abs)
             break;
     }
 
-    // shift
+    // shift the results
     for (int i = 0; i < output_size; i++)
     {
         Im_out[i] = buf[i] >> output_shift;
