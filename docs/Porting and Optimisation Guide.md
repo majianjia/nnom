@@ -7,7 +7,7 @@ It will run without any problem by default setting.
 However, porting can gain better performance in some platforms by switch the backends or to provide print-out model info and evaluation.
 
 ## Options
-Porting is simply done by modified the `nnom_port.h under `port/`
+Porting is simply done by modified the `nnom_port.h` under `port/`
 
 The default setting is shown below. 
 ~~~C
