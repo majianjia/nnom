@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Porting and Optimisation Guide - NNoM</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Porting and Optimisation Guide";
+    var mkdocs_page_input_path = "Porting and Optimisation Guide.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> NNoM</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Overview</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">APIs</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../api_model/">Model</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_construction/">Construction</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_properties/">Properties</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_layers/">Core Layers</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_pooling/">Pooling</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_activations/">Activations</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_merge/">Merges</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_evaluation/">Evaluation</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Legancy Guide</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../A Temporary Guide to NNoM/">A Temporary Guide</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">Porting and Optimisation Guide</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#porting">Porting</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#options">Options</a></li>
+        
+            <li><a class="toctree-l4" href="#examples">Examples</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Chinese</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../api_pooling/">RTT</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">NNoM</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Legancy Guide &raquo;</li>
+        
+      
+    
+    <li>Porting and Optimisation Guide</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="porting">Porting</h1>
+<p>Porting is not necessary since NNoM is a pure C framework. 
+It will run without any problem by default setting.</p>
+<p>However, porting can gain better performance in some platforms by switch the backends or to provide print-out model info and evaluation.</p>
+<h2 id="options">Options</h2>
+<p>Porting is simply done by modified the <code>nnom_port.h</code> under <code>port/</code></p>
+<p>The default setting is shown below. </p>
+<pre><code class="C">// memory interfaces
+#define nnom_malloc(n)      malloc(n) 
+#define nnom_free(p)        free(p)
+#define nnom_memset(p,v,s)  memset(p,v,s)
+
+// runtime &amp; debuges
+#define nnom_us_get()       0
+#define nnom_ms_get()       0
+#define LOG(...)            printf(__VA_ARGS__)
+
+// NNoM configuration
+#define NNOM_BLOCK_NUM      (8)     // maximum number of memory block  
+#define DENSE_WEIGHT_OPT    (1)     // if used fully connected layer optimized weights. 
+
+//#define NNOM_USING_CMSIS_NN       // uncomment if use CMSIS-NN for optimation 
+</code></pre>
+
+<h3 id="memory-interfaces">Memory interfaces</h3>
+<p>Memory interfaces are required.</p>
+<p>If your platform doesnt support std interface, please modify them according to your platform. </p>
+<h3 id="runtime-debuges">Runtime &amp; debuges</h3>
+<p>They are optional. </p>
+<p>Its recommented to port them if your platform has console or terminal.
+They will help you to validate your model. </p>
+<p><code>nnom_us_get()</code> is used in runtime analysis. 
+If presented, NNoM would be able to record the time cost for each layer and calcualte the effeciency of them. 
+This method should return the current time in a us resolution (16/32-bit unsigned value, values can overflow). </p>
+<p><code>nnom_ms_get()</code> is used in evaluation with APIs in 'nnom_utils.c'. 
+It is used to evaluate the performance with the whole banch of testing data. </p>
+<p><code>LOG()</code> is used to print model compiling info and evaluation info. </p>
+<h3 id="nnom-configuration">NNoM configuration</h3>
+<p><code>NNOM_BLOCK_NUM</code> is the maximum number of memory block. The utilisation of memory block will be printed during compiling. 
+Adjust it when needed. </p>
+<p><code>DENSE_WEIGHT_OPT</code>, reorder weights for dense will gain better performance. If your model is using 'nnom_utils.py' to deploy, weights are already reordered. </p>
+<h3 id="cmsis-nn-backend">CMSIS-NN backend</h3>
+<p>On ARM-Cortex-M4/7/33/35P chips, the performance can be increased about 5x while you enable it. 
+For detail please check the <a href="https://arxiv.org/pdf/1801.06601.pdf">paper</a></p>
+<p>To switch the backend from local backend to the optimized CMSIS-NN/DSP, simply uncomment the line <code>#define NNOM_USING_CMSIS_NN</code>.</p>
+<p>Then, in your project, you must:
+1. Include the CMSIS-NN as well as CMSIS-DSP in your project. 
+2. Make sure the optimisation is enable on CMSIS-NN/DSP. </p>
+<p><strong>Notess</strong></p>
+<p>It is required that CMSIS version above 5.5.1+ (NN version &gt; 1.1.0, DSP version 1.6.0). </p>
+<p>Make sure your compiler is using the new version of "arm_math.h". 
+There might be a few duplicated in a project, such as the STM32 HAL has its own version of "arm_math.h" </p>
+<p>You might also define your chip core and enable your FPU support in your pre-compile configuration if you are not able to compile. </p>
+<blockquote>
+<p>i.e. when using STM32L476, you might add the two macro in your project ' ARM_MATH_CM4,  __FPU_PRESENT=1'</p>
+</blockquote>
+<p>After all, you can try to evaluate the performance using the APIs in 'nnom_utils.c'</p>
+<h2 id="examples">Examples</h2>
+<h3 id="porting-for-rt-thread">Porting for RT-Thread</h3>
+<pre><code class="C">// memory interfaces
+#define nnom_malloc(n)      malloc(n) 
+#define nnom_free(p)        free(p)
+#define nnom_memset(p,v,s)  memset(p,v,s)
+
+// runtime &amp; debuges
+#define nnom_us_get()       0
+#define nnom_ms_get()       rt_tick_get()   // when tick is set to 1000
+#define LOG(...)            rt_kprintf(__VA_ARGS__)
+
+// NNoM configuration
+#define NNOM_BLOCK_NUM      (8)     // maximum number of memory block  
+#define DENSE_WEIGHT_OPT    (1)     // if used fully connected layer optimized weights. 
+
+//#define NNOM_USING_CMSIS_NN       // uncomment if use CMSIS-NN for optimation 
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../api_pooling/" class="btn btn-neutral float-right" title="RTT">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../A Temporary Guide to NNoM/" class="btn btn-neutral" title="A Temporary Guide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../A Temporary Guide to NNoM/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../api_pooling/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>
