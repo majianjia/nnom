@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Construction - NNoM</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Construction";
+    var mkdocs_page_input_path = "api_construction.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> NNoM</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Overview</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">APIs</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../api_model/">Model</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">Construction</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#constructions-apis">Constructions APIs</a></li>
+    
+
+    <li class="toctree-l3"><a href="#modeladd">model.add</a></li>
+    
+
+    <li class="toctree-l3"><a href="#modelhook">model.hook</a></li>
+    
+
+    <li class="toctree-l3"><a href="#modelmerge">model.merge</a></li>
+    
+
+    <li class="toctree-l3"><a href="#modelmergex">model.mergex</a></li>
+    
+
+    <li class="toctree-l3"><a href="#modelactive">model.active</a></li>
+    
+
+    <li class="toctree-l3"><a href="#examples">Examples</a></li>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_properties/">Properties</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_layers/">Core Layers</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_pooling/">Pooling</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_activations/">Activations</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_merge/">Merges</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_evaluation/">Evaluation</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Legancy Guide</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../A Temporary Guide to NNoM/">A Temporary Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../Porting and Optimisation Guide/">Porting and Optimisation Guide</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Chinese</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../api_pooling/">RTT</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">NNoM</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>APIs &raquo;</li>
+        
+      
+    
+    <li>Construction</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="constructions-apis">Constructions APIs</h2>
+<p>NNoM support <strong>Sequential model</strong> and <strong>Functional model</strong> similar to Keras. 
+NNoM treat them equaly in compiling and running, the only difference the methods of constructions. </p>
+<p>In <strong>Sequential model</strong>, the layer are stacked one by one sequently using <code>model.add()</code></p>
+<p>In <strong>Functional model</strong>, the links between layer are specified explicitly by using <code>model.hook() or model.merge()</code></p>
+<hr />
+<h2 id="modeladd">model.add</h2>
+<pre><code class="c">nnom_status_t model.add(nnom_model_t *model,  nnom_layer_t *layer);
+</code></pre>
+
+<p>The only sequencial constructor.</p>
+<p>It stack the new layer instance to the existing model. </p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> model:</strong> the target model for stacking new.</li>
+<li><strong> layer:</strong> the new layer instance for stacking onto the model.</li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The state of the operation. </li>
+</ul>
+<p><strong>Example to stack 2 layers on a model</strong></p>
+<pre><code class="c">    model.add(&amp;model, Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &amp;c1_w, &amp;c1_b));
+    model.add(&amp;model, ReLU());
+    ...
+</code></pre>
+
+<p><strong>Notes</strong></p>
+<p>You can stack like this whenever there are memory available :-)</p>
+<hr />
+<h2 id="modelhook">model.hook</h2>
+<pre><code class="C">nnom_layer_t *model.hook(nnom_layer_t *curr, nnom_layer_t *last);
+</code></pre>
+
+<p>A functional constructor to explicitly hook two layers togethers. When two layers are hook, the previous layer's output (last) will be the input of the new later (curr). </p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> curr:</strong> the new layer for hooking to a previous built layer.</li>
+<li><strong> last:</strong> the previous built layer instance. </li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The curr layer instance. </li>
+</ul>
+<p><strong>Note</strong>
+A layer instance can be hooked many times (act as "last" layer). NNoM will manage the run order of them. This is very useful when many layers wants to take the same output of previous layer. The example is many towers layer share one output in Inception structure. </p>
+<hr />
+<h2 id="modelmerge">model.merge</h2>
+<pre><code class="c">nnom_layer_t *model.merge(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2);
+</code></pre>
+
+<p>A functional constructor for merge many layers' output by the specified merging methods(layer).</p>
+<p>Specificaly, this method merge 2 layer's output. </p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> method:</strong> the merging layer method. One of <code>Concat(), Mult(), Add(), Sub()</code></li>
+<li><strong> in1:</strong> the first layer instance to merge. </li>
+<li><strong> in2:</strong> the second layer instance to merge. </li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The method (layer) instance. </li>
+</ul>
+<hr />
+<h2 id="modelmergex">model.mergex</h2>
+<pre><code class="c">nnom_layer_t *model.mergex(nnom_layer_t *method, int num, ...)
+</code></pre>
+
+<p>A functional constructor for merge many layers' output by the specified merging methods(layer).</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> method:</strong> the merging layer method. One of <code>Concat(), Mult(), Add(), Sub()</code></li>
+<li><strong> num:</strong> number of layer that needs to be merged.</li>
+<li><strong> ...:</strong> the list of merge layer instances. </li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The method (layer) instance. </li>
+</ul>
+<p><strong>Note</strong>
+Currently, all "merge methods" support mutiple input layers, they will be processed one by one with the order provided by the list. </p>
+<hr />
+<h2 id="modelactive">model.active</h2>
+<pre><code class="C">nnom_layer_t *model.active(nnom_activation_t *act, nnom_layer_t *target)
+</code></pre>
+
+<p>A functional constructor, it merges the activation to the targeted layer to avoid an redundant activation layer, which costs more memory.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> act:</strong> the activation instance, please check Activation for more detail.</li>
+<li><strong> target:</strong> the layer which output will be activated by the provided activation. </li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The targeted (layer) instance. </li>
+</ul>
+<hr />
+<h2 id="examples">Examples</h2>
+<p>This example shows the construction of an Inception model. </p>
+<pre><code class="C">    nnom_layer_t* input_layer, *x, *x1, *x2, *x3;
+
+    input_layer = Input(shape(INPUT_HIGHT, INPUT_WIDTH, INPUT_CH), nnom_input_data);
+
+    // conv2d - 1 - inception
+    x1 = model.hook(Conv2D(16, kernel(1, 5), stride(1, 1), PADDING_SAME, &amp;c2_w, &amp;c2_b), x);
+    x1 = model.active(act_relu(), x1);
+    x1 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x1);
+
+    // conv2d - 2 - inception
+    x2 = model.hook(Conv2D(16, kernel(1, 3), stride(1, 1), PADDING_SAME, &amp;c3_w, &amp;c3_b), x);
+    x2 = model.active(act_relu(), x2);
+    x2 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x2);
+
+    // maxpool - 3 - inception
+    x3 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x);
+
+    // concatenate 
+    x = model.mergex(Concat(-1), 3, x1, x2, x3);
+
+    // flatten
+    x = model.hook(Flatten(), x);
+    ...
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../api_properties/" class="btn btn-neutral float-right" title="Properties">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../api_model/" class="btn btn-neutral" title="Model"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../api_model/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../api_properties/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>
