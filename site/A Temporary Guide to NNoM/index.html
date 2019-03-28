@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>A Temporary Guide - NNoM</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "A Temporary Guide";
+    var mkdocs_page_input_path = "A Temporary Guide to NNoM.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> NNoM</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Overview</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">APIs</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../api_model/">Model</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_construction/">Construction</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_properties/">Properties</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_layers/">Core Layers</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_pooling/">Pooling</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_activations/">Activations</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_merge/">Merges</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_evaluation/">Evaluation</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Legancy Guide</span>
+    <ul class="subnav">
+                <li class=" current">
+                    
+    <a class="current" href="./">A Temporary Guide</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#deploying">Deploying</a></li>
+    
+
+    <li class="toctree-l3"><a href="#nnom-structure">NNoM Structure</a></li>
+    
+
+    <li class="toctree-l3"><a href="#apis">APIs</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#construction-apis">Construction APIs</a></li>
+        
+            <li><a class="toctree-l4" href="#layer-apis">Layer APIs</a></li>
+        
+            <li><a class="toctree-l4" href="#addictionlly-activation-apis">Addictionlly, Activation APIs</a></li>
+        
+            <li><a class="toctree-l4" href="#model-api">Model API</a></li>
+        
+            <li><a class="toctree-l4" href="#known-issues">Known Issues</a></li>
+        
+        </ul>
+    
+
+    <li class="toctree-l3"><a href="#evaluation">Evaluation</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#demo-of-evaluation">Demo of Evaluation</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../Porting and Optimisation Guide/">Porting and Optimisation Guide</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">中文</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../api_pooling/">RTT</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">NNoM</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Legancy Guide &raquo;</li>
+        
+      
+    
+    <li>A Temporary Guide</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <p>The simplest first.</p>
+<h1 id="deploying">Deploying</h1>
+<p>Deploying is much easier than before. (Thanks to @parai)</p>
+<p>Simply use <code>generate_model(model, x_data)</code> to generate a C header <code>weights.h</code> after you have trained your model in Keras. It is available in  <a href="https://github.com/majianjia/nnom/blob/master/scripts/nnom_utils.py">nnom_utils.py</a></p>
+<p>Include the <code>weights.h</code> in your project, then call <code>nnom_model_create()</code> to create and compile the model on the MCU. Finaly, call <code>model_run()</code> to do your prediction.</p>
+<p>Please check <a href="https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet">MNIST-DenseNet</a> example for usage</p>
+<blockquote>
+<p>The <code>generate_model(model, x_data)</code> might not be updated with NNoM from time to time. For new features and customized layers, you can still use NNoM APIs to build your model. </p>
+</blockquote>
+<h1 id="nnom-structure">NNoM Structure</h1>
+<p>NNoM uses a layer-based structure. </p>
+<p>A layer is a container. Every operation (convolution, concat...) must be wrapped into a layer. </p>
+<p>A basic layer contains a list of <strong>Input/Ouput modules</strong> (I/O). Each of I/O contains a list of <strong>Hook</strong> (similar to Nodes in Keras).</p>
+<p><strong>Hook</strong>  stores the links to an I/O (other layer's)</p>
+<p><strong>I/O</strong> is a buffer to store input/output data of the operation. </p>
+<p>Dont be scared, check this:</p>
+<p><img alt="" src="../figures/nnom_structures.png" /></p>
+<p>Those APIs listed below will help you to create layers and build the model structures.  </p>
+<h1 id="apis">APIs</h1>
+<p><strong>Layer APIs</strong> and <strong>Construction APIs</strong> are used to build a model. </p>
+<p>Layer APIs can create and return a new layer instance, while construction APIs use layer instances to build a model. </p>
+<p><strong>Layer APIs</strong> such as <code>Conv2D(), Dense(), Activation()</code> ... which you can find in <em>nnom_layers.h</em></p>
+<p><strong>Construction APIs</strong> such as <code>model.hook(), model.merge(), model.add()</code> ... which you can find in <code>new_model()</code> at <em>nnom.c</em></p>
+<p>For example, to add a convolution layer into a sequencial model, use <code>model.add()</code>:</p>
+<pre><code class="c">model.add(&amp;model, Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &amp;c1_w, &amp;c1_b));
+</code></pre>
+
+<p>In functional model, the links between layer are specified explicitly by using <code>model.hook() or model.merge()</code></p>
+<pre><code class="c">x = model.hook(Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &amp;c1_w, &amp;c1_b), input_layer);
+x = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x);
+</code></pre>
+
+<p>NNoM currently supports HWC format. </p>
+<p>Which also called "channel last", where H = number of rows or y axis, W = number of column or x axis, C = number of channes. </p>
+<blockquote>
+<p>For example:</p>
+<p>In the above codes, both <code>kernal(H, W)</code> and <code>stride(H, W)</code> returns a 'shape' instance.
+The shape instance in format of (H, W, ?)</p>
+</blockquote>
+<p>All convolutional layers and poolings layers support both 1D / 2D data input. 
+However, when using 1D input, the H must be set to 1. </p>
+<h2 id="construction-apis">Construction APIs</h2>
+<p>Construction APIs are statics functions located in nnom.c</p>
+<p>Currently are:</p>
+<p>Sequencial Construction API </p>
+<pre><code class="c">nnom_status_t model.add(nnom_model_t* model,  nnom_layer_t *layer);
+</code></pre>
+
+<p>Functional Construction API</p>
+<pre><code class="c">// hook the current layer to the input layer
+// this function only to connect (single output layer) to (single input layer). 
+// return the curr (layer) instance
+nnom_layer_t * model.hook(nnom_layer_t* curr, nnom_layer_t *last)
+</code></pre>
+
+<pre><code class="c">// merge 2 layer's output to one output by provided merging method(a mutiple input layer)
+// method = merging layer such as (concat(), dot(), mult(), add())
+// return the method (layer) instance
+nnom_layer_t * model.merge(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2)
+</code></pre>
+
+<pre><code class="c">// Same as model.merge()
+// Except it can take mutiple layers as input. 
+// num = the number of layer
+// method: same as model.merge()
+nnom_layer_t * model.mergex(nnom_layer_t *method, int num, ...)
+</code></pre>
+
+<pre><code class="c">// This api will merge the activation to the targeted layerto reduce an extra activation layer
+// activation such as (act_relu(), act_tanh()...)
+nnom_layer_t * model.active(nnom_activation_t* act, nnom_layer_t * target)
+</code></pre>
+
+<p>For <code>model.active()</code>, please check Activation APIs below. </p>
+<h2 id="layer-apis">Layer APIs</h2>
+<p>Layers APIs are listed in <em>nnom_layers.h</em></p>
+<p>Input/output layers are neccessary for a model. They are responsible to copy data from user's input buffer, and copy out to user's output buffer. </p>
+<pre><code class="c">// Layer APIs 
+// input/output
+nnom_layer_t* Input(nnom_shape_t input_shape，void* p_buf);
+nnom_layer_t* Output(nnom_shape_t output_shape, void* p_buf);
+</code></pre>
+
+<p>Pooling as they are:</p>
+<blockquote>
+<p>The sum pooling here will dynamicly change its ourput shift to avoid overflowing. </p>
+<p>It is recommened to replace the Global Average Pooling by Global Sum Pooling for better accuracy in MCU side. </p>
+</blockquote>
+<pre><code class="c">// Pooling, kernel, strides, padding
+nnom_layer_t* MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+nnom_layer_t* AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+nnom_layer_t* SumPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+
+// The Global poolings simplly do better 
+nnom_layer_t *GlobalMaxPool(void);
+nnom_layer_t *GlobalAvgPool(void);
+nnom_layer_t *GlobalSumPool(void);
+
+// Upsampling layer / Unpooling layer
+nnom_layer_t* UpSample(nnom_shape_t kernel);
+
+</code></pre>
+
+<p>Activation's <strong>Layers API</strong> are started with capital letter. They are differed from the <strong>Activation API</strong>, which start with <code>act_*</code> and retrun an activation instance.
+Pleas check the Activation APIs below for more detail. </p>
+<p>They return a <strong>layer</strong> instance. </p>
+<pre><code class="c">// Activation layers take activation instance as input.  
+nnom_layer_t* Activation(nnom_activation_t *act);       
+
+// Activation's layer API. 
+nnom_layer_t* ReLU(void);
+nnom_layer_t* Softmax(void);
+nnom_layer_t* Sigmoid(void);
+nnom_layer_t* TanH(void);
+</code></pre>
+
+<p>Matrix API. </p>
+<p>These layers normally take 2 or more layer's output as their inputs. </p>
+<p>They also called "merging method", which must be used by <code>model.merge(method, in1, in2)</code>or <code>model.mergex(method, num of input, in1, in2, 1n3 ...)</code></p>
+<pre><code class="c">// Matrix
+nnom_layer_t* Add(void);
+nnom_layer_t* Sub(void);
+nnom_layer_t* Mult(void);
+nnom_layer_t* Concat(int8_t axis);
+</code></pre>
+
+<p>Flatten change the shapes to (x, 1, 1)</p>
+<pre><code class="c">// utils
+nnom_layer_t* Flatten(void);
+</code></pre>
+
+<p>Stable NN layers.
+For more developing layers, please check the source codes. </p>
+<pre><code class="c">// conv1D/2d
+nnom_layer_t* Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad,
+    nnom_weight_t *w, nnom_bias_t *b);
+
+// depthwise_convolution 1D/2D
+nnom_layer_t* DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad, 
+    nnom_weight_t *w, nnom_bias_t *b);
+
+// fully connected, dense
+nnom_layer_t* Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b);
+
+// Lambda Layers
+// layer.run()   , required
+// layer.oshape(), optional, call default_output_shape() if left NULL
+// layer.free()  , optional, called while model is deleting, to free private resources
+// parameters    , private parameters for run method, left NULL if not needed.
+nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),  
+        nnom_status_t (*oshape)(nnom_layer_t *), 
+        nnom_status_t (*free)(nnom_layer_t *),   
+        void *parameters);                        
+</code></pre>
+
+<p>About the missing <strong>Batch Normalization Layer</strong></p>
+<p>Batch Normalization layer can be fused into the last convolution layer. So NNoM currently does not provide a Batch Normalization Layer. It might be implemented as a single layer in the future. However, currently, please fused it to the last layer.</p>
+<p><a href="https://tkv.io/posts/fusing-batchnorm-and-conv/">Further reading about fusing BN parameters to conv weights</a></p>
+<p><a href="https://github.com/ARM-software/ML-KWS-for-MCU/blob/master/Deployment/Quant_guide.md#fusing-batch-norm-layers">Fusing batch-norm layers</a></p>
+<h2 id="addictionlly-activation-apis">Addictionlly, Activation APIs</h2>
+<p>Actication APIs are not essential in the original idea. The original idea is making eveything as a layer. </p>
+<p>However, single layer instances cost huge amount of memories(100~150 Bytes), while activations are relativly simple, mostly have same input/output shape, a few/none parameter(s)...</p>
+<p>Therefore, to reduce the complexity, the "actail"(activation tail) is added to each layer instance. If a layer's Actail is not null, it will be called right after the layer is executed. Actail takes activation instance as input. The model API, <code>model.active()</code> will attach the activation to the layer's actail. </p>
+<pre><code class="c">// attach act to target_layer, return the target layer instance.
+nnom_layer_t * model.active(nnom_activation_t* act, nnom_layer_t * target_layer)
+</code></pre>
+
+<p>The Activation APIs are listed in <em>nnom_activations.h</em></p>
+<pre><code class="c">// Activation
+nnom_activation_t* act_relu(void);
+nnom_activation_t* act_sigmoid(void);
+nnom_activation_t* act_tanh(void);
+</code></pre>
+
+<h2 id="model-api">Model API</h2>
+<p>A model instance contains the starting layer, the end layer and other neccessary info. </p>
+<p>Please refer to the examples for usage</p>
+<pre><code class="c">// Create or initial a new model() 
+nnom_model_t*   new_model(nnom_model_t* m);
+
+// Delete the model completely (new). 
+void model_delete(nnom_model_t* m);  
+
+// Compile a sequencial model. 
+nnom_status_t   sequencial_compile(nnom_model_t *m);
+
+// Compile a functional model with specified input layer and output layer. 
+// if output = NULL, the output is automatic selected. 
+nnom_status_t   model_compile(nnom_model_t *m, nnom_layer_t* input, nnom_layer_t* output);
+
+// Run the model.
+nnom_status_t   model_run(nnom_model_t *m);
+</code></pre>
+
+<h2 id="known-issues">Known Issues</h2>
+<h3 id="shared-output-buffer-destroyed-by-single-buffer-layers-input-destructive">Shared output buffer destroyed by single buffer layers (input-destructive)</h3>
+<p>Single buffer layers (Such as most of the Activations, additionally MaxPool/AvgPool) are working directly on its input buffer. While its input buffer is shared with other parallel layers, and it is placed before other layers in a parallel structure (such as Inception), the shared buffer will be destroyed by those input-destructive before other parallel layer can access it. </p>
+<p>Additionally, although, MaxPool &amp; AvgPool are not single buffer layers, they will destroy the input buffer as they are mentioned with input-destructive layers in CMSIS-NN. So they should be treated as same as single buffer layers. </p>
+<p><strong>Fix plan of the issue</strong></p>
+<p>Not planned. </p>
+<p>Possiblly, add an invisible copying layer/functions to copy data for single input layer before passing to other parallel layers. </p>
+<p><strong>Current work around</strong></p>
+<p><strong>Work around 1</strong> </p>
+<p>If the Inception has only one single buffer layer, always hook the single buffer layer at the end. For example, instead of doing <code>MaxPool - Conv2D - Conv2D</code>, do <code>Conv2D - Conv2D - MaxPool</code></p>
+<pre><code class="C">// the codes are faked and simplified, please rewrite them according to corresponding APIs. 
+
+// original
+x1 = model.hook(MaxPool(), input); // Single buffer layer, this will destroyed the buffer
+x2 = model.hook(Conv2D(), input);  // buffer destroyed.
+x3 = model.hook(Conv2D(), input);  // buffer destroyed.
+output = model.mergex(Concat(-1), 3, x1, x2, x3);
+
+// This will fixed the problem without affacting the concatenate order.
+// notice that the order of x1,x2,x3 will change, 
+// the different is the order that the inception layers hooked to the input layer. 
+x3 = model.hook(Conv2D(), input);  // multiple buffers layer
+x2 = model.hook(Conv2D(), input);  // 
+x1 = model.hook(MaxPool(), input); // this will destroyed the buffer, but it doesnt matter now. 
+output = model.mergex(Concat(-1), 3, x1, x2, x3);
+
+</code></pre>
+
+<p><strong>Work around 2</strong> </p>
+<p>If there is multiple, add an extra multiple bufer layer before the single buffer layer. Such as using Lambda() layer to copy buffer.</p>
+<pre><code class="C">// the codes are faked and simplified, please rewrite them according to corresponding APIs. 
+
+lambda_run(layer)
+{
+    memcpy(layer-&gt;output, layer-&gt;input, sizeof(inputshape);
+}
+
+x1 = model.hook(Lambda(lambda_run), input); // add a lambda to copy data
+x1 = model.hook(MaxPool(), x1);         // now it is only destroying Lambda's output buffer instead of the input layer's. 
+
+x2 = model.hook(Lambda(lambda_run), input); // add a lambda to copy data
+x2 = model.hook(MaxPool(), x2); 
+
+x3 = model.hook(Conv2D(), input);  
+output = model.mergex(Concat(-1), 3, x1, x2, x3);
+
+</code></pre>
+
+<h1 id="evaluation">Evaluation</h1>
+<p>The evaluation methods are listed in <code>nnom_utils.h</code></p>
+<p>They run the model with testing data, then evaluate the model. Includes Top-k accuracy, confusion matrix, runtime stat...</p>
+<p>Please refer to <a href="../examples/uci-inception">UCI HAR example</a> for usage. </p>
+<pre><code class="c">// create a prediction
+// input model, the buf pointer to the softwmax output (Temporary, this can be extract from model)
+// the size of softmax output (the num of lable)
+// the top k that wants to record. 
+nnom_predic_t* prediction_create(nnom_model_t* m, int8_t* buf_prediction, size_t label_num, size_t top_k_size);// currently int8_t 
+
+// after a new data is set in input
+// feed data to prediction
+// input the current label, (range from 0 to total number of label -1)
+// (the current input data should be set by user manully to the input buffer of the model.)
+// return NN_ARGUMENT_ERROR if parameter error
+int32_t prediction_run(nnom_predic_t *pre, uint32_t label);
+
+// to mark prediction finished
+void prediction_end(nnom_predic_t *pre);
+
+// free all resources
+void predicetion_delete(nnom_predic_t *pre);
+
+// print matrix
+void prediction_matrix(nnom_predic_t *pre);
+
+// print top-k
+void prediction_top_k(nnom_predic_t *pre);
+
+// this function is to print sumarry
+void prediction_summary(nnom_predic_t *pre);
+
+// -------------------------------
+
+// stand alone prediction API
+// this api test one set of data, return the prediction
+// input the model's input and output bufer
+// return the predicted label
+// return NN_ARGUMENT_ERROR if parameter error
+int32_t nnom_predic_one(nnom_model_t *m, int8_t *input, int8_t *output); // currently int8_t
+
+// print last runtime stat of the model
+void model_stat(nnom_model_t *m);
+</code></pre>
+
+<h2 id="demo-of-evaluation">Demo of Evaluation</h2>
+<p>The UCI HAR example runs on RT-Thread, uses Y-Modem to receive testing dataset, uses ringbuffer to store data, and the console (msh) to print the results. </p>
+<p>The layer order, activation, output shape, operation, memory of I/O, and assigned memory block are shown. 
+It also summarised the memory cost by neural network. 
+<img alt="Model Compiling" src="../figures/nnom_compile.gif" /></p>
+<p>Type <code>predic</code>, then use Y-Modem to send the data file. The model will run once enough data is received.
+<img alt="Start Prediction" src="../figures/nnom_predic_start.gif" /></p>
+<p>When the file copying done, the runtime summary, Top-k and confusion matrix will be printed
+<img alt="Prediction finished" src="../figures/nnom_predic_finished.gif" /></p>
+<p>Optionally, the runtime stat detail of each layer can be printed by <code>nn_stat</code>
+<img alt="Print stat" src="../figures/nnom_stat.gif" /></p>
+<p>PS: The "runtime stat" in the animation is not correct, due to the test chip is overclocking (STM32L476 @ 160MHz, 2x overclocking), and the timer is overclocking as well. </p>
+<p>However, the numbers in prediction summary are correct, because they are measured by system_tick timer which is not overclocking. </p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../Porting and Optimisation Guide/" class="btn btn-neutral float-right" title="Porting and Optimisation Guide">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../api_evaluation/" class="btn btn-neutral" title="Evaluation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../api_evaluation/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../Porting and Optimisation Guide/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>RTT - NNoM</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "RTT";
+    var mkdocs_page_input_path = "api_pooling.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> NNoM</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Overview</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">APIs</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../api_model/">Model</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_construction/">Construction</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_properties/">Properties</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_layers/">Core Layers</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="./">Pooling</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_activations/">Activations</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_merge/">Merges</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../api_evaluation/">Evaluation</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Legancy Guide</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../A Temporary Guide to NNoM/">A Temporary Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../Porting and Optimisation Guide/">Porting and Optimisation Guide</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">中文</span>
+    <ul class="subnav">
+                <li class=" current">
+                    
+    <a class="current" href="./">RTT</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#pooling-layers">Pooling Layers</a></li>
+    
+
+    <li class="toctree-l3"><a href="#maxpool">MaxPool</a></li>
+    
+
+    <li class="toctree-l3"><a href="#avgpool">AvgPool</a></li>
+    
+
+    <li class="toctree-l3"><a href="#sumpool">SumPool</a></li>
+    
+
+    <li class="toctree-l3"><a href="#globalmaxpool">GlobalMaxPool</a></li>
+    
+
+    <li class="toctree-l3"><a href="#globalavgpool">GlobalAvgPool</a></li>
+    
+
+    <li class="toctree-l3"><a href="#globalsumpool">GlobalSumPool</a></li>
+    
+
+    </ul>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">NNoM</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>中文 &raquo;</li>
+        
+      
+    
+    <li>RTT</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="pooling-layers">Pooling Layers</h2>
+<p>Pooling Layers are listed in <em>nnom_layers.h</em></p>
+<p>1D/2D operations are both working with (H, W, C) format, known as "channel last". When working with 1D operations, the H for all the shapes must be 1 constantly.</p>
+<hr />
+<h2 id="maxpool">MaxPool</h2>
+<pre><code class="c">nnom_layer_t* MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+</code></pre>
+
+<p>This funtion is for 1D or 2D, mutiple channels max pooling.  </p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>k (kernel):</strong> the kernel shape, which is returned by <code>kernel()</code></li>
+<li><strong>s (stride):</strong> the stride shape, which is returned by <code>stride()</code></li>
+<li><strong>pad (padding):</strong> the padding method <code>PADDING_SAME</code> or <code>PADDING_VALID</code></li>
+</ul>
+<hr />
+<h2 id="avgpool">AvgPool</h2>
+<pre><code class="c">nnom_layer_t* AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+</code></pre>
+
+<p>This funtion is for 1D or 2D, mutiple channels average pooling.  </p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>k (kernel):</strong> the kernel shape, which is returned by <code>kernel()</code></li>
+<li><strong>s (stride):</strong> the stride shape, which is returned by <code>stride()</code></li>
+<li><strong>pad (padding):</strong> the padding method <code>PADDING_SAME</code> or <code>PADDING_VALID</code></li>
+</ul>
+<p><strong>Notes</strong></p>
+<p>Average pooling is not recommended to us with fixed-point model (such as here). Small values will be lost when the sum is devided. CMSIS-NN currently does not support changing the output shifting in average pooling from input to output. </p>
+<p>However, if the average pooling is the second last layer right before softmax layer, you can still use average pooling for training and then use sumpooling in MCU. the only different is sumpooling will not divide the sum directly but looking for a best shift (dynamic shifting) to cover the largest number. </p>
+<hr />
+<h2 id="sumpool">SumPool</h2>
+<pre><code class="c">nnom_layer_t* SumPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+</code></pre>
+
+<p>This funtion is for 1D or 2D, mutiple channels Sum pooling. This is a better alternative to average pooling WHEN deploy trained model into NNoM. The output shift for sumpool in NNoM is dynamic, means that this pooling can only place before softmax layer.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>k (kernel):</strong> the kernel shape, which is returned by <code>kernel()</code></li>
+<li><strong>s (stride):</strong> the stride shape, which is returned by <code>stride()</code></li>
+<li><strong>pad (padding):</strong> the padding method <code>PADDING_SAME</code> or <code>PADDING_VALID</code></li>
+</ul>
+<hr />
+<h2 id="globalmaxpool">GlobalMaxPool</h2>
+<pre><code class="C">nnom_layer_t *GlobalMaxPool(void);
+</code></pre>
+
+<p>Global Max Pooling</p>
+<hr />
+<h2 id="globalavgpool">GlobalAvgPool</h2>
+<pre><code class="C">nnom_layer_t *GlobalAvgPool(void);
+</code></pre>
+
+<p>Global Average Pooling. </p>
+<p>Due to the same reason as discussed in Average pooling, it is recommended to replace this layer by <code>GlobalSumPool()</code> when the layer it she second last layer, and before the softmax layer. </p>
+<p>If you used <code>generate_model()</code> to convert your keras model to NNoM, this layer will be automaticly replaced by <code>GlobalSumPool()</code> when above conditions has met. </p>
+<hr />
+<h2 id="globalsumpool">GlobalSumPool</h2>
+<pre><code class="C">nnom_layer_t *GlobalSumPool(void);
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="../Porting and Optimisation Guide/" class="btn btn-neutral" title="Porting and Optimisation Guide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../Porting and Optimisation Guide/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>
