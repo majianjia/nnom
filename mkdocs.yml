@@ -15,7 +15,7 @@ nav:
 - Legancy Guide:
   - A Temporary Guide: 'A Temporary Guide to NNoM.md'
   - Porting and Optimisation Guide: 'Porting and Optimisation Guide.md'
-- 中文 (Chinese): 
+- 中文: 
   - RTT: 'api_pooling.md'
 
 theme: readthedocs
