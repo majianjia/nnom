@@ -1,4 +1,4 @@
-# NNoM: The Neural Network on Microcontroller.
+# Neural Network on Microcontroller (NNoM)
 
 NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. 
 

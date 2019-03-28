@@ -12,11 +12,12 @@ nav:
   - Activations: 'api_activations.md'
   - Merges: 'api_merge.md'
   - Evaluation: 'api_evaluation.md'
-- Legancy Guide:
+- Legacy Guide:
   - A Temporary Guide: 'A Temporary Guide to NNoM.md'
   - Porting and Optimisation Guide: 'Porting and Optimisation Guide.md'
+  - Readme: 'legacy_README.md'
 - 中文: 
-  - RTT: 'api_pooling.md'
+  - RT-Thread: 'rt-thread_guide.md'
 
 theme: readthedocs
 
