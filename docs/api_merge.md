@@ -7,7 +7,7 @@ These methods are also layers which return a layer instance. However, they norma
 
 ---
 
-## Concat
+## Concat() 
 
 ~~~C
 nnom_layer_t* Concat(int8_t axis);
@@ -25,11 +25,11 @@ Concatenate mutiple input on the selected axis.
 
 **Notes**
 
-The concatenated axis can be different in those input layers. Other axes must be same. 
+The concatenated axis can be different in all input layers passed to this method. Other axes must be same. 
 
 ---
 
-## Mult
+## Mult() 
 ~~~C
 nnom_layer_t* Mult(void);
 ~~~
@@ -40,9 +40,13 @@ Element wise mutiplication in all the inputs
 
 - The mult layer instance
 
+**Notes**
+
+All input layers passed to this method must have same output shape. 
+
 ---
 
-## Add
+## Add() 
 
 ~~~C
 nnom_layer_t* Add(void);
@@ -54,9 +58,13 @@ Element wise addition in all the inputs.
 
 - The add layer instance
 
+**Notes**
+
+All input layers passed to this method must have same output shape. 
+
 ---
 
-## Sub
+## Sub() 
 
 ~~~C
 nnom_layer_t* Sub(void);
@@ -64,10 +72,13 @@ nnom_layer_t* Sub(void);
 
 Element wise substraction in all the inputs. 
 
-
 **Return**
 
 - The sub layer instance
+
+**Notes**
+
+All input layers passed to this method must have same output shape. 
 
 ---
 
@@ -97,55 +108,3 @@ Element wise substraction in all the inputs.
 	x = model.hook(Flatten(), x);
 	...
 ~~~
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

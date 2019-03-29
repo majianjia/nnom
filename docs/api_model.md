@@ -9,7 +9,7 @@ Here list the Model APIs that used for create, compile and run a model.
 
 ---
 
-## new_model
+## new_model()
 
 ~~~C
 nnom_model_t *new_model(nnom_model_t *m);
@@ -23,11 +23,11 @@ This method is to create or initiate a model instance.
 
 **Return**
 
-The created model instance or the 
+- The created or the initiated model instance.
 
 ---
 
-## model_delete
+## model_delete()
 
 ~~~C
 void model_delete(nnom_model_t *m);  
@@ -40,7 +40,7 @@ Delete and free all the resources created with the model.
 - ** m:** the model instance.
 
 ---
-## sequencial_compile
+## sequencial_compile()
 
 ~~~C
 nnom_status_t sequencial_compile(nnom_model_t *m);
@@ -58,11 +58,13 @@ Compile a sequencial model which is constructed by sequencial construction APIs.
 
 ---
 
-## model_compile
+## model_compile()
 
 ~~~C
 nnom_status_t 	model_compile(nnom_model_t *m, nnom_layer_t* input, nnom_layer_t* output);
 ~~~
+
+Compile a functional model which is constructed by functional construction APIs. 
 
 **Arguments**
 
@@ -76,13 +78,13 @@ nnom_status_t 	model_compile(nnom_model_t *m, nnom_layer_t* input, nnom_layer_t*
 
 ---
 
-## model_run
+## model_run()
 
 ~~~C
 nnom_status_t 	model_run(nnom_model_t *m);
 ~~~
 
-To run all the layers inside the model. 
+To run all the layers inside the model. Run one prediction. 
 
 **Arguments**
 
@@ -92,27 +94,28 @@ To run all the layers inside the model.
 
 **Return**
 
-- The result of layer running. 
+- The status of layer running. 
 
 **Note**
 
 User must fill in the input buffer which has passed to the input layer before run the model. 
 The input layer then copy the data from user space to NNoM memory space to run the model. 
+The results of prediction will be copy from NNoM memory space to user memory space by Output layer. 
 
 ---
 
-## model_run_to
+## model_run_to()
 
 ~~~C
 nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer);
 ~~~
 
-Run partly to the specified layer. 
+Same as `model_run()` but it only run partly to the specified layer. 
 
 **Arguments**
 
 - ** m:** the model instance for compile.
-- ** end_layer:** the layer instance to stop.
+- ** end_layer:** the layer where to stop.
 
 **Return**
 
@@ -121,8 +124,9 @@ Run partly to the specified layer.
 ---
 ## Examples
 
+This example shows a 2 layer MPL for MNIST dateset. Input shape 28 x 28 x 1 hand writing image. please check [mnist-densenet example](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet) for further reading. 
 
-Sequential model
+**Sequential model**
 
 ~~~C
 
@@ -156,7 +160,7 @@ void sequencial_model(void)
 
 ~~~
 
-Functional model
+**Functional model**
 
 ~~~C
 

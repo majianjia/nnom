@@ -6,9 +6,14 @@ To reduce the memory footprint, activations provides both **Layer APIs** and **A
 **Layer APIs** will create a layer instance for running the activation; 
 **Activation APIs** will only create activation instance, which can be attached on a existing layers. 
 
+
 ---
 
-## Activation 
+# Activations' Layer APIs
+
+---
+
+## Activation() 
 
 ~~~C
 nnom_layer_t* Activation(nnom_activation_t *act);	
@@ -26,7 +31,7 @@ This is the Layer API wrapper for activations. It take activation instance as in
 
 ---
 
-## Softmax
+## Softmax() 
 
 ~~~C
 nnom_layer_t* Softmax(void);
@@ -43,7 +48,7 @@ Softmax only has Layer API.
 
 ---
 
-## ReLU (Layer API)
+## ReLU() 
 
 ~~~C
 nnom_layer_t* ReLU(void);
@@ -59,7 +64,7 @@ Using `layer = ReLU();` is no difference to `layer = Activation(act_relu());`
 
 ---
 
-## Sigmoid (Layer API)
+## Sigmoid() 
 
 This function is affacted by an issue that we are currently working on. Check [issue](https://github.com/majianjia/nnom/issues/13)
 
@@ -77,7 +82,7 @@ Using `layer = Sigmoid();` is no difference to `layer = Activation(act_sigmoid()
 
 ---
 
-## TanH (Layer API)
+## TanH() 
 
 ~~~C
 nnom_layer_t* TanH(void);
@@ -95,7 +100,9 @@ Using `layer = TanH();` is no difference to `layer = Activation(act_tanh());`
 
 ---
 
-## Activation APIs
+
+# Activation APIs
+
 
 ~~~C
 nnom_activation_t* act_relu(void);
@@ -104,6 +111,10 @@ nnom_activation_t* act_tanh(void);
 ~~~
 
 They return the activation instance which can be passed to either `model.active()` or `Activation()`
+
+**Notes**
+
+Softmax does not provided activation APIs. 
 
 ---
 

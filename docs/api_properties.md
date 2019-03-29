@@ -33,7 +33,11 @@ typedef struct _nnom_qformat
 
 ---
 
-## shape 
+# Methods
+
+---
+
+## shape() 
 
 ~~~C
 nnom_shape_t shape(size_t h, size_t w, size_t c);
@@ -51,7 +55,7 @@ nnom_shape_t shape(size_t h, size_t w, size_t c);
 
 ---
 
-## kernel 
+## kernel()
 
 ~~~C
 nnom_shape_t kernel(size_t h, size_t w);
@@ -70,7 +74,7 @@ Use in pooling or convolutional layer to specified the kernel size.
 
 ---
 
-## stride 
+## stride() 
 
 ~~~C
 nnom_shape_t stride(size_t h, size_t w);
@@ -89,7 +93,7 @@ Use in pooling or convolutional layer to specified the stride size.
 
 ---
 
-## qformat
+## qformat()
 
 ~~~
 nnom_qformat_t qformat(int8_t m, int8_t n);
@@ -106,11 +110,12 @@ nnom_qformat_t qformat(int8_t m, int8_t n);
 
 
 **Notes**
+
 The Q-format within model is currently handled by Python script `nnom_utils.py`. This function will be deprecated. 
 
 ---
 
-## shape_size
+## shape_size()
 
 ~~~C
 size_t shape_size(nnom_shape_t *s);

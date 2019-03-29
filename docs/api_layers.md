@@ -3,22 +3,25 @@
 
 Layers APIs are listed in *nnom_layers.h*
 
-1D/2D operations are both working with (H, W, C) format, known as "channel last". When working with 1D operations, the H for all the shapes must be 1 constantly.
+**Notes**
+
+- 1D/2D operations are both working with (H, W, C) format, known as "channel last". 
+- When working with 1D operations, the H for all the shapes must be 1 constantly.
 
 
 ---
 
-## Input
+## Input()
 
 ~~~c
 nnom_layer_t* Input(nnom_shape_t input_shape, * p_buf);
 ~~~
 
-A model must start with a Input layer for copying inputd data from user space to NNoM space. 
+**A model must start with a Input layer** to copy input data from user memory space to NNoM memory space. 
 
 **Arguments**
 
-- **input_shape:** the shape of input. 
+- **input_shape:** the shape of input data to the model. 
 - **p_buf:** the data buf in user space. 
 
 **Return**
@@ -27,26 +30,26 @@ A model must start with a Input layer for copying inputd data from user space to
 
 ---
 
-## Output
+## Output()
 
 ~~~c
 nnom_layer_t* Output(nnom_shape_t output_shape* p_buf);
 ~~~
 
-Output layer is to copy the result from NNoM space to user space. 
+Output layer is to copy the result from NNoM memory space to user memory space. 
 
 **Arguments**
 
-- **output_shape:** the shape of output. 
+- **output_shape:** the shape of output data. (might be deprecated later)
 - **p_buf:** the data buf in user space. 
 
 **Return**
 
-- The layer instance
+- The layer instance.
 
 ---
 
-## Conv2D
+## Conv2D()
 
 ~~~c
 nnom_layer_t* Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad,
@@ -60,7 +63,7 @@ This funtion is for 1D or 2D, mutiple channels convolution.
 - ** filters:** the number of filters. or the channels of the output spaces.
 - **k (kernel):** the kernel shape, which is returned by `kernel()`
 - **s (stride):** the stride shape, which is returned by `stride()`
-- **pad (padding):** the padding method `PADDING_SAME` or `PADDING_VALID`
+- **pad (padding):** the padding method either `PADDING_SAME` or `PADDING_VALID`
 - **w (weights) / b (bias)**: weights and bias constants and shits. Generated in `weights.h`
 
 **Return**
@@ -75,7 +78,7 @@ When it is used for 1D convolution, the H should be set to 1 constantly in kerne
 
 ---
  
-## DW_Conv2D
+## DW_Conv2D()
 
 ~~~C
 nnom_layer_t* DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad, 
@@ -89,7 +92,7 @@ This funtion is for 1D or 2D, mutiple channels depthwise convolution.
 - ** mutiplier:** the number of mutiplier. **Currently only support mutiplier=1 **
 - **k (kernel):** the kernel shape, which is returned by `kernel()`
 - **s (stride):** the stride shape, which is returned by `stride()`
-- **pad (padding):** the padding method `PADDING_SAME` or `PADDING_VALID`
+- **pad (padding):** the padding method either `PADDING_SAME` or `PADDING_VALID`
 - **w (weights) / b (bias)**: weights and bias constants and shits. Generated in `weights.h`
 
 
@@ -104,16 +107,18 @@ When it is used for 1D convolution, the H should be set to 1 constantly in kerne
 
 ---
 
-## Dense
+## Dense()
 
 ~~~C
 nnom_layer_t* Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b);
 ~~~
 
+A fully connected layer. It will flatten the data if the last output is mutiple-dimensions. 
+
 **Arguments**
 
 - ** output_unit:** the number of output unit.
-- **w (weights) / b (bias)**: weights and bias constants and shits. Generated in `weights.h`
+- **w (weights) / b (bias)**: weights and bias constants and shits. 
 
 **Return**
 
@@ -122,7 +127,27 @@ nnom_layer_t* Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b);
 
 ---
 
-## Lambda
+## UpSample()
+
+~~~C
+nnom_layer_t *UpSample(nnom_shape_t kernel);
+~~~
+
+A basic up sampling, using nearest interpolation
+
+**Arguments**
+
+- **kernel:** a shape subject return by `kernel()`, the interpolation size.
+
+**Return**
+
+- The layer instance
+
+
+
+---
+
+## Lambda()
 
 ~~~C
 // Lambda Layers
@@ -139,6 +164,7 @@ nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),
 Lambda layer is an anonymous layer (interface), which allows user to do customized operation between the layer's input data and output data. 
 
 **Arguments**
+
 - **(*run)(nnom_layer_t *):** or so called run method, is the method to do the customized operation. 
 - **(*oshape)(nnom_layer_t *):** is to calculate the output shape according to the input shape during compiling. If this method is not presented, the input shape will be passed to the output shape.   
 - **(*free)(nnom_layer_t *):** is to free the resources allocated by users. this will be called when deleting models. Leave it NULL if no resources need to be released. 
@@ -150,7 +176,8 @@ Lambda layer is an anonymous layer (interface), which allows user to do customiz
 
 **Notes**
 
-When `oshape()` is present, please refer to example of other similar layers. This method is called in compiling, thus it can also do works other than calculating output shape only. An exmaple is the `global_pooling_output_shape()` fill in the parameters left by 'GlobalXXXPool()'
+- When `oshape()` is presented, please refer to examples of other similar layers. The shape passing must be handle carefully.
+- This method is called in compiling, thus it can also do works other than calculating output shape only. An exmaple is the `global_pooling_output_shape()` fills in the parameters left by `GlobalXXXPool()`
 
 ---
 
@@ -173,6 +200,12 @@ layer = Conv2D(32, kernel(3, 3), stride(1, 1), PADDING_VALID, &conv2d_3_w, &conv
 ~~~C
 nnom_layer_t *layer;
 layer = Dense(32, &dense_w, &dense_b);
+~~~
+
+** UpSample:**
+~~~C
+nnom_layer_t *layer;
+layer = UpSample(kernel(2, 2)); // expend the output size by 2 times in both H and W axis. 
 ~~~
 
 ** Lambda:**

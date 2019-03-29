@@ -1,36 +1,37 @@
 
 ## Constructions APIs
 
-NNoM support **Sequential model** and **Functional model** similar to Keras. 
+NNoM support both **Sequential model** and **Functional model** similar to Keras. 
 NNoM treat them equaly in compiling and running, the only difference the methods of constructions. 
 
-In **Sequential model**, the layer are stacked one by one sequently using `model.add()`
+In **Sequential model**, the layer are stacked one by one sequently using `model.add()`. So call Sequential API. 
 
-In **Functional model**, the links between layer are specified explicitly by using `model.hook() or model.merge()`
-
+In **Functional model**, the links between layer are specified explicitly by using `model.hook()`, `model.merge()` or `model.mergex()`. So call Functional APIs
 
 ---
 
-## model.add
+# Sequential API
+
+---
+
+## model.add()
 
 ~~~c
 nnom_status_t model.add(nnom_model_t *model,  nnom_layer_t *layer);
 ~~~
 
-The only sequencial constructor.
-
-It stack the new layer instance to the existing model. 
+It is the only sequencial constructor. It stacks the new layer to the rear of the existing model. 
 
 **Arguments**
 
-- ** model:** the target model for stacking new.
-- ** layer:** the new layer instance for stacking onto the model.
+- ** model:** the model to stack new layer.
+- ** layer:** the new layer instance to stack onto the model.
 
 **Return**
 
 - The state of the operation. 
 
-**Example to stack 2 layers on a model**
+**Example to stack two layers on a model**
 ~~~c
 	model.add(&model, Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &c1_w, &c1_b));
 	model.add(&model, ReLU());
@@ -39,11 +40,18 @@ It stack the new layer instance to the existing model.
 
 **Notes**
 
-You can stack like this whenever there are memory available :-)
+- The first layer for a model must be **Input layer**. The last layer could be the **Output layer**
+- You can stack like this whenever there are memory available :-)
+
 
 ---
 
-## model.hook
+# Functional APIs
+
+
+---
+
+## model.hook()
  
 ~~~C
 nnom_layer_t *model.hook(nnom_layer_t *curr, nnom_layer_t *last);
@@ -62,11 +70,12 @@ A functional constructor to explicitly hook two layers togethers. When two layer
  
 
 **Note**
-A layer instance can be hooked many times (act as "last" layer). NNoM will manage the run order of them. This is very useful when many layers wants to take the same output of previous layer. The example is many towers layer share one output in Inception structure. 
+
+A layer instance can be hooked many times (act as "last" layer). NNoM will manage the topology and run order from them during compiling. This is very useful when many layers wants to take the same output of previous layer. The example is many towers layer share one output in Inception structure. 
  
 ---
 
-## model.merge
+## model.merge()
 
 ~~~c
 nnom_layer_t *model.merge(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2);
@@ -87,7 +96,7 @@ Specificaly, this method merge 2 layer's output.
 - The method (layer) instance. 
  
 --- 
-## model.mergex
+## model.mergex()
 
 ~~~c
 nnom_layer_t *model.mergex(nnom_layer_t *method, int num, ...)
@@ -111,7 +120,7 @@ Currently, all "merge methods" support mutiple input layers, they will be proces
  
 ---
 
-## model.active
+## model.active()
 
 ~~~C
 nnom_layer_t *model.active(nnom_activation_t *act, nnom_layer_t *target)

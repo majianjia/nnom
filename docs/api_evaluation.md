@@ -3,18 +3,18 @@
 
 NNoM has provide a few evaluation interfaces. Thye can either do runtime statistic or model evaluations. 
 
-These API are print though the standard `print()`, thus a terminal/console is needed. 
+These API are print though the standard `printf()`, thus a terminal/console is needed. 
 
-All these API must not be call before the dedicated model has been compiled. 
+All these API must not be called before the model has been compiled. 
 
 ---
 
-## model_stat
+## model_stat()
 ~~~C
 void model_stat(nnom_model_t *m);
 ~~~
 
-To print runtime statistic of the last run. Check the below example for the availble statistics. 
+To print the runtime statistic of the last run. Check the below example for the availble statistics. 
 
 **Arguments**
 
@@ -22,6 +22,7 @@ To print runtime statistic of the last run. Check the below example for the avai
 
 
 **Notes**
+
 It is recommended to run the mode once after compiling to gain these runtime statistic. 
 
 
@@ -51,13 +52,13 @@ Total Memory cost (Network and NNoM): 32876
 
 ---
 
-## nnom_predic_one
+## nnom_predic_one()
 
 ~~~C
 int32_t nnom_predic_one(nnom_model_t *m, int8_t *input, int8_t *output);
 ~~~
 
-To predict one set of input data. 
+To predict one set of input data. This is the standalone API which does not require `printf()` to print results but only return the predicted label. 
 
 **Arguments**
 
@@ -68,11 +69,12 @@ To predict one set of input data.
 **Return**
 
 - The predicted label in digit. 
+- Error codes if model is failed to run.
 
 
 ---
 
-## prediction_create
+## prediction_create()
 
 ~~~C
 nnom_predic_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, 
@@ -90,20 +92,22 @@ This method create a prediction instance, which record mutiple parameters in the
 - **top_k_size:** the Top-k that wants to evaluate.
 
 **Return**
+
 - The prediction instance.
 
 **Note**
+
 Check later examples. 
 
 ---
 
-## prediction_run
+## prediction_run()
 
 ~~~c
 int32_t prediction_run(nnom_predic_t *pre, uint32_t label);
 ~~~
 
-To run a prodiction with the new data (feed by user to the input_buffer which passed to Input layer).
+To run a prediction with the new data (feeded by user to the input_buffer which passed to Input layer).
 
 **Arguments**
 
@@ -111,11 +115,12 @@ To run a prodiction with the new data (feed by user to the input_buffer which pa
 - **label:** the true label of this data.
 
 **Return**
+
 - The top-1 prediction of current data. 
 
 ---
 
-## prediction_end
+## prediction_end()
 
 ~~~c
 void prediction_end(nnom_predic_t *pre);
@@ -131,7 +136,7 @@ To mark the prediction has done.
 ---
 
 
-## prediction_delete
+## prediction_delete()
 
 ~~~c
 void predicetion_delete(nnom_predic_t *pre);
@@ -146,7 +151,7 @@ To free all resources.
 ---
 
 
-## prediction_matrix
+## prediction_matrix()
 
 ~~~C
 void prediction_matrix(nnom_predic_t *pre);
@@ -180,7 +185,7 @@ actual
 
 ---
 
-## prediction_top_k
+## prediction_top_k()
 
 ~~~C
 void prediction_top_k(nnom_predic_t *pre);
@@ -209,7 +214,7 @@ Top 10 Accuracy: 99.60%
 
 ---
 
-## prediction_summary
+## prediction_summary()
 
 ~~~C
 void prediction_summary(nnom_predic_t *pre);
@@ -240,15 +245,15 @@ Average frame rate: 8.0 Hz
 
 ## Example
 
-**How to evaluate**
+**Evaluate a model using `prediction_*` APIs**
 
-After a model has been compiled, then it is ready to be evaluated. 
+The model needs to be compiled before it is being evaluated. 
 
 The evaluation gose through a few steps
 
 1. Create a instance using `prediction_create()`
-2. Feed data one by one to the input buffer, then call `prediction_run(pre)` with true label. 
-3. When all data has predicted, call `prediction_end()`.
+2. Feed the data one by one to the input buffer, then call `prediction_run()` with the true label. 
+3. When all data has predicted, call `prediction_end()`
 
 Then you can use `prediction_matrix()`, `prediction_top_k()`, and `prediction_summary()` to see the results.
 
@@ -257,7 +262,7 @@ In addition, you can call `model_stat()` to see the performance of the last pred
 After all, call `prediction_delete()` to release all memory. 
 
 
-**How to implement in real-life**
+**How to implement in real-life scenarios**
 
 Please check the UCI_HAR example for coding detail with RT-Thread and Y-modem. 
 
