@@ -127,7 +127,6 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
 {
     int16_t i_ch_in, i_x, i_y;
     int16_t k_x, k_y;
-    uint16_t shift = 0;
     int32_t *buf = (int32_t *)bufferA;
 	// stage2
     int32_t max_abs = 0;

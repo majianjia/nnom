@@ -71,10 +71,9 @@ void prediction_summary(nnom_predic_t *pre);
 
 // stand alone prediction API
 // this api test one set of data, return the prediction
-// input the model's input and output bufer
 // return the predicted label
 // return NN_ARGUMENT_ERROR if parameter error
-int32_t nnom_predic_one(nnom_model_t *m, int8_t *input, int8_t *output); // currently int8_t
+int32_t nnom_predic_one(nnom_model_t *m); 
 
 void model_stat(nnom_model_t *m);
 

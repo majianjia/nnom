@@ -223,23 +223,18 @@ void prediction_summary(nnom_predic_t *pre)
 
 // stand alone prediction API
 // this api test one set of data, return the prediction
-// input the model's input and output bufer
-// return the predicted label
-int32_t nnom_predic_one(nnom_model_t *m, int8_t *input, int8_t *output)
+int32_t nnom_predic_one(nnom_model_t *m)
 {
 	int32_t max_val, max_index;
+	int8_t *output;
 
 	if (!m)
 		return NN_ARGUMENT_ERROR;
 
-	// copy data to input buf if the data is not in the same physical memory address
-	if (input != m->head->in->mem->blk)
-		memcpy(m->head->in->mem->blk, input, shape_size(&m->head->in->shape));
-
 	model_run(m);
 
-	if (output != m->tail->out->mem->blk)
-		memcpy(output, m->tail->out->mem->blk, shape_size(&m->tail->out->shape));
+	// get the output memory
+	output = m->tail->out->mem->blk;
 
 	// Top 1
 	max_val = output[0];

@@ -55,22 +55,25 @@ Total Memory cost (Network and NNoM): 32876
 ## nnom_predic_one()
 
 ~~~C
-int32_t nnom_predic_one(nnom_model_t *m, int8_t *input, int8_t *output);
+int32_t nnom_predic_one(nnom_model_t *m);
 ~~~
 
 To predict one set of input data. This is the standalone API which does not require `printf()` to print results but only return the predicted label. 
 
+This method is basicly `model_run()` + `index(top-1)`
+
 **Arguments**
 
 - **m:** the model to run prediction (evaluation).
-- **input:** the data to predict. Can pass the buffer which has passed to Input Layer. 
-- **output:** the data to predict. Can pass the buffer which has passed to Output Layer. 
 
 **Return**
 
 - The predicted label in digit. 
 - Error codes if model is failed to run.
 
+**Note**
+
+The input buffer of the model must be feeded before calling this method. 
 
 ---
 

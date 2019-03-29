@@ -161,6 +161,7 @@ nnom_status_t dense_out_shape(nnom_layer_t *layer)
 nnom_status_t simplecell_out_shape(nnom_layer_t* layer, nnom_rnn_cell_t* cell)
 {
 
+	return NN_SUCCESS;
 }
 
 // TODO
