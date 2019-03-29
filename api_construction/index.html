@@ -69,22 +69,30 @@
     <li class="toctree-l3"><a href="#constructions-apis">Constructions APIs</a></li>
     
 
-    <li class="toctree-l3"><a href="#modeladd">model.add</a></li>
+    <li class="toctree-l3"><a href="#sequential-api">Sequential API</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#modeladd">model.add()</a></li>
+        
+        </ul>
     
 
-    <li class="toctree-l3"><a href="#modelhook">model.hook</a></li>
+    <li class="toctree-l3"><a href="#functional-apis">Functional APIs</a></li>
     
-
-    <li class="toctree-l3"><a href="#modelmerge">model.merge</a></li>
-    
-
-    <li class="toctree-l3"><a href="#modelmergex">model.mergex</a></li>
-    
-
-    <li class="toctree-l3"><a href="#modelactive">model.active</a></li>
-    
-
-    <li class="toctree-l3"><a href="#examples">Examples</a></li>
+        <ul>
+        
+            <li><a class="toctree-l4" href="#modelhook">model.hook()</a></li>
+        
+            <li><a class="toctree-l4" href="#modelmerge">model.merge()</a></li>
+        
+            <li><a class="toctree-l4" href="#modelmergex">model.mergex()</a></li>
+        
+            <li><a class="toctree-l4" href="#modelactive">model.active()</a></li>
+        
+            <li><a class="toctree-l4" href="#examples">Examples</a></li>
+        
+        </ul>
     
 
     </ul>
@@ -118,7 +126,7 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">Legancy Guide</span>
+    <span class="caption-text">Legacy Guide</span>
     <ul class="subnav">
                 <li class="">
                     
@@ -127,6 +135,10 @@
                 <li class="">
                     
     <a class="" href="../Porting and Optimisation Guide/">Porting and Optimisation Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../legacy_README/">Old Readme</a>
                 </li>
     </ul>
 	    </li>
@@ -137,7 +149,7 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../api_pooling/">RTT</a>
+    <a class="" href="../rt-thread_guide/">RT-Thread</a>
                 </li>
     </ul>
 	    </li>
@@ -179,36 +191,42 @@
             <div class="section">
               
                 <h2 id="constructions-apis">Constructions APIs</h2>
-<p>NNoM support <strong>Sequential model</strong> and <strong>Functional model</strong> similar to Keras. 
+<p>NNoM support both <strong>Sequential model</strong> and <strong>Functional model</strong> similar to Keras. 
 NNoM treat them equaly in compiling and running, the only difference the methods of constructions. </p>
-<p>In <strong>Sequential model</strong>, the layer are stacked one by one sequently using <code>model.add()</code></p>
-<p>In <strong>Functional model</strong>, the links between layer are specified explicitly by using <code>model.hook() or model.merge()</code></p>
+<p>In <strong>Sequential model</strong>, the layer are stacked one by one sequently using <code>model.add()</code>. So call Sequential API. </p>
+<p>In <strong>Functional model</strong>, the links between layer are specified explicitly by using <code>model.hook()</code>, <code>model.merge()</code> or <code>model.mergex()</code>. So call Functional APIs</p>
 <hr />
-<h2 id="modeladd">model.add</h2>
+<h1 id="sequential-api">Sequential API</h1>
+<hr />
+<h2 id="modeladd">model.add()</h2>
 <pre><code class="c">nnom_status_t model.add(nnom_model_t *model,  nnom_layer_t *layer);
 </code></pre>
 
-<p>The only sequencial constructor.</p>
-<p>It stack the new layer instance to the existing model. </p>
+<p>It is the only sequencial constructor. It stacks the new layer to the rear of the existing model. </p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong> model:</strong> the target model for stacking new.</li>
-<li><strong> layer:</strong> the new layer instance for stacking onto the model.</li>
+<li><strong> model:</strong> the model to stack new layer.</li>
+<li><strong> layer:</strong> the new layer instance to stack onto the model.</li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
 <li>The state of the operation. </li>
 </ul>
-<p><strong>Example to stack 2 layers on a model</strong></p>
+<p><strong>Example to stack two layers on a model</strong></p>
 <pre><code class="c">    model.add(&amp;model, Conv2D(16, kernel(1, 9), stride(1, 2), PADDING_SAME, &amp;c1_w, &amp;c1_b));
     model.add(&amp;model, ReLU());
     ...
 </code></pre>
 
 <p><strong>Notes</strong></p>
-<p>You can stack like this whenever there are memory available :-)</p>
+<ul>
+<li>The first layer for a model must be <strong>Input layer</strong>. The last layer could be the <strong>Output layer</strong></li>
+<li>You can stack like this whenever there are memory available :-)</li>
+</ul>
 <hr />
-<h2 id="modelhook">model.hook</h2>
+<h1 id="functional-apis">Functional APIs</h1>
+<hr />
+<h2 id="modelhook">model.hook()</h2>
 <pre><code class="C">nnom_layer_t *model.hook(nnom_layer_t *curr, nnom_layer_t *last);
 </code></pre>
 
@@ -222,10 +240,10 @@ NNoM treat them equaly in compiling and running, the only difference the methods
 <ul>
 <li>The curr layer instance. </li>
 </ul>
-<p><strong>Note</strong>
-A layer instance can be hooked many times (act as "last" layer). NNoM will manage the run order of them. This is very useful when many layers wants to take the same output of previous layer. The example is many towers layer share one output in Inception structure. </p>
+<p><strong>Note</strong></p>
+<p>A layer instance can be hooked many times (act as "last" layer). NNoM will manage the topology and run order from them during compiling. This is very useful when many layers wants to take the same output of previous layer. The example is many towers layer share one output in Inception structure. </p>
 <hr />
-<h2 id="modelmerge">model.merge</h2>
+<h2 id="modelmerge">model.merge()</h2>
 <pre><code class="c">nnom_layer_t *model.merge(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2);
 </code></pre>
 
@@ -242,7 +260,7 @@ A layer instance can be hooked many times (act as "last" layer). NNoM will manag
 <li>The method (layer) instance. </li>
 </ul>
 <hr />
-<h2 id="modelmergex">model.mergex</h2>
+<h2 id="modelmergex">model.mergex()</h2>
 <pre><code class="c">nnom_layer_t *model.mergex(nnom_layer_t *method, int num, ...)
 </code></pre>
 
@@ -260,7 +278,7 @@ A layer instance can be hooked many times (act as "last" layer). NNoM will manag
 <p><strong>Note</strong>
 Currently, all "merge methods" support mutiple input layers, they will be processed one by one with the order provided by the list. </p>
 <hr />
-<h2 id="modelactive">model.active</h2>
+<h2 id="modelactive">model.active()</h2>
 <pre><code class="C">nnom_layer_t *model.active(nnom_activation_t *act, nnom_layer_t *target)
 </code></pre>
 

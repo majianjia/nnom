@@ -65,22 +65,22 @@
     <li class="toctree-l3"><a href="#model-apis">Model APIs</a></li>
     
 
-    <li class="toctree-l3"><a href="#new_model">new_model</a></li>
+    <li class="toctree-l3"><a href="#new_model">new_model()</a></li>
     
 
-    <li class="toctree-l3"><a href="#model_delete">model_delete</a></li>
+    <li class="toctree-l3"><a href="#model_delete">model_delete()</a></li>
     
 
-    <li class="toctree-l3"><a href="#sequencial_compile">sequencial_compile</a></li>
+    <li class="toctree-l3"><a href="#sequencial_compile">sequencial_compile()</a></li>
     
 
-    <li class="toctree-l3"><a href="#model_compile">model_compile</a></li>
+    <li class="toctree-l3"><a href="#model_compile">model_compile()</a></li>
     
 
-    <li class="toctree-l3"><a href="#model_run">model_run</a></li>
+    <li class="toctree-l3"><a href="#model_run">model_run()</a></li>
     
 
-    <li class="toctree-l3"><a href="#model_run_to">model_run_to</a></li>
+    <li class="toctree-l3"><a href="#model_run_to">model_run_to()</a></li>
     
 
     <li class="toctree-l3"><a href="#examples">Examples</a></li>
@@ -121,7 +121,7 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">Legancy Guide</span>
+    <span class="caption-text">Legacy Guide</span>
     <ul class="subnav">
                 <li class="">
                     
@@ -130,6 +130,10 @@
                 <li class="">
                     
     <a class="" href="../Porting and Optimisation Guide/">Porting and Optimisation Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../legacy_README/">Old Readme</a>
                 </li>
     </ul>
 	    </li>
@@ -140,7 +144,7 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../api_pooling/">RTT</a>
+    <a class="" href="../rt-thread_guide/">RT-Thread</a>
                 </li>
     </ul>
 	    </li>
@@ -186,7 +190,7 @@
 <p>Model is a minimum runable object in NNoM. </p>
 <p>Here list the Model APIs that used for create, compile and run a model. </p>
 <hr />
-<h2 id="new_model">new_model</h2>
+<h2 id="new_model">new_model()</h2>
 <pre><code class="C">nnom_model_t *new_model(nnom_model_t *m);
 </code></pre>
 
@@ -196,9 +200,11 @@
 <li><strong> m:</strong> the model instance that need to be initiated. If <code>NULL</code> is passed to it, the method will create a new model instance. </li>
 </ul>
 <p><strong>Return</strong></p>
-<p>The created model instance or the </p>
+<ul>
+<li>The created or the initiated model instance.</li>
+</ul>
 <hr />
-<h2 id="model_delete">model_delete</h2>
+<h2 id="model_delete">model_delete()</h2>
 <pre><code class="C">void model_delete(nnom_model_t *m);  
 </code></pre>
 
@@ -208,7 +214,7 @@
 <li><strong> m:</strong> the model instance.</li>
 </ul>
 <hr />
-<h2 id="sequencial_compile">sequencial_compile</h2>
+<h2 id="sequencial_compile">sequencial_compile()</h2>
 <pre><code class="C">nnom_status_t sequencial_compile(nnom_model_t *m);
 </code></pre>
 
@@ -222,10 +228,11 @@
 <li>Status of compiling. </li>
 </ul>
 <hr />
-<h2 id="model_compile">model_compile</h2>
+<h2 id="model_compile">model_compile()</h2>
 <pre><code class="C">nnom_status_t   model_compile(nnom_model_t *m, nnom_layer_t* input, nnom_layer_t* output);
 </code></pre>
 
+<p>Compile a functional model which is constructed by functional construction APIs. </p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong> m:</strong> the model instance for compile.</li>
@@ -237,11 +244,11 @@
 <li>Status of compiling. </li>
 </ul>
 <hr />
-<h2 id="model_run">model_run</h2>
+<h2 id="model_run">model_run()</h2>
 <pre><code class="C">nnom_status_t   model_run(nnom_model_t *m);
 </code></pre>
 
-<p>To run all the layers inside the model. </p>
+<p>To run all the layers inside the model. Run one prediction. </p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong> m:</strong> the model instance for compile.</li>
@@ -250,21 +257,22 @@
 </ul>
 <p><strong>Return</strong></p>
 <ul>
-<li>The result of layer running. </li>
+<li>The status of layer running. </li>
 </ul>
 <p><strong>Note</strong></p>
 <p>User must fill in the input buffer which has passed to the input layer before run the model. 
-The input layer then copy the data from user space to NNoM memory space to run the model. </p>
+The input layer then copy the data from user space to NNoM memory space to run the model. 
+The results of prediction will be copy from NNoM memory space to user memory space by Output layer. </p>
 <hr />
-<h2 id="model_run_to">model_run_to</h2>
+<h2 id="model_run_to">model_run_to()</h2>
 <pre><code class="C">nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer);
 </code></pre>
 
-<p>Run partly to the specified layer. </p>
+<p>Same as <code>model_run()</code> but it only run partly to the specified layer. </p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong> m:</strong> the model instance for compile.</li>
-<li><strong> end_layer:</strong> the layer instance to stop.</li>
+<li><strong> end_layer:</strong> the layer where to stop.</li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
@@ -272,7 +280,8 @@ The input layer then copy the data from user space to NNoM memory space to run t
 </ul>
 <hr />
 <h2 id="examples">Examples</h2>
-<p>Sequential model</p>
+<p>This example shows a 2 layer MPL for MNIST dateset. Input shape 28 x 28 x 1 hand writing image. please check <a href="https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet">mnist-densenet example</a> for further reading. </p>
+<p><strong>Sequential model</strong></p>
 <pre><code class="C">
 /* nnom model */
 int8_t input_data[784];
@@ -304,7 +313,7 @@ void sequencial_model(void)
 
 </code></pre>
 
-<p>Functional model</p>
+<p><strong>Functional model</strong></p>
 <pre><code class="C">
 /* nnom model */
 int8_t input_data[784];

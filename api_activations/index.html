@@ -85,25 +85,30 @@
     <li class="toctree-l3"><a href="#activation-layers">Activation Layers</a></li>
     
 
-    <li class="toctree-l3"><a href="#activation">Activation</a></li>
+    <li class="toctree-l3"><a href="#activations-layer-apis">Activations' Layer APIs</a></li>
     
-
-    <li class="toctree-l3"><a href="#softmax">Softmax</a></li>
-    
-
-    <li class="toctree-l3"><a href="#relu-layer-api">ReLU (Layer API)</a></li>
-    
-
-    <li class="toctree-l3"><a href="#sigmoid-layer-api">Sigmoid (Layer API)</a></li>
-    
-
-    <li class="toctree-l3"><a href="#tanh-layer-api">TanH (Layer API)</a></li>
+        <ul>
+        
+            <li><a class="toctree-l4" href="#activation">Activation()</a></li>
+        
+            <li><a class="toctree-l4" href="#softmax">Softmax()</a></li>
+        
+            <li><a class="toctree-l4" href="#relu">ReLU()</a></li>
+        
+            <li><a class="toctree-l4" href="#sigmoid">Sigmoid()</a></li>
+        
+            <li><a class="toctree-l4" href="#tanh">TanH()</a></li>
+        
+        </ul>
     
 
     <li class="toctree-l3"><a href="#activation-apis">Activation APIs</a></li>
     
-
-    <li class="toctree-l3"><a href="#examples">Examples</a></li>
+        <ul>
+        
+            <li><a class="toctree-l4" href="#examples">Examples</a></li>
+        
+        </ul>
     
 
     </ul>
@@ -121,7 +126,7 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">Legancy Guide</span>
+    <span class="caption-text">Legacy Guide</span>
     <ul class="subnav">
                 <li class="">
                     
@@ -130,6 +135,10 @@
                 <li class="">
                     
     <a class="" href="../Porting and Optimisation Guide/">Porting and Optimisation Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../legacy_README/">Old Readme</a>
                 </li>
     </ul>
 	    </li>
@@ -140,7 +149,7 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../api_pooling/">RTT</a>
+    <a class="" href="../rt-thread_guide/">RT-Thread</a>
                 </li>
     </ul>
 	    </li>
@@ -186,7 +195,9 @@
 <p><strong>Layer APIs</strong> will create a layer instance for running the activation; 
 <strong>Activation APIs</strong> will only create activation instance, which can be attached on a existing layers. </p>
 <hr />
-<h2 id="activation">Activation</h2>
+<h1 id="activations-layer-apis">Activations' Layer APIs</h1>
+<hr />
+<h2 id="activation">Activation()</h2>
 <pre><code class="C">nnom_layer_t* Activation(nnom_activation_t *act);   
 </code></pre>
 
@@ -200,7 +211,7 @@
 <li>The activation layer instance</li>
 </ul>
 <hr />
-<h2 id="softmax">Softmax</h2>
+<h2 id="softmax">Softmax()</h2>
 <pre><code class="C">nnom_layer_t* Softmax(void);
 </code></pre>
 
@@ -211,7 +222,7 @@
 <p><strong>Notes</strong></p>
 <p>Softmax only has Layer API.</p>
 <hr />
-<h2 id="relu-layer-api">ReLU (Layer API)</h2>
+<h2 id="relu">ReLU()</h2>
 <pre><code class="C">nnom_layer_t* ReLU(void);
 </code></pre>
 
@@ -222,7 +233,7 @@
 <p><strong>Notes</strong></p>
 <p>Using <code>layer = ReLU();</code> is no difference to <code>layer = Activation(act_relu());</code></p>
 <hr />
-<h2 id="sigmoid-layer-api">Sigmoid (Layer API)</h2>
+<h2 id="sigmoid">Sigmoid()</h2>
 <p>This function is affacted by an issue that we are currently working on. Check <a href="https://github.com/majianjia/nnom/issues/13">issue</a></p>
 <pre><code class="C">nnom_layer_t* Sigmoid(void);
 </code></pre>
@@ -234,7 +245,7 @@
 <p><strong>Notes</strong></p>
 <p>Using <code>layer = Sigmoid();</code> is no difference to <code>layer = Activation(act_sigmoid());</code></p>
 <hr />
-<h2 id="tanh-layer-api">TanH (Layer API)</h2>
+<h2 id="tanh">TanH()</h2>
 <pre><code class="C">nnom_layer_t* TanH(void);
 </code></pre>
 
@@ -246,13 +257,15 @@
 <p><strong>Notes</strong></p>
 <p>Using <code>layer = TanH();</code> is no difference to <code>layer = Activation(act_tanh());</code></p>
 <hr />
-<h2 id="activation-apis">Activation APIs</h2>
+<h1 id="activation-apis">Activation APIs</h1>
 <pre><code class="C">nnom_activation_t* act_relu(void);
 nnom_activation_t* act_sigmoid(void);
 nnom_activation_t* act_tanh(void);
 </code></pre>
 
 <p>They return the activation instance which can be passed to either <code>model.active()</code> or <code>Activation()</code></p>
+<p><strong>Notes</strong></p>
+<p>Softmax does not provided activation APIs. </p>
 <hr />
 <h2 id="examples">Examples</h2>
 <p><strong> Using Layer's API </strong></p>

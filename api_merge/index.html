@@ -89,16 +89,16 @@
     <li class="toctree-l3"><a href="#merging-methods">Merging Methods</a></li>
     
 
-    <li class="toctree-l3"><a href="#concat">Concat</a></li>
+    <li class="toctree-l3"><a href="#concat">Concat()</a></li>
     
 
-    <li class="toctree-l3"><a href="#mult">Mult</a></li>
+    <li class="toctree-l3"><a href="#mult">Mult()</a></li>
     
 
-    <li class="toctree-l3"><a href="#add">Add</a></li>
+    <li class="toctree-l3"><a href="#add">Add()</a></li>
     
 
-    <li class="toctree-l3"><a href="#sub">Sub</a></li>
+    <li class="toctree-l3"><a href="#sub">Sub()</a></li>
     
 
     <li class="toctree-l3"><a href="#example">Example</a></li>
@@ -115,7 +115,7 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">Legancy Guide</span>
+    <span class="caption-text">Legacy Guide</span>
     <ul class="subnav">
                 <li class="">
                     
@@ -124,6 +124,10 @@
                 <li class="">
                     
     <a class="" href="../Porting and Optimisation Guide/">Porting and Optimisation Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../legacy_README/">Old Readme</a>
                 </li>
     </ul>
 	    </li>
@@ -134,7 +138,7 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../api_pooling/">RTT</a>
+    <a class="" href="../rt-thread_guide/">RT-Thread</a>
                 </li>
     </ul>
 	    </li>
@@ -179,7 +183,7 @@
 <p>Merge methods (layers) are use to merge 2 or more layer's output using the methods list below. </p>
 <p>These methods are also layers which return a layer instance. However, they normally take two or more layer's output and "merge" them into one output. These layer instance must be passed to either <code>model.merge(method, in1, in2)</code>or <code>model.mergex(method, num_of_input, in1, in2, 1n3 ...)</code>. An example will be to concat the Inception structure. </p>
 <hr />
-<h2 id="concat">Concat</h2>
+<h2 id="concat">Concat()</h2>
 <pre><code class="C">nnom_layer_t* Concat(int8_t axis);
 </code></pre>
 
@@ -193,9 +197,9 @@
 <li>The concat layer instance</li>
 </ul>
 <p><strong>Notes</strong></p>
-<p>The concatenated axis can be different in those input layers. Other axes must be same. </p>
+<p>The concatenated axis can be different in all input layers passed to this method. Other axes must be same. </p>
 <hr />
-<h2 id="mult">Mult</h2>
+<h2 id="mult">Mult()</h2>
 <pre><code class="C">nnom_layer_t* Mult(void);
 </code></pre>
 
@@ -204,8 +208,10 @@
 <ul>
 <li>The mult layer instance</li>
 </ul>
+<p><strong>Notes</strong></p>
+<p>All input layers passed to this method must have same output shape. </p>
 <hr />
-<h2 id="add">Add</h2>
+<h2 id="add">Add()</h2>
 <pre><code class="C">nnom_layer_t* Add(void);
 </code></pre>
 
@@ -214,8 +220,10 @@
 <ul>
 <li>The add layer instance</li>
 </ul>
+<p><strong>Notes</strong></p>
+<p>All input layers passed to this method must have same output shape. </p>
 <hr />
-<h2 id="sub">Sub</h2>
+<h2 id="sub">Sub()</h2>
 <pre><code class="C">nnom_layer_t* Sub(void);
 </code></pre>
 
@@ -224,6 +232,8 @@
 <ul>
 <li>The sub layer instance</li>
 </ul>
+<p><strong>Notes</strong></p>
+<p>All input layers passed to this method must have same output shape. </p>
 <hr />
 <h2 id="example">Example</h2>
 <p><strong> Channelwise concat for Inception </strong></p>

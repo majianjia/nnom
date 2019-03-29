@@ -93,31 +93,31 @@
     <li class="toctree-l3"><a href="#evaluation-tools">Evaluation tools</a></li>
     
 
-    <li class="toctree-l3"><a href="#model_stat">model_stat</a></li>
+    <li class="toctree-l3"><a href="#model_stat">model_stat()</a></li>
     
 
-    <li class="toctree-l3"><a href="#nnom_predic_one">nnom_predic_one</a></li>
+    <li class="toctree-l3"><a href="#nnom_predic_one">nnom_predic_one()</a></li>
     
 
-    <li class="toctree-l3"><a href="#prediction_create">prediction_create</a></li>
+    <li class="toctree-l3"><a href="#prediction_create">prediction_create()</a></li>
     
 
-    <li class="toctree-l3"><a href="#prediction_run">prediction_run</a></li>
+    <li class="toctree-l3"><a href="#prediction_run">prediction_run()</a></li>
     
 
-    <li class="toctree-l3"><a href="#prediction_end">prediction_end</a></li>
+    <li class="toctree-l3"><a href="#prediction_end">prediction_end()</a></li>
     
 
-    <li class="toctree-l3"><a href="#prediction_delete">prediction_delete</a></li>
+    <li class="toctree-l3"><a href="#prediction_delete">prediction_delete()</a></li>
     
 
-    <li class="toctree-l3"><a href="#prediction_matrix">prediction_matrix</a></li>
+    <li class="toctree-l3"><a href="#prediction_matrix">prediction_matrix()</a></li>
     
 
-    <li class="toctree-l3"><a href="#prediction_top_k">prediction_top_k</a></li>
+    <li class="toctree-l3"><a href="#prediction_top_k">prediction_top_k()</a></li>
     
 
-    <li class="toctree-l3"><a href="#prediction_summary">prediction_summary</a></li>
+    <li class="toctree-l3"><a href="#prediction_summary">prediction_summary()</a></li>
     
 
     <li class="toctree-l3"><a href="#example">Example</a></li>
@@ -130,7 +130,7 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">Legancy Guide</span>
+    <span class="caption-text">Legacy Guide</span>
     <ul class="subnav">
                 <li class="">
                     
@@ -139,6 +139,10 @@
                 <li class="">
                     
     <a class="" href="../Porting and Optimisation Guide/">Porting and Optimisation Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../legacy_README/">Old Readme</a>
                 </li>
     </ul>
 	    </li>
@@ -149,7 +153,7 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../api_pooling/">RTT</a>
+    <a class="" href="../rt-thread_guide/">RT-Thread</a>
                 </li>
     </ul>
 	    </li>
@@ -192,20 +196,20 @@
               
                 <h2 id="evaluation-tools">Evaluation tools</h2>
 <p>NNoM has provide a few evaluation interfaces. Thye can either do runtime statistic or model evaluations. </p>
-<p>These API are print though the standard <code>print()</code>, thus a terminal/console is needed. </p>
-<p>All these API must not be call before the dedicated model has been compiled. </p>
+<p>These API are print though the standard <code>printf()</code>, thus a terminal/console is needed. </p>
+<p>All these API must not be called before the model has been compiled. </p>
 <hr />
-<h2 id="model_stat">model_stat</h2>
+<h2 id="model_stat">model_stat()</h2>
 <pre><code class="C">void model_stat(nnom_model_t *m);
 </code></pre>
 
-<p>To print runtime statistic of the last run. Check the below example for the availble statistics. </p>
+<p>To print the runtime statistic of the last run. Check the below example for the availble statistics. </p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong> m:</strong> the model to print.</li>
 </ul>
-<p><strong>Notes</strong>
-It is recommended to run the mode once after compiling to gain these runtime statistic. </p>
+<p><strong>Notes</strong></p>
+<p>It is recommended to run the mode once after compiling to gain these runtime statistic. </p>
 <p><strong>Example</strong></p>
 <pre><code>Print running stat..
 Layer(#)        -   Time(us)      ops(MACs)     ops/us 
@@ -230,11 +234,11 @@ Total Memory cost (Network and NNoM): 32876
 </code></pre>
 
 <hr />
-<h2 id="nnom_predic_one">nnom_predic_one</h2>
+<h2 id="nnom_predic_one">nnom_predic_one()</h2>
 <pre><code class="C">int32_t nnom_predic_one(nnom_model_t *m, int8_t *input, int8_t *output);
 </code></pre>
 
-<p>To predict one set of input data. </p>
+<p>To predict one set of input data. This is the standalone API which does not require <code>printf()</code> to print results but only return the predicted label. </p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong>m:</strong> the model to run prediction (evaluation).</li>
@@ -244,9 +248,10 @@ Total Memory cost (Network and NNoM): 32876
 <p><strong>Return</strong></p>
 <ul>
 <li>The predicted label in digit. </li>
+<li>Error codes if model is failed to run.</li>
 </ul>
 <hr />
-<h2 id="prediction_create">prediction_create</h2>
+<h2 id="prediction_create">prediction_create()</h2>
 <pre><code class="C">nnom_predic_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, 
         size_t label_num, size_t top_k_size);
 </code></pre>
@@ -259,25 +264,29 @@ Total Memory cost (Network and NNoM): 32876
 <li><strong>label_num:</strong> the number of labels (the number of classifications).</li>
 <li><strong>top_k_size:</strong> the Top-k that wants to evaluate.</li>
 </ul>
-<p><strong>Return</strong>
-- The prediction instance.</p>
-<p><strong>Note</strong>
-Check later examples. </p>
+<p><strong>Return</strong></p>
+<ul>
+<li>The prediction instance.</li>
+</ul>
+<p><strong>Note</strong></p>
+<p>Check later examples. </p>
 <hr />
-<h2 id="prediction_run">prediction_run</h2>
+<h2 id="prediction_run">prediction_run()</h2>
 <pre><code class="c">int32_t prediction_run(nnom_predic_t *pre, uint32_t label);
 </code></pre>
 
-<p>To run a prodiction with the new data (feed by user to the input_buffer which passed to Input layer).</p>
+<p>To run a prediction with the new data (feeded by user to the input_buffer which passed to Input layer).</p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong>pre:</strong> the prediction instance created by <code>prediction_create()</code>.</li>
 <li><strong>label:</strong> the true label of this data.</li>
 </ul>
-<p><strong>Return</strong>
-- The top-1 prediction of current data. </p>
+<p><strong>Return</strong></p>
+<ul>
+<li>The top-1 prediction of current data. </li>
+</ul>
 <hr />
-<h2 id="prediction_end">prediction_end</h2>
+<h2 id="prediction_end">prediction_end()</h2>
 <pre><code class="c">void prediction_end(nnom_predic_t *pre);
 </code></pre>
 
@@ -287,7 +296,7 @@ Check later examples. </p>
 <li><strong>pre:</strong> the prediction instance created by <code>prediction_create()</code>.</li>
 </ul>
 <hr />
-<h2 id="prediction_delete">prediction_delete</h2>
+<h2 id="prediction_delete">prediction_delete()</h2>
 <pre><code class="c">void predicetion_delete(nnom_predic_t *pre);
 </code></pre>
 
@@ -297,7 +306,7 @@ Check later examples. </p>
 <li><strong>pre:</strong> the prediction instance created by <code>prediction_create()</code>.</li>
 </ul>
 <hr />
-<h2 id="prediction_matrix">prediction_matrix</h2>
+<h2 id="prediction_matrix">prediction_matrix()</h2>
 <pre><code class="C">void prediction_matrix(nnom_predic_t *pre);
 </code></pre>
 
@@ -325,7 +334,7 @@ actual
 </code></pre>
 
 <hr />
-<h2 id="prediction_top_k">prediction_top_k</h2>
+<h2 id="prediction_top_k">prediction_top_k()</h2>
 <pre><code class="C">void prediction_top_k(nnom_predic_t *pre);
 </code></pre>
 
@@ -348,7 +357,7 @@ Top 10 Accuracy: 99.60%
 </code></pre>
 
 <hr />
-<h2 id="prediction_summary">prediction_summary</h2>
+<h2 id="prediction_summary">prediction_summary()</h2>
 <pre><code class="C">void prediction_summary(nnom_predic_t *pre);
 </code></pre>
 
@@ -369,18 +378,18 @@ Average frame rate: 8.0 Hz
 
 <hr />
 <h2 id="example">Example</h2>
-<p><strong>How to evaluate</strong></p>
-<p>After a model has been compiled, then it is ready to be evaluated. </p>
+<p><strong>Evaluate a model using <code>prediction_*</code> APIs</strong></p>
+<p>The model needs to be compiled before it is being evaluated. </p>
 <p>The evaluation gose through a few steps</p>
 <ol>
 <li>Create a instance using <code>prediction_create()</code></li>
-<li>Feed data one by one to the input buffer, then call <code>prediction_run(pre)</code> with true label. </li>
-<li>When all data has predicted, call <code>prediction_end()</code>.</li>
+<li>Feed the data one by one to the input buffer, then call <code>prediction_run()</code> with the true label. </li>
+<li>When all data has predicted, call <code>prediction_end()</code></li>
 </ol>
 <p>Then you can use <code>prediction_matrix()</code>, <code>prediction_top_k()</code>, and <code>prediction_summary()</code> to see the results.</p>
 <p>In addition, you can call <code>model_stat()</code> to see the performance of the last prediction. </p>
 <p>After all, call <code>prediction_delete()</code> to release all memory. </p>
-<p><strong>How to implement in real-life</strong></p>
+<p><strong>How to implement in real-life scenarios</strong></p>
 <p>Please check the UCI_HAR example for coding detail with RT-Thread and Y-modem. </p>
 <pre><code>
 msh &gt;                                                                                                                                   

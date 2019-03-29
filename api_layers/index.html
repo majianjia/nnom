@@ -77,22 +77,25 @@
     <li class="toctree-l3"><a href="#layer-apis">Layer APIs</a></li>
     
 
-    <li class="toctree-l3"><a href="#input">Input</a></li>
+    <li class="toctree-l3"><a href="#input">Input()</a></li>
     
 
-    <li class="toctree-l3"><a href="#output">Output</a></li>
+    <li class="toctree-l3"><a href="#output">Output()</a></li>
     
 
-    <li class="toctree-l3"><a href="#conv2d">Conv2D</a></li>
+    <li class="toctree-l3"><a href="#conv2d">Conv2D()</a></li>
     
 
-    <li class="toctree-l3"><a href="#dw_conv2d">DW_Conv2D</a></li>
+    <li class="toctree-l3"><a href="#dw_conv2d">DW_Conv2D()</a></li>
     
 
-    <li class="toctree-l3"><a href="#dense">Dense</a></li>
+    <li class="toctree-l3"><a href="#dense">Dense()</a></li>
     
 
-    <li class="toctree-l3"><a href="#lambda">Lambda</a></li>
+    <li class="toctree-l3"><a href="#upsample">UpSample()</a></li>
+    
+
+    <li class="toctree-l3"><a href="#lambda">Lambda()</a></li>
     
 
     <li class="toctree-l3"><a href="#examples">Examples</a></li>
@@ -121,7 +124,7 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">Legancy Guide</span>
+    <span class="caption-text">Legacy Guide</span>
     <ul class="subnav">
                 <li class="">
                     
@@ -130,6 +133,10 @@
                 <li class="">
                     
     <a class="" href="../Porting and Optimisation Guide/">Porting and Optimisation Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../legacy_README/">Old Readme</a>
                 </li>
     </ul>
 	    </li>
@@ -140,7 +147,7 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../api_pooling/">RTT</a>
+    <a class="" href="../rt-thread_guide/">RT-Thread</a>
                 </li>
     </ul>
 	    </li>
@@ -183,16 +190,20 @@
               
                 <h2 id="layer-apis">Layer APIs</h2>
 <p>Layers APIs are listed in <em>nnom_layers.h</em></p>
-<p>1D/2D operations are both working with (H, W, C) format, known as "channel last". When working with 1D operations, the H for all the shapes must be 1 constantly.</p>
+<p><strong>Notes</strong></p>
+<ul>
+<li>1D/2D operations are both working with (H, W, C) format, known as "channel last". </li>
+<li>When working with 1D operations, the H for all the shapes must be 1 constantly.</li>
+</ul>
 <hr />
-<h2 id="input">Input</h2>
+<h2 id="input">Input()</h2>
 <pre><code class="c">nnom_layer_t* Input(nnom_shape_t input_shape, * p_buf);
 </code></pre>
 
-<p>A model must start with a Input layer for copying inputd data from user space to NNoM space. </p>
+<p><strong>A model must start with a Input layer</strong> to copy input data from user memory space to NNoM memory space. </p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong>input_shape:</strong> the shape of input. </li>
+<li><strong>input_shape:</strong> the shape of input data to the model. </li>
 <li><strong>p_buf:</strong> the data buf in user space. </li>
 </ul>
 <p><strong>Return</strong></p>
@@ -200,22 +211,22 @@
 <li>The layer instance</li>
 </ul>
 <hr />
-<h2 id="output">Output</h2>
+<h2 id="output">Output()</h2>
 <pre><code class="c">nnom_layer_t* Output(nnom_shape_t output_shape* p_buf);
 </code></pre>
 
-<p>Output layer is to copy the result from NNoM space to user space. </p>
+<p>Output layer is to copy the result from NNoM memory space to user memory space. </p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong>output_shape:</strong> the shape of output. </li>
+<li><strong>output_shape:</strong> the shape of output data. (might be deprecated later)</li>
 <li><strong>p_buf:</strong> the data buf in user space. </li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
-<li>The layer instance</li>
+<li>The layer instance.</li>
 </ul>
 <hr />
-<h2 id="conv2d">Conv2D</h2>
+<h2 id="conv2d">Conv2D()</h2>
 <pre><code class="c">nnom_layer_t* Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad,
     nnom_weight_t *w, nnom_bias_t *b);
 </code></pre>
@@ -226,7 +237,7 @@
 <li><strong> filters:</strong> the number of filters. or the channels of the output spaces.</li>
 <li><strong>k (kernel):</strong> the kernel shape, which is returned by <code>kernel()</code></li>
 <li><strong>s (stride):</strong> the stride shape, which is returned by <code>stride()</code></li>
-<li><strong>pad (padding):</strong> the padding method <code>PADDING_SAME</code> or <code>PADDING_VALID</code></li>
+<li><strong>pad (padding):</strong> the padding method either <code>PADDING_SAME</code> or <code>PADDING_VALID</code></li>
 <li><strong>w (weights) / b (bias)</strong>: weights and bias constants and shits. Generated in <code>weights.h</code></li>
 </ul>
 <p><strong>Return</strong></p>
@@ -236,7 +247,7 @@
 <p><strong>Notes</strong></p>
 <p>When it is used for 1D convolution, the H should be set to 1 constantly in kernel and stride.  </p>
 <hr />
-<h2 id="dw_conv2d">DW_Conv2D</h2>
+<h2 id="dw_conv2d">DW_Conv2D()</h2>
 <pre><code class="C">nnom_layer_t* DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad, 
     nnom_weight_t *w, nnom_bias_t *b);
 </code></pre>
@@ -247,7 +258,7 @@
 <li><strong> mutiplier:</strong> the number of mutiplier. <strong>Currently only support mutiplier=1 </strong></li>
 <li><strong>k (kernel):</strong> the kernel shape, which is returned by <code>kernel()</code></li>
 <li><strong>s (stride):</strong> the stride shape, which is returned by <code>stride()</code></li>
-<li><strong>pad (padding):</strong> the padding method <code>PADDING_SAME</code> or <code>PADDING_VALID</code></li>
+<li><strong>pad (padding):</strong> the padding method either <code>PADDING_SAME</code> or <code>PADDING_VALID</code></li>
 <li><strong>w (weights) / b (bias)</strong>: weights and bias constants and shits. Generated in <code>weights.h</code></li>
 </ul>
 <p><strong>Return</strong></p>
@@ -257,21 +268,36 @@
 <p><strong>Notes</strong></p>
 <p>When it is used for 1D convolution, the H should be set to 1 constantly in kernel and stride.  </p>
 <hr />
-<h2 id="dense">Dense</h2>
+<h2 id="dense">Dense()</h2>
 <pre><code class="C">nnom_layer_t* Dense(size_t output_unit, nnom_weight_t *w, nnom_bias_t *b);
 </code></pre>
 
+<p>A fully connected layer. It will flatten the data if the last output is mutiple-dimensions. </p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong> output_unit:</strong> the number of output unit.</li>
-<li><strong>w (weights) / b (bias)</strong>: weights and bias constants and shits. Generated in <code>weights.h</code></li>
+<li><strong>w (weights) / b (bias)</strong>: weights and bias constants and shits. </li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
 <li>The layer instance</li>
 </ul>
 <hr />
-<h2 id="lambda">Lambda</h2>
+<h2 id="upsample">UpSample()</h2>
+<pre><code class="C">nnom_layer_t *UpSample(nnom_shape_t kernel);
+</code></pre>
+
+<p>A basic up sampling, using nearest interpolation</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>kernel:</strong> a shape subject return by <code>kernel()</code>, the interpolation size.</li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The layer instance</li>
+</ul>
+<hr />
+<h2 id="lambda">Lambda()</h2>
 <pre><code class="C">// Lambda Layers
 // layer.run()   , required
 // layer.oshape(), optional, call default_output_shape() if left NULL
@@ -284,17 +310,22 @@ nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),
 </code></pre>
 
 <p>Lambda layer is an anonymous layer (interface), which allows user to do customized operation between the layer's input data and output data. </p>
-<p><strong>Arguments</strong>
-- <strong>(<em>run)(nnom_layer_t </em>):</strong> or so called run method, is the method to do the customized operation. 
-- <strong>(<em>oshape)(nnom_layer_t </em>):</strong> is to calculate the output shape according to the input shape during compiling. If this method is not presented, the input shape will be passed to the output shape. <br />
-- <strong>(<em>free)(nnom_layer_t </em>):</strong> is to free the resources allocated by users. this will be called when deleting models. Leave it NULL if no resources need to be released. 
-- <strong>parameters:</strong> is the pointer to user configurations. User can access to it in all three methods above.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>(<em>run)(nnom_layer_t </em>):</strong> or so called run method, is the method to do the customized operation. </li>
+<li><strong>(<em>oshape)(nnom_layer_t </em>):</strong> is to calculate the output shape according to the input shape during compiling. If this method is not presented, the input shape will be passed to the output shape.   </li>
+<li><strong>(<em>free)(nnom_layer_t </em>):</strong> is to free the resources allocated by users. this will be called when deleting models. Leave it NULL if no resources need to be released. </li>
+<li><strong>parameters:</strong> is the pointer to user configurations. User can access to it in all three methods above.</li>
+</ul>
 <p><strong>Return</strong></p>
 <ul>
 <li>The layer instance</li>
 </ul>
 <p><strong>Notes</strong></p>
-<p>When <code>oshape()</code> is present, please refer to example of other similar layers. This method is called in compiling, thus it can also do works other than calculating output shape only. An exmaple is the <code>global_pooling_output_shape()</code> fill in the parameters left by 'GlobalXXXPool()'</p>
+<ul>
+<li>When <code>oshape()</code> is presented, please refer to examples of other similar layers. The shape passing must be handle carefully.</li>
+<li>This method is called in compiling, thus it can also do works other than calculating output shape only. An exmaple is the <code>global_pooling_output_shape()</code> fills in the parameters left by <code>GlobalXXXPool()</code></li>
+</ul>
 <hr />
 <h2 id="examples">Examples</h2>
 <p><strong> Conv2D:</strong> </p>
@@ -311,6 +342,11 @@ layer = Conv2D(32, kernel(3, 3), stride(1, 1), PADDING_VALID, &amp;conv2d_3_w, &
 <p><strong> Dense:</strong></p>
 <pre><code class="C">nnom_layer_t *layer;
 layer = Dense(32, &amp;dense_w, &amp;dense_b);
+</code></pre>
+
+<p><strong> UpSample:</strong></p>
+<pre><code class="C">nnom_layer_t *layer;
+layer = UpSample(kernel(2, 2)); // expend the output size by 2 times in both H and W axis. 
 </code></pre>
 
 <p><strong> Lambda:</strong></p>

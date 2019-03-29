@@ -76,19 +76,21 @@
     <li class="toctree-l3"><a href="#typesdef">typesdef</a></li>
     
 
-    <li class="toctree-l3"><a href="#shape">shape</a></li>
+    <li class="toctree-l3"><a href="#methods">Methods</a></li>
     
-
-    <li class="toctree-l3"><a href="#kernel">kernel</a></li>
-    
-
-    <li class="toctree-l3"><a href="#stride">stride</a></li>
-    
-
-    <li class="toctree-l3"><a href="#qformat">qformat</a></li>
-    
-
-    <li class="toctree-l3"><a href="#shape_size">shape_size</a></li>
+        <ul>
+        
+            <li><a class="toctree-l4" href="#shape">shape()</a></li>
+        
+            <li><a class="toctree-l4" href="#kernel">kernel()</a></li>
+        
+            <li><a class="toctree-l4" href="#stride">stride()</a></li>
+        
+            <li><a class="toctree-l4" href="#qformat">qformat()</a></li>
+        
+            <li><a class="toctree-l4" href="#shape_size">shape_size()</a></li>
+        
+        </ul>
     
 
     </ul>
@@ -118,7 +120,7 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">Legancy Guide</span>
+    <span class="caption-text">Legacy Guide</span>
     <ul class="subnav">
                 <li class="">
                     
@@ -127,6 +129,10 @@
                 <li class="">
                     
     <a class="" href="../Porting and Optimisation Guide/">Porting and Optimisation Guide</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../legacy_README/">Old Readme</a>
                 </li>
     </ul>
 	    </li>
@@ -137,7 +143,7 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../api_pooling/">RTT</a>
+    <a class="" href="../rt-thread_guide/">RT-Thread</a>
                 </li>
     </ul>
 	    </li>
@@ -207,7 +213,9 @@ typedef struct _nnom_qformat
 </code></pre>
 
 <hr />
-<h2 id="shape">shape</h2>
+<h1 id="methods">Methods</h1>
+<hr />
+<h2 id="shape">shape()</h2>
 <pre><code class="C">nnom_shape_t shape(size_t h, size_t w, size_t c);
 </code></pre>
 
@@ -222,7 +230,7 @@ typedef struct _nnom_qformat
 <li>A shape instance. </li>
 </ul>
 <hr />
-<h2 id="kernel">kernel</h2>
+<h2 id="kernel">kernel()</h2>
 <pre><code class="C">nnom_shape_t kernel(size_t h, size_t w);
 </code></pre>
 
@@ -237,7 +245,7 @@ typedef struct _nnom_qformat
 <li>A shape instance. </li>
 </ul>
 <hr />
-<h2 id="stride">stride</h2>
+<h2 id="stride">stride()</h2>
 <pre><code class="C">nnom_shape_t stride(size_t h, size_t w);
 </code></pre>
 
@@ -252,7 +260,7 @@ typedef struct _nnom_qformat
 <li>A shape instance. </li>
 </ul>
 <hr />
-<h2 id="qformat">qformat</h2>
+<h2 id="qformat">qformat()</h2>
 <pre><code>nnom_qformat_t qformat(int8_t m, int8_t n);
 </code></pre>
 
@@ -265,10 +273,10 @@ typedef struct _nnom_qformat
 <ul>
 <li>A nnom_qformat_t inistance. </li>
 </ul>
-<p><strong>Notes</strong>
-The Q-format within model is currently handled by Python script <code>nnom_utils.py</code>. This function will be deprecated. </p>
+<p><strong>Notes</strong></p>
+<p>The Q-format within model is currently handled by Python script <code>nnom_utils.py</code>. This function will be deprecated. </p>
 <hr />
-<h2 id="shape_size">shape_size</h2>
+<h2 id="shape_size">shape_size()</h2>
 <pre><code class="C">size_t shape_size(nnom_shape_t *s);
 </code></pre>
 
