@@ -1,0 +1,24 @@
+site_name: NNoM
+
+nav:
+- Overview: 'index.md'
+
+- APIs: 
+  - Model: 'api_model.md'
+  - Construction: 'api_construction.md'
+  - Properties: 'api_properties.md'
+  - Core Layers: 'api_layers.md'
+  - Pooling: 'api_pooling.md'
+  - Activations: 'api_activations.md'
+  - Merges: 'api_merge.md'
+  - Evaluation: 'api_evaluation.md'
+- Legacy Guide:
+  - A Temporary Guide: 'A Temporary Guide to NNoM.md'
+  - Porting and Optimisation Guide: 'Porting and Optimisation Guide.md'
+  - Old Readme: 'legacy_README.md'
+- 中文: 
+  - RT-Thread: 'rt-thread_guide.md'
+  - MNIST-Simple: 'example_mnist_simple_cn.md'
+
+theme: readthedocs
+

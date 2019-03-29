@@ -1,5 +1,6 @@
 SConscript*
 .vscode
+site
 *.o
 *.txt
 *.bin
