@@ -130,13 +130,13 @@
         
             <li><a class="toctree-l4" href="#1-nnom">1. 下载并启用NNoM</a></li>
         
-            <li><a class="toctree-l4" href="#2">2. 复制三个工程文件</a></li>
+            <li><a class="toctree-l4" href="#2">2. 复制例子文件</a></li>
         
             <li><a class="toctree-l4" href="#3">3. 跑起来</a></li>
         
             <li><a class="toctree-l4" href="#4">4 建立自己的模型</a></li>
         
-            <li><a class="toctree-l4" href="#5">5 其他</a></li>
+            <li><a class="toctree-l4" href="#5">5 结语</a></li>
         
         </ul>
     
@@ -183,7 +183,9 @@
             <div class="section">
               
                 <h1 id="mnist-simple">MNIST-SIMPLE</h1>
-<p>这是一个最简单的例子。</p>
+<p><a href="http://yann.lecun.com/exdb/mnist/">MNIST</a> 是一个手写数字库，由250个人的手写数字组成。每个数字被裁剪成 28 * 28 的灰度图片。</p>
+<p><img alt="" src="../figures/example_mnist.png" /></p>
+<p>MNIST 经常被用来做为分类任务的入门数据库使用。在这个简单的例子里面，我们也用它来试试数据归类。 </p>
 <h2 id="1-nnom">1. 下载并启用NNoM</h2>
 <p>在 RT-Thread 的包管理中</p>
 <pre><code>RT-Thread online packages  ---&gt;
@@ -194,20 +196,20 @@
 *需要打开 msh 支持        
 </code></pre>
 
-<p>源码请到<a href="https://github.com/majianjia/nnom">github</a></p>
-<h2 id="2">2. 复制三个工程文件</h2>
-<p>把 <code>packages/nnom-latest/examples/mnist-simple/mcu</code> 目录下的 <code>image.h</code>, <code>weight.h</code>和 <code>main.c</code> 复制到工程目录的 <code>application/</code>。替换掉默认的 <code>main.c</code>。先不用管内容。</p>
+<p>源码请到<a href="https://github.com/majianjia/nnom">GitHub</a></p>
+<h2 id="2">2. 复制例子文件</h2>
+<p>把 <code>packages/nnom-latest/examples/mnist-simple/mcu</code> 目录下的三个文件 <code>image.h</code>, <code>weights.h</code>和 <code>main.c</code> 复制到工程目录的 <code>application/</code>。替换掉默认的 <code>main.c</code>。先不用管这三个文件的内容。</p>
 <p>（如果你是好奇宝宝：）</p>
-<blockquote>
-<p><code>image.h</code> 里面放置了 10 张从 MNIST 数据集里面随机挑选的图片。</p>
-<p><code>weight.h</code> 是 NNoM 的工具脚本自动生成的模型参数。</p>
-<p><code>main.c</code> 包含了最简单的模型初始化和 msh 交互命令。</p>
-</blockquote>
+<ul>
+<li><code>image.h</code> 里面放置了 10 张从 MNIST 数据集里面随机挑选的图片。</li>
+<li><code>weights.h</code> 是 NNoM 的工具脚本自动生成的模型参数。</li>
+<li><code>main.c</code> 包含了最简单的模型初始化和 msh 交互命令。</li>
+</ul>
 <h2 id="3">3. 跑起来</h2>
-<p>编译，下载，运行</p>
-<p>RT-Thread 启动后， 会接着打印包含在 <code>weight.h</code> 里面的模型的编译信息。</p>
+<p>用你喜欢的方式，编译，下载，运行</p>
 <h3 id="31">3.1 模型编译</h3>
-<p>在 <code>main()</code>函数里面，调用了 <code>model = nnom_model_create();</code>。这句话将会载入我们藏在 <code>weight.h</code> 里面的模型，将它编译并把信息打印出来。</p>
+<p>RT-Thread 启动后，接着会在 <code>main()</code>函数里面调用 <code>model = nnom_model_create();</code>。
+这条语句将会载入我们藏在 <code>weights.h</code> 里面的模型，将它编译并把信息打印出来。</p>
 <pre><code> \ | /
 - RT -     Thread Operating System
  / | \     4.0.0 build Mar 29 2019
@@ -237,17 +239,16 @@ INFO: memory analysis result
 <p>这里面的信息有：</p>
 <ul>
 <li>模型有三个卷积层组成，每个卷积层都使用 ReLU 进行激活 （ReLU： 大于0的数值不变，小于0的数值重新赋值为0）。</li>
-<li>三个卷积后面跟着两个 Dense 层 （Densed-connected， 也叫 fully-connected 全连接层）。</li>
+<li>三个卷积后面跟着两个 Dense 层 （Densely-connected，或者也叫 fully-connected 全连接层）。</li>
 <li>最后模型通过 Softmax 层来输出 （将数值转换成概率值）</li>
-<li>各层的内存信息，计算量 （定点乘加操作：MAC-OPS）</li>
+<li>各层的内存信息，输出的数据，计算量 （定点乘加操作：MAC-OPS）</li>
 <li>总网络内存占用 13488 bytes</li>
 </ul>
 <h3 id="32">3.2 跑个模型</h3>
-<p>之前我们介绍过 <code>image.h</code> 里面有十张图片。我们现在可以通过 <code>mnist</code> 这个命令来用他们测试一下上面的模型。</p>
-<p>命令如下, num 是 0~9 里面的任意数字。代表第几个图片（注意，并指非数字几，图片是随机拉取的）</p>
+<p>之前我们介绍过 <code>image.h</code> 里面藏有十张图片。我们现在可以通过 <code>mnist</code> 这个自定义的 MSH 命令来预测一下这十张图。</p>
+<p>命令使用方法如下, num 是 0~9 里面的任意数字。代表十张图片里面的第几个图片（注意：输入的数字并非指图片的数字，图片是随机拉取的）。</p>
 <p><code>mnist num</code></p>
-<p>我输入了 </p>
-<p><code>msh &gt;mnist 6</code></p>
+<p>我输入了 <code>msh &gt;mnist 6</code>，我要测试第六张图片。</p>
 <pre><code>msh &gt;mnist 6
 
 prediction start.. 
@@ -284,7 +285,8 @@ Truth label: 8
 Predicted label: 8
 </code></pre>
 
-<p>额，如果恶心到你了我道歉...</p>
+<p>额，如果恶心到你了，那我道歉...</p>
+<p>不要怀疑，上面那一坨是 ASCII 码表示的 28 * 28 的手写图片...</p>
 <p>输出的信息里面记录了</p>
 <ul>
 <li>此次预测的时间，这里用了 <code>62 tick</code>，我这是相当于 62ms</li>
@@ -294,12 +296,16 @@ Predicted label: 8
 <p>赶快去试试，其他的 9 张图片吧。</p>
 <p>简单的体验就到这。</p>
 <h2 id="4">4 建立自己的模型</h2>
-<p>想要在单片机上跑自己的模型，需要先学会在 Keras 里面建立一个自己的模型。</p>
-<p>参考 <code>nnom/example/mnist-simple/model</code> 里面的 <code>mnist_simple.py</code> 自行修改。</p>
-<p>*记得把 <code>nnom/scripts</code> 下的几个文件复制到以上目录。</p>
-<p>训练完成后，会生成 <code>weights.h</code> 还会生成随机图片文件 <code>image.h</code>。 接下来按照上面的操作从头来一遍就好。</p>
-<h2 id="5">5 其他</h2>
-<p>更多例子，高级用法，请查看<a href="https://majianjia.github.io/nnom/">文档</a>和<a href="https://github.com/majianjia/nnom/tree/master/examples">其他例子</a></p>
+<p>对于没有机器学习基础的同学，想要在 MCU 上跑自己的模型，需要先学会在 Keras 里面建立一个模型。</p>
+<p>在这里可以参照网络上 Keras 的教程来修改这个例子里面的模型。</p>
+<p>这个例子的模型在 <code>nnom/example/mnist-simple/model</code> 里面的 <code>mnist_simple.py</code>，请自行实践。</p>
+<p>*需要把 <code>nnom/scripts</code> 下的几个 python 脚本文件复制到以上目录。</p>
+<p>环境是 Python3 + Keras + Tensorflow。推荐使用 Anaconda 来安装 python 环境而不是 pip。</p>
+<p>模型训练完成后，会生成 <code>weights.h</code> 还会生成随机图片文件 <code>image.h</code>。 接下来按照上面的操作从头来一遍就好。</p>
+<h2 id="5">5 结语</h2>
+<p>使用 NNoM 来部署神经网络真的很简单。基础的代码不过两三行，NNoM 能轻松让你的 MCU 也神经一把~ 变成真正的 Edge AI 设备。</p>
+<p>这个例子仅使用了最简单的 API 搭建了最基础的卷积模型。</p>
+<p>高级用法和更多例子请查看<a href="https://majianjia.github.io/nnom/">API 文档</a>和<a href="https://github.com/majianjia/nnom/tree/master/examples">其他例子</a></p>
               
             </div>
           </div>
