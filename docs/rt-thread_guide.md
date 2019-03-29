@@ -1,28 +1,29 @@
 # NNoM
 
+NNoM (Neural Network on Microcontroller)
+
 ## 1. 简介
 
-NNoM 全称 Neural Network on Microcontroller
-
-专门为了神经网络在 MCU 上运行的框架。 
+NNoM是一个专门为了神经网络在 MCU 上运行的框架。 
 NNoM 是一个定点神经网络库， 现在支持 8-bit定点格式。
 当前 NNoM 支持数十种操作，卷积，池化，激活，矩阵计算等等。
-此外还支持不同的在线评估，时间统计，内存统计，Top-K 准确度，Confusion Matrix 等等。
+此外还提供多种在线评估方法，包括时间统计，内存统计，Top-K 准确度，Confusion Matrix 等等。
 
 它拥有以下优点：
 
 - **快速开发**： 电脑上训练的 Keras 模型直接转换成 C 文件。 
-- **默认纯C后端**： 移植和使用畅通无阻。
+- **默认纯C后端**： 移植和使用畅通无阻，支持32/64bit，MCU/PC。
 - **支持复杂结构**： 支持多种复杂的网络模型结构。
 - **完善的文档**： 拥有 API 文档，入门指南，优化指南。
-- **多个例子**： 多个简单到复杂的例子。
+- **入门简单**： 多个从简单到复杂的例子，完全开源。
 
-** MCU 上的神经网络能做什么？ **
+**MCU 上的神经网络能做什么？**
 
 - 语音关键词识别 （KeyWord Spotting）
 - 使用运动传感器识别活动状态 （Human Activity Recognition）
 - 神经网络控制系统 （替代PID等传统控制方法）
 - 图像处理 （带专用加速器的 MCU）
+- ...
 
 
 ** 为什么需要 NNoM **
@@ -31,7 +32,12 @@ NNoM 是一个定点神经网络库， 现在支持 8-bit定点格式。
 
 2014年后的网络，更高效，也更复杂。
 
-CMSIS-NN 之类的库太底层，不灵活，只能应用在比较传统的单路径网络上。而现在的网络从结构上做优化，导致各种各样跳跃的路径导致非常难以使用传统的底层库。。 最初， NNoM 在 CMSIS-NN 上封装了一层结构层专门用于处理复杂的网络路径并且简化了参数计算。后来 NNoM 有了自己的脚本可以一键生成相应的 C 文件，更进一步提升了使用性。
+CMSIS-NN 之类的库太底层，需要设置的参数众多，不够灵活，只能应用在比较传统的单路径网络上。
+而新的网络倾向于从结构上做优化，不可避免地需要在结构上做设计和优化。
+复杂的网络结构导致非常难以使用传统的底层库进行部署。 
+最初，NNoM 在 CMSIS-NN 上封装了一层结构层专门用于处理复杂的网络路径并且简化了参数计算。
+后来 NNoM 有了自己的脚本可以一键生成相应的 C 文件，更进一步提升了使用性。
+新的纯 C 后端也使得使用 NNoM 后，网络的部署几乎没有平台的限制。
 
 ### 1.1 目录结构
 
@@ -58,7 +64,7 @@ NNoM 使用 LGPL-3.0 许可证，详见LICENSE文件。
 
 ### 1.3 依赖
 
-无
+RT-Thread 3.0+
 
 ## 2. 获取软件包
 
@@ -92,25 +98,14 @@ NNoM 可以使用自带的 python 脚本很好地配合 Keras 来部署神经网
 
 `/examples` 下有几个不同的例子。
 
-手写数字识别 (超级简单，Msh 交互):
-
-[[mnist-simple]](https://github.com/majianjia/nnom/tree/master/examples/mnist-simple)
-
-
-使用运动传感器进行人体运动识别 
-(Inception 结构， CMSIS-NN加速，使用Y-modem发送测试数据，支持 Msh命令行交互):
-
-[[uci-inception]](https://github.com/majianjia/nnom/tree/master/examples/uci-inception)
-
-
-手写数字识别 (DenseNet 结构):
-
-[[mnist-densenet]](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)
+- [[mnist-simple]](https://github.com/majianjia/nnom/tree/master/examples/mnist-simple) 手写数字识别 (超级简单，Msh 交互)
+- [[uci-inception]](https://github.com/majianjia/nnom/tree/master/examples/uci-inception) 使用6轴运动传感器进行人体运动识别(Inception 结构， CMSIS-NN加速，使用Y-modem发送测试数据，支持 Msh命令行交互)
+- [[mnist-densenet]](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet) 手写数字识别 (DenseNet 结构)
 
 
 更多例子正在路上...
 
-- 关键词识别
+- 关键词识别例子(KeyWord Spotting)
 
 
 ### 3.3 优化
