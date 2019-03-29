@@ -120,10 +120,26 @@
     <a class="current" href="./">RT-Thread</a>
     <ul class="subnav">
             
-    <li class="toctree-l3"><a href="#nnom">nnom</a></li>
+    <li class="toctree-l3"><a href="#nnom">NNoM</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#1">1. 简介</a></li>
+        
+            <li><a class="toctree-l4" href="#2">2. 获取软件包</a></li>
+        
+            <li><a class="toctree-l4" href="#3">3. 使用软件包</a></li>
+        
+            <li><a class="toctree-l4" href="#4">4. 联系方式</a></li>
+        
+        </ul>
     
 
     </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../example_mnist_simple_cn/">MNIST-Simple</a>
                 </li>
     </ul>
 	    </li>
@@ -164,13 +180,105 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="nnom">nnom</h1>
+                <h1 id="nnom">NNoM</h1>
+<h2 id="1">1. 简介</h2>
+<p>NNoM 全称 Neural Network on Microcontroller</p>
+<p>专门为了神经网络在 MCU 上运行的框架。 
+NNoM 是一个定点神经网络库， 现在支持 8-bit定点格式。
+当前 NNoM 支持数十种操作，卷积，池化，激活，矩阵计算等等。
+此外还支持不同的在线评估，时间统计，内存统计，Top-K 准确度，Confusion Matrix 等等。</p>
+<p>它拥有以下优点：</p>
+<ul>
+<li><strong>快速开发</strong>： 电脑上训练的 Keras 模型直接转换成 C 文件。 </li>
+<li><strong>默认纯C后端</strong>： 移植和使用畅通无阻。</li>
+<li><strong>支持复杂结构</strong>： 支持多种复杂的网络模型结构。</li>
+<li><strong>完善的文档</strong>： 拥有 API 文档，入门指南，优化指南。</li>
+<li><strong>多个例子</strong>： 多个简单到复杂的例子。</li>
+</ul>
+<p><strong> MCU 上的神经网络能做什么？ </strong></p>
+<ul>
+<li>语音关键词识别 （KeyWord Spotting）</li>
+<li>使用运动传感器识别活动状态 （Human Activity Recognition）</li>
+<li>神经网络控制系统 （替代PID等传统控制方法）</li>
+<li>图像处理 （带专用加速器的 MCU）</li>
+</ul>
+<p><strong> 为什么需要 NNoM </strong></p>
+<p><img alt="" src="../figures/nnom_wdd.png" /></p>
+<p>2014年后的网络，更高效，也更复杂。</p>
+<p>CMSIS-NN 之类的库太底层，不灵活，只能应用在比较传统的单路径网络上。而现在的网络从结构上做优化，导致各种各样跳跃的路径导致非常难以使用传统的底层库。。 最初， NNoM 在 CMSIS-NN 上封装了一层结构层专门用于处理复杂的网络路径并且简化了参数计算。后来 NNoM 有了自己的脚本可以一键生成相应的 C 文件，更进一步提升了使用性。</p>
+<h3 id="11">1.1 目录结构</h3>
+<pre><code>nnom
+├───docs 
+│   ├───figures                     // 文档图片
+│   └───*.md                        // 文档
+├───examples                        // 例子
+├───inc                             // 头文件
+├───port                            // 移植文件
+├───scripts                         // 脚本工具，模型转换工具
+├───src                             // 源代码
+│   LICENSE                         // 软件包许可证
+│   README.md                       // 软件包简介
+└───SConscript                      // 构建脚本
+</code></pre>
+
+<ul>
+<li>在线文档 <a href="https://majianjia.github.io/nnom/">https://majianjia.github.io/nnom/</a></li>
+</ul>
+<h3 id="12">1.2 许可证</h3>
+<p>NNoM 使用 LGPL-3.0 许可证，详见LICENSE文件。</p>
+<h3 id="13">1.3 依赖</h3>
+<p>无</p>
+<h2 id="2">2. 获取软件包</h2>
+<pre><code>RT-Thread online packages  ---&gt;
+    miscellaneous packages  ---&gt;
+        [*] NNoM: A Higher-level Nerual Network ... ---&gt;
+</code></pre>
+
+<ul>
+<li>推荐选择 latest 版本。</li>
+<li>退出 menuconfig 后，需要使用<code>pkgs --update</code> 命令下载软件包。</li>
+</ul>
+<h2 id="3">3. 使用软件包</h2>
+<p>从<a href="https://github.com/majianjia/nnom/tree/master/examples">[例子]</a> 开始，例子从浅到深，适合直接硬干的玩家。</p>
+<p>从<a href="https://majianjia.github.io/nnom/">[在线文档]</a>开始，适合规规矩矩的大佬。</p>
+<h3 id="31">3.1 背景知识</h3>
+<ul>
+<li>Python 3 环境，推荐 Anaconda</li>
+<li>神经网络和机器学习的基本知识</li>
+</ul>
+<p>在 MCU 上做神经网络需要使用者具备一些简单的机器学习的概念，比如卷积层，全连接层， 和 <a href="https://keras.io/zh/">Keras</a> 或是其他工具的初步技巧。</p>
+<p>NNoM 可以使用自带的 python 脚本很好地配合 Keras 来部署神经网络到 MCU。所以推荐使用 Keras 来学习。</p>
+<p>如果你对机器学习和神经网络完全陌生也没有关系，<a href="https://keras.io/zh/">Keras</a> 号称30秒入门。 </p>
+<h3 id="32">3.2 例子</h3>
+<p><code>/examples</code> 下有几个不同的例子。</p>
+<p>手写数字识别 (超级简单，Msh 交互):</p>
+<p><a href="https://github.com/majianjia/nnom/tree/master/examples/mnist-simple">[mnist-simple]</a></p>
+<p>使用运动传感器进行人体运动识别 
+(Inception 结构， CMSIS-NN加速，使用Y-modem发送测试数据，支持 Msh命令行交互):</p>
+<p><a href="https://github.com/majianjia/nnom/tree/master/examples/uci-inception">[uci-inception]</a></p>
+<p>手写数字识别 (DenseNet 结构):</p>
+<p><a href="https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet">[mnist-densenet]</a></p>
+<p>更多例子正在路上...</p>
+<ul>
+<li>关键词识别</li>
+</ul>
+<h3 id="33">3.3 优化</h3>
+<p>NNoM 默认使用纯 C 后端， 同时支持 CMSIS-NN/DSP 后端。选择 CMSIS 后端后，会有5倍左右的性能提升.</p>
+<p>开启优化的方式可以查看<a href="../Porting and Optimisation Guide/">Porting and Optimisation Guide</a></p>
+<h2 id="4">4. 联系方式</h2>
+<ul>
+<li>阿嘉 （Jianjia Ma）</li>
+<li>majianjia@live.com</li>
+</ul>
+<p>感谢 Wearable Bio-Robotics Group (WBR), Loughborough University</p>
               
             </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../example_mnist_simple_cn/" class="btn btn-neutral float-right" title="MNIST-Simple">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../legacy_README/" class="btn btn-neutral" title="Old Readme"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -201,6 +309,8 @@
       
         <span><a href="../legacy_README/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
+      
+        <span style="margin-left: 15px"><a href="../example_mnist_simple_cn/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

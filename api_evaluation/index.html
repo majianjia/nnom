@@ -155,6 +155,10 @@
                     
     <a class="" href="../rt-thread_guide/">RT-Thread</a>
                 </li>
+                <li class="">
+                    
+    <a class="" href="../example_mnist_simple_cn/">MNIST-Simple</a>
+                </li>
     </ul>
 	    </li>
           
@@ -235,21 +239,22 @@ Total Memory cost (Network and NNoM): 32876
 
 <hr />
 <h2 id="nnom_predic_one">nnom_predic_one()</h2>
-<pre><code class="C">int32_t nnom_predic_one(nnom_model_t *m, int8_t *input, int8_t *output);
+<pre><code class="C">int32_t nnom_predic_one(nnom_model_t *m);
 </code></pre>
 
 <p>To predict one set of input data. This is the standalone API which does not require <code>printf()</code> to print results but only return the predicted label. </p>
+<p>This method is basicly <code>model_run()</code> + <code>index(top-1)</code></p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong>m:</strong> the model to run prediction (evaluation).</li>
-<li><strong>input:</strong> the data to predict. Can pass the buffer which has passed to Input Layer. </li>
-<li><strong>output:</strong> the data to predict. Can pass the buffer which has passed to Output Layer. </li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
 <li>The predicted label in digit. </li>
 <li>Error codes if model is failed to run.</li>
 </ul>
+<p><strong>Note</strong></p>
+<p>The input buffer of the model must be feeded before calling this method. </p>
 <hr />
 <h2 id="prediction_create">prediction_create()</h2>
 <pre><code class="C">nnom_predic_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, 
