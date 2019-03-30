@@ -96,7 +96,7 @@
     <li class="toctree-l3"><a href="#model_stat">model_stat()</a></li>
     
 
-    <li class="toctree-l3"><a href="#nnom_predic_one">nnom_predic_one()</a></li>
+    <li class="toctree-l3"><a href="#nnom_predic">nnom_predic()</a></li>
     
 
     <li class="toctree-l3"><a href="#prediction_create">prediction_create()</a></li>
@@ -238,15 +238,17 @@ Total Memory cost (Network and NNoM): 32876
 </code></pre>
 
 <hr />
-<h2 id="nnom_predic_one">nnom_predic_one()</h2>
-<pre><code class="C">int32_t nnom_predic_one(nnom_model_t *m);
+<h2 id="nnom_predic">nnom_predic()</h2>
+<pre><code class="C">int32_t nnom_predic(nnom_model_t *m, uint32_t *label, float *prob);
 </code></pre>
 
-<p>To predict one set of input data. This is the standalone API which does not require <code>printf()</code> to print results but only return the predicted label. </p>
+<p>A standalone evaluation method, run single prodiction, return probability and top-1 label. </p>
 <p>This method is basicly <code>model_run()</code> + <code>index(top-1)</code></p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong>m:</strong> the model to run prediction (evaluation).</li>
+<li><strong>label:</strong> the variable to store top-1 label.</li>
+<li><strong>prob:</strong> the variable to store probability. Range from 0~1.</li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
