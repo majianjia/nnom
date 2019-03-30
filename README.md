@@ -26,7 +26,7 @@ Examples:
 [MNIST-DenseNet example](examples/mnist-densenet)
 
 
----
+
 
 ## Why NNoM?
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
@@ -40,11 +40,14 @@ Nowadays, neural networks are **wider**, **deeper**, and **denser**.
 >[3] Huang, G., Liu, Z., Van Der Maaten, L., & Weinberger, K. Q. (2017). Densely connected convolutional networks. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 4700-4708).
 
 
-If you would like to try those more up-to-date, decent and complex structures on MCU
+After 2014, Neural network are more focus on structure optimising to improve efficiency and performance, which is more important to the small footprint platforms such as MCUs. 
+However, the available NN libs for MCU are too low-level which is make it sooooo difficult to use in these complex strucures. 
+Therefore, we build the NNoM to manage the structures for developers, even with automatic tools for automatic deploying. 
 
-NNoM can help you to build them with only a few lines of C codes, same as you did with Python in [**Keras**](https://keras.io/)
+Now with NNoM, you are free to play with these more up-to-date, decent and complex structures on MCU. 
 
----
+With [**Keras**](https://keras.io/) and our tools, deploying a model only takes a few line of codes. 
+
 
 ## Available Operations
 
@@ -66,7 +69,7 @@ NNoM can help you to build them with only a few lines of C codes, same as you di
 
 **Activations**
 
-Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](docs/A%20Temporary%20Guide%20to%20NNoM.md#addictionlly-activation-apis) to reduce memory cost.
+Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](docs/A_Temporary_Guide_to_NNoM.md#addictionlly-activation-apis) to reduce memory cost.
 
 | Actrivation | Status |Layer API|Activation API|Comments|
 | ------ |-- |--|--|--|
@@ -95,20 +98,20 @@ Activation can be used by itself as layer, or can be attached to the previous la
 | Substraction  | Beta|Sub()||
 | Dot  | Under Dev. |||
 
----
+
 
 ## Dependencies
 
 NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. 
 
----
+
 
 ## Optimization
 You can select [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. 
 
 Check [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) for detail. 
 
----
+
 
 ## Contacts
 Jianjia Ma
