@@ -106,7 +106,7 @@ NNoM now use the local pure C backend implementation by default. Thus, there is 
 ## Optimization
 You can select [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. 
 
-Check [Porting and optimising Guide](docs/Porting%20and%20Optimisation%20Guide) for detail. 
+Check [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) for detail. 
 
 ---
 
