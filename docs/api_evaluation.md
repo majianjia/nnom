@@ -52,19 +52,21 @@ Total Memory cost (Network and NNoM): 32876
 
 ---
 
-## nnom_predic_one()
+## nnom_predic()
 
 ~~~C
-int32_t nnom_predic_one(nnom_model_t *m);
+int32_t nnom_predic(nnom_model_t *m, uint32_t *label, float *prob);
 ~~~
 
-To predict one set of input data. This is the standalone API which does not require `printf()` to print results but only return the predicted label. 
+A standalone evaluation method, run single prodiction, return probability and top-1 label. 
 
 This method is basicly `model_run()` + `index(top-1)`
 
 **Arguments**
 
 - **m:** the model to run prediction (evaluation).
+- **label:** the variable to store top-1 label.
+- **prob:** the variable to store probability. Range from 0~1.
 
 **Return**
 

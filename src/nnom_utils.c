@@ -223,9 +223,9 @@ void prediction_summary(nnom_predic_t *pre)
 
 // stand alone prediction API
 // this api test one set of data, return the prediction
-int32_t nnom_predic_one(nnom_model_t *m)
+nnom_status_t nnom_predic(nnom_model_t *m, uint32_t *label, float *prob)
 {
-	int32_t max_val, max_index;
+	int32_t max_val, max_index, sum;
 	int8_t *output;
 
 	if (!m)
@@ -239,6 +239,7 @@ int32_t nnom_predic_one(nnom_model_t *m)
 	// Top 1
 	max_val = output[0];
 	max_index = 0;
+	sum = max_val;
 	for (uint32_t i = 1; i < shape_size(&m->tail->out->shape); i++)
 	{
 		if (output[i] > max_val)
@@ -246,8 +247,13 @@ int32_t nnom_predic_one(nnom_model_t *m)
 			max_val = output[i];
 			max_index = i;
 		}
+		sum += output[i];
 	}
-	return max_index;
+	// send results
+	*label = max_index;
+	*prob  = (float)max_val/(float)sum; 
+	
+	return NN_SUCCESS;
 }
 
 static void layer_stat(nnom_layer_t *layer)

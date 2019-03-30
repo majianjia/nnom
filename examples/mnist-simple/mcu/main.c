@@ -53,7 +53,8 @@ void print_img(int8_t * buf)
 void mnist(int argc, char** argv)
 {
 	uint32_t tick, time;
-	int32_t result;
+	uint32_t predic_label;
+	float prob;
 	int32_t index = atoi(argv[1]);
 	
 	if(index >= TOTAL_IMAGE || argc != 2)
@@ -67,7 +68,7 @@ void mnist(int argc, char** argv)
 	
 	// copy data and do prediction
 	memcpy(nnom_input_data, (int8_t*)&img[index][0], 784);
-	result = nnom_predic_one(model);
+	nnom_predic(model, &predic_label, &prob);
 	time = rt_tick_get() - tick;
 	
 	//print original image to console
@@ -75,7 +76,8 @@ void mnist(int argc, char** argv)
 	
 	printf("Time: %d tick\n", time);
 	printf("Truth label: %d\n", label[index]);
-	printf("Predicted label: %d\n", result);
+	printf("Predicted label: %d\n", predic_label);
+	printf("Probability: %d%%\n", (int)(prob*100));
 }
 
 FINSH_FUNCTION_EXPORT(mnist, mnist(4) );
