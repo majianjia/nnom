@@ -38,9 +38,15 @@ Nowadays, neural networks are **wider**, **deeper**, and **denser**.
 >[3] Huang, G., Liu, Z., Van Der Maaten, L., & Weinberger, K. Q. (2017). Densely connected convolutional networks. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 4700-4708).
 
 
-**If you would like to try those more up-to-date, decent and complex structures on MCU** 
+After 2014, the development of Neural Networks are more focus on structure optimising to improve efficiency and performance, which is more important to the small footprint platforms such as MCUs. 
+However, the available NN libs for MCU are too low-level which make it sooooo difficult to use with these complex strucures. 
+Therefore, we build NNoM to help developers to manage the structures, memory and parameters, even with the automatic tools for faster and simpler deploying.
 
-**NNoM can help you to build them with only a few lines of C codes**, same as you did with Python in [**Keras**](https://keras.io/)
+Now with NNoM, you are free to play with these more up-to-date, decent and complex structures on MCU.
+
+With [**Keras**](https://keras.io/) and our tools, deploying a model only takes a few line of codes.
+
+Please do check the [examples](https://github.com/majianjia/nnom/tree/master/examples).
 
 ---
 
