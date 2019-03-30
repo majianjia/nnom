@@ -12,12 +12,11 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 
 Guides:
 
-
 [RT-Thread Guide(中文指南)](rt-thread_guide.md)
 
-[The temporary guide](A%20Temporary%20Guide%20to%20NNoM)
+[The temporary guide](A Temporary Guide to NNoM.md)
 
-[Porting and optimising Guide](Porting%20and%20Optimisation%20Guide)
+[Porting and optimising Guide](Porting and Optimisation Guide.md)
 
 Examples:
 
