@@ -2,17 +2,27 @@
 
 NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. 
 
-Highlights
+**Highlights**
 
 - Deploy Keras model to NNoM model with one line of code.
+- User-friendly interfaces.
 - Support complex structures; Inception, ResNet, DenseNet...
 - High-performance backend selections.
 - Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
 
+Guides:
 
-[The temporary guide](A%20Temporary%20Guide%20to%20NNoM)
+[RT-Thread Guide(中文指南)](rt-thread_guide.md)
 
-[Porting and optimising Guide](Porting%20and%20Optimisation%20Guide)
+[The temporary guide](A_Temporary_Guide_to_NNoM.md)
+
+[Porting and optimising Guide](Porting_and_Optimisation_Guide.md)
+
+Examples:
+
+[RT-Thread-MNIST example (中文)](example_mnist_simple_cn.md)
+
+[MNIST-DenseNet example](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)
 
 ---
 
@@ -41,4 +51,4 @@ NNoM now use the local pure C backend implementation by default. Thus, there is 
 ## Optimization
 You can select [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. 
 
-Check [Porting and optimising Guide](Porting%20and%20Optimisation%20Guide) for detail. 
+Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for detail. 

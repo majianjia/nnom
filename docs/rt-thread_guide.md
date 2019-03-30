@@ -112,7 +112,7 @@ NNoM 可以使用自带的 python 脚本很好地配合 Keras 来部署神经网
 
 NNoM 默认使用纯 C 后端， 同时支持 CMSIS-NN/DSP 后端。选择 CMSIS 后端后，会有5倍左右的性能提升.
 
-开启优化的方式可以查看[Porting and Optimisation Guide](Porting and Optimisation Guide.md)
+开启优化的方式可以查看 [Porting and optimising Guide](Porting_and_Optimisation_Guide.md)
 
 
 
