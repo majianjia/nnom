@@ -2,17 +2,28 @@
 
 NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. 
 
-Highlights
+**Highlights**
 
 - Deploy Keras model to NNoM model with one line of code.
+- User-friendly interfaces.
 - Support complex structures; Inception, ResNet, DenseNet...
 - High-performance backend selections.
 - Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
 
+Guides:
+
+
+[RT-Thread Guide(中文指南)](rt-thread_guide.md)
 
 [The temporary guide](A%20Temporary%20Guide%20to%20NNoM)
 
 [Porting and optimising Guide](Porting%20and%20Optimisation%20Guide)
+
+Examples:
+
+[RT-Thread-MNIST example (中文)](example_mnist_simple_cn.md)
+
+[MNIST-DenseNet example](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)
 
 ---
 

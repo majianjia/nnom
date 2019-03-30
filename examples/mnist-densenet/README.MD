@@ -21,6 +21,14 @@ The two typical graphs shows the basic ideas:
 
 Implementing the DenseNet using NNoM is quite straightforward. 
 
+The codes in the example uses the automatic tools `generate_model(model, x_test[:10], name=weights)` to deploy the Keras DenseNet model into `weights.h`. 
+
+Then the call in C file `model = nnom_model_create();` will load and compile the model in MCU side. 
+
+## Build it manually
+
+Building it manually is recommended if you want to gain more controll or if you want to try some new network which the automatic tools have yet support. 
+
 The codes below shows an exmaple of using 1 dense block.
 
 ~~~C
@@ -33,10 +41,6 @@ nnom_layer_t * dense_block(nnom_model_t* model, nnom_layer_t * in)
 	
 	x[1] = model->hook(Conv2D(32, kernel(3, 3), stride(1, 1), PADDING_SAME, &c1_w, &c1_b), x[0]);
 	x[1] = model->active(act_relu(), x[1]);
-	// the above line can be replaced by one of the next 2 line. They logically perfrom the same
-	// please check "actail" and activation API for more detail
-	// x[1] = model->hook(ReLU(), x[1]); 
-	// x[1] = model->hook(Activation(act_relu()), x[1]); 
 
 	// concate 1,2 (Concate(-1), means concat by last axis, which is channel in HWC format)
 	x[2] = model->mergex(Concat(-1), 2, x[0], x[1]); 
@@ -91,13 +95,3 @@ int main()
 
 ~~~
 
-
-## Environments 
-The example implementation is based on [RT-Thread](https://github.com/RT-Thread/rt-thread).
-
-It uses Y-Modem, memory apis, consolse, ringbuffers which provided by RT-Thread
-
-The targeted microcontroller is STM32L476
-
-
-The detailed tutorial comes later. 
