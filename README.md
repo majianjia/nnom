@@ -1,5 +1,6 @@
 
 # Neural Network on Microcontroller (NNoM)
+[![Build Status](https://travis-ci.org/majianjia/nnom.svg?branch=master)](https://travis-ci.org/majianjia/nnom)
 
 NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. 
 
@@ -21,11 +22,9 @@ Guides:
 
 Examples:
 
-[RT-Thread-MNIST example (中文)](https://majianjia.github.io/nnom/example_mnist_simple_cn/)
-
 [MNIST-DenseNet example](examples/mnist-densenet)
 
-
+[RT-Thread-MNIST example (中文)](https://majianjia.github.io/nnom/example_mnist_simple_cn/)
 
 
 ## Why NNoM?
@@ -40,13 +39,13 @@ Nowadays, neural networks are **wider**, **deeper**, and **denser**.
 >[3] Huang, G., Liu, Z., Van Der Maaten, L., & Weinberger, K. Q. (2017). Densely connected convolutional networks. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 4700-4708).
 
 
-After 2014, Neural network are more focus on structure optimising to improve efficiency and performance, which is more important to the small footprint platforms such as MCUs. 
-However, the available NN libs for MCU are too low-level which is make it sooooo difficult to use in these complex strucures. 
-Therefore, we build the NNoM to manage the structures for developers, even with automatic tools for automatic deploying. 
+After 2014, the development of Neural Networks are more focus on structure optimising to improve efficiency and performance, which is more important to the small footprint platforms such as MCUs. 
+However, the available NN libs for MCU are too low-level which make it sooooo difficult to use with these complex strucures. 
+Therefore, we build the NNoM to help developers to manage the structures, memory and parameters, even with the automatic tools for fast deploying. 
 
 Now with NNoM, you are free to play with these more up-to-date, decent and complex structures on MCU. 
 
-With [**Keras**](https://keras.io/) and our tools, deploying a model only takes a few line of codes. 
+With [**Keras**](https://keras.io/) and our tools, deploying a model only takes a few line of codes, please do check the [examples](examples/).
 
 
 ## Available Operations
