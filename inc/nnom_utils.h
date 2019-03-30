@@ -73,7 +73,7 @@ void prediction_summary(nnom_predic_t *pre);
 // this api test one set of data, return the prediction
 // return the predicted label
 // return NN_ARGUMENT_ERROR if parameter error
-int32_t nnom_predic_one(nnom_model_t *m); 
+nnom_status_t nnom_predic(nnom_model_t *m, uint32_t *label, float *prob);
 
 void model_stat(nnom_model_t *m);
 

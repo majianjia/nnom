@@ -123,6 +123,8 @@ prediction start..
 Time: 62 tick
 Truth label: 8
 Predicted label: 8
+Probability: 100%
+
 ~~~
 
 额，如果恶心到你了，那我道歉...
@@ -134,6 +136,7 @@ Predicted label: 8
 - 此次预测的时间，这里用了 `62 tick`，我这是相当于 62ms
 - 这张图片的真实数字是 `8`
 - 网络计算的这张照片的数字 `8`
+- 可能性是100%
 
 赶快去试试，其他的 9 张图片吧。
 
