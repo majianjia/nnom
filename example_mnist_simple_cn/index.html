@@ -186,6 +186,11 @@
 <p><a href="http://yann.lecun.com/exdb/mnist/">MNIST</a> 是一个手写数字库，由250个人的手写数字组成。每个数字被裁剪成 28 * 28 的灰度图片。</p>
 <p><img alt="" src="../figures/example_mnist.png" /></p>
 <p>MNIST 经常被用来做为分类任务的入门数据库使用。在这个简单的例子里面，我们也用它来试试数据归类。 </p>
+<p>这个例子建造了一个卷积网络。这个网络主要包括卷积层（Convolution layer）和全连接层 (Densely-connected，或者也叫 Fully-connected layer). </p>
+<p><img alt="Architecture of a CNN." src="../figures/Typical_cnn.png" /></p>
+<p><a href="https://www.mathworks.com/videos/introduction-to-deep-learning-what-are-convolutional-neural-networks--1489512765771.html">Image source</a></p>
+<p>卷积网络大概是上图所示（这里用的层数不同），每一层通过一定大小的卷积核从上一层提取一定的特征。
+这些特征最后通过全连接层选择后，会选择性激活某个类型的标签。标签对应的数值越大，可能性越大。</p>
 <h2 id="1-nnom">1. 下载并启用NNoM</h2>
 <p>在 RT-Thread 的包管理中</p>
 <pre><code>RT-Thread online packages  ---&gt;
