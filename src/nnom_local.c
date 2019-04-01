@@ -140,7 +140,6 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
             for (i_x = 0; i_x < dim_im_out_x; i_x++)
             {
                 int sum = 0;
-                int count = 0;
                 for (k_y = i_y * stride_y - padding_y; k_y < i_y * stride_y - padding_y + dim_kernel_y; k_y++)
                 {
                     for (k_x = i_x * stride_x - padding_x; k_x < i_x * stride_x - padding_x + dim_kernel_x; k_x++)
@@ -148,7 +147,6 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
                         if (k_y >= 0 && k_x >= 0 && k_y < dim_im_in_y && k_x < dim_im_in_x)
                         {
                             sum += Im_in[i_ch_in + ch_im_in * (k_x + k_y * dim_im_in_x)];
-                            count++;
                         }
                     }
                 }
@@ -481,32 +479,38 @@ void local_fully_connected_q7(const q7_t *pV,               // pointer to vector
 }
 
 
-void local_batchnormalization_HWC_q7(const q7_t *Im_in,           // input image
+// not working 
+void local_batchnormalization_HWC_q7(const q7_t *Im_in,       // input image
 								 const uint16_t dim_im_in_x,  // input image dimention x
 								 const uint16_t dim_im_in_y,  // input image dimention y
 								 const uint16_t ch_im_in,     // number of input image channels
-								 const q7_t *wt,              // kernel weights
-								 const q7_t *bias,            // bias
+								 const q7_t *gamma,           // 
+								 const q7_t *beta,            // bias
+								 const q7_t *var,             // 
+								 const q7_t *mean,            // bias	
 								 const uint16_t bias_shift,   // amount of left-shift for bias
 								 const uint16_t out_shift,    // amount of right-shift for output
 								 q7_t *Im_out)                // output image
 {
-    int i, j, c;
+    int i, j, ch;
     int output;
 
-    for (c = 0; c < ch_im_in; c++)
-    {
-        for (i = 0; i < dim_im_in_y; i++)
-        {
-            for (j = 0; j < dim_im_in_x; j++)
-            {
+
+	for (i = 0; i < dim_im_in_y; i++)
+	{
+		for (j = 0; j < dim_im_in_x; j++)
+		{
+			uint32_t offset = (i * dim_im_in_x + j) * ch_im_in;
+			
+			for (ch = 0; ch < ch_im_in; ch++)
+			{
 #ifndef NNOM_TRUNCATE
-                output = ((q31_t)(bias[c]) << bias_shift) + (0x1 << (out_shift - 1));
+                output = ((q31_t)(beta[ch]) << bias_shift) + (0x1 << (out_shift - 1));
 #else
                 output = bias[c] << bias_shift;
 #endif
-				output = output + Im_in[c + (i * dim_im_in_x + j) * ch_im_in] * wt[c];
-                Im_out[c + (i * dim_im_in_x + j) * ch_im_in] = (q7_t)__NNOM_SSAT((output >> out_shift), 8);
+				output = output + Im_in[ch + offset] * gamma[ch];
+                Im_out[ch + offset] = (q7_t)__NNOM_SSAT((output >> out_shift), 8);
             }
         }
     }

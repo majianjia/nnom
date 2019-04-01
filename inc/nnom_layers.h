@@ -56,8 +56,10 @@ typedef struct _nnom_dense_layer_t
 typedef struct _nnom_batchnorm_layer_t
 {
 	nnom_layer_t super;
-	const nnom_weight_t *weights;
-	const nnom_bias_t *bias;
+	const nnom_weight_t *gamma;
+	const nnom_bias_t *beta;
+	const nnom_bias_t *mean;
+	const nnom_bias_t *variance;
 	int8_t output_shift;
 	int8_t bias_shift;
 } nnom_batchnorm_layer_t;
@@ -210,7 +212,7 @@ nnom_layer_t *DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nno
 						const nnom_weight_t *w, const nnom_bias_t *b);
 
 // batch normalization
-nnom_layer_t *BatchNorm(const nnom_weight_t *w, const nnom_bias_t *b);
+// nnom_layer_t *BatchNorm(const nnom_weight_t *w, const nnom_bias_t *b);
 
 // fully connected, dense
 nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_t *b);

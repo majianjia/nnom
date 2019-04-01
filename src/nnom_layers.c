@@ -217,10 +217,10 @@ nnom_layer_t *BatchNorm(const nnom_weight_t *w, const nnom_bias_t *b)
 	layer->super.comp_out_shape = default_out_shape; // input = output shape. 
 
 	// set parameters
-	layer->bias = b;
-	layer->weights = w;
-	layer->output_shift = w->shift;
-	layer->bias_shift = b->shift; 
+//	layer->bias = b;
+//	layer->weights = w;
+//	layer->output_shift = w->shift;
+//	layer->bias_shift = b->shift; 
 
 	return (nnom_layer_t*)layer;
 }
