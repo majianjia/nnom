@@ -45,6 +45,7 @@ typedef enum
 	NNOM_OUTPUT,
 	NNOM_CONV_2D,
 	NNOM_DW_CONV_2D,
+	NNOM_BATCHNORM,
 	NNOM_DENSE,
 	NNOM_RNN,
 	NNOM_ACTIVATION,
@@ -76,6 +77,7 @@ typedef enum
 			"Output",       \
 			"Conv2D",       \
 			"DW_Conv2D",    \
+			"BatchNorm",	\
 			"Dense",        \
 			"RNN",          \
 			"Activation",   \

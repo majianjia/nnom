@@ -107,7 +107,6 @@ void local_maxpool_q7_HWC(const q7_t *Im_in,           // input image
     }
 }
 
-
 // temporary for the thesis
 // shift according to the maximum
 int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
@@ -479,6 +478,39 @@ void local_fully_connected_q7(const q7_t *pV,               // pointer to vector
         }
         pOut[i] = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
     }
+}
+
+
+void local_batchnormalization_HWC_q7(const q7_t *Im_in,           // input image
+								 const uint16_t dim_im_in_x,  // input image dimention x
+								 const uint16_t dim_im_in_y,  // input image dimention y
+								 const uint16_t ch_im_in,     // number of input image channels
+								 const q7_t *wt,              // kernel weights
+								 const q7_t *bias,            // bias
+								 const uint16_t bias_shift,   // amount of left-shift for bias
+								 const uint16_t out_shift,    // amount of right-shift for output
+								 q7_t *Im_out)                // output image
+{
+    int i, j, c;
+    int output;
+
+    for (c = 0; c < ch_im_in; c++)
+    {
+        for (i = 0; i < dim_im_in_y; i++)
+        {
+            for (j = 0; j < dim_im_in_x; j++)
+            {
+#ifndef NNOM_TRUNCATE
+                output = ((q31_t)(bias[c]) << bias_shift) + (0x1 << (out_shift - 1));
+#else
+                output = bias[c] << bias_shift;
+#endif
+				output = output + Im_in[c + (i * dim_im_in_x + j) * ch_im_in] * wt[c];
+                Im_out[c + (i * dim_im_in_x + j) * ch_im_in] = (q7_t)__NNOM_SSAT((output >> out_shift), 8);
+            }
+        }
+    }
+
 }
 
 void local_softmax_q7(const q7_t *vec_in, const uint32_t dim_vec, q7_t *p_out)

@@ -291,6 +291,22 @@ nnom_status_t dense_run(nnom_layer_t *layer)
 	return result;
 }
 
+nnom_status_t batchnorm_run(nnom_layer_t *layer)
+{
+	nnom_status_t result = NN_SUCCESS;
+	nnom_batchnorm_layer_t *cl = (nnom_batchnorm_layer_t *)(layer);
+	
+	local_batchnormalization_HWC_q7(layer->in->mem->blk,
+									layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+									cl->weights->p_value,
+									cl->bias->p_value,
+									cl->bias_shift,
+									cl->output_shift,
+									layer->out->mem->blk);
+									
+	return result;
+}
+
 nnom_status_t activation_run(nnom_layer_t *layer)
 {
 	nnom_activation_layer_t *cl = (nnom_activation_layer_t *)layer;

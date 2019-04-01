@@ -116,6 +116,7 @@ def is_shift_layer(layer):
        'conv1d' in layer.name or
        'dense' in layer.name or
        'softmax' in layer.name or
+       'batch_normalization' in layer.name or
        ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')
     ):
         return True
@@ -133,12 +134,15 @@ def generate_weights(model, name='weights.h', shift_list=None):
         print('weights for layer', layer.name)
         for var in layer.weights:
             var_name = str(var.name)
-            if("kernel" in var_name):
+            if("kernel" in var_name or 'gamma' in var_name): # gamma and beta are for batchnormalization
                 var_values = layer.get_weights()[0] # weight
                 print("  weight:", var_name)
-            else:
+            elif("bias" in var_name or'beta' in var_name):
                 var_values = layer.get_weights()[1] # bias
                 print("  bias: ",var_name)
+            else:
+                continue        # parameters suchas mean and ? in bn layer are not needed.
+
             print("  original shape: ", var_values.shape)
 
             min_value = np.min(var_values)
@@ -152,7 +156,7 @@ def generate_weights(model, name='weights.h', shift_list=None):
                 bSameAsKernel = False
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 input_encoding = shift_list[inp]
-                if ("kernel" in var_name):
+                if ("kernel" in var_name or "gamma" in var_name):
                     weight_dec_shift = dec_bits
                 else:
                     shift = input_encoding+weight_dec_shift-dec_bits
@@ -160,7 +164,7 @@ def generate_weights(model, name='weights.h', shift_list=None):
                         bSameAsKernel = True
             if(shift_list is None or bSameAsKernel):
                 # check if bias shift > weight shift, then reduce bias shift to weight shift	
-                if ("kernel" in var_name):	
+                if ("kernel" in var_name or "gamma" in var_name):
                     weight_dec_shift = dec_bits	
                 else:	
                     if(dec_bits > weight_dec_shift):	
@@ -195,6 +199,10 @@ def generate_weights(model, name='weights.h', shift_list=None):
                 if ("bias" in var_name):
                     f.write('#define ' + var_name.upper() + '_SHIFT ' + '(' + str(dec_bits) + ')\n\n\n')
                 if ("kernel" in var_name):
+                    f.write('#define ' + var_name.upper() + '_SHIFT ' + '(' + str(dec_bits) + ')\n\n')
+                if ("gamma" in var_name):
+                    f.write('#define ' + var_name.upper() + '_SHIFT ' + '(' + str(dec_bits) + ')\n\n\n')
+                if ("beta" in var_name):
                     f.write('#define ' + var_name.upper() + '_SHIFT ' + '(' + str(dec_bits) + ')\n\n')
 
             with K.tf.Session() as session:
@@ -301,9 +309,12 @@ def generate_model(model, x_test, name='weights.h'):
         for layer in model.layers:
             if(is_shift_layer(layer)):
                 iname = layer.name.upper()
-                if(len(layer.weights) == 2 and
+                if((len(layer.weights) == 2 and         # other
                    'kernel' in layer.weights[0].name and
-                   'bias' in layer.weights[1].name):
+                   'bias' in layer.weights[1].name) or
+                   (len(layer.weights) == 4 and         # batch normal
+                    'gamma' in layer.weights[0].name and
+                    'beta' in layer.weights[1].name)):
                     kname = layer.weights[0].name.upper().replace('/', '_').replace(':', '_')
                     bname = layer.weights[1].name.upper().replace('/', '_').replace(':', '_')
                     inp = layer.input.name.replace(':','/').split('/')[0].upper()
@@ -313,6 +324,7 @@ def generate_model(model, x_test, name='weights.h'):
                             iname, inp, kname, bname))
                     fp.write('#if {0}_OUTPUT_RSHIFT < 0\n#error {0}_OUTPUT_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
                     fp.write('#if {0}_BIAS_LSHIFT < 0\n#error {0}_BIAS_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
+
         fp.write('\n/* weights for each layer */\n')
         LI = {}
         ID = 0
@@ -338,10 +350,10 @@ def generate_model(model, x_test, name='weights.h'):
                 continue
             for var in layer.weights:
                 var_name = str(var.name).replace('/', '_').replace(':', '_')
-                if("kernel" in var_name):
+                if("kernel" in var_name or "gamma" in var_name):
                     fp.write('static const int8_t %s_weights[] = %s;\n'%(layer.name, var_name.upper()))
                     fp.write('static const nnom_weight_t %s_w = { (const void*)%s_weights, %s_OUTPUT_RSHIFT};\n'%(layer.name,layer.name, layer.name.upper()))
-                else:
+                elif("bias" in var_name or "beta" in var_name):
                     fp.write('static const int8_t %s_bias[] = %s;\n'%(layer.name, var_name.upper()))
                     fp.write('static const nnom_bias_t %s_b = { (const void*)%s_bias, %s_BIAS_LSHIFT};\n'%(layer.name,layer.name, layer.name.upper()))
         fp.write('\n/* nnom model */\n')
@@ -357,7 +369,7 @@ def generate_model(model, x_test, name='weights.h'):
         fp.write('static nnom_model_t* nnom_model_create(void)\n{\n')
         fp.write('\tstatic nnom_model_t model;\n')
         if(ID>32):
-            fp.write('\tnnom_layer_t ** layer = malloc(sizeof(nnom_layer_t *)*%d)\n'%(ID+1))
+            fp.write('\tnnom_layer_t ** layer = malloc(sizeof(nnom_layer_t *)*%d);\n'%(ID+1))
             fp.write('\tif(NULL == layer) return NULL;\n')
         else:
             fp.write('\tnnom_layer_t* layer[%d];\n'%(ID+1))
@@ -457,6 +469,11 @@ def generate_model(model, x_test, name='weights.h'):
                 cfg = layer.get_config()
                 fp.write('\tlayer[%s] = model.mergex(Concat(%s), %s%s);\n'%(
                     id, cfg['axis'], len(inps), inX))
+            elif('batch_normalization' in layer.name):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                cfg = layer.get_config()
+                fp.write('\tlayer[{0}] = model.hook(BatchNorm(&{1}_w, &{1}_b), layer[{2}]);\n'.format(
+                    id, layer.name, LI[inp][0]))
             elif('dense' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
