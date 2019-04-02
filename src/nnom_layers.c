@@ -188,44 +188,6 @@ nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_
 	return (nnom_layer_t *)layer;
 }
 
-// Batchnormalization
-nnom_layer_t *BatchNorm(const nnom_weight_t *w, const nnom_bias_t *b)
-{
-	nnom_batchnorm_layer_t *layer;
-	nnom_layer_io_t *in, *out;
-
-	// apply a block memory for all the sub handles.
-	size_t mem_size = sizeof(nnom_batchnorm_layer_t) + sizeof(nnom_layer_io_t) * 2;
-	layer = nnom_mem(mem_size);
-	if (layer == NULL)
-		return NULL;
-
-	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_batchnorm_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
-
-	// set type in layer parent
-	layer->super.type = NNOM_BATCHNORM;
-	// set buf type
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
-	// put in & out on the layer.
-	layer->super.in = io_init(layer, in);
-	layer->super.out = io_init(layer, out);
-	// set run and outshape methods
-	layer->super.run = batchnorm_run;
-	layer->super.comp_out_shape = default_out_shape; // input = output shape. 
-
-	// set parameters
-//	layer->bias = b;
-//	layer->weights = w;
-//	layer->output_shift = w->shift;
-//	layer->bias_shift = b->shift; 
-
-	return (nnom_layer_t*)layer;
-}
-
-
 // up sampling or unpooling layer
 nnom_layer_t *UpSample(nnom_shape_t kernel)
 {

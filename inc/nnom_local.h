@@ -177,18 +177,6 @@ void local_fully_connected_q7(const q7_t * pV,    // pointer to vector
                                 const q7_t * bias, q7_t * pOut, // output operand
                                 q15_t * vec_buffer);
 
-// not working 
-void local_batchnormalization_HWC_q7(const q7_t *Im_in,           // input image
-								 const uint16_t dim_im_in_x,  // input image dimention x
-								 const uint16_t dim_im_in_y,  // input image dimention y
-								 const uint16_t ch_im_in,     // number of input image channels
-								 const q7_t *gamma,           // 
-								 const q7_t *beta,            // bias
-								 const q7_t *var,           // 
-								 const q7_t *mean,            // bias	
-								 const uint16_t bias_shift,   // amount of left-shift for bias
-								 const uint16_t out_shift,    // amount of right-shift for output
-								 q7_t *Im_out);                // output image
 
 // softmax
 void local_softmax_q7(const q7_t * vec_in, const uint32_t dim_vec, q7_t * p_out);

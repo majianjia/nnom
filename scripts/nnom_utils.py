@@ -22,7 +22,7 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from keras.engine.input_layer import InputLayer
-from keras.layers import Lambda
+from keras.layers import Lambda, BatchNormalization
 from keras.models import Model
 from keras import backend as K
 from sklearn import metrics
@@ -131,12 +131,18 @@ def generate_weights(model, name='weights.h', shift_list=None):
         if (not layer.weights):
             continue
 
+        # before merging bn layer, check if the bn is "legally" after Conv
+        if('batch_normalization' in layer.name) and \
+            ('conv2d' not in layer._inbound_nodes[0].inbound_layers[0].name):
+            raise  Exception('Currently only support batch_normalization after conv2d', layer.name,
+                             layer._inbound_nodes[0].inbound_layers[0].name)
+
         # try to fuse BN layer to convolutional
-        if (curr_idx < len(model.layers) - 1) and \
-            ('conv2d' in layer.name) and \
-            ('batch_normalization' in model.layers[curr_idx+1].name):
+        if ('conv2d' in layer.name) and \
+            ('batch_normalization' in layer._outbound_nodes[0].outbound_layer.name):
+
             print("fusing batch normalization to", layer.name)
-            bn_layer = model.layers[curr_idx+1]
+            bn_layer = layer._outbound_nodes[0].outbound_layer
             c_w = layer.get_weights()[0]
             c_b = layer.get_weights()[1]
             print('original weight max', c_w.max(), 'min', c_w.min())
@@ -239,7 +245,8 @@ def generate_weights(model, name='weights.h', shift_list=None):
                     f.write('#define ' + var_name.upper() + '_SHIFT ' + '(' + str(dec_bits) + ')\n\n\n')
                 if ("kernel" in var_name ):
                     f.write('#define ' + var_name.upper() + '_SHIFT ' + '(' + str(dec_bits) + ')\n\n')
-
+            """
+            # for checking the quantised and dequantised range. 
             with K.tf.Session() as session:
                 # convert back original range but quantized to 8-bits or 256 levels
                 var_values = var_values / (2 ** dec_bits)
@@ -248,6 +255,7 @@ def generate_weights(model, name='weights.h', shift_list=None):
                   ' dec bits: ' + str(dec_bits) + \
                   ' max: (' + str(np.max(var_values)) + ',' + str(max_value) + ')' + \
                   ' min: (' + str(np.min(var_values)) + ',' + str(min_value) + ')')
+            """
 
 def layers_output_ranges(model, x_test):
     # test, show the output ranges

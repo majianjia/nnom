@@ -26,7 +26,6 @@ nnom_status_t flatten_run(nnom_layer_t *layer);
 nnom_status_t dw_conv2d_run(nnom_layer_t *layer);
 nnom_status_t conv2d_run(nnom_layer_t *layer);
 nnom_status_t dense_run(nnom_layer_t *layer);
-nnom_status_t batchnorm_run(nnom_layer_t *layer);
 nnom_status_t rnn_run(nnom_layer_t *layer);
 nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer);
 

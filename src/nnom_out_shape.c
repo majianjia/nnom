@@ -96,7 +96,8 @@ nnom_status_t conv2d_out_shape(nnom_layer_t *layer)
 		out->shape.c = cl->filter_mult;
 	}
 	// bufferA size: (1D shape)
-	layer->comp->shape = shape(1, 2 * 2 * layer->out->shape.c * cl->kernel.w * cl->kernel.h, 1);
+	// 2*ch_im_in*dim_kernel*dim_kernel
+	layer->comp->shape = shape(2 * 2 * layer->in->shape.c * cl->kernel.w * cl->kernel.h, 1, 1);
 	// computational cost: K x K x Cin x Hour x Wout x Cout
 	layer->stat.macc = cl->kernel.w * cl->kernel.h * in->shape.c * out->shape.w * out->shape.h * out->shape.c;
 	return NN_SUCCESS;
@@ -124,7 +125,7 @@ nnom_status_t dw_conv2d_out_shape(nnom_layer_t *layer)
 		out->shape.c = in->shape.c * cl->filter_mult;
 	}
 	// bufferA size: (1D shape)
-	layer->comp->shape = shape(1, 2 * 2 * (layer->out->shape.c / cl->filter_mult) * cl->kernel.w * cl->kernel.h, 1);
+	layer->comp->shape = shape(2 * 2 * (layer->in->shape.c / cl->filter_mult) * cl->kernel.w * cl->kernel.h, 1, 1);
 
 	// computational cost: K x K x Cin x Hour x Wout x Multiplier
 	layer->stat.macc = cl->kernel.w * cl->kernel.h * in->shape.c * out->shape.w * out->shape.h * cl->filter_mult;
@@ -149,8 +150,8 @@ nnom_status_t dense_out_shape(nnom_layer_t *layer)
 	out->shape.w = 1;
 	out->shape.c = 1;
 
-	// vec_buffer size: dim_vec
-	layer->comp->shape = shape(1, in->shape.h, 1);
+	// vec_buffer size: dim_vec (*2, q7->q15)
+	layer->comp->shape = shape(shape_size(&in->shape)*2, 1, 1);
 
 	// computational cost: In * out
 	layer->stat.macc = in->shape.h * out->shape.h;
@@ -221,11 +222,15 @@ nnom_status_t maxpooling_out_shape(nnom_layer_t *layer)
 
 nnom_status_t avgpooling_out_shape(nnom_layer_t *layer)
 {
+	uint32_t size;
 	// avg pooling share the same output shape, stride, padding setting.
 	maxpooling_out_shape(layer);
 
 	// however, avg pooling require a computational buffer.
-	layer->comp->shape = shape(2 * 1 * layer->in->shape.c, 1, 1);
+	//  bufferA size:  2*dim_im_out*ch_im_in
+	size = layer->out->shape.w > layer->out->shape.h ? 
+						layer->out->shape.w : layer->out->shape.h;
+	layer->comp->shape = shape(2 * size * layer->in->shape.c, 1, 1);
 
 	return NN_SUCCESS;
 }
@@ -280,7 +285,12 @@ nnom_status_t global_pooling_out_shape(nnom_layer_t *layer)
 
 	// additionally avg pooling require computational buffer, which is  2*dim_im_out*ch_im_in
 	if (layer->type == NNOM_AVGPOOL || layer->type == NNOM_GLOBAL_AVGPOOL)
-		layer->comp->shape = shape(2 * 1 * layer->in->shape.c, 1, 1);
+	{
+		//  bufferA size:  2*dim_im_out*ch_im_in
+		uint32_t size = layer->out->shape.w > layer->out->shape.h ? 
+							layer->out->shape.w : layer->out->shape.h;
+		layer->comp->shape = shape(2 * size * layer->in->shape.c, 1, 1);
+	}
 	
 	// additionally sumpool
 	if (layer->type == NNOM_SUMPOOL || layer->type == NNOM_GLOBAL_SUMPOOL)
@@ -312,11 +322,8 @@ nnom_status_t concatenate_out_shape(nnom_layer_t *layer)
 	if (cl->axis >= shape_element_num || cl->axis <= -shape_element_num)
 		return NN_ARGUMENT_ERROR;
 
-	// last axis, shape c
-	if (cl->axis < 0)
-		offset = shape_element_num + cl->axis;
-	else
-		offset = cl->axis;
+	// find the axis to concat
+	offset = cl->axis;
 
 	// do the work
 	for (uint32_t i = 0; i < shape_element_num * sizeof(nnom_shape_data_t); i += sizeof(nnom_shape_data_t))

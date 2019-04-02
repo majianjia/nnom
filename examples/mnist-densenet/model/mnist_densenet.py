@@ -30,7 +30,6 @@ model_name = 'mnist_model.h5'
 save_dir = model_name #os.path.join(os.getcwd(), model_name)
 
 def dense_block(x, k):
-
     x1 = Conv2D(k, kernel_size=(3, 3), strides=(1,1), padding="same")(x)
     x1 = BatchNormalization()(x1)
     x1 = ReLU()(x1)
@@ -49,10 +48,9 @@ def dense_block(x, k):
     x4 = Conv2D(k, kernel_size=(3, 3), strides=(1,1), padding="same")(x4)
     x4 = BatchNormalization()(x4)
     x4 = ReLU()(x4)
-
-    x = concatenate([x, x1, x2, x3, x4], axis=-1)
-
-    return  BatchNormalization()(x)
+    
+    x5 = concatenate([x, x1, x2, x3, x4], axis=-1)
+    return x5
 
 def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
 
@@ -62,19 +60,23 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     x = ReLU()(x)
     x = MaxPool2D((2,2), strides=(2,2))(x)
 
-    x = Conv2D(24, kernel_size=(3, 3), strides=(1, 1), padding='same')(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-    x = MaxPool2D((2,2), strides=(2,2))(x)
-
     # dense block 1
     x = dense_block(x, k=12)
 
-    x = Dropout(0.3)(x)
-    x = Conv2D(10, kernel_size=(3, 3), strides=(1, 1), padding='same')(x)
+    # bottleneck
+    x = Conv2D(36, kernel_size=(1, 1), strides=(1, 1), padding="same")(x)
+    x = BatchNormalization()(x)
     x = ReLU()(x)
+    x = MaxPool2D((2, 2), strides=(2, 2))(x)
+
+    # dense block 2
+    x = dense_block(x, k=12)
+
+    x = Conv2D(48, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
+    x = Dropout(0.3)(x)
     x = Flatten()(x)
     x = Dense(10)(x)
+
     predictions = Softmax()(x)
 
     model = Model(inputs=inputs, outputs=predictions)
@@ -94,7 +96,7 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
             period=1)
     callback_lists = [checkpoint]
 
-    history =  model.fit(x_train, y_train,
+    history = model.fit(x_train, y_train,
               batch_size=batch_size,
               epochs=epochs,
               verbose=2,
@@ -106,16 +108,14 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     K.clear_session()
     return history
 
-
 def main(weights='weights.h'):
-
     epochs = 5
     num_classes = 10
 
-    # select different dataset for testing.
+    # select different dataset as you wish
     dataset = 'mnist'
     #dataset = 'cifar'
-    if(dataset):
+    if(dataset in 'mnist'):
         (x_train, y_train), (x_test, y_test) = mnist.load_data()
         # add channel dimension for mnist data
         x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], x_train.shape[2], 1)
@@ -158,9 +158,9 @@ def main(weights='weights.h'):
             raise Exception('test failed, accuracy is %.1f%% < 80%%'%(rP*100.0/i))
 
     # generate binary
-    if(not os.path.exists('mnist_test_data.bin')):
+    if(not os.path.exists(dataset+'_test_data.bin')):
         # recover the range to 0~127 for MCU
-        generate_test_bin(x_test*127, y_test, name='mnist_test_data.bin')
+        generate_test_bin(x_test*127, y_test, name=dataset+'_test_data.bin')
 
     # train model
     if(not os.path.exists(save_dir)):
@@ -183,7 +183,7 @@ def main(weights='weights.h'):
     evaluate_model(model, x_test, y_test)
 
     # convert to model on nnom
-    generate_model(model, x_test[:10], name=weights)
+    generate_model(model, x_test[:100], name=weights)
 
     return model,x_train,y_train,x_test,y_test
 
