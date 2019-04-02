@@ -30,66 +30,52 @@ model_name = 'mnist_model.h5'
 save_dir = model_name #os.path.join(os.getcwd(), model_name)
 
 def dense_block(x, k):
-
     x1 = Conv2D(k, kernel_size=(3, 3), strides=(1,1), padding="same")(x)
-    x1 = fake_clip()(x1)
+    x1 = BatchNormalization()(x1)
     x1 = ReLU()(x1)
 
     x2 = concatenate([x, x1],axis=-1)
     x2 = Conv2D(k, kernel_size=(3, 3), strides=(1,1), padding="same")(x2)
-    x2 = fake_clip()(x2)
+    x2 = BatchNormalization()(x2)
     x2 = ReLU()(x2)
 
     x3 = concatenate([x, x1, x2],axis=-1)
     x3 = Conv2D(k, kernel_size=(3, 3), strides=(1,1), padding="same")(x3)
-    x3 = fake_clip()(x3)
+    x3 = BatchNormalization()(x3)
     x3 = ReLU()(x3)
 
     x4 = concatenate([x, x1, x2, x3],axis=-1)
     x4 = Conv2D(k, kernel_size=(3, 3), strides=(1,1), padding="same")(x4)
-    x4 = fake_clip()(x4)
+    x4 = BatchNormalization()(x4)
     x4 = ReLU()(x4)
-
-    return concatenate([x, x1, x2, x3, x4],axis=-1)
+    
+    x5 = concatenate([x, x1, x2, x3, x4], axis=-1)
+    return x5
 
 def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
 
     inputs = Input(shape=x_train.shape[1:])
-    x = Conv2D(8, kernel_size=(7, 7), strides=(1, 1), padding='same')(inputs)
-    x = fake_clip()(x)
+    x = Conv2D(12, kernel_size=(5, 5), strides=(1, 1), padding='same')(inputs)
+    x = BatchNormalization()(x)
     x = ReLU()(x)
-    x = MaxPool2D((4, 4),strides=(4, 4), padding="same")(x)
+    x = MaxPool2D((2,2), strides=(2,2))(x)
 
-    # dense block
-    x = dense_block(x, k=24)
+    # dense block 1
+    x = dense_block(x, k=12)
 
-    # bottleneck -1
-    #x = Conv2D(32, kernel_size=(1, 1), strides=(1, 1), padding='same')(x)
-    #x = fake_clip()(x)
-    #x = ReLU()(x)
-    #x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
-
-    # dense block -2
-    #x = dense_block(x, k=12)
-
-    #x = Conv2D(10, kernel_size=(1, 1), strides=(1, 1), padding='same')(x)
-    #x = fake_clip()(x)
-    #x = ReLU()(x)
-
-    # global avg.
-    #x = GlobalAvgPool2D()(x)
-    x = GlobalMaxPool2D()(x)
-
-    '''
-    # output
-    #x = Flatten()(x)
-    x = Dense(128)(x)
-    x = fake_clip()(x)
+    # bottleneck
+    x = Conv2D(36, kernel_size=(1, 1), strides=(1, 1), padding="same")(x)
+    x = BatchNormalization()(x)
     x = ReLU()(x)
-    '''
-    x = Dropout(0.2)(x)
+    x = MaxPool2D((2, 2), strides=(2, 2))(x)
+
+    # dense block 2
+    x = dense_block(x, k=12)
+
+    x = Conv2D(48, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
+    x = Dropout(0.3)(x)
+    x = Flatten()(x)
     x = Dense(10)(x)
-    x = fake_clip()(x)
 
     predictions = Softmax()(x)
 
@@ -110,7 +96,7 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
             period=1)
     callback_lists = [checkpoint]
 
-    history =  model.fit(x_train, y_train,
+    history = model.fit(x_train, y_train,
               batch_size=batch_size,
               epochs=epochs,
               verbose=2,
@@ -122,17 +108,20 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     K.clear_session()
     return history
 
-
 def main(weights='weights.h'):
-
-    #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
-    epochs = 5
+    epochs = 2 # reduce for CI
     num_classes = 10
 
-    # The data, split between train and test sets:
-    (x_train, y_train), (x_test, y_test) = mnist.load_data()
-    #(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+    # select different dataset as you wish
+    dataset = 'mnist'
+    #dataset = 'cifar'
+    if(dataset in 'mnist'):
+        (x_train, y_train), (x_test, y_test) = mnist.load_data()
+        # add channel dimension for mnist data
+        x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], x_train.shape[2], 1)
+        x_test = x_test.reshape(x_test.shape[0], x_test.shape[1], x_test.shape[2], 1)
+    else:
+        (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
     print(x_train.shape[0], 'train samples')
     print(x_test.shape[0], 'test samples')
@@ -141,15 +130,9 @@ def main(weights='weights.h'):
     y_train = to_categorical(y_train, num_classes)
     y_test = to_categorical(y_test, num_classes)
 
-    # reshape to 4 d becaue we build for 4d?
-    x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], x_train.shape[2], 1)
-    x_test = x_test.reshape(x_test.shape[0], x_test.shape[1], x_test.shape[2], 1)
-    print('x_train shape:', x_train.shape)
-
-    # quantize the range to q7 without bias
-    x_test = np.clip(np.floor((x_test)/8), -128, 127)
-    x_train = np.clip(np.floor((x_train)/8), -128, 127)
-
+    # quantize the range to 0~1
+    x_test = x_test.astype('float32')/255
+    x_train = x_train.astype('float32')/255
     print("data range", x_test.min(), x_test.max())
 
     if(os.getenv('NNOM_TEST_ON_CI') == 'YES'):
@@ -175,8 +158,9 @@ def main(weights='weights.h'):
             raise Exception('test failed, accuracy is %.1f%% < 80%%'%(rP*100.0/i))
 
     # generate binary
-    if(not os.path.exists('mnist_test_data.bin')):
-        generate_test_bin(x_test, y_test, name='mnist_test_data.bin')
+    if(not os.path.exists(dataset+'_test_data.bin')):
+        # recover the range to 0~127 for MCU
+        generate_test_bin(x_test*127, y_test, name=dataset+'_test_data.bin')
 
     # train model
     if(not os.path.exists(save_dir)):
@@ -199,7 +183,7 @@ def main(weights='weights.h'):
     evaluate_model(model, x_test, y_test)
 
     # convert to model on nnom
-    generate_model(model, x_test[:10], name=weights)
+    generate_model(model, x_test[:100], name=weights)
 
     return model,x_train,y_train,x_test,y_test
 

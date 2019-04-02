@@ -24,6 +24,7 @@ size_t memory_taken = 0;
 
 void *nnom_mem(size_t size)
 {
+	size = alignto(size, 4);
 	void *p = nnom_malloc(size);
 	if (p)
 	{
@@ -362,6 +363,8 @@ void model_delete(nnom_model_t *m)
 		nnom_free(m);
 	else
 		nnom_memset(m, 0, sizeof(nnom_model_t));
+	
+	memory_taken = 0;
 	return;
 }
 
@@ -631,6 +634,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 				// the ownership will be set to next layer later
 				layer->out->mem = layer->in->mem;
 				layer->out->mem->owners += hook_length(&layer->out->hook); // set the mem lifetime.// test
+				layer->out->mem->state = NNOM_BUF_FILLED;
 				// release computational buff and input buffer // test
 				release_input_mem(layer);
 				release_comp_mem(layer);

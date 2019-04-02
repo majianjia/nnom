@@ -22,7 +22,7 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from keras.engine.input_layer import InputLayer
-from keras.layers import Lambda
+from keras.layers import Lambda, BatchNormalization
 from keras.models import Model
 from keras import backend as K
 from sklearn import metrics
@@ -116,6 +116,7 @@ def is_shift_layer(layer):
        'conv1d' in layer.name or
        'dense' in layer.name or
        'softmax' in layer.name or
+       #'batch_normalization' in layer.name or
        ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')
     ):
         return True
@@ -126,21 +127,69 @@ def generate_weights(model, name='weights.h', shift_list=None):
     f = open(name, 'w')
     f.close()
 
-    for layer in model.layers:
+    for curr_idx, layer in  enumerate(model.layers):
         if (not layer.weights):
             continue
+
+        # before merging bn layer, check if the bn is "legally" after Conv
+        if('batch_normalization' in layer.name) and \
+            ('conv2d' not in layer._inbound_nodes[0].inbound_layers[0].name):
+            raise  Exception('Currently only support batch_normalization after conv2d', layer.name,
+                             layer._inbound_nodes[0].inbound_layers[0].name)
+
+        # try to fuse BN layer to convolutional
+        if ('conv2d' in layer.name) and \
+            ('batch_normalization' in layer._outbound_nodes[0].outbound_layer.name):
+
+            print("fusing batch normalization to", layer.name)
+            bn_layer = layer._outbound_nodes[0].outbound_layer
+            c_w = layer.get_weights()[0]
+            c_b = layer.get_weights()[1]
+            print('original weight max', c_w.max(), 'min', c_w.min())
+            print('original bias max', c_b.max(), 'min', c_b.min())
+            bn_gamma = bn_layer.get_weights()[0]
+            bn_beta = bn_layer.get_weights()[1]
+            bn_mean = bn_layer.get_weights()[2]
+            bn_variance = bn_layer.get_weights()[3]
+
+            epsilon = 1e-3  # default epsilon for tf.slim.batch_norm
+            for l in range(c_w.shape[3]):
+                for k in range(c_w.shape[2]):
+                    for j in range(c_w.shape[1]):
+                        for i in range(c_w.shape[0]):
+                            if "depthwise" in layer.name:  # depthwise batchnorm params are ordered differently
+                                c_w[i][j][k][l] *= bn_gamma[k] / np.sqrt(bn_variance[k] + epsilon)
+                            else:
+                                c_w[i][j][k][l] *= bn_gamma[l] / np.sqrt(bn_variance[l] + epsilon)
+
+            if "depthwise" in layer.name:
+                depth_dim = c_w.shape[2]
+            else:
+                depth_dim = c_w.shape[3]
+            for l in range(depth_dim):
+                c_b[l] = (bn_gamma[l] * (c_b[l] - bn_mean[l]) / np.sqrt(bn_variance[l] + epsilon)) + bn_beta[l]
+
+            print('fused weight max', c_w.max(), 'min', c_w.min())
+            print('fused bias max', c_b.max(), 'min', c_b.min())
+            # write the weights back to the layer
+            # after that, the model will be destroyed.. need a better way to pass the new weight
+            layer.set_weights([c_w, c_b])
+
+        # generate weights and bias now
         weight_dec_shift = 0
         print('weights for layer', layer.name)
         for var in layer.weights:
             var_name = str(var.name)
-            if("kernel" in var_name):
+            if("kernel" in var_name ):
                 var_values = layer.get_weights()[0] # weight
                 print("  weight:", var_name)
-            else:
+            elif("bias" in var_name):
                 var_values = layer.get_weights()[1] # bias
                 print("  bias: ",var_name)
-            print("  original shape: ", var_values.shape)
+            else:
+                continue
 
+            print("  original shape: ", var_values.shape)
             min_value = np.min(var_values)
             max_value = np.max(var_values)
 
@@ -160,7 +209,7 @@ def generate_weights(model, name='weights.h', shift_list=None):
                         bSameAsKernel = True
             if(shift_list is None or bSameAsKernel):
                 # check if bias shift > weight shift, then reduce bias shift to weight shift	
-                if ("kernel" in var_name):	
+                if ("kernel" in var_name):
                     weight_dec_shift = dec_bits	
                 else:	
                     if(dec_bits > weight_dec_shift):	
@@ -194,9 +243,10 @@ def generate_weights(model, name='weights.h', shift_list=None):
                 f.write('}\n\n')
                 if ("bias" in var_name):
                     f.write('#define ' + var_name.upper() + '_SHIFT ' + '(' + str(dec_bits) + ')\n\n\n')
-                if ("kernel" in var_name):
+                if ("kernel" in var_name ):
                     f.write('#define ' + var_name.upper() + '_SHIFT ' + '(' + str(dec_bits) + ')\n\n')
-
+            """
+            # for checking the quantised and dequantised range. 
             with K.tf.Session() as session:
                 # convert back original range but quantized to 8-bits or 256 levels
                 var_values = var_values / (2 ** dec_bits)
@@ -205,6 +255,7 @@ def generate_weights(model, name='weights.h', shift_list=None):
                   ' dec bits: ' + str(dec_bits) + \
                   ' max: (' + str(np.max(var_values)) + ',' + str(max_value) + ')' + \
                   ' min: (' + str(np.min(var_values)) + ',' + str(min_value) + ')')
+            """
 
 def layers_output_ranges(model, x_test):
     # test, show the output ranges
@@ -214,11 +265,13 @@ def layers_output_ranges(model, x_test):
         L = [model.input] + model.layers
     else:
         L = model.layers
+    last_layer = None
     for layer in L:
         if("input" in layer.name):
             features = x_test
         else:
-            if(is_shift_layer(layer)):
+            # batch_normalization will need to be handle differently, since we are fusing the weight to its predecessor.
+            if(is_shift_layer(layer) or 'batch_normalization' in layer.name):
                 layer_model = Model(inputs=model.input, outputs=layer.output)
                 # FIXME, when the test data is too large, it might return memory error. need to slice data into small pices
                 features = layer_model.predict(x_test)
@@ -226,20 +279,19 @@ def layers_output_ranges(model, x_test):
                 # leave the features not changed, so this layer shift will be the same
                 # as its inputs
                 pass
-        
         max_val = features.max()
         min_val = features.min()
-        print( layer.name)
-        print("         max value:", max_val)
-        print("         min value:", min_val)
         int_bits = int(np.ceil(np.log2(max(abs(max_val), abs(min_val)))))
         dec_bits = 7 - int_bits
-        print("         dec bit", dec_bits)
+        print( layer.name, "max value:", max_val, "min value:", min_val,"dec bit", dec_bits)
         # record the shift
         if(model.input == layer and type(model.layers[0]) != InputLayer):
             shift_list[layer.name.split(':')[0]] = dec_bits
         else:
             shift_list[layer.name] = dec_bits
+        if ('batch_normalization' in layer.name):
+            shift_list[last_layer.name] = dec_bits  # use the bn layer shift to update the last layer.
+        last_layer = layer
     LM = {}
     for layer in model.layers:
         LM[layer.name] = layer
@@ -301,7 +353,7 @@ def generate_model(model, x_test, name='weights.h'):
         for layer in model.layers:
             if(is_shift_layer(layer)):
                 iname = layer.name.upper()
-                if(len(layer.weights) == 2 and
+                if(len(layer.weights) == 2 and         # other
                    'kernel' in layer.weights[0].name and
                    'bias' in layer.weights[1].name):
                     kname = layer.weights[0].name.upper().replace('/', '_').replace(':', '_')
@@ -313,6 +365,7 @@ def generate_model(model, x_test, name='weights.h'):
                             iname, inp, kname, bname))
                     fp.write('#if {0}_OUTPUT_RSHIFT < 0\n#error {0}_OUTPUT_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
                     fp.write('#if {0}_BIAS_LSHIFT < 0\n#error {0}_BIAS_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
+
         fp.write('\n/* weights for each layer */\n')
         LI = {}
         ID = 0
@@ -320,6 +373,7 @@ def generate_model(model, x_test, name='weights.h'):
             # FIXME: add more that could be skiped
             if('lambda' in layer.name or
                'dropout' in layer.name or
+               'batch_normalization' in layer.name or
                'flatten' in layer.name):
                 return True
             return False
@@ -341,7 +395,7 @@ def generate_model(model, x_test, name='weights.h'):
                 if("kernel" in var_name):
                     fp.write('static const int8_t %s_weights[] = %s;\n'%(layer.name, var_name.upper()))
                     fp.write('static const nnom_weight_t %s_w = { (const void*)%s_weights, %s_OUTPUT_RSHIFT};\n'%(layer.name,layer.name, layer.name.upper()))
-                else:
+                elif("bias" in var_name):
                     fp.write('static const int8_t %s_bias[] = %s;\n'%(layer.name, var_name.upper()))
                     fp.write('static const nnom_bias_t %s_b = { (const void*)%s_bias, %s_BIAS_LSHIFT};\n'%(layer.name,layer.name, layer.name.upper()))
         fp.write('\n/* nnom model */\n')
@@ -357,7 +411,7 @@ def generate_model(model, x_test, name='weights.h'):
         fp.write('static nnom_model_t* nnom_model_create(void)\n{\n')
         fp.write('\tstatic nnom_model_t model;\n')
         if(ID>32):
-            fp.write('\tnnom_layer_t ** layer = malloc(sizeof(nnom_layer_t *)*%d)\n'%(ID+1))
+            fp.write('\tnnom_layer_t ** layer = malloc(sizeof(nnom_layer_t *)*%d);\n'%(ID+1))
             fp.write('\tif(NULL == layer) return NULL;\n')
         else:
             fp.write('\tnnom_layer_t* layer[%d];\n'%(ID+1))

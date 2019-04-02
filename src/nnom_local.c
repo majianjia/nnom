@@ -107,7 +107,6 @@ void local_maxpool_q7_HWC(const q7_t *Im_in,           // input image
     }
 }
 
-
 // temporary for the thesis
 // shift according to the maximum
 int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
@@ -141,7 +140,6 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
             for (i_x = 0; i_x < dim_im_out_x; i_x++)
             {
                 int sum = 0;
-                int count = 0;
                 for (k_y = i_y * stride_y - padding_y; k_y < i_y * stride_y - padding_y + dim_kernel_y; k_y++)
                 {
                     for (k_x = i_x * stride_x - padding_x; k_x < i_x * stride_x - padding_x + dim_kernel_x; k_x++)
@@ -149,7 +147,6 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
                         if (k_y >= 0 && k_x >= 0 && k_y < dim_im_in_y && k_x < dim_im_in_x)
                         {
                             sum += Im_in[i_ch_in + ch_im_in * (k_x + k_y * dim_im_in_x)];
-                            count++;
                         }
                     }
                 }
@@ -480,6 +477,7 @@ void local_fully_connected_q7(const q7_t *pV,               // pointer to vector
         pOut[i] = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
     }
 }
+
 
 void local_softmax_q7(const q7_t *vec_in, const uint32_t dim_vec, q7_t *p_out)
 {

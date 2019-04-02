@@ -107,7 +107,6 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 				cl->bias->p_value, cl->bias_shift,
 				cl->output_shift, layer->out->mem->blk, layer->out->shape.w, layer->out->shape.h,
 				(q15_t *)(layer->comp->mem->blk), NULL);
-
 		// opt square shape
 		if (layer->in->shape.h == layer->in->shape.w)
 			return (nnom_status_t)arm_convolve_HWC_q7_fast(
@@ -301,15 +300,14 @@ nnom_status_t activation_run(nnom_layer_t *layer)
 	return cl->act->run(layer, cl->act);
 }
 
-
-
 nnom_status_t maxpool_run(nnom_layer_t *layer)
 {
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)(layer);
 
 #ifdef NNOM_USING_CMSIS_NN
 	// 2D, square
-	if (layer->in->shape.w == layer->in->shape.h)
+	if (layer->in->shape.w == layer->in->shape.h &&
+		layer->out->shape.w == layer->out->shape.h)
 	{
 		arm_maxpool_q7_HWC(
 			layer->in->mem->blk,
@@ -343,7 +341,8 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 
 #ifdef NNOM_USING_CMSIS_NN
 	// 2D, square
-	if (layer->in->shape.w == layer->in->shape.h)
+	if (layer->in->shape.w == layer->in->shape.h &&
+		layer->out->shape.w == layer->out->shape.h)
 	{
 		arm_avepool_q7_HWC(
 			layer->in->mem->blk,
@@ -418,6 +417,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	// by default, concat layer has mutiple (>=2) input and 1 output.
 	nnom_concat_layer_t *cl = (nnom_concat_layer_t *)layer;
 	nnom_shape_axis_t *out_shape = (nnom_shape_axis_t *)(&layer->out->shape); // get the shape.axis[0,1,2...] access to shape type
+	nnom_shape_axis_t *in_shape;
 	uint32_t offset;
 	nnom_layer_io_t *in;
 
@@ -451,7 +451,8 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 			in = layer->in;
 			while (in != NULL)
 			{
-				block_size = in->shape.c * in->shape.w;
+				in_shape = (nnom_shape_axis_t*)(&in->shape);
+				block_size = in_shape->axis[2] * in_shape->axis[1];
 				pin = (uint8_t *)in->mem->blk + j * block_size;
 				memcpy(pout, pin, block_size);
 				pout += block_size;
@@ -462,6 +463,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	}
 	else if (offset == 2)
 	{
+		uint32_t total_size = 0; 
 		uint8_t *pin;
 		uint8_t *pout = layer->out->mem->blk;
 		uint32_t block_size;
@@ -471,10 +473,12 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 			in = layer->in;
 			while (in != NULL)
 			{
-				block_size = in->shape.c;
-				pin = (uint8_t *)in->mem->blk + j * block_size;
+				in_shape = (nnom_shape_axis_t*)(&in->shape);
+				block_size = in_shape->axis[2];
+				pin = (uint8_t*)in->mem->blk + j * block_size;
 				memcpy(pout, pin, block_size);
 				pout += block_size;
+				total_size += block_size;
 
 				in = in->aux;
 			}

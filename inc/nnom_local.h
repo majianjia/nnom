@@ -177,6 +177,7 @@ void local_fully_connected_q7(const q7_t * pV,    // pointer to vector
                                 const q7_t * bias, q7_t * pOut, // output operand
                                 q15_t * vec_buffer);
 
+
 // softmax
 void local_softmax_q7(const q7_t * vec_in, const uint32_t dim_vec, q7_t * p_out);
 
