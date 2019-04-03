@@ -15,10 +15,8 @@
 #include <string.h>
 #include <stdbool.h>
 
-
 // Porting
 #include "rtthread.h"
-extern uint32_t us_timer_get(void);
 
 // memory interfaces
 #define nnom_malloc(n)   	rt_malloc(n) 
@@ -26,7 +24,7 @@ extern uint32_t us_timer_get(void);
 #define nnom_memset(p,v,s)  rt_memset(p,v,s)
 
 // runtime & debuges
-#define nnom_us_get()		us_timer_get()
+#define nnom_us_get()		0
 #define nnom_ms_get()		rt_tick_get()
 #define LOG(...)			rt_kprintf(__VA_ARGS__)
 
@@ -34,6 +32,7 @@ extern uint32_t us_timer_get(void);
 #define NNOM_BLOCK_NUM  	(8)		// maximum number of memory block  
 #define DENSE_WEIGHT_OPT 	(1)		// if used fully connected layer optimized weights. 
 
+//#define NNOM_USING_CMSIS_NN
 
 #endif
 
