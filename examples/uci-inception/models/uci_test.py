@@ -98,58 +98,44 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     print("x_train shape", x_train.shape)
     print("y_train shape", y_train.shape)
 
-    # to record all the shift
-    m = nnom()
-
     inputs = Input(shape=x_train.shape[1:])
-    x = Conv1D(16, kernel_size=(9), strides=(2), padding='same')(inputs)
-    x = m.fake_clip(x, frac_bit=0, bit=9)(x)
+    x = Conv1D(32, kernel_size=(9), strides=(2), padding='same')(inputs)
     x = Dropout(0.2)(x)
     x = ReLU()(x)
     x = MaxPool1D(2, strides=2)(x)
 
     # inception - 1
-    x1 = Conv1D(16, kernel_size=(5), strides=(1), padding="same")(x)
-    x1 = m.fake_clip(x1, frac_bit=0)(x1)
+    x1 = Conv1D(32, kernel_size=(5), strides=(1), padding="same")(x)
     x1 = Dropout(0.2)(x1)
     x1 = ReLU()(x1)
     x1 = MaxPool1D(2, strides=2)(x1)
 
     # inception - 2
-    x2 = Conv1D(16, kernel_size=(3), strides=(1), padding="same")(x)
-    x2 = m.fake_clip(x2, frac_bit=0)(x2)
+    x2 = Conv1D(32, kernel_size=(3), strides=(1), padding="same")(x)
     x2 = Dropout(0.2)(x2)
     x2 = ReLU()(x2)
     x2 = MaxPool1D(2, strides=2)(x2)
 
-
     # inception - 3
     x3 = MaxPool1D(2, strides=2)(x)
-    x3 = m.fake_clip(x3, frac_bit=0)(x3)
     x3 = Dropout(0.2)(x3)
 
-
     # concate all inception layers
-    x = concatenate([x1, x2], axis=-1)  # This 2 lines are same as x = concatenate([x1, x2, x3], axis=-1)
-    x = concatenate([x, x3], axis=-1)
+    x = concatenate([ x1, x2,x3], axis=-1)
 
     # conclusion
     x = Conv1D(48, kernel_size=(3), strides=(1), padding="same")(x)
-    x = m.fake_clip(x, frac_bit=0)(x)
     x = ReLU()(x)
     x = MaxPool1D(2, strides=2)(x)
     x = Dropout(0.2)(x)
 
     # our netowrk is not that deep, so a hidden fully connected layer is introduce
     x = Flatten()(x)
-    x = Dense(128)(x)
-    x = m.fake_clip(x, frac_bit=0)(x)
+    x = Dense(64)(x)
     x = Dropout(0.2)(x)
     x = ReLU()(x)
     x = Dense(6)(x)
-    x = m.fake_clip(x, frac_bit=1)(x)
     predictions = Softmax()(x)
-    #predictions = fake_clip_min_max(max=1, min=-1)(predictions) # this might improve accuracy on MCU side
 
     model = Model(inputs=inputs, outputs=predictions)
 
@@ -174,8 +160,7 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
 
     history = model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, shuffle=True,
                         verbose=2, validation_data=(x_test, y_test), callbacks=callback_lists)
-    # save output shifts
-    m.save_shift()
+
     # free the session to avoid nesting naming while we load the best model after.
     del model
     K.clear_session()
@@ -184,7 +169,11 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
 
 
 if __name__ == "__main__":
+    ## cpu normally run fast in 1-D data
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+    if(not os.path.exists('data/UCI HAR Dataset')):
+        raise Exception('Please download the dataset and unzip into "data/UCI HAR Dataset/"')
 
     epochs = 50
 
@@ -237,7 +226,7 @@ if __name__ == "__main__":
     y_train = one_hot(y_train, 6)
     y_test = one_hot(y_test, 6)
 
-    # normolized each sensor
+    # normolized each sensor, to range -1~1
     x_train = normalize(x_train)
     x_test  = normalize(x_test)
 
@@ -249,17 +238,11 @@ if __name__ == "__main__":
     print("test acc2 range", np.max(x_test[:, :, 6:9]), np.min(x_test[:, :,6:9]))
     print("test gyro range", np.max(x_test[:, :, 3:6]), np.min(x_test[:, :, 3:6]))
 
-    # select axis (3/6/9)
-    x_train = x_train[:, :, 0:9]
-    x_test = x_test[:, :, 0:9]
-
-    # fake quantitize
-    x_train = (x_train * 128) .clip(-128, 127).round(0)
-    x_test = (x_test * 128) .clip(-128, 127).round(0)
-
-    # generate binary test data
-    generate_test_bin(x_test, y_test, name='uci_test_data.bin')
-    generate_test_bin(x_train, y_train, name='uci_train_data.bin')
+    # generate binary test data, convert range to [-128 127] for mcu
+    x_test_bin = np.clip(x_test *128, -128, 127)
+    x_train_bin = np.clip(x_train*128, -128, 127)
+    generate_test_bin(x_test_bin, y_test, name='uci_test_data.bin')
+    generate_test_bin(x_train_bin, y_train, name='uci_train_data.bin')
 
     # train model
     history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
@@ -271,20 +254,16 @@ if __name__ == "__main__":
     evaluate_model(model, x_test, y_test)
 
     # save weight
-    generate_weights(model)
-
-    # test, show the output ranges
-    layers_output_ranges(model, x_train)
+    generate_model(model, x_test, 'weights.h')
 
     # plot
-    if(1):
-        acc = history.history['acc']
-        val_acc = history.history['val_acc']
+    acc = history.history['acc']
+    val_acc = history.history['val_acc']
 
-        plt.plot(range(0, epochs), acc, color='red', label='Training acc')
-        plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')
-        plt.title('Training and validation accuracy')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.legend()
-        plt.show()
+    plt.plot(range(0, epochs), acc, color='red', label='Training acc')
+    plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')
+    plt.title('Training and validation accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()

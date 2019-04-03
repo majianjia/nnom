@@ -1,7 +1,11 @@
 
 ## NNoM Utils
 
-NNoM Utils are Python scripts for deploying models. What makes NNoM easy to use is the models can be deployed to MCU automatically or manually with the help of NNoM utils. These functions are located in `scripts/nnom_utils.py`
+NNoM Utils are Python scripts for deploying models. 
+What makes NNoM easy to use is the models can be deployed to MCU automatically or manually with the help of NNoM utils. 
+These functions are located in `scripts/nnom_utils.py`
+
+Tutorial is comming, before it arrives, please refer to [examples](https://github.com/majianjia/nnom/tree/dev/examples) for usage.
 
 
 # API 
@@ -18,6 +22,7 @@ This method is the most frequently used function for deployment.
 1. It firsly scans the output range of each layer's output using `layers_output_ranges()`
 2. Then it quantised and write the weights & bias, fused the BatchNorm parameters using `generate_weights()`
 3. Finally, it generate the C functions ` nnom_model_t* nnom_model_create(void)` in `weights.h`
+
 **Arguments**
 
 - **model:** the trained Keras model
