@@ -20,7 +20,7 @@ Conv  Conv  Maxpool
         |   
       Dense
         |
-	  Dense
+      Dense
         |
      Softmax
 ~~~
