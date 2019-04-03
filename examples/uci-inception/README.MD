@@ -6,7 +6,7 @@ The model was built with Inception structures.
 
 ~~~
       Input
-	    |
+        |
         |
       Conv
     /   |   \
@@ -16,13 +16,13 @@ Conv  Conv  Maxpool
     \   |   /
      Concat
         |
-	  Conv
+      Conv
         |   
       Dense
-	    |
+        |
 	  Dense
-	    |
-	 Softmax
+        |
+     Softmax
 ~~~
 
 The example implementation is based on [RT-THREAD](https://github.com/RT-Thread/rt-thread).
