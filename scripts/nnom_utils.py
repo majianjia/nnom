@@ -54,7 +54,7 @@ def fake_clip(frac_bit=0, bit=8):
     min = -2**(bit - frac_bit) / 2
     return Lambda(quant_layer, output_shape=quant_shape, arguments={'clip_range': [min, max], 'bits': bit})
 
-def fake_clip_min_max(min=0, max =1,  bit=8):
+def fake_clip_min_max(min=0, max =1, bit=8):
     return Lambda(quant_layer, output_shape=quant_shape, arguments={'clip_range': [min, max], 'bits': bit})
 
 """ 
@@ -427,9 +427,13 @@ def generate_model(model, x_test, name='weights.h'):
 
             if('input' in layer.name):
                 try:
-                    fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n'%(id,layer.input_shape[1:]))
+                    inshape = layer.input_shape[1:]
                 except:
-                    fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n'%(id,layer.shape[1:]))
+                    inshape = layer.shape[1:]
+                if (len(inshape) == 2):  # 1-D input
+                    fp.write('\tlayer[%d] = Input(shape(1,%d,%d), nnom_input_data);\n' % (id, inshape[0], inshape[1]))
+                else:
+                    fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n' % (id, inshape))
 
             # convlutional
             elif('conv1d' in layer.name):
