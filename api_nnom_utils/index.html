@@ -199,7 +199,10 @@
             <div class="section">
               
                 <h2 id="nnom-utils">NNoM Utils</h2>
-<p>NNoM Utils are Python scripts for deploying models. What makes NNoM easy to use is the models can be deployed to MCU automatically or manually with the help of NNoM utils. These functions are located in <code>scripts/nnom_utils.py</code></p>
+<p>NNoM Utils are Python scripts for deploying models. 
+What makes NNoM easy to use is the models can be deployed to MCU automatically or manually with the help of NNoM utils. 
+These functions are located in <code>scripts/nnom_utils.py</code></p>
+<p>Tutorial is comming, before it arrives, please refer to <a href="https://github.com/majianjia/nnom/tree/dev/examples">examples</a> for usage.</p>
 <h1 id="api">API</h1>
 <hr />
 <h2 id="generate_model">generate_model()</h2>
@@ -209,8 +212,8 @@
 <p>This method is the most frequently used function for deployment. 
 1. It firsly scans the output range of each layer's output using <code>layers_output_ranges()</code>
 2. Then it quantised and write the weights &amp; bias, fused the BatchNorm parameters using <code>generate_weights()</code>
-3. Finally, it generate the C functions <code>nnom_model_t* nnom_model_create(void)</code> in <code>weights.h</code>
-<strong>Arguments</strong></p>
+3. Finally, it generate the C functions <code>nnom_model_t* nnom_model_create(void)</code> in <code>weights.h</code></p>
+<p><strong>Arguments</strong></p>
 <ul>
 <li><strong>model:</strong> the trained Keras model</li>
 <li><strong>x_test:</strong> the dataset used to check the output range of each layer.  </li>
