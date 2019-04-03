@@ -259,11 +259,21 @@ nnom_status_t nnom_predic(nnom_model_t *m, uint32_t *label, float *prob)
 static void layer_stat(nnom_layer_t *layer)
 {
 	// layer stat
-	printf(" %10s -    %6d        %7d      ",
+	printf(" %10s -    %6d      ",
 		   (char *)&default_layer_names[layer->type],
-		   layer->stat.time,
-		   layer->stat.macc);
+		   layer->stat.time);
 
+	// MAC operation
+	if(layer->stat.macc == 0)
+		printf("            ");
+	else if (layer->stat.macc < 1000)
+		printf("%7d     ", layer->stat.macc);
+	else if (layer->stat.macc < 1000*1000)
+		printf("%6dk     ", layer->stat.macc/1000);
+	else if (layer->stat.macc < 1000*1000*1000)
+		printf("%3d.%2dM     ", layer->stat.macc/(1000*1000), layer->stat.macc%(1000*1000)/(10000)); // xxx.xx M
+
+	// layer efficiency
 	if (layer->stat.macc != 0)
 		printf("%d.%02d\n", layer->stat.macc / layer->stat.time, (layer->stat.macc * 100) / (layer->stat.time) % 100);
 	else
@@ -283,7 +293,7 @@ void model_stat(nnom_model_t *m)
 	layer = m->head;
 
 	printf("\nPrint running stat..\n");
-	printf("Layer(#)        -   Time(us)      ops(MACs)     ops/us \n");
+	printf("Layer(#)        -   Time(us)     ops(MACs)   ops/us \n");
 	printf("--------------------------------------------------------\n");
 	while (layer)
 	{
@@ -296,8 +306,9 @@ void model_stat(nnom_model_t *m)
 			break;
 		layer = layer->shortcut;
 	}
-	printf("\nSummary.\n");
-	printf("Total ops (MAC): %d\n", total_ops);
+	printf("\nSummary:\n");
+	printf("Total ops (MAC): %d", total_ops);
+	printf("(%d.%02dM)\n", total_ops/(1000*1000), total_ops%(1000*1000)/(10000));
 	printf("Prediction time :%dus\n", total_time);
 	printf("Efficiency %d.%02d ops/us\n",
 		   (total_ops / total_time),

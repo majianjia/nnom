@@ -450,6 +450,57 @@ nnom_status_t layer_shortcut_add(nnom_layer_t *start, nnom_layer_t *curr)
 	return NN_SUCCESS;
 }
 
+static void print_layer_info(nnom_layer_t *layer)
+{
+	size_t in_size = io_mem_size(layer->in);
+	size_t out_size = io_mem_size(layer->out);
+	size_t compsize;
+	size_t mac = layer->stat.macc;
+	if (layer->comp != NULL)
+		compsize = shape_size(&layer->comp->shape);
+	else
+		compsize = 0;
+	// names
+	LOG(" %-10s - ", default_layer_names[layer->type]);
+	// activations
+	if (layer->actail != NULL)
+		LOG("%-8s - ", default_activation_names[layer->actail->type]);
+	else
+		LOG("         - ");
+
+	// outshape (h, w, c), ops, input buf, output buf, computational buf.
+	LOG("(%4d,%4d,%4d)  ", 	layer->out->shape.h, layer->out->shape.w, layer->out->shape.c);
+	
+	// MAC operation
+	if(mac == 0)
+		LOG("          ");
+	else if (mac < 1000)
+		LOG("%7d   ", mac);
+	else if (mac < 1000*1000)
+		LOG("%6dk   ", mac/1000);
+	else if (mac < 1000*1000*1000)
+		LOG("%3d.%02dM   ", mac/(1000*1000), mac%(1000*1000)/(10000)); // xxx.xx M
+	
+	// memory 
+	LOG("(%5d,%5d,%5d)", in_size, out_size, compsize);
+}
+
+static void print_memory_block_info(nnom_mem_block_t *block_pool)
+{
+	// show the memory blocks's lifetime (number of owners)
+	LOG("   ");
+	for (int i = 0; i < NNOM_BLOCK_NUM; i++)
+	{
+		if (i % 4 == 0)
+			LOG(" ");
+		if (block_pool[i].owners)
+			LOG("%d ", block_pool[i].owners);
+		else
+			LOG("- ");
+	}
+	LOG("\n");
+}
+
 // This is a nested called functions.
 // to analyse the topology of the model, calculate the output_shape of each layer and create shortcut lists.
 // Nest will happend when a layer have multiple output module or mutiple output hooks.
@@ -545,45 +596,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 
 		// print current layer's info. 
 		// show names, activations, mem block size
-		{
-			size_t in_size = io_mem_size(layer->in);
-			size_t out_size = io_mem_size(layer->out);
-			size_t compsize;
-			if (layer->comp != NULL)
-				compsize = shape_size(&layer->comp->shape);
-			else
-				compsize = 0;
-			// names
-			LOG(" %-10s - ", default_layer_names[layer->type]);
-			// activations
-			if (layer->actail != NULL)
-				LOG("%-8s - ", default_activation_names[layer->actail->type]);
-			else
-				LOG("         - ");
-
-			// outshape (h, w, c), ops, input buf, output buf, computational buf.
-			LOG("(%4d,%4d,%4d)  %7d   (%5d,%5d,%5d)",
-				layer->out->shape.h, layer->out->shape.w, layer->out->shape.c,
-				layer->stat.macc,
-				in_size,
-				out_size,
-				compsize);
-		}
-
-		// show the memory blocks's lifetime (number of owners)
-		{
-			LOG("   ");
-			for (int i = 0; i < NNOM_BLOCK_NUM; i++)
-			{
-				if (i % 4 == 0)
-					LOG(" ");
-				if (block_pool[i].owners)
-					LOG("%d ", block_pool[i].owners);
-				else
-					LOG("- ");
-			}
-			LOG("\n");
-		}
+		print_layer_info(layer);
 
 		// 4. allocate output buffer for each output module. 
 		// check output
@@ -599,6 +612,9 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 			{
 				// pass to next layer directly, like we never touch the buffer(dont change life-time)
 				layer->out->mem = layer->in->mem;
+				
+				// print memory before release
+				print_memory_block_info(block_pool);
 				// computational buf
 				release_comp_mem(layer);
 			}
@@ -619,6 +635,8 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 				layer->out->mem = out_blk;
 
 				// once we allocate for output, we can now release input and comput.
+				// print memory before release
+				print_memory_block_info(block_pool);
 				// release input mem and comp mem
 				release_input_mem(layer);
 				release_comp_mem(layer);
@@ -635,7 +653,10 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 				layer->out->mem = layer->in->mem;
 				layer->out->mem->owners += hook_length(&layer->out->hook); // set the mem lifetime.// test
 				layer->out->mem->state = NNOM_BUF_FILLED;
-				// release computational buff and input buffer // test
+				
+				// print memory before release
+				print_memory_block_info(block_pool);
+				// release computational buff and input buffer 
 				release_input_mem(layer);
 				release_comp_mem(layer);
 			}
@@ -660,6 +681,8 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 					out = out->aux;
 				}
 				// once we allocate for output, we can now release input and comput (or reduce the lifetime).
+				// print memory before release
+				print_memory_block_info(block_pool);
 				// release input mem and comp mem
 				release_input_mem(layer);
 				release_comp_mem(layer);
