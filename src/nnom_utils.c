@@ -155,29 +155,29 @@ void prediction_matrix(nnom_predic_t *pre)
 	if (!pre)
 		return;
 	// print titles
-	printf("\nConfusion matrix:\n");
-	printf("predic");
+	NNOM_LOG("\nConfusion matrix:\n");
+	NNOM_LOG("predic");
 	for (int i = 0; i < pre->label_num; i++)
 	{
-		printf("%6d", i);
+		NNOM_LOG("%6d", i);
 	}
-	printf("\n");
-	printf("actual\n");
+	NNOM_LOG("\n");
+	NNOM_LOG("actual\n");
 	// print the matrix
 	for (int i = 0; i < pre->label_num; i++)
 	{
 		uint32_t row_total = 0;
 
-		printf(" %3d |", i);
+		NNOM_LOG(" %3d |", i);
 		for (int j = 0; j < pre->label_num; j++)
 		{
 			row_total += pre->confusion_mat[i * pre->label_num + j];
-			printf("%6d", pre->confusion_mat[i * pre->label_num + j]);
+			NNOM_LOG("%6d", pre->confusion_mat[i * pre->label_num + j]);
 		}
-		printf("   |%4d%%\n", pre->confusion_mat[i * pre->label_num + i] * 100 / row_total);
+		NNOM_LOG("   |%4d%%\n", pre->confusion_mat[i * pre->label_num + i] * 100 / row_total);
 		row_total = 0;
 	}
-	printf("\n");
+	NNOM_LOG("\n");
 }
 
 // top-k
@@ -191,10 +191,10 @@ void prediction_top_k(nnom_predic_t *pre)
 	{
 		top += pre->top_k[i];
 		if (top != pre->predic_count)
-			printf("Top %d Accuracy: %d.%02d%% \n", i + 1, (top * 100) / pre->predic_count,
+			NNOM_LOG("Top %d Accuracy: %d.%02d%% \n", i + 1, (top * 100) / pre->predic_count,
 					((top * 100 * 100) / pre->predic_count)%100);
 		else
-			printf("Top %d Accuracy: 100%% \n", i + 1);
+			NNOM_LOG("Top %d Accuracy: 100%% \n", i + 1);
 	}
 }
 
@@ -204,14 +204,14 @@ void prediction_summary(nnom_predic_t *pre)
 	if (!pre)
 		return;
 	// sumamry
-	printf("\nPrediction summary:\n");
-	printf("Test frames: %d\n", pre->predic_count);
-	printf("Test running time: %d sec\n", pre->t_predic_total / 1000);
-	printf("Model running time: %d ms\n", pre->t_run_total);
-	printf("Average prediction time: %d us\n", (pre->t_run_total * 1000) / pre->predic_count);
-	printf("Average effeciency: %d.%02d ops/us\n", (int)(((uint64_t)pre->model->total_ops * pre->predic_count) / (pre->t_run_total * 1000)),
+	NNOM_LOG("\nPrediction summary:\n");
+	NNOM_LOG("Test frames: %d\n", pre->predic_count);
+	NNOM_LOG("Test running time: %d sec\n", pre->t_predic_total / 1000);
+	NNOM_LOG("Model running time: %d ms\n", pre->t_run_total);
+	NNOM_LOG("Average prediction time: %d us\n", (pre->t_run_total * 1000) / pre->predic_count);
+	NNOM_LOG("Average effeciency: %d.%02d ops/us\n", (int)(((uint64_t)pre->model->total_ops * pre->predic_count) / (pre->t_run_total * 1000)),
 			(int)(((uint64_t)pre->model->total_ops * pre->predic_count)*100 / (pre->t_run_total * 1000))%100);
-	printf("Average frame rate: %d.%d Hz\n", 1000 / (pre->t_run_total / pre->predic_count),
+	NNOM_LOG("Average frame rate: %d.%d Hz\n", 1000 / (pre->t_run_total / pre->predic_count),
 			(1000*10 / (pre->t_run_total / pre->predic_count))%10);
 
 	// print top-k
@@ -259,25 +259,25 @@ nnom_status_t nnom_predic(nnom_model_t *m, uint32_t *label, float *prob)
 static void layer_stat(nnom_layer_t *layer)
 {
 	// layer stat
-	printf(" %10s -    %6d      ",
+	NNOM_LOG(" %10s -    %6d      ",
 		   (char *)&default_layer_names[layer->type],
 		   layer->stat.time);
 
 	// MAC operation
 	if(layer->stat.macc == 0)
-		printf("            ");
+		NNOM_LOG("            ");
 	else if (layer->stat.macc < 1000)
-		printf("%7d     ", layer->stat.macc);
+		NNOM_LOG("%7d     ", layer->stat.macc);
 	else if (layer->stat.macc < 1000*1000)
-		printf("%6dk     ", layer->stat.macc/1000);
+		NNOM_LOG("%6dk     ", layer->stat.macc/1000);
 	else if (layer->stat.macc < 1000*1000*1000)
-		printf("%3d.%2dM     ", layer->stat.macc/(1000*1000), layer->stat.macc%(1000*1000)/(10000)); // xxx.xx M
+		NNOM_LOG("%3d.%2dM     ", layer->stat.macc/(1000*1000), layer->stat.macc%(1000*1000)/(10000)); // xxx.xx M
 
 	// layer efficiency
 	if (layer->stat.macc != 0)
-		printf("%d.%02d\n", layer->stat.macc / layer->stat.time, (layer->stat.macc * 100) / (layer->stat.time) % 100);
+		NNOM_LOG("%d.%02d\n", layer->stat.macc / layer->stat.time, (layer->stat.macc * 100) / (layer->stat.time) % 100);
 	else
-		printf("\n");
+		NNOM_LOG("\n");
 }
 
 void model_stat(nnom_model_t *m)
@@ -292,13 +292,13 @@ void model_stat(nnom_model_t *m)
 
 	layer = m->head;
 
-	printf("\nPrint running stat..\n");
-	printf("Layer(#)        -   Time(us)     ops(MACs)   ops/us \n");
-	printf("--------------------------------------------------------\n");
+	NNOM_LOG("\nPrint running stat..\n");
+	NNOM_LOG("Layer(#)        -   Time(us)     ops(MACs)   ops/us \n");
+	NNOM_LOG("--------------------------------------------------------\n");
 	while (layer)
 	{
 		run_num++;
-		printf("#%-3d", run_num);
+		NNOM_LOG("#%-3d", run_num);
 		total_ops += layer->stat.macc;
 		total_time += layer->stat.time;
 		layer_stat(layer);
@@ -306,11 +306,11 @@ void model_stat(nnom_model_t *m)
 			break;
 		layer = layer->shortcut;
 	}
-	printf("\nSummary:\n");
-	printf("Total ops (MAC): %d", total_ops);
-	printf("(%d.%02dM)\n", total_ops/(1000*1000), total_ops%(1000*1000)/(10000));
-	printf("Prediction time :%dus\n", total_time);
-	printf("Efficiency %d.%02d ops/us\n",
+	NNOM_LOG("\nSummary:\n");
+	NNOM_LOG("Total ops (MAC): %d", total_ops);
+	NNOM_LOG("(%d.%02dM)\n", total_ops/(1000*1000), total_ops%(1000*1000)/(10000));
+	NNOM_LOG("Prediction time :%dus\n", total_time);
+	NNOM_LOG("Efficiency %d.%02d ops/us\n",
 		   (total_ops / total_time),
 		   (total_ops * 100) / (total_time) % 100);
 }

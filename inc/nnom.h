@@ -267,7 +267,7 @@ typedef struct _nnom_model
 #define NNOM_NULL_CHECK(p)            \
 	if ((p) == NULL)                  \
 	{                                 \
-		LOG("Error: NULL object.\n"); \
+		NNOM_LOG("Error: NULL object.\n"); \
 		return NN_ARGUMENT_ERROR;     \
 	}
 
