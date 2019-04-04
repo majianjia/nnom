@@ -475,12 +475,14 @@ static void print_layer_info(nnom_layer_t *layer, uint32_t layer_count)
 	// MAC operation
 	if(mac == 0)
 		NNOM_LOG("        ");
-	else if (mac < 1000)
+	else if (mac < 10000)
 		NNOM_LOG("%7d ", mac);
 	else if (mac < 1000*1000)
 		NNOM_LOG("%6dk ", mac/1000);
 	else if (mac < 1000*1000*1000)
-		NNOM_LOG("%3d.%02dM ", mac/(1000*1000), mac%(1000*1000)/(10000)); // xxx.xx M
+		NNOM_LOG("%3d.%02dM ", mac/(1000*1000), mac%(1000*1000)/(10*1000)); // xxx.xx M
+	else
+		NNOM_LOG("%3d.%02dG ", mac/(1000*1000*1000), mac%(1000*1000*1000)/(10*1000*1000)); // xxx.xx G
 	
 	// memory 
 	NNOM_LOG("(%6d,%6d,%6d)", in_size, out_size, compsize);
