@@ -259,7 +259,7 @@ nnom_status_t nnom_predic(nnom_model_t *m, uint32_t *label, float *prob)
 static void layer_stat(nnom_layer_t *layer)
 {
 	// layer stat
-	NNOM_LOG(" %10s -    %6d      ",
+	NNOM_LOG(" %10s -  %8d      ",
 		   (char *)&default_layer_names[layer->type],
 		   layer->stat.time);
 
@@ -271,7 +271,9 @@ static void layer_stat(nnom_layer_t *layer)
 	else if (layer->stat.macc < 1000*1000)
 		NNOM_LOG("%6dk     ", layer->stat.macc/1000);
 	else if (layer->stat.macc < 1000*1000*1000)
-		NNOM_LOG("%3d.%2dM     ", layer->stat.macc/(1000*1000), layer->stat.macc%(1000*1000)/(10000)); // xxx.xx M
+		NNOM_LOG("%3d.%02dM     ", layer->stat.macc/(1000*1000), layer->stat.macc%(1000*1000)/(10*1000)); // xxx.xx M
+	else
+		NNOM_LOG("%3d.%02dG     ", layer->stat.macc/(1000*1000*1000), layer->stat.macc%(1000*1000*1000)/(10*1000*1000)); // xxx.xx G
 
 	// layer efficiency
 	if (layer->stat.macc != 0)
