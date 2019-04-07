@@ -82,7 +82,7 @@ typedef struct _nnom_rnn_cell_t
 typedef struct _nnom_simple_rnn_cell_t
 {
 	nnom_rnn_cell_t super;
-	nnom_activation_t*  activation;
+	nnom_activation_t* activation;
 
 	const nnom_weight_t *weights;
 	const nnom_bias_t *bias;

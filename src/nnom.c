@@ -95,7 +95,7 @@ static nnom_status_t model_add(nnom_model_t *model, nnom_layer_t *layer)
 
 	if (layer == NULL)
 	{
-		LOG("Error: added a NULL layer, could be no memory while creating layer.\n");
+		NNOM_LOG("Error: added a NULL layer, could be no memory while creating layer.\n");
 		return NN_NO_MEMORY;
 	}
 
@@ -450,6 +450,60 @@ nnom_status_t layer_shortcut_add(nnom_layer_t *start, nnom_layer_t *curr)
 	return NN_SUCCESS;
 }
 
+// input the layer number,
+static void print_layer_info(nnom_layer_t *layer, uint32_t layer_count)
+{
+	size_t in_size = io_mem_size(layer->in);
+	size_t out_size = io_mem_size(layer->out);
+	size_t compsize;
+	size_t mac = layer->stat.macc;
+	if (layer->comp != NULL)
+		compsize = shape_size(&layer->comp->shape);
+	else
+		compsize = 0;
+	// names
+	NNOM_LOG("#%-3d %-10s - ", layer_count, default_layer_names[layer->type]);
+	// activations
+	if (layer->actail != NULL)
+		NNOM_LOG("%-8s - ", default_activation_names[layer->actail->type]);
+	else
+		NNOM_LOG("         - ");
+
+	// outshape (h, w, c), ops, input buf, output buf, computational buf.
+	NNOM_LOG("(%4d,%4d,%4d)  ", 	layer->out->shape.h, layer->out->shape.w, layer->out->shape.c);
+	
+	// MAC operation
+	if(mac == 0)
+		NNOM_LOG("        ");
+	else if (mac < 10000)
+		NNOM_LOG("%7d ", mac);
+	else if (mac < 1000*1000)
+		NNOM_LOG("%6dk ", mac/1000);
+	else if (mac < 1000*1000*1000)
+		NNOM_LOG("%3d.%02dM ", mac/(1000*1000), mac%(1000*1000)/(10*1000)); // xxx.xx M
+	else
+		NNOM_LOG("%3d.%02dG ", mac/(1000*1000*1000), mac%(1000*1000*1000)/(10*1000*1000)); // xxx.xx G
+	
+	// memory 
+	NNOM_LOG("(%6d,%6d,%6d)", in_size, out_size, compsize);
+}
+
+static void print_memory_block_info(nnom_mem_block_t *block_pool)
+{
+	// show the memory blocks's lifetime (number of owners)
+	NNOM_LOG("   ");
+	for (int i = 0; i < NNOM_BLOCK_NUM; i++)
+	{
+		if (i % 4 == 0)
+			NNOM_LOG(" ");
+		if (block_pool[i].owners)
+			NNOM_LOG("%d ", block_pool[i].owners);
+		else
+			NNOM_LOG("- ");
+	}
+	NNOM_LOG("\n");
+}
+
 // This is a nested called functions.
 // to analyse the topology of the model, calculate the output_shape of each layer and create shortcut lists.
 // Nest will happend when a layer have multiple output module or mutiple output hooks.
@@ -457,7 +511,7 @@ nnom_status_t layer_shortcut_add(nnom_layer_t *start, nnom_layer_t *curr)
 // 	1) if the layer has multiple input but not all of them are filled by last layers. returns NN_MORE_TODO
 //	2) if all the output hooked are nested called. return NN_SUCCESS
 //	3) if the layer is output layer. return NN_SUCCESS
-nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
+nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, uint32_t *layer_count)
 {
 	size_t mem_size = 0;
 	nnom_layer_t *layer = start;
@@ -545,45 +599,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 
 		// print current layer's info. 
 		// show names, activations, mem block size
-		{
-			size_t in_size = io_mem_size(layer->in);
-			size_t out_size = io_mem_size(layer->out);
-			size_t compsize;
-			if (layer->comp != NULL)
-				compsize = shape_size(&layer->comp->shape);
-			else
-				compsize = 0;
-			// names
-			LOG(" %-10s - ", default_layer_names[layer->type]);
-			// activations
-			if (layer->actail != NULL)
-				LOG("%-8s - ", default_activation_names[layer->actail->type]);
-			else
-				LOG("         - ");
-
-			// outshape (h, w, c), ops, input buf, output buf, computational buf.
-			LOG("(%4d,%4d,%4d)  %7d   (%5d,%5d,%5d)",
-				layer->out->shape.h, layer->out->shape.w, layer->out->shape.c,
-				layer->stat.macc,
-				in_size,
-				out_size,
-				compsize);
-		}
-
-		// show the memory blocks's lifetime (number of owners)
-		{
-			LOG("   ");
-			for (int i = 0; i < NNOM_BLOCK_NUM; i++)
-			{
-				if (i % 4 == 0)
-					LOG(" ");
-				if (block_pool[i].owners)
-					LOG("%d ", block_pool[i].owners);
-				else
-					LOG("- ");
-			}
-			LOG("\n");
-		}
+		print_layer_info(layer, (*layer_count)++);
 
 		// 4. allocate output buffer for each output module. 
 		// check output
@@ -599,6 +615,9 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 			{
 				// pass to next layer directly, like we never touch the buffer(dont change life-time)
 				layer->out->mem = layer->in->mem;
+				
+				// print memory before release
+				print_memory_block_info(block_pool);
 				// computational buf
 				release_comp_mem(layer);
 			}
@@ -619,6 +638,8 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 				layer->out->mem = out_blk;
 
 				// once we allocate for output, we can now release input and comput.
+				// print memory before release
+				print_memory_block_info(block_pool);
 				// release input mem and comp mem
 				release_input_mem(layer);
 				release_comp_mem(layer);
@@ -635,7 +656,10 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 				layer->out->mem = layer->in->mem;
 				layer->out->mem->owners += hook_length(&layer->out->hook); // set the mem lifetime.// test
 				layer->out->mem->state = NNOM_BUF_FILLED;
-				// release computational buff and input buffer // test
+				
+				// print memory before release
+				print_memory_block_info(block_pool);
+				// release computational buff and input buffer 
 				release_input_mem(layer);
 				release_comp_mem(layer);
 			}
@@ -660,6 +684,8 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 					out = out->aux;
 				}
 				// once we allocate for output, we can now release input and comput (or reduce the lifetime).
+				// print memory before release
+				print_memory_block_info(block_pool);
 				// release input mem and comp mem
 				release_input_mem(layer);
 				release_comp_mem(layer);
@@ -682,7 +708,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool)
 					result = layer_shortcut_add(layer, hook->io->owner);
 					if (result == NN_SUCCESS)
 						// nested call only when the layer hasnt been compiled
-						compile_layers(hook->io->owner, block_pool);
+						compile_layers(hook->io->owner, block_pool, layer_count);
 					// next hook
 					hook = hook->next;
 				}
@@ -716,15 +742,15 @@ size_t mem_analysis_result(nnom_model_t *m)
 {
 	uint32_t index;
 	uint32_t total_mem = 0;
-	LOG("INFO: memory analysis result\n ");
+	NNOM_LOG("Memory cost by each block:\n ");
 	// print size of memory blocks
 	for (index = 0; index < NNOM_BLOCK_NUM; index++)
 	{
 		total_mem += m->blocks[index].size;
-		LOG("Block%d: %d  ", index, m->blocks[index].size);
+		NNOM_LOG("blk_%d:%d  ", index, m->blocks[index].size);
 	}
 	// size of total memory cost by networks buffer
-	LOG("\n Total memory cost by network buffers: %d bytes\n", total_mem);
+	NNOM_LOG("\n Total memory cost by network buffers: %d bytes\n", total_mem);
 
 	return total_mem;
 }
@@ -794,6 +820,9 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 {
 	size_t buf_size;
 	uint8_t *buf;
+	uint32_t layer_num = 1;
+	uint32_t time = nnom_ms_get();
+	
 	NNOM_NULL_CHECK(m);
 	NNOM_NULL_CHECK(input);
 
@@ -802,18 +831,18 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	if (output == NULL)
 		m->tail = find_last(input);
 
-	LOG("\nINFO: Start compile...\n");
-	LOG("Layer        Activation    output shape      ops          memory            mem life-time\n");
-	LOG("----------------------------------------------------------------------------------------------\n");
+	NNOM_LOG("\nStart compiling model...\n");
+	NNOM_LOG("Layer(#)         Activation    output shape    ops(MAC)   mem(in, out, buf)      mem blk lifetime\n");
+	NNOM_LOG("-------------------------------------------------------------------------------------------------\n");
 
 	// compile layers, started from list head, nested run till the end of models
-	compile_layers(m->head, m->blocks);
+	compile_layers(m->head, m->blocks, &layer_num);
 
-	LOG("----------------------------------------------------------------------------------------------\n");
+	NNOM_LOG("-------------------------------------------------------------------------------------------------\n");
 
 	// if model's tail is not the last layer which built by user.
 	if (output != find_last(input))
-		LOG("WARNING: model returned at #%d %s layer, but this layer is not the end of shortcut list \n",
+		NNOM_LOG("WARNING: model returned at #%d %s layer, but this layer is not the end of shortcut list \n",
 			find_index(m->head, output), default_layer_names[output->type]);
 
 	// get the total (aligned) memory requirement
@@ -823,7 +852,7 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	buf = nnom_mem(buf_size);
 	if (buf == NULL)
 	{
-		LOG("ERROR: No enough memory for network buffer, required %d bytes\n", buf_size);
+		NNOM_LOG("ERROR: No enough memory for network buffer, required %d bytes\n", buf_size);
 		return NN_NO_MEMORY;
 	}
 
@@ -835,6 +864,10 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 
 	// calculate the total operations and set it to the model
 	model_set_ops(m);
+	
+	// print the time. 
+	if(nnom_ms_get())
+		NNOM_LOG("Compling done in %d ms\n", nnom_ms_get() - time);
 
 	return NN_SUCCESS;
 }
@@ -908,7 +941,7 @@ nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 		result = layer_run(layer);
 		if (result != NN_SUCCESS)
 		{
-			LOG("Error: #%d %s layer return error code:%d\n", layer_num, default_layer_names[layer->type], result);
+			NNOM_LOG("Error: #%d %s layer return error code:%d\n", layer_num, default_layer_names[layer->type], result);
 			return result;
 		}
 		#ifdef USE_NNOM_OUTPUT_SAVE
@@ -919,7 +952,7 @@ nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 			return result;
 		}
 
-		//LOG("INFO:Run - %10s, time: %d \n", &default_layer_names[layer->type], layer->stat.time); // test
+		//NNOM_LOG("INFO:Run - %10s, time: %d \n", &default_layer_names[layer->type], layer->stat.time); // test
 		if (layer->shortcut == NULL)
 			break;
 		layer = layer->shortcut;
