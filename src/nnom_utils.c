@@ -266,7 +266,7 @@ static void layer_stat(nnom_layer_t *layer)
 	// MAC operation
 	if(layer->stat.macc == 0)
 		NNOM_LOG("            ");
-	else if (layer->stat.macc < 1000)
+	else if (layer->stat.macc < 10000)
 		NNOM_LOG("%7d     ", layer->stat.macc);
 	else if (layer->stat.macc < 1000*1000)
 		NNOM_LOG("%6dk     ", layer->stat.macc/1000);
