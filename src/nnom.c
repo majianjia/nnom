@@ -20,15 +20,15 @@
 
 const char default_layer_names[][12] = DEFUALT_LAYER_NAMES;
 const char default_activation_names[][8] = ACTIVATION_NAMES;
-size_t memory_taken = 0;
+size_t nnom_memory_taken = 0;
 
 void *nnom_mem(size_t size)
 {
-	size = alignto(size, 4);
+	size = nnom_alignto(size, 4);
 	void *p = nnom_malloc(size);
 	if (p)
 	{
-		memory_taken += size; //test
+		nnom_memory_taken += size; //test
 		nnom_memset(p, 0, size);
 	}
 	return p;
@@ -36,7 +36,7 @@ void *nnom_mem(size_t size)
 
 size_t nnom_mem_stat(void)
 {
-	return memory_taken;
+	return nnom_memory_taken;
 }
 
 // get the size of an module model
@@ -54,7 +54,7 @@ static size_t io_mem_size(nnom_layer_io_t *io)
 	return size;
 }
 
-size_t alignto(size_t value, uint32_t alignment)
+size_t nnom_alignto(size_t value, uint32_t alignment)
 {
 	if (value % alignment == 0)
 		return value;
@@ -62,6 +62,7 @@ size_t alignto(size_t value, uint32_t alignment)
 	return value;
 }
 
+// FIXME, this might not work correctly when model has mutiple output. 
 static nnom_layer_t *find_last(nnom_layer_t *layer)
 {
 	if (layer == NULL)
@@ -364,7 +365,7 @@ void model_delete(nnom_model_t *m)
 	else
 		nnom_memset(m, 0, sizeof(nnom_model_t));
 	
-	memory_taken = 0;
+	nnom_memory_taken = 0;
 	return;
 }
 
@@ -425,10 +426,22 @@ static uint8_t hook_length(nnom_layer_hook_t *hook)
 	return num;
 }
 
+// The shortcut version of find_last() method. 
+// must be used after compiling. 
+static nnom_layer_t *layer_shortcut_find_last(nnom_layer_t *start)
+{
+	nnom_layer_t *layer = start;
+	if (start == NULL)
+		return NULL;
+	while (layer->shortcut != NULL)
+		layer = layer->shortcut;
+	return layer;
+}
+
 // call while compiling.
 // the shorcut is for fast running and fast iliterating.
 // simply link every layer as a list. ordered by its runing order
-nnom_status_t layer_shortcut_add(nnom_layer_t *start, nnom_layer_t *curr)
+static nnom_status_t layer_shortcut_add(nnom_layer_t *start, nnom_layer_t *curr)
 {
 	nnom_layer_t *layer = start;
 	// first one, return
@@ -539,7 +552,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 			{
 				in_blk = allocate_block(block_pool);
 				in_blk->owners += 1; // add 1
-				mem_size = alignto(shape_size(&in->shape), 4);
+				mem_size = nnom_alignto(shape_size(&in->shape), 4);
 				in_blk->size = mem_size > in_blk->size ? mem_size : in_blk->size;
 				// set the blk to the layer IO
 				in->mem = in_blk;
@@ -592,7 +605,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 			layer->comp->mem->owners += 1; // add us to buffer users
 			layer->comp->mem->state = NNOM_BUF_FILLED;
 			// record maximum mem size in this block
-			mem_size = alignto(shape_size(&layer->comp->shape), 4);
+			mem_size = nnom_alignto(shape_size(&layer->comp->shape), 4);
 			layer->comp->mem->size =
 				mem_size > layer->comp->mem->size ? mem_size : layer->comp->mem->size;
 		}
@@ -632,7 +645,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 				out_blk->owners = 1;
 				out_blk->state = NNOM_BUF_FILLED; // marked filled
 				// record maximum mem size in this block
-				mem_size = alignto(shape_size(&layer->out->shape), 4);
+				mem_size = nnom_alignto(shape_size(&layer->out->shape), 4);
 				out_blk->size = mem_size > out_blk->size ? mem_size : out_blk->size;
 				// set the blk to the layer IO
 				layer->out->mem = out_blk;
@@ -675,7 +688,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 					if (out->mem == NULL)
 						return NN_NO_MEMORY;
 					// record maximum mem size in this block
-					mem_size = alignto(shape_size(&out->shape), 4);
+					mem_size = nnom_alignto(shape_size(&out->shape), 4);
 					out->mem->size = mem_size > out->mem->size ? mem_size : out->mem->size;
 					// keep the block untill the last hooked layer is called.
 					out->mem->owners = hook_length(&out->hook); // set lifetime of the buffer = the num of hooked layers
@@ -815,7 +828,8 @@ static uint64_t model_set_ops(nnom_model_t *m)
 }
 
 // a compiler can be use for both sequencial / functional model.
-// the output layer is optional, if output = NULL, the compile set the
+// the output layer is optional only when the model is single output model
+// in this case, if output = NULL, the compile can find it by its own. 
 nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *output)
 {
 	size_t buf_size;
@@ -841,7 +855,7 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	NNOM_LOG("-------------------------------------------------------------------------------------------------\n");
 
 	// if model's tail is not the last layer which built by user.
-	if (output != find_last(input))
+	if (output != layer_shortcut_find_last(input))
 		NNOM_LOG("WARNING: model returned at #%d %s layer, but this layer is not the end of shortcut list \n",
 			find_index(m->head, output), default_layer_names[output->type]);
 
