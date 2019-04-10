@@ -26,7 +26,7 @@
 // runtime & debuges
 #define nnom_us_get()		0
 #define nnom_ms_get()		rt_tick_get()
-#define LOG(...)			rt_kprintf(__VA_ARGS__)
+#define NNOM_LOG(...)    	rt_kprintf(__VA_ARGS__)
 
 // NNoM configuration
 #define NNOM_BLOCK_NUM  	(8)		// maximum number of memory block  

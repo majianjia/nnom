@@ -569,7 +569,10 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
         f.write('Top 1:'+ str(scores[1])+ "\n")
         f.write("Top 2:"+ str(result)+ "\n")
         f.write("Runing time: "+ str(run_time) + "us" + "\n")
-        f.write(str(matrix))
+        #f.write(str(matrix))
+        for row in matrix:
+            row.tofile(f, sep=',')
+            f.write("\n")
 
 
     # try to check the weight and bias dec ranges
