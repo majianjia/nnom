@@ -822,7 +822,9 @@ nnom_status_t set_tailed_activation(nnom_model_t *m)
 		{
 			layer->actail->data = layer->out->mem->blk;
 			layer->actail->size = shape_size(&layer->out->shape);
-			layer->actail->fmt = layer->out->qfmt;
+			// if actail has its own shifting, then leave it as it is. otherwise set it to same as output
+			if(layer->actail->fmt.m == 0 && layer->actail->fmt.n == 0)
+				layer->actail->fmt = layer->out->qfmt;
 		}
 		if (layer->shortcut == NULL)
 			break;

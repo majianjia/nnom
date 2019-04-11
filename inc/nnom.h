@@ -147,7 +147,7 @@ typedef union {
 
 typedef struct _nnom_qformat
 {
-	int8_t n, m;
+	int8_t m, n;
 } nnom_qformat_t;
 
 typedef struct _nnom_weights

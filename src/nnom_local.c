@@ -545,12 +545,28 @@ void local_sigmoid_q7(q7_t *data, uint32_t size, uint16_t int_width)
     q7_t in;
     q7_t out;
     uint16_t shift_size = 3 - int_width;
-    while (i)
-    {
-        in = *pIn++;
-        out = nnom_sigmoid_table_q7[(uint8_t)(in >> shift_size)];
-        *pOut++ = out;
-        i--;
+	// saturation if int bit too large
+	if(int_width > 3)
+	{
+		while (i)
+		{
+			if(*pIn++ > 0)
+				*pOut++ = 127;
+			else
+				*pOut++ = 0;
+			i--;
+		}
+	}
+	// otherwise search table
+	else
+	{
+		while (i)
+		{
+			in = *pIn++;
+			out = nnom_sigmoid_table_q7[(uint8_t)(in >> shift_size)];
+			*pOut++ = out;
+			i--;
+		}
     }
 }
 
@@ -560,15 +576,35 @@ void local_tanh_q7(q7_t *data, uint32_t size, uint16_t int_width)
     q7_t *pIn = data;
     q7_t *pOut = data;
     q7_t in;
-    q7_t out;
-    uint16_t shift_size = 3 - int_width;
-    while (i)
-    {
-        in = *pIn++;
-        out = nnom_tanh_table_q7[(uint8_t)(in >> shift_size)];
-        *pOut++ = out;
-        i--;
-    }
+	q7_t out;
+	uint16_t shift_size = 3 - int_width;
+	
+	// saturation if int bit too large
+	if(int_width > 3)
+	{
+		while (i)
+		{
+			in = *pIn++;
+			if(in > 0)
+				*pOut++ = 127;
+			else if ( in == 0)
+				*pOut++ = 0;
+			else
+				*pOut++ = -128;
+			i--;
+		}
+	}
+	// otherwise search table
+	else
+	{
+		while (i)
+		{
+			in = *pIn++;
+			out = nnom_tanh_table_q7[(uint8_t)(in >> shift_size)];
+			*pOut++ = out;
+			i--;
+		}
+	}
 }
 void local_relu_q7(q7_t *data, uint32_t size)
 {
