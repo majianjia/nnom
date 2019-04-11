@@ -362,7 +362,7 @@ nnom_status_t concatenate_out_shape(nnom_layer_t *layer)
 }
 
 // the shape of mutiple inputs are same as output
-nnom_status_t same_io_shape_base_layer_out_shape(nnom_layer_t *layer)
+nnom_status_t same_shape_matrix_output_shape(nnom_layer_t *layer)
 {
 	//get the last layer's output as input shape
 	layer->in->shape = layer->in->hook.io->shape;
@@ -370,6 +370,13 @@ nnom_status_t same_io_shape_base_layer_out_shape(nnom_layer_t *layer)
 	layer->out->shape.h = layer->in->shape.h;
 	layer->out->shape.w = layer->in->shape.w;
 	layer->out->shape.c = layer->in->shape.c;
+	
+	// need extra buffer to store intermediate number. 
+//	if(nnom_io_length(layer->in) > 2)
+//	{
+//		layer->comp->shape = layer->in->shape;
+//		layer->comp->shape.c = layer->comp->shape.c * sizeof(long)/sizeof(q7_t); // this muse be change for 16bit. 
+//	}
 
 	return NN_SUCCESS;
 }

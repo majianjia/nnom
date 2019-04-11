@@ -109,7 +109,7 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     return history
 
 def main(weights='weights.h'):
-    epochs = 2 # reduce for CI
+    epochs = 1 # reduced for CI
     num_classes = 10
 
     # select different dataset as you wish

@@ -28,6 +28,7 @@ from keras import backend as K
 from sklearn import metrics
 from fully_connected_opt_weight_generation import *
 import time
+import warnings
 
 
 """ 
@@ -116,7 +117,9 @@ def is_shift_layer(layer):
        'conv1d' in layer.name or
        'dense' in layer.name or
        'softmax' in layer.name or
-       #'batch_normalization' in layer.name or
+       'add' in layer.name or
+        'subtract' in layer.name or
+        'multiply' in layer.name or
        ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')
     ):
         return True
@@ -271,7 +274,11 @@ def layers_output_ranges(model, x_test):
             features = x_test
         else:
             # batch_normalization will need to be handle differently, since we are fusing the weight to its predecessor.
-            if(is_shift_layer(layer) or 'batch_normalization' in layer.name):
+            # sigmoid and tanh are different, their shift is fixed to 7
+            if(is_shift_layer(layer) or
+                ('batch_normalization' in layer.name) or
+                ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
+                ('activation' in layer.name and layer.get_config()['activation'] == 'tanh')):
                 layer_model = Model(inputs=model.input, outputs=layer.output)
                 # FIXME, when the test data is too large, it might return memory error. need to slice data into small pices
                 features = layer_model.predict(x_test)
@@ -329,8 +336,9 @@ def layers_output_ranges(model, x_test):
                 shift_list[iname] = Qmin
                 if(not is_shift_layer(LM[iname])):
                     update_previous_layer_shift(LM[iname], Qmin)
-            print('set shift', Qmin, 'for', layer.name, ':', [inp.name.split('/')[0] for inp in layer.input])
-            shift_list[layer.name] = Qmin
+            print('set shift', Qmin, 'for the input of', layer.name, ':', [inp.name.split('/')[0] for inp in layer.input])
+            if(not is_shift_layer(layer) or Qmin < shift_list[layer.name]): # update current layer's shift only when we cannot change the shift
+                shift_list[layer.name] = Qmin
     print("shift list", shift_list)
     return shift_list
 
@@ -353,7 +361,7 @@ def generate_model(model, x_test, name='weights.h'):
         for layer in model.layers:
             if(is_shift_layer(layer)):
                 iname = layer.name.upper()
-                if(len(layer.weights) == 2 and         # other
+                if(len(layer.weights) == 2 and
                    'kernel' in layer.weights[0].name and
                    'bias' in layer.weights[1].name):
                     kname = layer.weights[0].name.upper().replace('/', '_').replace(':', '_')
@@ -365,6 +373,21 @@ def generate_model(model, x_test, name='weights.h'):
                             iname, inp, kname, bname))
                     fp.write('#if {0}_OUTPUT_RSHIFT < 0\n#error {0}_OUTPUT_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
                     fp.write('#if {0}_BIAS_LSHIFT < 0\n#error {0}_BIAS_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
+                # add, sub
+                elif ('add' in layer.name or
+                    'subtract' in layer.name):
+                    # only consider the first, they have been set to same in out_put_range()
+                    inp = layer.input[0].name.replace(':','/').split('/')[0].upper()
+                    fp.write('#define {0}_OUTPUT_RSHIFT ({1}_OUTPUT_SHIFT-{0}_OUTPUT_SHIFT)\n'.format(
+                            iname, inp))
+                    fp.write('#if {0}_OUTPUT_RSHIFT < 0\n#error {0}_OUTPUT_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
+                # mult is different, Q3.4 * Q3.4 = Q6.8. if mult out is Q4.3, then shift (Q.4+q.4)-Q.3=5. Am I right?
+                elif ('multiply' in layer.name ):
+                    inp = layer.input[0].name.replace(':','/').split('/')[0].upper()
+                    fp.write('#define {0}_OUTPUT_RSHIFT ({1}_OUTPUT_SHIFT*2-{0}_OUTPUT_SHIFT)\n'.format(
+                            iname, inp))
+                    fp.write('#if {0}_OUTPUT_RSHIFT < 0\n#error {0}_OUTPUT_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
+
 
         fp.write('\n/* weights for each layer */\n')
         LI = {}
@@ -464,6 +487,10 @@ def generate_model(model, x_test, name='weights.h'):
                 cfg = layer.get_config()
                 if(cfg['activation'] == 'relu'):
                     fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n'%(id, LI[inp][0]))
+                if(cfg['activation'] == 'tanh'):
+                    fp.write('\tlayer[%s] = model.active(act_tanh(%s_OUTPUT_SHIFT), layer[%s]);\n'%(id, inp.upper(), LI[inp][0]))
+                if(cfg['activation'] == 'sigmoid'):
+                    fp.write('\tlayer[%s] = model.active(act_sigmoid(%s_OUTPUT_SHIFT), layer[%s]);\n'%(id, inp.upper(), LI[inp][0]))
                 elif(cfg['activation'] == 'softmax'):
                     fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n'%(id, LI[inp][0]))
             elif('re_lu' in layer.name):
@@ -515,6 +542,28 @@ def generate_model(model, x_test, name='weights.h'):
                 cfg = layer.get_config()
                 fp.write('\tlayer[%s] = model.mergex(Concat(%s), %s%s);\n'%(
                     id, cfg['axis'], len(inps), inX))
+            elif('add' in layer.name):
+                inps = [input.name.replace(':','/').split('/')[0] for input in layer.input]
+                inX = ''
+                for inp in inps:
+                    inX += ' ,layer[%d]'%(LI[inp][0])
+                fp.write('\tlayer[%s] = model.mergex(Add(%s_OUTPUT_RSHIFT), %s%s);\n'%(
+                    id, layer.name.upper(), len(inps), inX))
+            elif('subtract' in layer.name):
+                inps = [input.name.replace(':','/').split('/')[0] for input in layer.input]
+                inX = ''
+                for inp in inps:
+                    inX += ' ,layer[%d]'%(LI[inp][0])
+                fp.write('\tlayer[%s] = model.mergex(Sub(%s_OUTPUT_RSHIFT), %s%s);\n'%(
+                    id, layer.name.upper(), len(inps), inX))
+            elif('multiply' in layer.name):
+                warnings.warn("Warning mutiply is under testing")
+                inps = [input.name.replace(':','/').split('/')[0] for input in layer.input]
+                inX = ''
+                for inp in inps:
+                    inX += ' ,layer[%d]'%(LI[inp][0])
+                fp.write('\tlayer[%s] = model.mergex(Mult(%s_OUTPUT_RSHIFT), %s%s);\n'%(
+                    id, layer.name.upper(), len(inps), inX))
             elif('dense' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
@@ -569,7 +618,10 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
         f.write('Top 1:'+ str(scores[1])+ "\n")
         f.write("Top 2:"+ str(result)+ "\n")
         f.write("Runing time: "+ str(run_time) + "us" + "\n")
-        f.write(str(matrix))
+        #f.write(str(matrix))
+        for row in matrix:
+            row.tofile(f, sep=',')
+            f.write("\n")
 
 
     # try to check the weight and bias dec ranges

@@ -491,27 +491,34 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 
 nnom_status_t add_run(nnom_layer_t *layer)
 {
+	nnom_matrix_layer_t* cl = (nnom_matrix_layer_t*)layer;
 	nnom_layer_io_t *in;
 	size_t size = shape_size(&layer->in->shape);
+	int32_t oshift = cl->oshift;
 
 	// adding the first 2 matrix
-#ifdef NNOM_USING_CMSIS_NN
-	arm_add_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, size);
-#else
-	local_add_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk,0, size);
-#endif
+	#ifdef NNOM_USING_CMSIS_NN
+	if(oshift == 0)
+		arm_add_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, size);
+	else
+	#endif
+		local_add_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, oshift, size);
+
 	
-	// if there is 3rd or more
+	// if there is 3rd or more, we should use 
 	if (layer->in->aux->aux != NULL)
 	{
 		in = layer->in->aux->aux;
 		while (in != NULL)
 		{
+			// adding the first 2 matrix
 			#ifdef NNOM_USING_CMSIS_NN
+			if(oshift == 0)
 				arm_add_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, size);
-			#else
-				local_add_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk,0, size);
+			else
 			#endif
+				local_add_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, oshift, size);
+
 			in = in->aux;
 		}
 	}
@@ -521,26 +528,32 @@ nnom_status_t add_run(nnom_layer_t *layer)
 
 nnom_status_t sub_run(nnom_layer_t *layer)
 {
+	nnom_matrix_layer_t* cl = (nnom_matrix_layer_t*)layer;
 	nnom_layer_io_t *in;
 	size_t size = shape_size(&layer->in->shape);
+	int32_t oshift = cl->oshift;
 
 	// the first 2 matrix
-#ifdef NNOM_USING_CMSIS_NN
-	arm_sub_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, size);
-#else
-	local_sub_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, 0, size);
-#endif
+	#ifdef NNOM_USING_CMSIS_NN
+	if(oshift == 0)
+		arm_sub_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, size);
+	else
+	#endif
+		local_sub_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, oshift, size);
+
 	// if there is 3rd or more
 	if (layer->in->aux->aux != NULL)
 	{
 		in = layer->in->aux->aux;
 		while (in != NULL)
 		{
+			// adding the first 2 matrix
 			#ifdef NNOM_USING_CMSIS_NN
+			if(oshift == 0)
 				arm_sub_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, size);
-			#else
-				local_sub_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, 0, size);
+			else
 			#endif
+				local_sub_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, oshift, size);
 
 			in = in->aux;
 		}
@@ -550,27 +563,32 @@ nnom_status_t sub_run(nnom_layer_t *layer)
 
 nnom_status_t mult_run(nnom_layer_t *layer)
 {
+	nnom_matrix_layer_t* cl = (nnom_matrix_layer_t*)layer;
 	nnom_layer_io_t *in;
 	size_t size = shape_size(&layer->in->shape);
+	int32_t oshift = cl->oshift;
 
-	// adding the first 2 matrix
-#ifdef NNOM_USING_CMSIS_NN
-	arm_mult_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, size);
-#else
-	local_mult_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, 0, size);
-#endif
-
+	// the first 2 matrix
+	#ifdef NNOM_USING_CMSIS_NN
+	if(oshift == 0)
+		arm_mult_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, size);
+	else
+	#endif
+		local_mult_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, oshift, size);
+	
 	// if there is 3rd or more
 	if (layer->in->aux->aux != NULL)
 	{
 		in = layer->in->aux->aux;
 		while (in != NULL)
 		{
+			// adding the first 2 matrix
 			#ifdef NNOM_USING_CMSIS_NN
-				arm_mult_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, size);
-			#else
-				local_mult_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, 0, size);
+			if(oshift == 0)
+				arm_sub_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, size);
+			else
 			#endif
+				local_sub_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, oshift, size);
 
 			in = in->aux;
 		}

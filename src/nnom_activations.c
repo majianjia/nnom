@@ -26,32 +26,35 @@
 static nnom_status_t relu_run(nnom_layer_t *layer, nnom_activation_t *act)
 {
 	#ifdef NNOM_USING_CMSIS_NN
-		arm_relu_q7(act->data, act->size);
+	arm_relu_q7(act->data, act->size);
 	#else
-		local_relu_q7(act->data, act->size);
+	local_relu_q7(act->data, act->size);
 	#endif
 	return NN_SUCCESS;
 }
 
 static nnom_status_t tanh_run(nnom_layer_t *layer, nnom_activation_t *act)
 {
+	// arm version cannot handle int_bit > 3
 	#ifdef NNOM_USING_CMSIS_NN
-		arm_nn_activations_direct_q7(act->data, act->size, act->fmt.n, ARM_TANH);
-	#else
-		local_tanh_q7(act->data, act->size, act->fmt.n);
+	if(act->fmt.m <= 3)
+		arm_nn_activations_direct_q7(act->data, act->size, act->fmt.m, ARM_TANH);
+	else
 	#endif
-
+		local_tanh_q7(act->data, act->size, act->fmt.m);
+	
 	return NN_SUCCESS;
 }
 
 static nnom_status_t sigmoid_run(nnom_layer_t *layer, nnom_activation_t *act)
 {
+	// arm version cannot handle int_bit > 3
 	#ifdef NNOM_USING_CMSIS_NN
-		arm_nn_activations_direct_q7(act->data, act->size, act->fmt.n, ARM_SIGMOID);
-	#else
-		local_sigmoid_q7(act->data, act->size, act->fmt.n);
+	if(act->fmt.m <= 3)
+		arm_nn_activations_direct_q7(act->data, act->size, act->fmt.m, ARM_SIGMOID);
+	else
 	#endif
-	
+		local_sigmoid_q7(act->data, act->size, act->fmt.m);
 	return NN_SUCCESS;
 }
 
@@ -64,19 +67,23 @@ nnom_activation_t *act_relu(void)
 	return act;
 }
 
-nnom_activation_t *act_tanh(void)
+nnom_activation_t *act_tanh(int32_t dec_bit)
 {
 	nnom_activation_t *act = nnom_mem(sizeof(nnom_activation_t));
 	act->run = tanh_run;
 	act->type = ACT_TANH;
+	act->fmt.n = dec_bit;
+	act->fmt.m = 7 - dec_bit;
 	return act;
 }
 
-nnom_activation_t *act_sigmoid(void)
+nnom_activation_t *act_sigmoid(int32_t dec_bit)
 {
 	nnom_activation_t *act = nnom_mem(sizeof(nnom_activation_t));
 	act->run = sigmoid_run;
 	act->type = ACT_SIGMOID;
+	act->fmt.n = dec_bit;
+	act->fmt.m = 7 - dec_bit;
 	return act;
 }
 

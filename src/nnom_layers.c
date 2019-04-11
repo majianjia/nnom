@@ -339,9 +339,9 @@ nnom_layer_t *ReLU(void)
 	return layer;
 }
 
-nnom_layer_t *Sigmoid(void)
+nnom_layer_t *Sigmoid(int32_t dec_bit)
 {
-	nnom_layer_t *layer = Activation(act_sigmoid());
+	nnom_layer_t *layer = Activation(act_sigmoid(dec_bit));
 	if (layer == NULL)
 		return NULL;
 
@@ -350,9 +350,9 @@ nnom_layer_t *Sigmoid(void)
 	return layer;
 }
 
-nnom_layer_t *TanH(void)
+nnom_layer_t *TanH(int32_t dec_bit)
 {
-	nnom_layer_t *layer = Activation(act_tanh());
+	nnom_layer_t *layer = Activation(act_tanh(dec_bit));
 	if (layer == NULL)
 		return NULL;
 	// set type in layer parent
@@ -636,34 +636,7 @@ nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),
 	return (nnom_layer_t *)layer;
 }
 
-// init a base layer instance with same shape 1 in 1 out. More IO can be added later
-// mainly used by matrix calculation (add, mult, sub)
-static nnom_layer_t *_same_io_shape_base_layer()
-{
-	nnom_layer_t *layer;
-	nnom_layer_io_t *in, *out;
-	size_t mem_size;
 
-	// apply a block memory for all the sub handles.
-	mem_size = sizeof(nnom_layer_t) + sizeof(nnom_layer_io_t) * 2;
-	layer = nnom_mem(mem_size);
-	if (layer == NULL)
-		return NULL;
-
-	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
-
-	// set type in layer parent
-	layer->comp_out_shape = same_io_shape_base_layer_out_shape;
-	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
-	// put in & out on the layer.
-	layer->in = io_init(layer, in);
-	layer->out = io_init(layer, out);
-	return layer;
-}
 
 // concate method
 // concate requires more than one input module. aux input will be allocated in model.merge()
@@ -705,33 +678,72 @@ nnom_layer_t *Concat(int8_t axis)
 	return (nnom_layer_t *)layer;
 }
 
-nnom_layer_t *Add()
+// init a base layer instance with same shape 1 in 1 out. More IO can be added later
+// mainly used by matrix calculation (add, mult, sub)
+static nnom_layer_t *_same_shape_matrix_layer()
 {
-	nnom_layer_t *layer = _same_io_shape_base_layer();
+	nnom_matrix_layer_t *layer;
+	nnom_layer_io_t *in, *out;
+	//nnom_buf_t *comp;
+	size_t mem_size;
+
+	// apply a block memory for all the sub handles.
+	mem_size = sizeof(nnom_matrix_layer_t) + sizeof(nnom_layer_io_t) * 2;// + sizeof(nnom_buf_t);
+	layer = nnom_mem(mem_size);
+	if (layer == NULL)
+		return NULL;
+
+	// distribut the memory to sub handles.
+	in = (void *)((unsigned long)layer + sizeof(nnom_matrix_layer_t));
+	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
+	//comp = (void *)((unsigned long)out + sizeof(nnom_layer_io_t));
+
+	// set type in layer parent
+	layer->super.comp_out_shape = same_shape_matrix_output_shape;
+	// set buf state
+	in->type = LAYER_BUF_TEMP;
+	out->type = LAYER_BUF_TEMP;
+	//comp->type = LAYER_BUF_TEMP;
+	// put in & out on the layer.
+	layer->super.in = io_init(layer, in);
+	layer->super.out = io_init(layer, out);
+	//layer->super.comp = comp;
+	return (nnom_layer_t*)layer;
+}
+
+nnom_layer_t *Add(int32_t oshift)
+{
+	nnom_layer_t *layer = _same_shape_matrix_layer();
+	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t*) layer;
 	if (layer == NULL)
 		return NULL;
 	// set type in layer parent
 	layer->type = NNOM_ADD;
 	layer->run = add_run;
+	cl->oshift = oshift;
 	return layer;
 }
-nnom_layer_t *Sub()
+nnom_layer_t *Sub(int32_t oshift)
 {
-	nnom_layer_t *layer = _same_io_shape_base_layer();
+	nnom_layer_t *layer = _same_shape_matrix_layer();
+	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t*) layer;
 	if (layer == NULL)
 		return NULL;
 	// set type in layer parent
 	layer->type = NNOM_SUB;
 	layer->run = sub_run;
+	cl->oshift = oshift;
 	return layer;
 }
-nnom_layer_t *Mult()
+nnom_layer_t *Mult(int32_t oshift)
 {
-	nnom_layer_t *layer = _same_io_shape_base_layer();
+	nnom_layer_t *layer = _same_shape_matrix_layer();
+	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t*) layer;
 	if (layer == NULL)
 		return NULL;
 	// set type in layer parent
 	layer->type = NNOM_MULT;
 	layer->run = mult_run;
+	cl->oshift = oshift;
 	return layer;
 }

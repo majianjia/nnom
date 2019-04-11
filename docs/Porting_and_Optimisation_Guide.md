@@ -19,7 +19,7 @@ The default setting is shown below.
 // runtime & debuges
 #define nnom_us_get()       0
 #define nnom_ms_get()       0
-#define LOG(...)            printf(__VA_ARGS__)
+#define NNOM_LOG(...)       printf(__VA_ARGS__)
 
 // NNoM configuration
 #define NNOM_BLOCK_NUM      (8)		// maximum number of memory block  

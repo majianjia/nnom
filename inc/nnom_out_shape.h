@@ -47,6 +47,6 @@ nnom_status_t upsample_out_shape(nnom_layer_t *layer);
 nnom_status_t flatten_out_shape(nnom_layer_t *layer);
 nnom_status_t concatenate_out_shape(nnom_layer_t *layer);
 nnom_status_t same_shape_2in_1out_out_shape(nnom_layer_t *layer); // deprecated, uses same_io_shape_base_layer_out_shape() instead
-nnom_status_t same_io_shape_base_layer_out_shape(nnom_layer_t *layer);
+nnom_status_t same_shape_matrix_output_shape(nnom_layer_t *layer);
 
 #endif

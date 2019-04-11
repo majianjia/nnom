@@ -22,9 +22,10 @@ static nnom_predic_t *_predic_create_instance(nnom_model_t *m, size_t label_num,
 	nnom_predic_t *pre;
 	uint8_t *p;
 	size_t mem_size = 0;
-	mem_size += alignto(label_num * label_num * 2, 4); // confusion_mat
-	mem_size += top_k_size * 4;						   // top_k
-	mem_size += alignto(sizeof(nnom_predic_t), 4);
+	
+	mem_size += nnom_alignto(label_num * label_num * 2, 4); // confusion_mat
+	mem_size += top_k_size * 4;						   		// top_k
+	mem_size += nnom_alignto(sizeof(nnom_predic_t), 4);
 
 	// we dont use nnom_mem(), we dont count the memory
 	p = nnom_malloc(mem_size);
@@ -33,8 +34,8 @@ static nnom_predic_t *_predic_create_instance(nnom_model_t *m, size_t label_num,
 	nnom_memset(p, 0, mem_size);
 
 	pre = (nnom_predic_t *)p;
-	pre->confusion_mat = (uint16_t *)(p + alignto(sizeof(nnom_predic_t), 4));
-	pre->top_k = (uint32_t *)(p + alignto(sizeof(nnom_predic_t), 4) + alignto(label_num * label_num * 2, 4));
+	pre->confusion_mat = (uint16_t *)(p + nnom_alignto(sizeof(nnom_predic_t), 4));
+	pre->top_k = (uint32_t *)(p + nnom_alignto(sizeof(nnom_predic_t), 4) + nnom_alignto(label_num * label_num * 2, 4));
 
 	// config
 	pre->label_num = label_num;

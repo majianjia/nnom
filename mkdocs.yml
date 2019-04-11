@@ -20,5 +20,5 @@ nav:
   - RT-Thread: 'rt-thread_guide.md'
   - MNIST-Simple: 'example_mnist_simple_cn.md'
 
-theme: readthedocs
-
+theme:
+  name: 'readthedocs'

@@ -124,13 +124,13 @@ typedef enum
 	PADDING_SAME
 } nnom_padding_t;
 
-#define LAYER_BUF_NULL (0)
-#define LAYER_BUF_TEMP (1)	 // The memory in IO is temporary occupided, can be reused by other layer once the computation is done.
-#define LAYER_BUF_RESERVED (2) // the mem is reserve for this layer only (not to be reused by other layer.
+#define LAYER_BUF_NULL     (0)
+#define LAYER_BUF_TEMP     (1)  // The memory in IO is temporary occupided, can be reused by other layer once the computation is done.
+#define LAYER_BUF_RESERVED (2)  // the mem is reserve for this layer only (not to be reused by other layer.
 
 // currently used in compiling.
-#define NNOM_BUF_EMPTY (0)
-#define NNOM_BUF_FILLED (1)
+#define NNOM_BUF_EMPTY   (0)
+#define NNOM_BUF_FILLED  (1)
 
 // basic types
 #define nnom_shape_data_t uint16_t
@@ -147,7 +147,7 @@ typedef union {
 
 typedef struct _nnom_qformat
 {
-	int8_t n, m;
+	int8_t m, n;
 } nnom_qformat_t;
 
 typedef struct _nnom_weights
@@ -206,7 +206,7 @@ typedef struct _nnom_layer_io_t
 	nnom_layer_t *owner;		  // this io is belong to the owner layer.
 	nnom_shape_t shape;			  // shape of the buf
 	uint8_t type;
-	nnom_qformat_t qfmt; // the q format of the memory
+	nnom_qformat_t qfmt;          // the q format of the memory
 } nnom_layer_io_t;
 
 // layers base
@@ -264,18 +264,22 @@ typedef struct _nnom_model
 	bool is_alloc;  //	is this structure allocated by nnom (not by user)
 } nnom_model_t;
 
-#define NNOM_NULL_CHECK(p)            \
-	if ((p) == NULL)                  \
-	{                                 \
+#define NNOM_NULL_CHECK(p)                 \
+	if ((p) == NULL)                       \
+	{                                 	   \
 		NNOM_LOG("Error: NULL object.\n"); \
-		return NN_ARGUMENT_ERROR;     \
+		return NN_ARGUMENT_ERROR;          \
 	}
 
 // utils
-size_t alignto(size_t value, uint32_t alignment);
+size_t nnom_alignto(size_t value, uint32_t alignment);
+size_t nnom_io_length(nnom_layer_io_t *io);
+size_t nnom_hook_length(nnom_layer_hook_t *hook);
 
 // memory (malloc + memeset 0)
 void *nnom_mem(size_t size);
+	
+// get how much memory has been taken
 size_t nnom_mem_stat(void);
 
 // Model APIs
