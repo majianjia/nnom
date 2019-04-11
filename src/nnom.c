@@ -621,7 +621,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 
 		// 3. assign for computational buf
 		if (layer->comp != NULL)
-		if (shape_size(&layer->comp->shape) > 0)
+		//if (shape_size(&layer->comp->shape) > 0)
 		{
 			layer->comp->mem = allocate_block(block_pool);
 			layer->comp->mem->owners += 1; // add us to buffer users
