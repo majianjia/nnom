@@ -64,19 +64,21 @@ nnom_activation_t *act_relu(void)
 	return act;
 }
 
-nnom_activation_t *act_tanh(void)
+nnom_activation_t *act_tanh(int32_t dec_bit)
 {
 	nnom_activation_t *act = nnom_mem(sizeof(nnom_activation_t));
 	act->run = tanh_run;
 	act->type = ACT_TANH;
+	act->fmt.n = dec_bit;
 	return act;
 }
 
-nnom_activation_t *act_sigmoid(void)
+nnom_activation_t *act_sigmoid(int32_t dec_bit)
 {
 	nnom_activation_t *act = nnom_mem(sizeof(nnom_activation_t));
 	act->run = sigmoid_run;
 	act->type = ACT_SIGMOID;
+	act->fmt.n = dec_bit;
 	return act;
 }
 

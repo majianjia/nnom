@@ -273,6 +273,8 @@ typedef struct _nnom_model
 
 // utils
 size_t nnom_alignto(size_t value, uint32_t alignment);
+size_t nnom_io_length(nnom_layer_io_t *io);
+size_t nnom_hook_length(nnom_layer_hook_t *hook);
 
 // memory (malloc + memeset 0)
 void *nnom_mem(size_t size);

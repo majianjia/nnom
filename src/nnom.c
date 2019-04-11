@@ -54,6 +54,7 @@ static size_t io_mem_size(nnom_layer_io_t *io)
 	return size;
 }
 
+
 size_t nnom_alignto(size_t value, uint32_t alignment)
 {
 	if (value % alignment == 0)
@@ -413,9 +414,24 @@ static void release_comp_mem(nnom_layer_t *layer)
 }
 
 // return the length of the hook lists
-static uint8_t hook_length(nnom_layer_hook_t *hook)
+size_t nnom_io_length(nnom_layer_io_t *io)
 {
-	uint8_t num = 0;
+	size_t num = 0;
+	if (io == NULL)
+		return 0;
+	while (io != NULL)
+	{
+		num++;
+		io = io->aux;
+	}
+	return num;
+}
+
+
+// return the length of the hook lists
+size_t nnom_hook_length(nnom_layer_hook_t *hook)
+{
+	size_t num = 0;
 	if (hook == NULL)
 		return 0;
 	while (hook != NULL)
@@ -534,6 +550,11 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 
 	nnom_mem_block_t *in_blk;
 	nnom_mem_block_t *out_blk;
+	
+	uint32_t local_layer_count = 1;
+	
+	if(layer_count == NULL)
+		layer_count = &local_layer_count;
 
 	in = layer->in;
 	out = layer->out;
@@ -600,6 +621,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 
 		// 3. assign for computational buf
 		if (layer->comp != NULL)
+		if (shape_size(&layer->comp->shape) > 0)
 		{
 			layer->comp->mem = allocate_block(block_pool);
 			layer->comp->mem->owners += 1; // add us to buffer users
@@ -667,7 +689,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 				// we dont allocate new buf, but use the input
 				// the ownership will be set to next layer later
 				layer->out->mem = layer->in->mem;
-				layer->out->mem->owners += hook_length(&layer->out->hook); // set the mem lifetime.// test
+				layer->out->mem->owners += nnom_hook_length(&layer->out->hook); // set the mem lifetime.// test
 				layer->out->mem->state = NNOM_BUF_FILLED;
 				
 				// print memory before release
@@ -691,7 +713,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 					mem_size = nnom_alignto(shape_size(&out->shape), 4);
 					out->mem->size = mem_size > out->mem->size ? mem_size : out->mem->size;
 					// keep the block untill the last hooked layer is called.
-					out->mem->owners = hook_length(&out->hook); // set lifetime of the buffer = the num of hooked layers
+					out->mem->owners = nnom_hook_length(&out->hook); // set lifetime of the buffer = the num of hooked layers
 					out->mem->state = NNOM_BUF_FILLED;
 
 					out = out->aux;

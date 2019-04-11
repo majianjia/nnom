@@ -69,6 +69,13 @@ typedef struct _nnom_activation_layer_t
 	nnom_activation_t *act; 
 } nnom_activation_layer_t;
 
+// matrix layer
+typedef struct _nnom_matrix_layer_t
+{
+	nnom_layer_t super;
+	int32_t oshift;		// output right shift
+} nnom_matrix_layer_t;
+
 // RNN
 typedef struct _nnom_rnn_cell_t
 {
@@ -179,13 +186,13 @@ nnom_layer_t *UpSample(nnom_shape_t kernel);	// UpSampling, whcih is acturally t
 nnom_layer_t *Activation(nnom_activation_t *act);
 nnom_layer_t *ReLU(void);
 nnom_layer_t *Softmax(void);
-nnom_layer_t *Sigmoid(void);
-nnom_layer_t *TanH(void);
+nnom_layer_t *Sigmoid(int32_t dec_bit);  // input dec bit
+nnom_layer_t *TanH(int32_t dec_bit);     // input dec bit 
 
 // Matrix
-nnom_layer_t *Add(void);
-nnom_layer_t *Sub(void);
-nnom_layer_t *Mult(void);
+nnom_layer_t *Add(int32_t oshift);       // output shift
+nnom_layer_t *Sub(int32_t oshift);       // output shift			
+nnom_layer_t *Mult(int32_t oshift);      // output shift
 
 // utils
 nnom_layer_t *Flatten(void);

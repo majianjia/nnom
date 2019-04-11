@@ -22,8 +22,8 @@
 // Activation
 // Softmax is not considered as activation in NNoM, Softmax is in layer API.
 nnom_activation_t *act_relu(void);
-nnom_activation_t *act_sigmoid(void);
-nnom_activation_t *act_tanh(void);
+nnom_activation_t *act_sigmoid(int32_t dec_bit);
+nnom_activation_t *act_tanh(int32_t dec_bit);
 
 // direct API
 nnom_status_t act_direct_run(nnom_layer_t *layer, nnom_activation_t *act, void *data, size_t size, nnom_qformat_t fmt);
