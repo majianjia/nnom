@@ -59,7 +59,7 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../api_nnom_utils/">Utils</a>
+    <a class="" href="../api_nnom_utils/">Utils (Python)</a>
                 </li>
                 <li class=" current">
                     
@@ -85,6 +85,15 @@
     
 
     <li class="toctree-l3"><a href="#model_run_to">model_run_to()</a></li>
+    
+
+    <li class="toctree-l3"><a href="#layer_callback">(*layer_callback)()</a></li>
+    
+
+    <li class="toctree-l3"><a href="#model_set_callback">model_set_callback()</a></li>
+    
+
+    <li class="toctree-l3"><a href="#model_delete_callback">model_delete_callback()</a></li>
     
 
     <li class="toctree-l3"><a href="#examples">Examples</a></li>
@@ -287,6 +296,62 @@ The results of prediction will be copy from NNoM memory space to user memory spa
 <li>The result of layer running. </li>
 </ul>
 <hr />
+<h2 id="layer_callback">(*layer_callback)()</h2>
+<pre><code class="C">nnom_status_t (*layer_callback)(nnom_model_t *m, nnom_layer_t *layer);
+</code></pre>
+
+<p>This callback is a runtime callback, which can then be used to evaluate the performance, extract the intermediate output etc. 
+It will be call after each layer is ran. (if a actail (activation tail) is present, this callback will be called after the actail)</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> m:</strong> the model instance of the current model.</li>
+<li><strong> layer:</strong> the layer instance which has just been ran.</li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The result of the callback. Any result other than NN_SUCCESS will cause the model to return immediately with the error code.  </li>
+</ul>
+<p><strong>NOTE</strong></p>
+<ul>
+<li>
+<p>You should not change ANY setting inside the model instance or the layer instance unless you know what you are doing. 
+All configurations and buffers must be read-only inside this method. </p>
+</li>
+<li>
+<p>This is a runtime callback which means it will affect your performance if this callback is time consuming. </p>
+</li>
+</ul>
+<hr />
+<h2 id="model_set_callback">model_set_callback()</h2>
+<pre><code class="C">nnom_status_t model_set_callback(
+    nnom_model_t *m, 
+    nnom_status_t (*layer_callback)(nnom_model_t *m, nnom_layer_t *layer));
+</code></pre>
+
+<p>Set a callback to model. Please refer to the <code>(*layer_callback)()</code>. 
+If a callback is already set but not the same one as what is given, this method will return error. 
+You need to delete the old callback by <code>model_delete_callback()</code> before setting new callback.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> m:</strong> the model instance to be set.</li>
+<li><strong> *layer_callback:</strong> the layer callback.</li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>NN_SUCCESS: when callback is set successfully</li>
+<li>NN_LENGTH_ERROR: when callback is existed in the model but not the same as the given one. </li>
+</ul>
+<hr />
+<h2 id="model_delete_callback">model_delete_callback()</h2>
+<pre><code class="C">void model_delete_callback(nnom_model_t *m);
+</code></pre>
+
+<p>Delete an existing callback on the model.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> m:</strong> the model instance to delete the callback from.</li>
+</ul>
+<hr />
 <h2 id="examples">Examples</h2>
 <p>This example shows a 2 layer MPL for MNIST dateset. Input shape 28 x 28 x 1 hand writing image. please check <a href="https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet">mnist-densenet example</a> for further reading. </p>
 <p><strong>Sequential model</strong></p>
@@ -354,6 +419,43 @@ void functional_model(void)
 }
 
 </code></pre>
+
+<p><strong>Layer Callback</strong></p>
+<pre><code class="C">
+// this callback to print output size of every layer.
+nnom_status_t callback(nnom_model_t *m, nnom_layer_t *layer)
+{
+    printf(&quot;layer %s, output size %d \n&quot;, default_layer_names[layer-&gt;type], shape_size(&amp;layer-&gt;out-&gt;shape));
+    return NN_SUCCESS;
+}
+
+int main(void)
+{
+    // using automatic tools to generate model
+    model = nnom_model_create();
+
+    // set callback
+    model_set_callback(model, callback);
+
+    // run and see what happend.
+    model_run(model);
+}
+
+</code></pre>
+
+<p>logging:</p>
+<pre><code>layer Input, output shape 784 
+layer Conv2D, output shape 9408 
+layer MaxPool, output shape 2352 
+layer UpSample, output shape 9408 
+layer Conv2D, output shape 2352 
+layer Conv2D, output shape 9408 
+layer Add, output shape 9408 
+layer MaxPool, output shape 2352 
+layer Conv2D, output shape 2352 
+...
+
+</code></pre>
               
             </div>
           </div>
@@ -364,7 +466,7 @@ void functional_model(void)
         <a href="../api_construction/" class="btn btn-neutral float-right" title="Construction">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../api_nnom_utils/" class="btn btn-neutral" title="Utils"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../api_nnom_utils/" class="btn btn-neutral" title="Utils (Python)"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   

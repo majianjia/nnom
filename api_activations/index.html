@@ -59,7 +59,7 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../api_nnom_utils/">Utils</a>
+    <a class="" href="../api_nnom_utils/">Utils (Python)</a>
                 </li>
                 <li class="">
                     
@@ -242,33 +242,50 @@
 <p>Using <code>layer = ReLU();</code> is no difference to <code>layer = Activation(act_relu());</code></p>
 <hr />
 <h2 id="sigmoid">Sigmoid()</h2>
-<p>This function is affacted by an issue that we are currently working on. Check <a href="https://github.com/majianjia/nnom/issues/13">issue</a></p>
-<pre><code class="C">nnom_layer_t* Sigmoid(void);
+<pre><code class="C">nnom_layer_t* Sigmoid(int32_t dec_bit);
 </code></pre>
 
+<p>This function is now perform normally. </p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>dec_bit:</strong> the decimal bit width of the data. which is the output shift of the last layer. It should be provide in the <code>weight.h</code></li>
+</ul>
 <p><strong>Return</strong></p>
 <ul>
 <li>The Sigmoid layer instance</li>
 </ul>
 <p><strong>Notes</strong></p>
-<p>Using <code>layer = Sigmoid();</code> is no difference to <code>layer = Activation(act_sigmoid());</code></p>
+<ul>
+<li>Using <code>layer = Sigmoid();</code> is no difference to <code>layer = Activation(act_sigmoid());</code></li>
+<li>The output of this function will be set to 7 constantly. </li>
+<li>When dec_bit &lt; 4, this function is performed by <a href="https://en.wikipedia.org/wiki/Heaviside_step_function">Heaviside step function</a> 
+due to the less resolutions. </li>
+</ul>
 <hr />
 <h2 id="tanh">TanH()</h2>
-<pre><code class="C">nnom_layer_t* TanH(void);
+<pre><code class="C">nnom_layer_t* TanH(int32_t dec_bit);
 </code></pre>
 
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>dec_bit:</strong> the decimal bit width of the data. which is the output shift of the last layer. It should be provide in the <code>weight.h</code></li>
+</ul>
 <p><strong>Return</strong></p>
 <ul>
 <li>The TanH layer instance</li>
 </ul>
 <p>This function is affacted by an issue that we are currently working on. Check <a href="https://github.com/majianjia/nnom/issues/13">issue</a></p>
 <p><strong>Notes</strong></p>
-<p>Using <code>layer = TanH();</code> is no difference to <code>layer = Activation(act_tanh());</code></p>
+<ul>
+<li>Using <code>layer = TanH();</code> is no difference to <code>layer = Activation(act_tanh());</code></li>
+<li>The output of this function will be set to 7 constantly. </li>
+<li>When dec_bit &lt; 4, this function is performed by {f(x)=1 if x&gt;0;  f(x)=0 if x=0;  f(x)=-1 if x&lt;0}. due to the loss of resolutions.</li>
+</ul>
 <hr />
 <h1 id="activation-apis">Activation APIs</h1>
 <pre><code class="C">nnom_activation_t* act_relu(void);
-nnom_activation_t* act_sigmoid(void);
-nnom_activation_t* act_tanh(void);
+nnom_activation_t* act_sigmoid(int32_t dec_bit);
+nnom_activation_t* act_tanh(int32_t dec_bit);
 </code></pre>
 
 <p>They return the activation instance which can be passed to either <code>model.active()</code> or <code>Activation()</code></p>
@@ -294,7 +311,7 @@ layer = model.hook(Dense(10), input);
 layer = model.hook(ReLU(), layer);
 </code></pre>
 
-<p>All 3 above perform the same and take the same memory.</p>
+<p>All 3 above perform the same and take the occupide the same size of memory.</p>
 <p><strong> Using Activation's API </strong></p>
 <pre><code class="C">nnom_layer_t layer;
 input = Input(shape(1, 10, 1), buffer);
