@@ -8,7 +8,7 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 
 - Deploy Keras model to NNoM model with one line of code.
 - User-friendly interfaces.
-- Support complex structures; Inception, ResNet, DenseNet...
+- Support complex structures; Inception, ResNet, DenseNet, Octave Convolution...
 - High-performance backend selections.
 - Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
 
@@ -24,6 +24,12 @@ Guides:
 Examples:
 
 [MNIST-DenseNet example](examples/mnist-densenet)
+
+[DenseNet](examples/mnist-densenet)
+
+[Octave Convolution](examples/octave-conv)
+
+[Keyword Spotting](examples/keyword_spotting)
 
 [RT-Thread-MNIST example (中文)](https://majianjia.github.io/nnom/example_mnist_simple_cn/)
 

@@ -1,5 +1,6 @@
 SConscript*
 .vscode
+.vs
 site
 *.o
 *.txt
@@ -7,4 +8,5 @@ site
 __pycache__
 *.h5
 .ipynb_checkpoints
+
 

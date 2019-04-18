@@ -26,6 +26,8 @@ Examples:
 
 [MNIST-DenseNet example](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)
 
+[Octave Convolution](https://github.com/majianjia/nnom/tree/master/examples/octave-conv)
+
 ---
 
 ## Why NNoM?
