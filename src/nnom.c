@@ -976,15 +976,28 @@ nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 	// using shortcut run
 	while (layer)
 	{
+		// run layer
 		result = layer_run(layer);
 		if (result != NN_SUCCESS)
 		{
 			NNOM_LOG("Error: #%d %s layer return error code:%d\n", layer_num, default_layer_names[layer->type], result);
 			return result;
 		}
+		// run callback
+		if( m->layer_callback != NULL)
+		{
+			result = m->layer_callback(m, layer);
+			if (result != NN_SUCCESS)
+			{
+				NNOM_LOG("Error: Callback return error code %d at #%d %s layer\n", result, layer_num, default_layer_names[layer->type]);
+				return result;
+			}
+		}
+		
 		#ifdef USE_NNOM_OUTPUT_SAVE
 		nnom_save_output(layer);
 		#endif
+		
 		if (layer == end_layer)
 		{
 			return result;
@@ -1005,3 +1018,21 @@ nnom_status_t model_run(nnom_model_t *m)
 {
 	return model_run_to(m, NULL);
 }
+
+// callback, called after each layer has finished the calculation. 
+nnom_status_t model_set_callback(nnom_model_t *m, nnom_status_t (*layer_callback)(nnom_model_t *m, nnom_layer_t *layer))
+{
+	if(m->layer_callback != NULL && m->layer_callback != layer_callback)
+		return NN_LENGTH_ERROR;
+	
+	m->layer_callback = layer_callback;
+	return NN_SUCCESS;
+}
+
+// delete callback. 
+void model_delete_callback(nnom_model_t *m)
+{
+	m->layer_callback = NULL;
+}
+
+
