@@ -940,29 +940,7 @@ nnom_status_t layer_run(nnom_layer_t *layer)
 	layer->stat.time = nnom_us_get() - start;
 	return result;
 }
-#ifdef USE_NNOM_OUTPUT_SAVE
-void nnom_save_output(nnom_layer_t* layer) {
 
-	static int outputIndex[NNOM_TYPE_MAX] = { 0 , } ;
-	char name[32];
-	FILE* fp;
-
-	outputIndex[layer->type]++;
-	snprintf(name, sizeof(name),"tmp/%s%d.raw",
-			default_layer_names[layer->type],
-			outputIndex[layer->type]);
-	fp = fopen(name,"w");
-	if(fp != NULL)
-	{
-		fwrite(layer->out->mem->blk, 1, shape_size(&layer->out->shape), fp);
-		fclose(fp);
-	}
-	else
-	{
-		printf("failed to save %s\n",name);
-	}
-}
-#endif
 // run the model, until the end_layer. If end_layer == NULL, run all layers.
 nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 {
@@ -973,6 +951,7 @@ nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 	NNOM_NULL_CHECK(m->head);
 
 	layer = m->head;
+	
 	// using shortcut run
 	while (layer)
 	{
@@ -992,19 +971,9 @@ nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 				NNOM_LOG("Error: Callback return error code %d at #%d %s layer\n", result, layer_num, default_layer_names[layer->type]);
 				return result;
 			}
-		}
-		
-//		#ifdef USE_NNOM_OUTPUT_SAVE
-//		nnom_save_output(layer);
-//		#endif
-		
-		if (layer == end_layer)
-		{
-			return result;
-		}
-
-		//NNOM_LOG("INFO:Run - %10s, time: %d \n", &default_layer_names[layer->type], layer->stat.time); // test
-		if (layer->shortcut == NULL)
+		}		
+		// check if finished
+		if (layer == end_layer || layer->shortcut == NULL)
 			break;
 		layer = layer->shortcut;
 		layer_num++;

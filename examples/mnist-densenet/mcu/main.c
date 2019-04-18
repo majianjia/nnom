@@ -8,6 +8,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2019-02-05     Jianjia Ma   The first version
+ * 2019-04-18     Jianjia Ma   use callback to save layer's output
  */
  
 #include <stdint.h>
@@ -34,7 +35,7 @@ int8_t* load(const char* file)
 	return in;
 }
 
-nnom_status_t callback(nnom_model_t *m, nnom_layer_t *layer)
+nnom_status_t layer_callback(nnom_model_t *m, nnom_layer_t *layer)
 {
 	static int outputIndex[NNOM_TYPE_MAX] = { 0 , } ;
 	char name[32];
@@ -63,7 +64,7 @@ int main(int argc, char* argv[])
 	int8_t* input;
 
 	model = nnom_model_create();
-	model_set_callback(model, callback); // callback to save output of each layer.
+	model_set_callback(model, layer_callback); // callback to save output of each layer.
 
 	input = load("tmp/input.raw");
 
