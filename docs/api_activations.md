@@ -66,11 +66,16 @@ Using `layer = ReLU();` is no difference to `layer = Activation(act_relu());`
 
 ## Sigmoid() 
 
-This function is affacted by an issue that we are currently working on. Check [issue](https://github.com/majianjia/nnom/issues/13)
-
 ~~~C
-nnom_layer_t* Sigmoid(void);
+nnom_layer_t* Sigmoid(int32_t dec_bit);
 ~~~
+
+This function is now perform normally. 
+
+
+**Arguments**
+
+- **dec_bit:** the decimal bit width of the data. which is the output shift of the last layer. It should be provide in the `weight.h`
 
 **Return**
 
@@ -78,15 +83,22 @@ nnom_layer_t* Sigmoid(void);
 
 **Notes**
 
-Using `layer = Sigmoid();` is no difference to `layer = Activation(act_sigmoid());`
+- Using `layer = Sigmoid();` is no difference to `layer = Activation(act_sigmoid());`
+- The output of this function will be set to 7 constantly. 
+- When dec_bit < 4, this function is performed by [Heaviside step function](https://en.wikipedia.org/wiki/Heaviside_step_function) 
+due to the less resolutions. 
 
 ---
 
 ## TanH() 
 
 ~~~C
-nnom_layer_t* TanH(void);
+nnom_layer_t* TanH(int32_t dec_bit);
 ~~~
+
+**Arguments**
+
+- **dec_bit:** the decimal bit width of the data. which is the output shift of the last layer. It should be provide in the `weight.h`
 
 **Return**
 
@@ -96,7 +108,10 @@ This function is affacted by an issue that we are currently working on. Check [i
 
 **Notes**
 
-Using `layer = TanH();` is no difference to `layer = Activation(act_tanh());`
+- Using `layer = TanH();` is no difference to `layer = Activation(act_tanh());`
+- The output of this function will be set to 7 constantly. 
+- When dec_bit < 4, this function is performed by {f(x)=1 if x>0;  f(x)=0 if x=0;  f(x)=-1 if x<0}. due to the loss of resolutions.
+
 
 ---
 
@@ -106,8 +121,8 @@ Using `layer = TanH();` is no difference to `layer = Activation(act_tanh());`
 
 ~~~C
 nnom_activation_t* act_relu(void);
-nnom_activation_t* act_sigmoid(void);
-nnom_activation_t* act_tanh(void);
+nnom_activation_t* act_sigmoid(int32_t dec_bit);
+nnom_activation_t* act_tanh(int32_t dec_bit);
 ~~~
 
 They return the activation instance which can be passed to either `model.active()` or `Activation()`
@@ -142,7 +157,7 @@ layer = model.hook(Dense(10), input);
 layer = model.hook(ReLU(), layer);
 ~~~
 
-All 3 above perform the same and take the same memory.
+All 3 above perform the same and take the occupide the same size of memory.
 
 ** Using Activation's API **
 

@@ -31,10 +31,16 @@ The concatenated axis can be different in all input layers passed to this method
 
 ## Mult() 
 ~~~C
-nnom_layer_t* Mult(void);
+nnom_layer_t* Mult(int32_t oshift);
 ~~~
 
-Element wise mutiplication in all the inputs
+Element wise mutiplication in all the inputs. 
+
+This layer cannot use to merge more than 2 layer, which might cause overflowing problem. 2 `Mult()` must be used separately if willing to multiply 3 layer's output. The output shift individually of the 2 steps must be identify individually. Please check the example below for more than 2 input.
+
+**Arguments**
+
+- **oshift:** the output shift of this layer.  
 
 **Return**
 
@@ -49,10 +55,16 @@ All input layers passed to this method must have same output shape.
 ## Add() 
 
 ~~~C
-nnom_layer_t* Add(void);
+nnom_layer_t* Add(int32_t oshift);
 ~~~
 
 Element wise addition in all the inputs. 
+
+This layer cannot use to merge more than 2 layer, which might cause overflowing problem. Please refer to `Mult()`
+
+**Arguments**
+
+- **oshift:** the output shift of this layer.  
 
 **Return**
 
@@ -67,10 +79,16 @@ All input layers passed to this method must have same output shape.
 ## Sub() 
 
 ~~~C
-nnom_layer_t* Sub(void);
+nnom_layer_t* Sub(int32_t oshift);
 ~~~
 
 Element wise substraction in all the inputs. 
+
+This layer cannot use to merge more than 2 layer, which might cause overflowing problem. Please refer to `Mult()`
+
+**Arguments**
+
+- **oshift:** the output shift of this layer.  
 
 **Return**
 
@@ -108,3 +126,26 @@ All input layers passed to this method must have same output shape.
 	x = model.hook(Flatten(), x);
 	...
 ~~~
+
+
+** Mult for 3 input ** (or Add, Sub)
+
+In Keras
+
+~~~python
+	#instead of 
+	x = multiply([x1,x2,x3]) 
+	
+	# you must use this instead to allow sript to calculate oshift individually. 
+	x = multiply([x1,x2])
+	x = multiply([x,x3])
+~~~
+
+Then in NNoM
+
+~~~C
+	// x = x1 * x2 * x3
+	x = model.merge(Mult(oshift_1), x1, x2); 
+	x = model.merge(Mult(oshift_2), x, x3);
+~~~
+
