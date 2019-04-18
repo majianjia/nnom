@@ -18,7 +18,7 @@ You should:
 
 You must **not**:
 
-- be a pro in TensorFlow / lite
+- be a pro in TensorFlow / lite :-)
 
 ---
 
