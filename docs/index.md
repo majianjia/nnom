@@ -12,6 +12,8 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 
 Guides:
 
+[5 min to NNoM Guide](guide_5_min_to_nnom.md)
+
 [RT-Thread Guide(中文指南)](rt-thread_guide.md)
 
 [The temporary guide](A_Temporary_Guide_to_NNoM.md)
