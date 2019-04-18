@@ -8,7 +8,19 @@
 
 [Drop an Octave: Reducing Spatial Redundancy inConvolutional Neural Networks with Octave Convolution](https://arxiv.org/pdf/1904.05049.pdf)
 
-Octave Conv is a simple and effective convolution release recently. The good news is NNoM is already supports the operation without any modification. 
+Octave Conv is a simple and effective convolution release recently. 
+
+Octave Conv requires the below operations:
+
+- Convlution, or Depthwise Convlution
+- Pooling
+- Addition
+- UpSampling
+- Concatenate
+
+NNoM has already supported the these operations without any modification. 
+
+
 
 This is a simple octave convlution 
 ~~~python
