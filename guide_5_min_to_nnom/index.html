@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Properties - NNoM</title>
+  <title>5 min to NNoM - NNoM</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -17,8 +17,8 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Properties";
-    var mkdocs_page_input_path = "api_properties.md";
+    var mkdocs_page_name = "5 min to NNoM";
+    var mkdocs_page_input_path = "guide_5_min_to_nnom.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -57,9 +57,27 @@
 		
     <span class="caption-text">Guides</span>
     <ul class="subnav">
-                <li class="">
+                <li class=" current">
                     
-    <a class="" href="../guide_5_min_to_nnom/">5 min to NNoM</a>
+    <a class="current" href="./">5 min to NNoM</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#5-min-guide-to-nnom">5 min Guide to NNoM</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#backgrouds-checking">Backgrouds Checking</a></li>
+        
+            <li><a class="toctree-l4" href="#neural-network-with-keras">Neural Network with Keras</a></li>
+        
+            <li><a class="toctree-l4" href="#deployed-by-nnom">Deployed by NNoM</a></li>
+        
+            <li><a class="toctree-l4" href="#whats-more">What's More?</a></li>
+        
+        </ul>
+    
+
+    </ul>
                 </li>
     </ul>
 	    </li>
@@ -80,35 +98,9 @@
                     
     <a class="" href="../api_construction/">Construction</a>
                 </li>
-                <li class=" current">
+                <li class="">
                     
-    <a class="current" href="./">Properties</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l3"><a href="#properties">Properties</a></li>
-    
-
-    <li class="toctree-l3"><a href="#typesdef">typesdef</a></li>
-    
-
-    <li class="toctree-l3"><a href="#methods">Methods</a></li>
-    
-        <ul>
-        
-            <li><a class="toctree-l4" href="#shape">shape()</a></li>
-        
-            <li><a class="toctree-l4" href="#kernel">kernel()</a></li>
-        
-            <li><a class="toctree-l4" href="#stride">stride()</a></li>
-        
-            <li><a class="toctree-l4" href="#qformat">qformat()</a></li>
-        
-            <li><a class="toctree-l4" href="#shape_size">shape_size()</a></li>
-        
-        </ul>
-    
-
-    </ul>
+    <a class="" href="../api_properties/">Properties</a>
                 </li>
                 <li class="">
                     
@@ -189,11 +181,11 @@
     
       
         
-          <li>APIs &raquo;</li>
+          <li>Guides &raquo;</li>
         
       
     
-    <li>Properties</li>
+    <li>5 min to NNoM</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -203,112 +195,67 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="properties">Properties</h2>
-<p>Properties include some basic properties such as shape of the data buffer, Q-format of the data.</p>
+                <h1 id="5-min-guide-to-nnom">5 min Guide to NNoM</h1>
+<p>The aims for NNoM is to help <strong>Embedded Engineers</strong> to develop and deploy <strong>Neural Network models</strong> onto the <strong>MCUs</strong>. NNoM is working closely with <strong>Keras</strong>. 
+If you dont know Keras yet <strong><a href="https://keras.io/#getting-started-30-seconds-to-keras">Getting started: 30 seconds to Keras</a></strong> </p>
+<p>This guide will show you how to use NNoM for your very first step from an embedded engineer perspective. </p>
 <hr />
-<h2 id="typesdef">typesdef</h2>
-<pre><code class="C">typedef struct _nnom_shape
+<h2 id="backgrouds-checking">Backgrouds Checking</h2>
+<p>You should:</p>
+<ul>
+<li>know C language and your target MCU enviroment. </li>
+<li>know a bit of python.</li>
+</ul>
+<p>You must <strong>not</strong>:</p>
+<ul>
+<li>be a pro in TensorFlow / lite</li>
+</ul>
+<hr />
+<h2 id="neural-network-with-keras">Neural Network with Keras</h2>
+<p>If you know noting about Keras, you must check <strong><a href="https://keras.io/#getting-started-30-seconds-to-keras">Getting started: 30 seconds to Keras</a></strong> </p>
+<p>Lets say if we want to classify the MNIST hand writing dataset.
+This is what you do with Keras. </p>
+<pre><code class="Python">model = Sequential()
+model.add(Dense(32, input_dim=784))
+model.add(Activation('relu'))
+model.add(Dense(10))
+</code></pre>
+
+<p>This is the model which include an input dimension 784, a hidden fully connected layer including 32 units, it is then activated by ReLU activation (which keep all possitive values while set all nagtive values to 0). Then following an output layer with 10 units, which is the number of classification(number 0~9).</p>
+<p>After you train this <code>model</code> using the method in the keras' guide</p>
+<p>the <code>model</code> can now do prediction. If you feed new image to it, it will tell you what is the wrtten number. </p>
+<hr />
+<h2 id="deployed-by-nnom">Deployed by NNoM</h2>
+<p>After the <code>model</code> is trained, the weights and parameters are already functional. We can now convert it to C language then being compiled in your MCU project. </p>
+<p>To conver the model, NNoM has provided an API <code>generate_model()</code><a href="../api_nnom_utils/">API</a> to automaticly do the job. Simply pass the <code>model</code> and the test dataset to it. It will do all the magics for you. </p>
+<pre><code class="Python">generate_model(model, x_test, name='weights.h')
+</code></pre>
+
+<p>When the conversion is finished, you will find <code>weights.h</code> under your working folder. Simply copy the file to your MCU project, and call <code>model = nnom_model_create();</code> inside you <code>main()</code>. </p>
+<p>An C examples. </p>
+<pre><code class="C">#include &quot;nnom.h&quot;
+#include &quot;weights.h&quot;
+
+int main(void)
 {
-    nnom_shape_data_t h, w, c;
-} nnom_shape_t;
+    nnom_model_t *model;
 
-typedef struct _nnom_weights
-{
-    const void *p_value;
-    size_t shift;   // the right shift for output
-} nnom_weight_t;
-
-typedef struct _nnom_bias
-{
-    const void *p_value;
-    size_t shift;  // the left shift for bias
-} nnom_bias_t;
-
-typedef struct _nnom_qformat
-{
-    int8_t n, m;
-} nnom_qformat_t;
-
+    model = nnom_model_create();
+    model_run(model);
+}
 </code></pre>
 
+<p>Then your model is now running on you MCU. if you have support <code>printf</code> on your MCU, you should see the compiling info on your consoles. </p>
+<p>You can now use the model to predict your data. </p>
+<ul>
+<li>Firstly, filling the input buffer <code>nnom_input_buffer[]</code> with your own data(image, signals) which is defined in <code>weights.h</code>. </li>
+<li>Secondly, call <code>model_run(model);</code> to do your prediction. </li>
+<li>Thirdly, read your result from <code>nnom_output_buffer[]</code>. The maximum number is the results. </li>
+</ul>
+<p>Please do check NNoM examples for more fancy methods. </p>
 <hr />
-<h1 id="methods">Methods</h1>
-<hr />
-<h2 id="shape">shape()</h2>
-<pre><code class="C">nnom_shape_t shape(size_t h, size_t w, size_t c);
-</code></pre>
-
-<p><strong>Arguments</strong></p>
-<ul>
-<li><strong> h:</strong> size of H, or number of row, or y axis in image. </li>
-<li><strong> w:</strong> size of W, or number of row, or x axis in image.</li>
-<li><strong> c:</strong> size of channel. </li>
-</ul>
-<p><strong>Return</strong></p>
-<ul>
-<li>A shape instance. </li>
-</ul>
-<hr />
-<h2 id="kernel">kernel()</h2>
-<pre><code class="C">nnom_shape_t kernel(size_t h, size_t w);
-</code></pre>
-
-<p>Use in pooling or convolutional layer to specified the kernel size. </p>
-<p><strong>Arguments</strong></p>
-<ul>
-<li><strong> h:</strong> size of kernel in H, or number of row, or y axis in image. </li>
-<li><strong> w:</strong> size of kernel in W, or number of row, or x axis in image.</li>
-</ul>
-<p><strong>Return</strong></p>
-<ul>
-<li>A shape instance. </li>
-</ul>
-<hr />
-<h2 id="stride">stride()</h2>
-<pre><code class="C">nnom_shape_t stride(size_t h, size_t w);
-</code></pre>
-
-<p>Use in pooling or convolutional layer to specified the stride size. </p>
-<p><strong>Arguments</strong></p>
-<ul>
-<li><strong> h:</strong> size of stride in H, or number of row, or y axis in image. </li>
-<li><strong> w:</strong> size of stride in  W, or number of row, or x axis in image.</li>
-</ul>
-<p><strong>Return</strong></p>
-<ul>
-<li>A shape instance. </li>
-</ul>
-<hr />
-<h2 id="qformat">qformat()</h2>
-<pre><code>nnom_qformat_t qformat(int8_t m, int8_t n);
-</code></pre>
-
-<p><strong>Arguments</strong></p>
-<ul>
-<li><strong> m:</strong> the integer bitwidth. </li>
-<li><strong> n:</strong> the fractional bitwidth.</li>
-</ul>
-<p><strong>Return</strong></p>
-<ul>
-<li>A nnom_qformat_t inistance. </li>
-</ul>
-<p><strong>Notes</strong></p>
-<p>The Q-format within model is currently handled by Python script <code>nnom_utils.py</code>. This function will be deprecated. </p>
-<hr />
-<h2 id="shape_size">shape_size()</h2>
-<pre><code class="C">size_t shape_size(nnom_shape_t *s);
-</code></pre>
-
-<p>Calculate the size from a shape. </p>
-<p>size = s.h * s.w * s.c;</p>
-<p><strong>Arguments</strong></p>
-<ul>
-<li><strong> s:</strong> the shape to calculate. </li>
-</ul>
-<p><strong>Return</strong></p>
-<ul>
-<li>The total size of the shape. </li>
-</ul>
+<h2 id="whats-more">What's More?</h2>
+<p>To be continue..</p>
               
             </div>
           </div>
@@ -316,10 +263,10 @@ typedef struct _nnom_qformat
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../api_layers/" class="btn btn-neutral float-right" title="Core Layers">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../api_nnom_utils/" class="btn btn-neutral float-right" title="Utils (Python)">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../api_construction/" class="btn btn-neutral" title="Construction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href=".." class="btn btn-neutral" title="Overview"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -345,10 +292,10 @@ typedef struct _nnom_qformat
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../api_construction/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../api_layers/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../api_nnom_utils/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
