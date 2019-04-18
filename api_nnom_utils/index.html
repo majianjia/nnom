@@ -209,10 +209,13 @@ These functions are located in <code>scripts/nnom_utils.py</code></p>
 <pre><code class="python">generate_model(model, x_test, name='weights.h')
 </code></pre>
 
-<p>This method is the most frequently used function for deployment. 
-1. It firsly scans the output range of each layer's output using <code>layers_output_ranges()</code>
-2. Then it quantised and write the weights &amp; bias, fused the BatchNorm parameters using <code>generate_weights()</code>
-3. Finally, it generate the C functions <code>nnom_model_t* nnom_model_create(void)</code> in <code>weights.h</code></p>
+<p><strong>This is all you need</strong></p>
+<p>This method is the most frequently used function for deployment. </p>
+<ul>
+<li>It firsly scans the output range of each layer's output using <code>layers_output_ranges()</code></li>
+<li>Then it quantised and write the weights &amp; bias, fused the BatchNorm parameters using <code>generate_weights()</code></li>
+<li>Finally, it generate the C functions <code>nnom_model_t* nnom_model_create(void)</code> in <code>weights.h</code></li>
+</ul>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong>model:</strong> the trained Keras model</li>
