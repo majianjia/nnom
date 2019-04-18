@@ -249,11 +249,15 @@ typedef struct _nnom_model
 	nnom_layer_t *head;
 	nnom_layer_t *tail;
 
+	// model constructor
 	nnom_status_t (*add)(struct _nnom_model *m, nnom_layer_t *layer);					// has too pass a raw value
 	nnom_layer_t *(*hook)(nnom_layer_t *curr, nnom_layer_t *last);						// create hook between 2 layers' primary IO.
 	nnom_layer_t *(*merge)(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2); // an older interface of merge 2 inputs.
 	nnom_layer_t *(*mergex)(nnom_layer_t *method, int num, ...);						// merge a few layers using mutiple input method (concate, add, ...)
 	nnom_layer_t *(*active)(nnom_activation_t *act, nnom_layer_t *target_layer);		// add the activation to the existing layer's tail
+
+	// callback
+	nnom_status_t (*layer_callback)(nnom_model_t *m, nnom_layer_t *layer);				// layer callback will be called after each layer(after actail). 
 
 	// block memory for layers
 	nnom_mem_block_t blocks[NNOM_BLOCK_NUM];
@@ -293,5 +297,12 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 nnom_status_t model_run(nnom_model_t *m);
 // delete model. 
 void model_delete(nnom_model_t *m);
+
+// callback, called after each layer has finished the calculation. 
+// this callback must return NN_SUCCESS for continually run the model. otherwise, model will be returned with the ERROR code. 
+// this function return NN_LENGTH_ERROR if the callback is already set to other. 
+nnom_status_t model_set_callback(nnom_model_t *m, nnom_status_t (*layer_callback)(nnom_model_t *m, nnom_layer_t *layer));
+// delete callback. 
+void model_delete_callback(nnom_model_t *m);
 
 #endif

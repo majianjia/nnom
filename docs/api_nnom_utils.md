@@ -18,7 +18,10 @@ Tutorial is comming, before it arrives, please refer to [examples](https://githu
 generate_model(model, x_test, name='weights.h')
 ~~~
 
+**This is all you need**
+
 This method is the most frequently used function for deployment. 
+
 1. It firsly scans the output range of each layer's output using `layers_output_ranges()`
 2. Then it quantised and write the weights & bias, fused the BatchNorm parameters using `generate_weights()`
 3. Finally, it generate the C functions ` nnom_model_t* nnom_model_create(void)` in `weights.h`

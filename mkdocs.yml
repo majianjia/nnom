@@ -2,8 +2,10 @@ site_name: NNoM
 
 nav:
 - Overview: 'index.md'
+- Guides:
+  - 5 min to NNoM: 'guide_5_min_to_nnom.md'
 - APIs: 
-  - Utils: 'api_nnom_utils.md'
+  - Utils (Python): 'api_nnom_utils.md'
   - Model: 'api_model.md'
   - Construction: 'api_construction.md'
   - Properties: 'api_properties.md'
