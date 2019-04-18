@@ -994,9 +994,9 @@ nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 			}
 		}
 		
-		#ifdef USE_NNOM_OUTPUT_SAVE
-		nnom_save_output(layer);
-		#endif
+//		#ifdef USE_NNOM_OUTPUT_SAVE
+//		nnom_save_output(layer);
+//		#endif
 		
 		if (layer == end_layer)
 		{
