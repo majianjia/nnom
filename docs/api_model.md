@@ -130,7 +130,7 @@ nnom_status_t (*layer_callback)(nnom_model_t *m, nnom_layer_t *layer);
 ~~~
 
 This callback is a runtime callback, which can then be used to evaluate the performance, extract the intermediate output etc. 
-It will be call after each layer is ran. (if a actail (activation tail) is present, this callback will be called after the actail)
+It will be called after each layer has ran. (if a actail (activation tail) is present, this callback will be called after the actail)
 
 
 **Arguments**
@@ -187,14 +187,13 @@ Delete an existing callback on the model.
 
 - ** m:** the model instance to delete the callback from.
 
-
-
 ---
 
 
 ## Examples
 
-This example shows a 2 layer MPL for MNIST dateset. Input shape 28 x 28 x 1 hand writing image. please check [mnist-densenet example](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet) for further reading. 
+This example shows a 2 layer MPL for MNIST dateset. Input shape 28 x 28 x 1 hand writing image. 
+Please check [mnist-densenet example](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet) for further reading. 
 
 **Sequential model**
 
@@ -291,7 +290,7 @@ int main(void)
 
 ~~~
 
-logging:
+Here is the console logging of the callback output:
 ~~~
 layer Input, output shape 784 
 layer Conv2D, output shape 9408 

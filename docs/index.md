@@ -1,5 +1,7 @@
 # Neural Network on Microcontroller (NNoM)
 
+[![Build Status](https://travis-ci.org/majianjia/nnom.svg?branch=master)](https://travis-ci.org/majianjia/nnom)
+
 NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. 
 
 **Highlights**
@@ -9,24 +11,6 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 - Support complex structures; Inception, ResNet, DenseNet...
 - High-performance backend selections.
 - Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
-
-Guides:
-
-[5 min to NNoM Guide](guide_5_min_to_nnom.md)
-
-[RT-Thread Guide(中文指南)](rt-thread_guide.md)
-
-[The temporary guide](A_Temporary_Guide_to_NNoM.md)
-
-[Porting and optimising Guide](Porting_and_Optimisation_Guide.md)
-
-Examples:
-
-[RT-Thread-MNIST example (中文)](example_mnist_simple_cn.md)
-
-[MNIST-DenseNet example](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)
-
-[Octave Convolution](https://github.com/majianjia/nnom/tree/master/examples/octave-conv)
 
 ---
 
@@ -44,15 +28,45 @@ Nowadays, neural networks are **wider**, **deeper**, and **denser**.
 
 After 2014, the development of Neural Networks are more focus on structure optimising to improve efficiency and performance, which is more important to the small footprint platforms such as MCUs. 
 However, the available NN libs for MCU are too low-level which make it sooooo difficult to use with these complex strucures. 
-Therefore, we build NNoM to help developers to manage the structures, memory and parameters, even with the automatic tools for faster and simpler deploying.
 
-Now with NNoM, you are free to play with these more up-to-date, decent and complex structures on MCU.
+Therefore, we build NNoM to help embedded developers to faster and simpler deploying NN model directly to MCU. 
+> NNoM will manage the strucutre, memory and everything else for developer. All you need is feeding your measurements then get the results. 
 
-With [**Keras**](https://keras.io/) and our tools, deploying a model only takes a few line of codes.
+**NNoM is now working closely with Keras (You can easily learn [**Keras**](https://keras.io/) in 30 seconds!).**
+There is no need to learn TensorFlow/Lite or other libs.  
 
-Please do check the [examples](https://github.com/majianjia/nnom/tree/master/examples).
 
 ---
+
+## Documentations
+API manuals are available within this site. 
+
+**Guides**
+
+[5 min to NNoM Guide](guide_5_min_to_nnom.md)
+
+[RT-Thread Guide(中文指南)](rt-thread_guide.md)
+
+[RT-Thread-MNIST example (中文)](example_mnist_simple_cn.md)
+
+[The temporary guide](A_Temporary_Guide_to_NNoM.md)
+
+[Porting and optimising Guide](Porting_and_Optimisation_Guide.md) 
+
+---
+
+## Examples
+
+**Documented examples**
+
+[MNIST-DenseNet example](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)
+
+[Octave Convolution](https://github.com/majianjia/nnom/tree/master/examples/octave-conv)
+
+Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) for more applications. 
+
+---
+
 
 ## Dependencies
 
@@ -62,3 +76,58 @@ NNoM now use the local pure C backend implementation by default. Thus, there is 
 You can select [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. 
 
 Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for detail. 
+
+
+---
+## Available Operations
+
+
+**Layers**
+
+| Layers | Status |Layer API|Comments|
+| ------ |-- |--|--|
+| Convolution  | Beta|Conv2D()|Support 1/2D|
+| Depthwise Conv | Beta|DW_Conv2D()|Support 1/2D|
+| Fully-connected | Beta| Dense()| |
+| Lambda |Alpha| Lambda() |single input / single output anonymous operation| 
+| Input/Output |Beta | Input()/Output()| |
+| Recurrent NN | Under Dev.| RNN()| Under Developpment |
+| Simple RNN | Under Dev. | SimpleCell()| Under Developpment |
+| Gated Recurrent Network (GRU)| Under Dev. | GRUCell()| Under Developpment |
+| Flatten|Beta | Flatten()| |
+| SoftMax|Beta | SoftMax()| Softmax only has layer API| 
+| Activation|Beta| Activation()|A layer instance for activation|
+
+**Activations**
+
+Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](api_activations.md#Activation APIs) to reduce memory cost.
+
+| Actrivation | Status |Layer API|Activation API|Comments|
+| ------ |-- |--|--|--|
+| ReLU  | Beta|ReLU()|act_relu()||
+| TanH | Beta|TanH()|act_tanh()||
+|Sigmoid|Beta| Sigmoid()|act_sigmoid()||
+
+**Pooling Layers**
+
+| Pooling | Status |Layer API|Comments|
+| ------ |-- |--|--|
+| Max Pooling  | Beta|MaxPool()||
+| Average Pooling | Beta|AvgPool()||
+| Sum Pooling | Beta|SumPool()| |
+| Global Max Pooling  | Beta|GlobalMaxPool()||
+| Global Average Pooling | Beta|GlobalAvgPool()||
+| Global Sum Pooling | Beta|GlobalSumPool()|A better alternative to Global average pooling in MCU before Softmax|
+| Up Sampling | Beta|UpSample()||
+
+**Matrix Operations Layers**
+
+| Matrix | Status |Layer API|Comments|
+| ------ |-- |--|--|
+| Multiple  |Beta |Mult()||
+| Addition  | Beta|Add()||
+| Substraction  | Beta|Sub()||
+| Dot  | Under Dev. |||
+
+
+

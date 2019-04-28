@@ -74,7 +74,7 @@ Make sure your compiler is using the new version of "arm_math.h".
 There might be a few duplicated in a project, such as the STM32 HAL has its own version of "arm_math.h" 
 
 You might also define your chip core and enable your FPU support in your pre-compile configuration if you are not able to compile. 
->i.e. when using STM32L476, you might add the two macro in your project ' ARM_MATH_CM4,  __FPU_PRESENT=1'
+> e.g. when using STM32L476, you might add the two macro in your project ' ARM_MATH_CM4,  __FPU_PRESENT=1'
 
 
 After all, you can try to evaluate the performance using the APIs in 'nnom_utils.c'
@@ -93,7 +93,7 @@ After all, you can try to evaluate the performance using the APIs in 'nnom_utils
 // runtime & debuges
 #define nnom_us_get()       0
 #define nnom_ms_get()       rt_tick_get()	// when tick is set to 1000
-#define LOG(...)            rt_kprintf(__VA_ARGS__)
+#define NNOM_LOG(...)       rt_kprintf(__VA_ARGS__)
 
 // NNoM configuration
 #define NNOM_BLOCK_NUM      (8)		// maximum number of memory block  
