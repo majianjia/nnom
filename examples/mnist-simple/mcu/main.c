@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2018-2019, Jianjia Ma
  *
- * SPDX-License-Identifier: LGPL-3.0
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author       Notes

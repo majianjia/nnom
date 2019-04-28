@@ -12,6 +12,10 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 - High-performance backend selections.
 - Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
 
+**Licenses**
+NNoM is released under Apache License 2.0 since nnom-V0.2.0. 
+License and copyright information can be found within the code.
+
 ---
 
 ## Why NNoM?

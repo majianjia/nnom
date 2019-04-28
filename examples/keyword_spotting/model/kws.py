@@ -3,7 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
-
+nnscript = os.path.abspath('../../scripts')
+sys.path.append(nnscript)
 import keras
 from keras.models import Sequential, load_model
 from keras.preprocessing.image import ImageDataGenerator

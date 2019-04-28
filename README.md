@@ -12,6 +12,10 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 - High-performance backend selections.
 - Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
 
+**Licenses**
+NNoM is released under Apache License 2.0 since nnom-V0.2.0. 
+License and copyright information can be found within the code.
+
 ## Why NNoM?
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
 
@@ -31,7 +35,6 @@ Therefore, we build NNoM to help embedded developers to faster and simpler deplo
 
 **NNoM is now working closely with Keras (You can easily learn [**Keras**](https://keras.io/) in 30 seconds!).**
 There is no need to learn TensorFlow/Lite or other libs.  
-
 
 ---
 
@@ -65,7 +68,6 @@ API manuals are available in **[API Manual](https://majianjia.github.io/nnom/)**
 Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) for more applications. 
 
 ---
-
 
 ## Available Operations
 

@@ -3,7 +3,7 @@
  * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
  * majianjia@live.com
  *
- * SPDX-License-Identifier: LGPL-3.0
+ * SPDX-License-Identifier: Apache-2.0
  * 
  * Notice: 
  * Code in this file inlcudes derivative works from CMSIS, which is released under alternative license.

@@ -1,9 +1,7 @@
 '''
-    Copyright (c) 2018-2019
-    Jianjia Ma, Wearable Bio-Robotics Group (WBR)
-    majianjia@live.com
-
-    SPDX-License-Identifier: LGPL-3.0
+    Copyright (c) 2018-2019, Jianjia Ma
+ 
+    SPDX-License-Identifier: Apache-2.0
 
     Change Logs:
     Date           Author       Notes
@@ -22,6 +20,8 @@
 
 import matplotlib.pyplot as plt
 import os
+nnscript = os.path.abspath('../../scripts')
+sys.path.append(nnscript)
 
 from keras.models import Sequential, load_model
 from keras.models import Model

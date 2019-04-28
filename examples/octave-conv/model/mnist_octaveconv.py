@@ -1,4 +1,6 @@
 from __future__ import print_function
+nnscript = os.path.abspath('../../scripts')
+sys.path.append(nnscript)
 import keras
 from keras.datasets import mnist
 from keras.layers import *
