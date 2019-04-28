@@ -1,35 +1,29 @@
 # MNIST DenseNet Example 
 
-**(Source code and models are under developing)**
-
-They will be released shortly. 
-
-
-
 This is an example of DenseNet classifier using [THE MNIST DATABASE](http://yann.lecun.com/exdb/mnist/). 
 
 ## DenseNet
+
 The detial of DenseNet is available in [the paper](https://arxiv.org/abs/1608.06993).
 
-Which award the best paper in CVPR 2017 
+Which has awarded the best paper in CVPR 2017 
 
-The two typical graphs shows the basic ideas:
+The two graphs show the basic idea of DenseNet:
 
 ![Dense Net](https://github.com/majianjia/nnom/blob/master/examples/mnist-densenet/docs/densenet-1.png)
 ![Dense Block](https://github.com/majianjia/nnom/blob/master/examples/mnist-densenet/docs/densenet-2.jpeg)
 
+Implementation of the DenseNet using NNoM is quite straightforward. 
 
-Implementing the DenseNet using NNoM is quite straightforward. 
+The codes in the example uses the automatic tools `generate_model(model, x_test[:10], name=weights)` to deploy the Keras DenseNet model into `weights.h`. Please see the python script (Keras model) for details. 
 
-The codes in the example uses the automatic tools `generate_model(model, x_test[:10], name=weights)` to deploy the Keras DenseNet model into `weights.h`. 
-
-Then the call in C file `model = nnom_model_create();` will load and compile the model in MCU side. 
+Then the function in C file `model = nnom_model_create();` loads and compiles the model in the MCU side. 
 
 ## Build it manually
 
-Building it manually is recommended if you want to gain more controll or if you want to try some new network which the automatic tools have yet support. 
+Building it manually is recommended if you want to gain more control or if you want to try some new networks which the automatic tools have yet supported. 
 
-The codes below shows an exmaple of using 1 dense block.
+The code below shows an exmaple of building 1 dense block.
 
 ~~~C
 // the denseblock blocks takes the input layer, return the concatenated layer
