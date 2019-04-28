@@ -12,28 +12,6 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 - High-performance backend selections.
 - Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
 
-
-Guides:
-
-[5 min to NNoM Guide](docs/guide_5_min_to_nnom.md)
-
-[API Manual](https://majianjia.github.io/nnom/)
-
-[RT-Thread Guide(中文指南)](https://majianjia.github.io/nnom/rt-thread_guide/)
-
-Examples:
-
-[MNIST-DenseNet example](examples/mnist-densenet)
-
-[DenseNet](examples/mnist-densenet)
-
-[Octave Convolution](examples/octave-conv)
-
-[Keyword Spotting](examples/keyword_spotting)
-
-[RT-Thread-MNIST example (中文)](https://majianjia.github.io/nnom/example_mnist_simple_cn/)
-
-
 ## Why NNoM?
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
 
@@ -45,14 +23,48 @@ Nowadays, neural networks are **wider**, **deeper**, and **denser**.
 >
 >[3] Huang, G., Liu, Z., Van Der Maaten, L., & Weinberger, K. Q. (2017). Densely connected convolutional networks. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 4700-4708).
 
-
 After 2014, the development of Neural Networks are more focus on structure optimising to improve efficiency and performance, which is more important to the small footprint platforms such as MCUs. 
 However, the available NN libs for MCU are too low-level which make it sooooo difficult to use with these complex strucures. 
-Therefore, we build the NNoM to help developers to manage the structures, memory and parameters, even with the automatic tools for fast deploying. 
 
-Now with NNoM, you are free to play with these more up-to-date, decent and complex structures on MCU. 
+Therefore, we build NNoM to help embedded developers to faster and simpler deploying NN model directly to MCU. 
+> NNoM will manage the strucutre, memory and everything else for developer. All you need is feeding your measurements then get the results. 
 
-With [**Keras**](https://keras.io/) and our tools, deploying a model only takes a few line of codes, please do check the [examples](examples/).
+**NNoM is now working closely with Keras (You can easily learn [**Keras**](https://keras.io/) in 30 seconds!).**
+There is no need to learn TensorFlow/Lite or other libs.  
+
+
+---
+
+## Documentations
+API manuals are available in **[API Manual](https://majianjia.github.io/nnom/)**
+
+**Guides**
+
+[5 min to NNoM Guide](docs/guide_5_min_to_nnom.md)
+
+[The temporary guide](docs/A_Temporary_Guide_to_NNoM.md)
+
+[Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) 
+
+[RT-Thread Guide(中文指南)](https://majianjia.github.io/nnom/rt-thread_guide/)
+
+[RT-Thread-MNIST example (中文例子)](docs/example_mnist_simple_cn.md)
+
+---
+
+## Examples
+
+**Documented examples**
+
+[MNIST-DenseNet example](examples/mnist-densenet)
+
+[Octave Convolution](examples/octave-conv)
+
+[Keyword Spotting](examples/keyword_spotting)
+
+Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) for more applications. 
+
+---
 
 
 ## Available Operations

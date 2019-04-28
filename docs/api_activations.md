@@ -4,7 +4,9 @@
 To reduce the memory footprint, activations provides both **Layer APIs** and **Activation APIs**. 
 
 **Layer APIs** will create a layer instance for running the activation; 
-**Activation APIs** will only create activation instance, which can be attached on a existing layers. 
+
+**Activation APIs** will only create activation instance, which can be attached on a existing layers as 'actail'. 
+Actail will be called after a layer has finished its job, which will modify the output of that layer. 
 
 
 ---

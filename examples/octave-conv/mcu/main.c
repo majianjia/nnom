@@ -50,22 +50,6 @@ uint32_t us_timer_get()
 
 
 
-// 	CMSIS-NN
-//				para
-//	conv2d		20
-//  maxpool		9
-//  Dense		9
-//	Relu		2
-//  Softmax		3
-
-
-nnom_status_t callback(nnom_model_t *m, nnom_layer_t *layer)
-{
-	printf("layer %s, output size %d \n", default_layer_names[layer->type], shape_size(&layer->out->shape));
-	return NN_SUCCESS;
-}
-
-
 int main(void)
 {
 	
@@ -75,7 +59,6 @@ int main(void)
 	us_timer_enable();
 
 	model = nnom_model_create();
-	model_set_callback(model, callback);
 	
 	// run once
 	model_run(model);
@@ -218,13 +201,6 @@ void predic()
 FINSH_FUNCTION_EXPORT(predic, validate NNoM model implementation with test set);
 MSH_CMD_EXPORT(predic, validate NNoM model implementation with test set);
 
-void matrix()
-{
-	if(prediction != NULL)
-		prediction_matrix(prediction);
-}
-FINSH_FUNCTION_EXPORT(matrix, matrix() to print confusion matrix);
-MSH_CMD_EXPORT(matrix, print confusion matrix);
 
 void reboot() 
 {
@@ -236,25 +212,6 @@ void reboot()
 FINSH_FUNCTION_EXPORT(reboot, reboot() );
 MSH_CMD_EXPORT(reboot, reboot system);
 
-// memory test
-void create_model() 
-{
-	rt_kprintf("Model created \n");
-	main();
-}
-
-FINSH_FUNCTION_EXPORT(create_model, create_model  );
-MSH_CMD_EXPORT(create_model, create_model );
-
-// memory test
-void delete_model() 
-{
-	model_delete(model);
-	rt_kprintf("Model deleted \n");
-}
-
-FINSH_FUNCTION_EXPORT(delete_model, delete_model model );
-MSH_CMD_EXPORT(delete_model, delete_model model);
 #endif
 
 
