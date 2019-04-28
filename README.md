@@ -37,7 +37,6 @@ Therefore, we build NNoM to help embedded developers to faster and simpler deplo
 **NNoM is now working closely with Keras (You can easily learn [**Keras**](https://keras.io/) in 30 seconds!).**
 There is no need to learn TensorFlow/Lite or other libs.  
 
----
 
 ## Documentations
 API manuals are available in **[API Manual](https://majianjia.github.io/nnom/)**
@@ -54,8 +53,6 @@ API manuals are available in **[API Manual](https://majianjia.github.io/nnom/)**
 
 [RT-Thread-MNIST example (中文例子)](docs/example_mnist_simple_cn.md)
 
----
-
 ## Examples
 
 **Documented examples**
@@ -68,7 +65,7 @@ API manuals are available in **[API Manual](https://majianjia.github.io/nnom/)**
 
 Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) for more applications. 
 
----
+
 
 ## Available Operations
 
@@ -119,20 +116,15 @@ Activation can be used by itself as layer, or can be attached to the previous la
 | Substraction  | Beta|Sub()||
 | Dot  | Under Dev. |||
 
-
-
 ## Dependencies
 
 NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. 
-
 
 
 ## Optimization
 You can select [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. 
 
 Check [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) for detail. 
-
-
 
 ## Contacts
 Jianjia Ma
@@ -141,5 +133,4 @@ J.Ma2@lboro.ac.uk or majianjia@live.com
 
 ## Citation Required
 Please contact us using above details. 
-
 
