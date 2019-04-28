@@ -70,7 +70,7 @@
         
             <li><a class="toctree-l4" href="#neural-network-with-keras">Neural Network with Keras</a></li>
         
-            <li><a class="toctree-l4" href="#deployed-by-nnom">Deployed by NNoM</a></li>
+            <li><a class="toctree-l4" href="#deployed-using-nnom">Deployed using NNoM</a></li>
         
             <li><a class="toctree-l4" href="#whats-more">What's More?</a></li>
         
@@ -196,7 +196,7 @@
             <div class="section">
               
                 <h1 id="5-min-guide-to-nnom">5 min Guide to NNoM</h1>
-<p>The aims for NNoM is to help <strong>Embedded Engineers</strong> to develop and deploy <strong>Neural Network models</strong> onto the <strong>MCUs</strong>. NNoM is working closely with <strong>Keras</strong>. 
+<p>The aim for NNoM is to help <strong>Embedded Engineers</strong> to develop and deploy <strong>Neural Network models</strong> onto the <strong>MCUs</strong>. NNoM is working closely with <strong>Keras</strong>. 
 If you dont know Keras yet <strong><a href="https://keras.io/#getting-started-30-seconds-to-keras">Getting started: 30 seconds to Keras</a></strong> </p>
 <p>This guide will show you how to use NNoM for your very first step from an embedded engineer perspective. </p>
 <hr />
@@ -206,33 +206,42 @@ If you dont know Keras yet <strong><a href="https://keras.io/#getting-started-30
 <li>know C language and your target MCU enviroment. </li>
 <li>know a bit of python.</li>
 </ul>
-<p>You must <strong>not</strong>:</p>
+<p>You must <strong>NOT</strong>:</p>
 <ul>
 <li>be a pro in TensorFlow / lite :-)</li>
 </ul>
 <hr />
 <h2 id="neural-network-with-keras">Neural Network with Keras</h2>
-<p>If you know noting about Keras, you must check <strong><a href="https://keras.io/#getting-started-30-seconds-to-keras">Getting started: 30 seconds to Keras</a></strong> </p>
+<p>If you know nothing about Keras, you must check <strong><a href="https://keras.io/#getting-started-30-seconds-to-keras">Getting started: 30 seconds to Keras</a></strong> first.</p>
 <p>Lets say if we want to classify the MNIST hand writing dataset.
-This is what you do with Keras. </p>
+This is what you normally do with Keras. </p>
 <pre><code class="Python">model = Sequential()
 model.add(Dense(32, input_dim=784))
 model.add(Activation('relu'))
 model.add(Dense(10))
 </code></pre>
 
-<p>This is the model which include an input dimension 784, a hidden fully connected layer including 32 units, it is then activated by ReLU activation (which keep all possitive values while set all nagtive values to 0). Then following an output layer with 10 units, which is the number of classification(number 0~9).</p>
-<p>After you train this <code>model</code> using the method in the keras' guide</p>
-<p>the <code>model</code> can now do prediction. If you feed new image to it, it will tell you what is the wrtten number. </p>
+<p>Each operation in Keras are defined by "Layer", same as we did in NNoM. The terms are different from Tensorflow (That is why you must not be a PRO in Tensorflow &gt;_&lt;). </p>
+<p>This model is with an input dimension 784, a hidden fully connected layer including 32 units and outputing 10 units(which is the number of classification(number 0~9)). 
+The hidden layer is activated by ReLU activation (which keep all possitive values while set all nagtive values to 0). </p>
+<p>After you have trained this <code>model</code> using the method in the Keras' guide, the <code>model</code> can now do prediction. 
+If you feed new image to it, it will tell you what is the wrtten number. </p>
+<p>Please try to run a example in Keras or NNoM if you are still confusing. </p>
 <hr />
-<h2 id="deployed-by-nnom">Deployed by NNoM</h2>
-<p>After the <code>model</code> is trained, the weights and parameters are already functional. We can now convert it to C language then being compiled in your MCU project. </p>
-<p>To conver the model, NNoM has provided an API <code>generate_model()</code><a href="../api_nnom_utils/">API</a> to automaticly do the job. Simply pass the <code>model</code> and the test dataset to it. It will do all the magics for you. </p>
+<h2 id="deployed-using-nnom">Deployed using NNoM</h2>
+<p>After the <code>model</code> is trained, the weights and parameters are already functional. We can now convert it to C language files then put it in your MCU project. </p>
+<blockquote>
+<p>The result of this step is a single <code>weights.h</code> file, which contains everything you need.</p>
+</blockquote>
+<p>To conver the model, NNoM has provided an simple API <code>generate_model()</code><a href="../api_nnom_utils/">API</a> to automaticly do the job. 
+Simply pass the <code>model</code> and the test dataset to it. 
+It will do all the magics for you. </p>
 <pre><code class="Python">generate_model(model, x_test, name='weights.h')
 </code></pre>
 
-<p>When the conversion is finished, you will find <code>weights.h</code> under your working folder. Simply copy the file to your MCU project, and call <code>model = nnom_model_create();</code> inside you <code>main()</code>. </p>
-<p>An C examples. </p>
+<p>When the conversion is finished, you will find a new <code>weights.h</code> under your working folder. 
+Simply copy the file to your MCU project, and call <code>model = nnom_model_create();</code> inside you <code>main()</code>. </p>
+<p>Below is what you should do in practice. </p>
 <pre><code class="C">#include &quot;nnom.h&quot;
 #include &quot;weights.h&quot;
 
@@ -245,14 +254,50 @@ int main(void)
 }
 </code></pre>
 
-<p>Then your model is now running on you MCU. if you have support <code>printf</code> on your MCU, you should see the compiling info on your consoles. </p>
+<p>Then, your model is now running on you MCU. 
+If you have supported <code>printf</code> on your MCU, you should see the compiling info on your consoles. </p>
+<p>Compiling logging similar to this:</p>
+<pre><code>Start compiling model...
+Layer(#)         Activation    output shape    ops(MAC)   mem(in, out, buf)      mem blk lifetime
+-------------------------------------------------------------------------------------------------
+#1   Input      -          - (  28,  28,   1)          (   784,   784,     0)    1 - - -  - - - - 
+#2   Conv2D     - ReLU     - (  28,  28,  12)      84k (   784,  9408,    36)    1 1 3 -  - - - - 
+#3   MaxPool    -          - (  14,  14,  12)          (  9408,  2352,     0)    1 2 3 -  - - - - 
+#4   UpSample   -          - (  28,  28,  12)          (  2352,  9408,     0)    1 2 2 -  - - - - 
+#5   Conv2D     -          - (  14,  14,  12)     254k (  2352,  2352,   432)    1 1 2 1  1 - - - 
+#6   Conv2D     -          - (  28,  28,  12)    1.01M (  9408,  9408,   432)    1 1 2 1  1 - - - 
+#7   Add        -          - (  28,  28,  12)          (  9408,  9408,     0)    1 1 1 1  1 - - - 
+#8   MaxPool    -          - (  14,  14,  12)          (  9408,  2352,     0)    1 1 1 2  1 - - - 
+#9   Conv2D     -          - (  14,  14,  12)     254k (  2352,  2352,   432)    1 1 1 2  1 - - - 
+#10  AvgPool    -          - (   7,   7,  12)          (  2352,   588,   168)    1 1 1 1  1 1 - - 
+#11  AvgPool    -          - (  14,  14,  12)          (  9408,  2352,   336)    1 1 1 1  1 1 - - 
+#12  Add        -          - (  14,  14,  12)          (  2352,  2352,     0)    1 1 - 1  1 1 - - 
+#13  MaxPool    -          - (   7,   7,  12)          (  2352,   588,     0)    1 1 1 2  - 1 - - 
+#14  UpSample   -          - (  14,  14,  12)          (   588,  2352,     0)    1 1 - 2  - 1 - - 
+#15  Add        -          - (  14,  14,  12)          (  2352,  2352,     0)    1 1 1 1  - 1 - - 
+#16  MaxPool    -          - (   7,   7,  12)          (  2352,   588,     0)    1 1 1 1  - 1 - - 
+#17  Conv2D     -          - (   7,   7,  12)      63k (   588,   588,   432)    1 1 1 1  - 1 - - 
+#18  Add        -          - (   7,   7,  12)          (   588,   588,     0)    1 1 1 -  - 1 - - 
+#19  Concat     -          - (   7,   7,  24)          (  1176,  1176,     0)    1 1 1 -  - - - - 
+#20  Dense      - ReLU     - (  96,   1,   1)     112k (  1176,    96,  2352)    1 1 1 -  - - - - 
+#21  Dense      -          - (  10,   1,   1)      960 (    96,    10,   192)    1 1 1 -  - - - - 
+#22  Softmax    -          - (  10,   1,   1)          (    10,    10,     0)    1 - 1 -  - - - - 
+#23  Output     -          - (  10,   1,   1)          (    10,    10,     0)    1 - - -  - - - - 
+-------------------------------------------------------------------------------------------------
+Memory cost by each block:
+ blk_0:9408  blk_1:9408  blk_2:9408  blk_3:9408  blk_4:2352  blk_5:588  blk_6:0  blk_7:0  
+ Total memory cost by network buffers: 40572 bytes
+Compling done in 76 ms
+
+</code></pre>
+
 <p>You can now use the model to predict your data. </p>
 <ul>
 <li>Firstly, filling the input buffer <code>nnom_input_buffer[]</code> with your own data(image, signals) which is defined in <code>weights.h</code>. </li>
 <li>Secondly, call <code>model_run(model);</code> to do your prediction. </li>
 <li>Thirdly, read your result from <code>nnom_output_buffer[]</code>. The maximum number is the results. </li>
 </ul>
-<p>Please do check NNoM examples for more fancy methods. </p>
+<p>Now, please do check NNoM examples for more fancy methods. </p>
 <hr />
 <h2 id="whats-more">What's More?</h2>
 <p>To be continue..</p>

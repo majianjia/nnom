@@ -59,9 +59,15 @@
         
             <li><a class="toctree-l3" href="#why-nnom">Why NNoM?</a></li>
         
+            <li><a class="toctree-l3" href="#documentations">Documentations</a></li>
+        
+            <li><a class="toctree-l3" href="#examples">Examples</a></li>
+        
             <li><a class="toctree-l3" href="#dependencies">Dependencies</a></li>
         
             <li><a class="toctree-l3" href="#optimization">Optimization</a></li>
+        
+            <li><a class="toctree-l3" href="#available-operations">Available Operations</a></li>
         
         </ul>
     
@@ -190,6 +196,7 @@
             <div class="section">
               
                 <h1 id="neural-network-on-microcontroller-nnom">Neural Network on Microcontroller (NNoM)</h1>
+<p><a href="https://travis-ci.org/majianjia/nnom"><img alt="Build Status" src="https://travis-ci.org/majianjia/nnom.svg?branch=master" /></a></p>
 <p>NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. </p>
 <p><strong>Highlights</strong></p>
 <ul>
@@ -199,15 +206,6 @@
 <li>High-performance backend selections.</li>
 <li>Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... </li>
 </ul>
-<p>Guides:</p>
-<p><a href="guide_5_min_to_nnom/">5 min to NNoM Guide</a></p>
-<p><a href="rt-thread_guide/">RT-Thread Guide(中文指南)</a></p>
-<p><a href="A_Temporary_Guide_to_NNoM/">The temporary guide</a></p>
-<p><a href="Porting_and_Optimisation_Guide/">Porting and optimising Guide</a></p>
-<p>Examples:</p>
-<p><a href="example_mnist_simple_cn/">RT-Thread-MNIST example (中文)</a></p>
-<p><a href="https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet">MNIST-DenseNet example</a></p>
-<p><a href="https://github.com/majianjia/nnom/tree/master/examples/octave-conv">Octave Convolution</a></p>
 <hr />
 <h2 id="why-nnom">Why NNoM?</h2>
 <p>The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.</p>
@@ -219,17 +217,243 @@
 <p>[3] Huang, G., Liu, Z., Van Der Maaten, L., &amp; Weinberger, K. Q. (2017). Densely connected convolutional networks. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 4700-4708).</p>
 </blockquote>
 <p>After 2014, the development of Neural Networks are more focus on structure optimising to improve efficiency and performance, which is more important to the small footprint platforms such as MCUs. 
-However, the available NN libs for MCU are too low-level which make it sooooo difficult to use with these complex strucures. 
-Therefore, we build NNoM to help developers to manage the structures, memory and parameters, even with the automatic tools for faster and simpler deploying.</p>
-<p>Now with NNoM, you are free to play with these more up-to-date, decent and complex structures on MCU.</p>
-<p>With <a href="https://keras.io/"><strong>Keras</strong></a> and our tools, deploying a model only takes a few line of codes.</p>
-<p>Please do check the <a href="https://github.com/majianjia/nnom/tree/master/examples">examples</a>.</p>
+However, the available NN libs for MCU are too low-level which make it sooooo difficult to use with these complex strucures. </p>
+<p>Therefore, we build NNoM to help embedded developers to faster and simpler deploying NN model directly to MCU. </p>
+<blockquote>
+<p>NNoM will manage the strucutre, memory and everything else for developer. All you need is feeding your measurements then get the results. </p>
+</blockquote>
+<p><strong>NNoM is now working closely with Keras (You can easily learn <a href="https://keras.io/"><strong>Keras</strong></a> in 30 seconds!).</strong>
+There is no need to learn TensorFlow/Lite or other libs.  </p>
+<hr />
+<h2 id="documentations">Documentations</h2>
+<p>API manuals are available within this site. </p>
+<p><strong>Guides</strong></p>
+<p><a href="guide_5_min_to_nnom/">5 min to NNoM Guide</a></p>
+<p><a href="rt-thread_guide/">RT-Thread Guide(中文指南)</a></p>
+<p><a href="example_mnist_simple_cn/">RT-Thread-MNIST example (中文)</a></p>
+<p><a href="A_Temporary_Guide_to_NNoM/">The temporary guide</a></p>
+<p><a href="Porting_and_Optimisation_Guide/">Porting and optimising Guide</a> </p>
+<hr />
+<h2 id="examples">Examples</h2>
+<p><strong>Documented examples</strong></p>
+<p><a href="https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet">MNIST-DenseNet example</a></p>
+<p><a href="https://github.com/majianjia/nnom/tree/master/examples/octave-conv">Octave Convolution</a></p>
+<p>Please check <a href="https://github.com/majianjia/nnom/tree/master/examples">examples</a> for more applications. </p>
 <hr />
 <h2 id="dependencies">Dependencies</h2>
 <p>NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. </p>
 <h2 id="optimization">Optimization</h2>
 <p>You can select <a href="https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN">CMSIS-NN/DSP</a> as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. </p>
 <p>Check <a href="Porting_and_Optimisation_Guide/">Porting and optimising Guide</a> for detail. </p>
+<hr />
+<h2 id="available-operations">Available Operations</h2>
+<p><strong>Layers</strong></p>
+<table>
+<thead>
+<tr>
+<th>Layers</th>
+<th>Status</th>
+<th>Layer API</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Convolution</td>
+<td>Beta</td>
+<td>Conv2D()</td>
+<td>Support 1/2D</td>
+</tr>
+<tr>
+<td>Depthwise Conv</td>
+<td>Beta</td>
+<td>DW_Conv2D()</td>
+<td>Support 1/2D</td>
+</tr>
+<tr>
+<td>Fully-connected</td>
+<td>Beta</td>
+<td>Dense()</td>
+<td></td>
+</tr>
+<tr>
+<td>Lambda</td>
+<td>Alpha</td>
+<td>Lambda()</td>
+<td>single input / single output anonymous operation</td>
+</tr>
+<tr>
+<td>Input/Output</td>
+<td>Beta</td>
+<td>Input()/Output()</td>
+<td></td>
+</tr>
+<tr>
+<td>Recurrent NN</td>
+<td>Under Dev.</td>
+<td>RNN()</td>
+<td>Under Developpment</td>
+</tr>
+<tr>
+<td>Simple RNN</td>
+<td>Under Dev.</td>
+<td>SimpleCell()</td>
+<td>Under Developpment</td>
+</tr>
+<tr>
+<td>Gated Recurrent Network (GRU)</td>
+<td>Under Dev.</td>
+<td>GRUCell()</td>
+<td>Under Developpment</td>
+</tr>
+<tr>
+<td>Flatten</td>
+<td>Beta</td>
+<td>Flatten()</td>
+<td></td>
+</tr>
+<tr>
+<td>SoftMax</td>
+<td>Beta</td>
+<td>SoftMax()</td>
+<td>Softmax only has layer API</td>
+</tr>
+<tr>
+<td>Activation</td>
+<td>Beta</td>
+<td>Activation()</td>
+<td>A layer instance for activation</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Activations</strong></p>
+<p>Activation can be used by itself as layer, or can be attached to the previous layer as <a href="api_activations/#Activation APIs">"actail"</a> to reduce memory cost.</p>
+<table>
+<thead>
+<tr>
+<th>Actrivation</th>
+<th>Status</th>
+<th>Layer API</th>
+<th>Activation API</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ReLU</td>
+<td>Beta</td>
+<td>ReLU()</td>
+<td>act_relu()</td>
+<td></td>
+</tr>
+<tr>
+<td>TanH</td>
+<td>Beta</td>
+<td>TanH()</td>
+<td>act_tanh()</td>
+<td></td>
+</tr>
+<tr>
+<td>Sigmoid</td>
+<td>Beta</td>
+<td>Sigmoid()</td>
+<td>act_sigmoid()</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pooling Layers</strong></p>
+<table>
+<thead>
+<tr>
+<th>Pooling</th>
+<th>Status</th>
+<th>Layer API</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Max Pooling</td>
+<td>Beta</td>
+<td>MaxPool()</td>
+<td></td>
+</tr>
+<tr>
+<td>Average Pooling</td>
+<td>Beta</td>
+<td>AvgPool()</td>
+<td></td>
+</tr>
+<tr>
+<td>Sum Pooling</td>
+<td>Beta</td>
+<td>SumPool()</td>
+<td></td>
+</tr>
+<tr>
+<td>Global Max Pooling</td>
+<td>Beta</td>
+<td>GlobalMaxPool()</td>
+<td></td>
+</tr>
+<tr>
+<td>Global Average Pooling</td>
+<td>Beta</td>
+<td>GlobalAvgPool()</td>
+<td></td>
+</tr>
+<tr>
+<td>Global Sum Pooling</td>
+<td>Beta</td>
+<td>GlobalSumPool()</td>
+<td>A better alternative to Global average pooling in MCU before Softmax</td>
+</tr>
+<tr>
+<td>Up Sampling</td>
+<td>Beta</td>
+<td>UpSample()</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Matrix Operations Layers</strong></p>
+<table>
+<thead>
+<tr>
+<th>Matrix</th>
+<th>Status</th>
+<th>Layer API</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Multiple</td>
+<td>Beta</td>
+<td>Mult()</td>
+<td></td>
+</tr>
+<tr>
+<td>Addition</td>
+<td>Beta</td>
+<td>Add()</td>
+<td></td>
+</tr>
+<tr>
+<td>Substraction</td>
+<td>Beta</td>
+<td>Sub()</td>
+<td></td>
+</tr>
+<tr>
+<td>Dot</td>
+<td>Under Dev.</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
               
             </div>
           </div>
@@ -278,5 +502,5 @@ Therefore, we build NNoM to help developers to manage the structures, memory and
 
 <!--
 MkDocs version : 1.0.4
-Build Date UTC : 2019-04-18 17:19:52
+Build Date UTC : 2019-04-28 13:48:24
 -->

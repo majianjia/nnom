@@ -211,8 +211,9 @@
               
                 <h2 id="activation-layers">Activation Layers</h2>
 <p>To reduce the memory footprint, activations provides both <strong>Layer APIs</strong> and <strong>Activation APIs</strong>. </p>
-<p><strong>Layer APIs</strong> will create a layer instance for running the activation; 
-<strong>Activation APIs</strong> will only create activation instance, which can be attached on a existing layers. </p>
+<p><strong>Layer APIs</strong> will create a layer instance for running the activation; </p>
+<p><strong>Activation APIs</strong> will only create activation instance, which can be attached on a existing layers as 'actail'. 
+Actail will be called after a layer has finished its job, which will modify the output of that layer. </p>
 <hr />
 <h1 id="activations-layer-apis">Activations' Layer APIs</h1>
 <hr />

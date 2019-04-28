@@ -312,7 +312,7 @@ The results of prediction will be copy from NNoM memory space to user memory spa
 </code></pre>
 
 <p>This callback is a runtime callback, which can then be used to evaluate the performance, extract the intermediate output etc. 
-It will be call after each layer is ran. (if a actail (activation tail) is present, this callback will be called after the actail)</p>
+It will be called after each layer has ran. (if a actail (activation tail) is present, this callback will be called after the actail)</p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong> m:</strong> the model instance of the current model.</li>
@@ -364,7 +364,8 @@ You need to delete the old callback by <code>model_delete_callback()</code> befo
 </ul>
 <hr />
 <h2 id="examples">Examples</h2>
-<p>This example shows a 2 layer MPL for MNIST dateset. Input shape 28 x 28 x 1 hand writing image. please check <a href="https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet">mnist-densenet example</a> for further reading. </p>
+<p>This example shows a 2 layer MPL for MNIST dateset. Input shape 28 x 28 x 1 hand writing image. 
+Please check <a href="https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet">mnist-densenet example</a> for further reading. </p>
 <p><strong>Sequential model</strong></p>
 <pre><code class="C">
 /* nnom model */
@@ -454,7 +455,7 @@ int main(void)
 
 </code></pre>
 
-<p>logging:</p>
+<p>Here is the console logging of the callback output:</p>
 <pre><code>layer Input, output shape 784 
 layer Conv2D, output shape 9408 
 layer MaxPool, output shape 2352 

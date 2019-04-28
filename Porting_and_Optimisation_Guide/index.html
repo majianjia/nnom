@@ -245,7 +245,7 @@ For detail please check the <a href="https://arxiv.org/pdf/1801.06601.pdf">paper
 There might be a few duplicated in a project, such as the STM32 HAL has its own version of "arm_math.h" </p>
 <p>You might also define your chip core and enable your FPU support in your pre-compile configuration if you are not able to compile. </p>
 <blockquote>
-<p>i.e. when using STM32L476, you might add the two macro in your project ' ARM_MATH_CM4,  __FPU_PRESENT=1'</p>
+<p>e.g. when using STM32L476, you might add the two macro in your project ' ARM_MATH_CM4,  __FPU_PRESENT=1'</p>
 </blockquote>
 <p>After all, you can try to evaluate the performance using the APIs in 'nnom_utils.c'</p>
 <h2 id="examples">Examples</h2>
@@ -258,7 +258,7 @@ There might be a few duplicated in a project, such as the STM32 HAL has its own 
 // runtime &amp; debuges
 #define nnom_us_get()       0
 #define nnom_ms_get()       rt_tick_get()   // when tick is set to 1000
-#define LOG(...)            rt_kprintf(__VA_ARGS__)
+#define NNOM_LOG(...)       rt_kprintf(__VA_ARGS__)
 
 // NNoM configuration
 #define NNOM_BLOCK_NUM      (8)     // maximum number of memory block  
