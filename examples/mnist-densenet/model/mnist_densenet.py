@@ -11,6 +11,7 @@
 
 import matplotlib.pyplot as plt
 import os
+import sys
 nnscript = os.path.abspath('../../scripts')
 sys.path.append(nnscript)
 
