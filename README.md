@@ -12,6 +12,11 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 - High-performance backend selections.
 - Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
 
+**Licenses**
+
+NNoM is released under Apache License 2.0 since nnom-V0.2.0. 
+License and copyright information can be found within the code.
+
 ## Why NNoM?
 The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.
 
@@ -27,13 +32,11 @@ After 2014, the development of Neural Networks are more focus on structure optim
 However, the available NN libs for MCU are too low-level which make it sooooo difficult to use with these complex strucures. 
 
 Therefore, we build NNoM to help embedded developers to faster and simpler deploying NN model directly to MCU. 
-> NNoM will manage the strucutre, memory and everything else for developer. All you need is feeding your measurements then get the results. 
+> NNoM will manage the strucutre, memory and everything else for the developer. All you need to do is feeding your new measurements and getting the results. 
 
 **NNoM is now working closely with Keras (You can easily learn [**Keras**](https://keras.io/) in 30 seconds!).**
 There is no need to learn TensorFlow/Lite or other libs.  
 
-
----
 
 ## Documentations
 API manuals are available in **[API Manual](https://majianjia.github.io/nnom/)**
@@ -50,8 +53,6 @@ API manuals are available in **[API Manual](https://majianjia.github.io/nnom/)**
 
 [RT-Thread-MNIST example (中文例子)](docs/example_mnist_simple_cn.md)
 
----
-
 ## Examples
 
 **Documented examples**
@@ -64,7 +65,6 @@ API manuals are available in **[API Manual](https://majianjia.github.io/nnom/)**
 
 Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) for more applications. 
 
----
 
 
 ## Available Operations
@@ -116,20 +116,15 @@ Activation can be used by itself as layer, or can be attached to the previous la
 | Substraction  | Beta|Sub()||
 | Dot  | Under Dev. |||
 
-
-
 ## Dependencies
 
 NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. 
-
 
 
 ## Optimization
 You can select [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. 
 
 Check [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) for detail. 
-
-
 
 ## Contacts
 Jianjia Ma
@@ -138,5 +133,4 @@ J.Ma2@lboro.ac.uk or majianjia@live.com
 
 ## Citation Required
 Please contact us using above details. 
-
 
