@@ -27,7 +27,7 @@ After 2014, the development of Neural Networks are more focus on structure optim
 However, the available NN libs for MCU are too low-level which make it sooooo difficult to use with these complex strucures. 
 
 Therefore, we build NNoM to help embedded developers to faster and simpler deploying NN model directly to MCU. 
-> NNoM will manage the strucutre, memory and everything else for developer. All you need is feeding your measurements then get the results. 
+> NNoM will manage the strucutre, memory and everything else for the developer. All you need to do is feeding your new measurements and getting the results. 
 
 **NNoM is now working closely with Keras (You can easily learn [**Keras**](https://keras.io/) in 30 seconds!).**
 There is no need to learn TensorFlow/Lite or other libs.  
