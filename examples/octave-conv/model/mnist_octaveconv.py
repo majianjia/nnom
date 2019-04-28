@@ -1,6 +1,5 @@
 from __future__ import print_function
-nnscript = os.path.abspath('../../scripts')
-sys.path.append(nnscript)
+
 import keras
 from keras.datasets import mnist
 from keras.layers import *
@@ -9,8 +8,11 @@ from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from keras.callbacks import ModelCheckpoint
 
-import os
 import numpy as np
+import os
+import sys
+nnscript = os.path.abspath('../../scripts')
+sys.path.append(nnscript)
 
 from nnom_utils import *
 

@@ -2,17 +2,19 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 from matplotlib import cm
-import os
-nnscript = os.path.abspath('../../scripts')
-sys.path.append(nnscript)
 import keras
 from keras.models import Sequential, load_model
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Model
 from keras.layers import *
 from keras.callbacks import ModelCheckpoint
-from nnom_utils import *
 
+import os
+import sys
+nnscript = os.path.abspath('../../scripts')
+sys.path.append(nnscript)
+
+from nnom_utils import *
 from mfcc import *
 
 model_path = 'model.h5'
