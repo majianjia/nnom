@@ -20,11 +20,11 @@ It is an interactive example using shell and Y-modem to transmit testing data.
 
 If you are completely void in ML or Neural network, start with **mnist-cnn** and the external tutorial for Keras. 
 
-If you are not using RT-Thread, **mnist-cnn** and **mnist-densenet**.
+If you are not using RT-Thread, **[mnist-cnn](mnist-cnn)** and **[mnist-densenet](mnist-densenet)**.
 
-If you are tring to handle time sequence data (sensor measurement, voice), please check **keyword_spotting** and **uci-inception**
+If you are tring to handle time sequence data (sensor measurement, voice), please check **[keyword_spotting](keyword_spotting)** and **[uci-inception](uci-inception)**
 
-If you are using RT-Thread, the very first example you should try is **mnist-simple**, just compile and run. 
+If you are using RT-Thread, the very first example you should try is **[mnist-simple](mnist-simple)**, just compile and run. 
 
 
 ## Environment 
