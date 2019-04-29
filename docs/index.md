@@ -95,6 +95,7 @@ Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for deta
 | Depthwise Conv | Beta|DW_Conv2D()|Support 1/2D|
 | Fully-connected | Beta| Dense()| |
 | Lambda |Alpha| Lambda() |single input / single output anonymous operation| 
+| Batch Normalization |Beta | N/A| This layer is merged to the last Conv by the script|
 | Input/Output |Beta | Input()/Output()| |
 | Recurrent NN | Under Dev.| RNN()| Under Developpment |
 | Simple RNN | Under Dev. | SimpleCell()| Under Developpment |
