@@ -1,5 +1,5 @@
 
-## Examples
+## What we have
 
 The list below are the remiders for each example. 
 For details, please see the docs under the folder individually. 
@@ -16,7 +16,7 @@ This example come with 10 embedded images allows users to do prediction through 
 - **uci-inception** is an example using data from motion sensors and Inception structure. 
 It is an interactive example using shell and Y-modem to transmit testing data. 
 
-## Recommendation 
+## Recommendations 
 
 If you are completely void in ML or Neural network, start with **mnist-cnn** and the external tutorial for Keras. 
 
@@ -33,5 +33,9 @@ All example require `Python3, Keras, Tensorflow` installed in your PC.
 
 **mnist-cnn** and **mnist-densenet** are not relied on RT-Thread. 
 
-Others require [RT-Thread] and sometimes its Y-modem components. **keyword_spotting**
+Others require [RT-Thread] and sometimes its Y-modem components. 
+
+**keyword_spotting** require a microphone on your development board and the porting of mic, if you are not using [32L476GDISCOVERY](https://www.st.com/en/evaluation-tools/32l476gdiscovery.html)
+
+
 
