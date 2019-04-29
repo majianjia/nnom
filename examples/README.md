@@ -18,7 +18,7 @@ It is an interactive example using shell and Y-modem to transmit testing data.
 
 ## Recommendations 
 
-If you are completely void in ML or Neural network, start with **mnist-cnn** and the external tutorial for Keras. 
+If you are completely void in ML or Neural network, start with **[mnist-cnn](mnist-cnn)** and the external tutorial for Keras. 
 
 If you are not using RT-Thread, **[mnist-cnn](mnist-cnn)** and **[mnist-densenet](mnist-densenet)**.
 
