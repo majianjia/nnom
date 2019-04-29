@@ -206,6 +206,9 @@
 <li>High-performance backend selections.</li>
 <li>Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... </li>
 </ul>
+<p><strong>Licenses</strong></p>
+<p>NNoM is released under Apache License 2.0 since nnom-V0.2.0. 
+License and copyright information can be found within the code.</p>
 <hr />
 <h2 id="why-nnom">Why NNoM?</h2>
 <p>The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.</p>
@@ -218,7 +221,7 @@
 </blockquote>
 <p>After 2014, the development of Neural Networks are more focus on structure optimising to improve efficiency and performance, which is more important to the small footprint platforms such as MCUs. 
 However, the available NN libs for MCU are too low-level which make it sooooo difficult to use with these complex strucures. </p>
-<p>Therefore, we build NNoM to help embedded developers to faster and simpler deploying NN model directly to MCU. </p>
+<p>Therefore, we build NNoM to help embedded developers for faster and simpler deploying NN model directly to MCU. </p>
 <blockquote>
 <p>NNoM will manage the strucutre, memory and everything else for developer. All you need is feeding your measurements then get the results. </p>
 </blockquote>
@@ -281,6 +284,12 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 <td>Alpha</td>
 <td>Lambda()</td>
 <td>single input / single output anonymous operation</td>
+</tr>
+<tr>
+<td>Batch Normalization</td>
+<td>Beta</td>
+<td>N/A</td>
+<td>This layer is merged to the last Conv by the script</td>
 </tr>
 <tr>
 <td>Input/Output</td>
@@ -502,5 +511,5 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 
 <!--
 MkDocs version : 1.0.4
-Build Date UTC : 2019-04-28 13:48:24
+Build Date UTC : 2019-04-29 15:49:45
 -->
