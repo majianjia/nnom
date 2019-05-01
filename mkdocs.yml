@@ -1,4 +1,10 @@
-site_name: NNoM
+site_name: NNoM Documentation
+
+theme:
+  name: 'readthedocs'
+
+repo_url: https://github.com/majianjia/nnom
+site_description: 'A higher-level Neural Network library for microcontrollers.'
 
 nav:
 - Overview: 'index.md'
@@ -22,5 +28,4 @@ nav:
   - RT-Thread: 'rt-thread_guide.md'
   - MNIST-Simple: 'example_mnist_simple_cn.md'
 
-theme:
-  name: 'readthedocs'
+
