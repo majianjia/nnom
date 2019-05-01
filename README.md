@@ -4,6 +4,8 @@
 
 NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. 
 
+[[中文指南]](docs/rt-thread_guide.md)
+
 **Highlights**
 
 - Deploy Keras model to NNoM model with one line of code.
@@ -12,7 +14,10 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 - High-performance backend selections.
 - Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
 
-**Licenses**
+The structure of NNoM is shwon below:
+![](docs/figures/nnom_structure.png)
+
+## Licenses
 
 NNoM is released under Apache License 2.0 since nnom-V0.2.0. 
 License and copyright information can be found within the code.
@@ -57,14 +62,13 @@ API manuals are available in **[API Manual](https://majianjia.github.io/nnom/)**
 
 **Documented examples**
 
+Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) and choose one to start with. 
+
 [MNIST-DenseNet example](examples/mnist-densenet)
 
 [Octave Convolution](examples/octave-conv)
 
 [Keyword Spotting](examples/keyword_spotting)
-
-Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) for more applications. 
-
 
 
 ## Available Operations

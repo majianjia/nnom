@@ -4,6 +4,8 @@ NNoM (Neural Network on Microcontroller)
 
 ## 1. 简介
 
+![](figures/nnom_structure.png)
+
 NNoM是一个专门为了神经网络在 MCU 上运行的框架。 
 NNoM 是一个定点神经网络库， 现在支持 8-bit定点格式。
 当前 NNoM 支持数十种操作，卷积，池化，激活，矩阵计算等等。
@@ -60,7 +62,7 @@ nnom
 
 ### 1.2 许可证
 
-NNoM 使用 LGPL-3.0 许可证，详见LICENSE文件。
+NNoM 使用 Apache License 2.0 许可证，详见LICENSE文件。
 
 ### 1.3 依赖
 

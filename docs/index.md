@@ -4,6 +4,8 @@
 
 NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. 
 
+[[中文指南]](rt-thread_guide.md)
+
 **Highlights**
 
 - Deploy Keras model to NNoM model with one line of code.
@@ -12,7 +14,10 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 - High-performance backend selections.
 - Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
 
-**Licenses**
+The structure of NNoM is shwon below:
+![](figures/nnom_structure.png)
+
+## Licenses
 
 NNoM is released under Apache License 2.0 since nnom-V0.2.0. 
 License and copyright information can be found within the code.
@@ -50,13 +55,13 @@ API manuals are available within this site.
 
 [5 min to NNoM Guide](guide_5_min_to_nnom.md)
 
-[RT-Thread Guide(中文指南)](rt-thread_guide.md)
-
-[RT-Thread-MNIST example (中文)](example_mnist_simple_cn.md)
-
 [The temporary guide](A_Temporary_Guide_to_NNoM.md)
 
 [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) 
+
+[RT-Thread Guide(中文指南)](rt-thread_guide.md)
+
+[RT-Thread-MNIST example (中文例子)](example_mnist_simple_cn.md)
 
 ---
 
@@ -64,11 +69,15 @@ API manuals are available within this site.
 
 **Documented examples**
 
+Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) and choose one to start with. 
+
+Most recent Examples:
+
 [MNIST-DenseNet example](https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet)
 
 [Octave Convolution](https://github.com/majianjia/nnom/tree/master/examples/octave-conv)
 
-Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) for more applications. 
+[Keyword Spotting](https://github.com/majianjia/nnom/tree/master/examples/keyword_spotting)
 
 ---
 
