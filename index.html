@@ -57,6 +57,8 @@
     
         <ul>
         
+            <li><a class="toctree-l3" href="#licenses">Licenses</a></li>
+        
             <li><a class="toctree-l3" href="#why-nnom">Why NNoM?</a></li>
         
             <li><a class="toctree-l3" href="#documentations">Documentations</a></li>
@@ -198,6 +200,7 @@
                 <h1 id="neural-network-on-microcontroller-nnom">Neural Network on Microcontroller (NNoM)</h1>
 <p><a href="https://travis-ci.org/majianjia/nnom"><img alt="Build Status" src="https://travis-ci.org/majianjia/nnom.svg?branch=master" /></a></p>
 <p>NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. </p>
+<p><a href="rt-thread_guide/">[中文指南]</a></p>
 <p><strong>Highlights</strong></p>
 <ul>
 <li>Deploy Keras model to NNoM model with one line of code.</li>
@@ -206,7 +209,9 @@
 <li>High-performance backend selections.</li>
 <li>Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... </li>
 </ul>
-<p><strong>Licenses</strong></p>
+<p>The structure of NNoM is shwon below:
+<img alt="" src="figures/nnom_structure.png" /></p>
+<h2 id="licenses">Licenses</h2>
 <p>NNoM is released under Apache License 2.0 since nnom-V0.2.0. 
 License and copyright information can be found within the code.</p>
 <hr />
@@ -232,16 +237,18 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 <p>API manuals are available within this site. </p>
 <p><strong>Guides</strong></p>
 <p><a href="guide_5_min_to_nnom/">5 min to NNoM Guide</a></p>
-<p><a href="rt-thread_guide/">RT-Thread Guide(中文指南)</a></p>
-<p><a href="example_mnist_simple_cn/">RT-Thread-MNIST example (中文)</a></p>
 <p><a href="A_Temporary_Guide_to_NNoM/">The temporary guide</a></p>
 <p><a href="Porting_and_Optimisation_Guide/">Porting and optimising Guide</a> </p>
+<p><a href="rt-thread_guide/">RT-Thread Guide(中文指南)</a></p>
+<p><a href="example_mnist_simple_cn/">RT-Thread-MNIST example (中文例子)</a></p>
 <hr />
 <h2 id="examples">Examples</h2>
 <p><strong>Documented examples</strong></p>
+<p>Please check <a href="https://github.com/majianjia/nnom/tree/master/examples">examples</a> and choose one to start with. </p>
+<p>Most recent Examples:</p>
 <p><a href="https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet">MNIST-DenseNet example</a></p>
 <p><a href="https://github.com/majianjia/nnom/tree/master/examples/octave-conv">Octave Convolution</a></p>
-<p>Please check <a href="https://github.com/majianjia/nnom/tree/master/examples">examples</a> for more applications. </p>
+<p><a href="https://github.com/majianjia/nnom/tree/master/examples/keyword_spotting">Keyword Spotting</a></p>
 <hr />
 <h2 id="dependencies">Dependencies</h2>
 <p>NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. </p>
@@ -511,5 +518,5 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 
 <!--
 MkDocs version : 1.0.4
-Build Date UTC : 2019-05-01 11:15:17
+Build Date UTC : 2019-05-01 11:30:44
 -->
