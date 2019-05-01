@@ -14,7 +14,7 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 - High-performance backend selections.
 - Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
 
-The structure of NNoM is shwon below:
+The structure of NNoM is shown below:
 ![](docs/figures/nnom_structure.png)
 
 ## Licenses
