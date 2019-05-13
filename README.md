@@ -4,7 +4,7 @@
 
 NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. 
 
-[[中文指南]](docs/rt-thread_guide.md)
+[[English Manual]](https://majianjia.github.io/nnom/) [[中文指南]](docs/rt-thread_guide.md) 
 
 **Highlights**
 
@@ -44,7 +44,6 @@ There is no need to learn TensorFlow/Lite or other libs.
 
 
 ## Documentations
-API manuals are available in **[API Manual](https://majianjia.github.io/nnom/)**
 
 **Guides**
 
