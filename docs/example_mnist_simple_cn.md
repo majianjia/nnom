@@ -7,14 +7,17 @@
 
 MNIST 经常被用来做为分类任务的入门数据库使用。在这个简单的例子里面，我们也用它来试试数据归类。 
 
-这个例子建造了一个卷积网络。这个网络主要包括卷积层（Convolution layer）和全连接层 (Densely-connected，或者也叫 Fully-connected layer). 
 
-![Architecture of a CNN.](figures/Typical_cnn.png)
+![](figures/example_mnist_simple_model_structure.png)
 
-[Image source](https://www.mathworks.com/videos/introduction-to-deep-learning-what-are-convolutional-neural-networks--1489512765771.html)
+这个例子建造了一个卷积网络，结构如上图。
+这个网络主要包括卷积层（Convolution layer）和全连接层 (Densely-connected，或者也叫 Fully-connected layer). 
+模型从左往右运行，最左边的是原始图像，长宽28x28，单通道灰度图像。然后经过3个卷积层和2个全链接层完成分类任务（识别10个数字）。
 
-卷积网络大概是上图所示（这里用的层数不同），每一层通过一定大小的卷积核从上一层提取一定的特征。
-这些特征最后通过全连接层选择后，会选择性激活某个类型的标签。标签对应的数值越大，可能性越大。
+每一层通过一定大小的卷积核从上一层提取一定的特征。
+这些特征最后通过全连接层选择后，会选择性激活10个类型中某个类型的标签。
+这些标签对应的数值越大，可能性越大。
+
 
 
 ## 1. 下载并启用NNoM
