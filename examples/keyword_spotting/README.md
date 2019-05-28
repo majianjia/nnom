@@ -64,7 +64,7 @@ The Audio format in the example is `16bit, 16kHz, 1CH`
 
 I would suggest you google/baidu to have further understanding of the MFCC. 
 
-The short explanation  is it takes voice input (1D, time-sequence data) generate a image (2D) using mel[ody] scale. What make it different from simple FFT is it also scales the frequency in order to match more closely what the human ear can hear.
+The short explanation, is it takes voice input (1D, time-sequence data) and generate a image (2D) using mel[ody] scale. What make it different from simple FFT is it also scales the frequency in order to match more closely what the human ear can hear.
 
 In this example, the windows size is `31.25ms` which is `512 point at 16kHz`. The windows over lapping is `50%` or `16.125ms`. Filter band number `26`, filter band low frequency `20Hz`, filter band high frequency  `4000`. 
 
@@ -90,16 +90,18 @@ MCUs based on cortex-M only need to provide an audio source from the mic (also i
 ## Performances
 
 **model performance**
+
 Top 1 Accuracy :0.83371195
+
 Top 2 Accuracy:0.91076785
 
-It takes `15,020` bytes of RAM and `62,787` 8-bit parameters. 
+It takes `15,020` bytes of RAM and `62,787` 8-bit weighs. 
 
 The MAC operation is `2M`, which is equal to `4M` FLOP. 
 
-It takes `42ms` on the STM32L467 @ 150MHz to predict 1 second of voice. 
+It takes `48ms` on the STM32L467 @ 150MHz to predict 1 second of voice. 
 
-The STM32L4 can do average `43 MAC operation` in one us, equal to `0.29 MAC/Hz`. 
+The STM32L4 can do average `43 MAC operation` in one microsecond, equal to `0.29 MAC/Hz`. 
 
 Please check the log for details.
 
