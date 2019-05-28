@@ -10,7 +10,7 @@ This **is not** an example for Speech to Text or Natural Language Processing.
 
 The target application of KWS are: low-power wakeup, speech control toys, 
 
-[Test video]() waiting for uploading. 
+[Test video](https://youtu.be/d9zxbZM_4D0). 
 
 
 ## How does neural network recognise speech commands?
