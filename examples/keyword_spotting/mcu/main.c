@@ -36,7 +36,7 @@ nnom_model_t *model;
 // 10 labels-2
 //const char label_name[][10] =  {"marvin", "sheila", "yes", "no", "left", "right", "forward", "backward", "stop", "go", "unknow"};
 
-// 34 labels
+// full 34 labels
 const char label_name[][10] =  {"backward", "bed", "bird", "cat", "dog", "down", "eight","five", "follow", "forward",
                       "four", "go", "happy", "house", "learn", "left", "marvin", "nine", "no", "off", "on", "one", "right",
                       "seven", "sheila", "six", "stop", "three", "tree", "two", "up", "visual", "yes", "zero", "unknow"};
@@ -192,9 +192,6 @@ void thread_kws_serv(void *p)
 		for(int i = 0; i < AUDIO_FRAME_LEN; i++)
 		{
 			audio_buffer_16bit[AUDIO_FRAME_LEN/2+i] = SaturaLH((p_raw_audio[i] >> 8)*1, -32768, 32767);
-			
-//			if(audio_buffer_16bit[AUDIO_FRAME_LEN/2+i] == -32768 || audio_buffer_16bit[AUDIO_FRAME_LEN/2+i] == 32767)
-//				printf(">| %d\n", rt_tick_get());
 		}
 		
 		// MFCC
@@ -278,7 +275,6 @@ int main(void)
 		nnom_predic(model, &label, &prob);
 		
 		// output
-		//if(prob > 0.8f && label != 10 && rt_tick_get() - last_time > RT_TICK_PER_SECOND)
 		if(prob > 0.5f)
 		{
 			last_time = rt_tick_get();

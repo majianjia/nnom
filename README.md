@@ -17,6 +17,8 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 The structure of NNoM is shown below:
 ![](docs/figures/nnom_structure.png)
 
+Discussions welcome using [issues](https://github.com/majianjia/nnom/issues). Pull request welcome. 
+
 ## Licenses
 
 NNoM is released under Apache License 2.0 since nnom-V0.2.0. 
