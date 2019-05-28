@@ -4,35 +4,36 @@
 
 Questions and discussion welcome using [Issues](https://github.com/majianjia/nnom/issues)
 
-This example will show and example to use Neural Network to recognise Speech Commands, or so called Key-Word Spotting (KWS).
+This example is to demonstrate using Neural Network to recognise Speech Commands, or so called Key-Word Spotting (KWS).
 
-This **is not** an example for Speech to Text or Natural Language Processing. 
+This **is not** an example for Speech to Text or Natural Language Processing (NLP)
 
-The target application of KWS are: low-power wakeup, speech control toys, 
+The target application of KWS could be: low-power wakeup, speech control toys ...
 
 [Test video](https://youtu.be/d9zxbZM_4D0). 
 
 
-## How does neural network recognise speech commands?
+## How does this example work?
 
 - It uses microphone on development board to capture continuous voice. 
-- Then the voice will be splited and then converted to Mel-Frequency Cepstral Coefficients([MFCC](https://en.wikipedia.org/wiki/Mel-frequency_cepstrum)).
-- The output of MFCC are similar to an image.
-- Use neural network recognise these MFCC same as to classify images. 
+- The voice will be splited and then converted to Mel-Frequency Cepstral Coefficients([MFCC](https://en.wikipedia.org/wiki/Mel-frequency_cepstrum)).
+- The output of MFCC is similar to an image.
+- Use neural network to recognise these MFCCs same as to classify images. 
 
-A one second MFCC result is shown below:
+A few one second MFCC result are shown below:
 
 ![](kws_mfcc_example1.png)
 ![](kws_mfcc_example2.png)
 ![](kws_mfcc_example3.png)
 
 The size of image is `(63, 12, 1)`. 
-So there is no difference in the Neural Network in terms of image classification and speech commands recognition. What's more in KWS are the mic driver and MFCC. 
+There is no difference for the Neural Network to do image classification or speech commands recognition. What's more in KWS are the mic driver and MFCC. 
 
 ## Preparations
 
 Download the [Google speech command dataset](http://download.tensorflow.org/data/speech_commands_v0.02.tar.gz).
-create a folder `dat` then unzip the above dataset into the folder. 
+Create a folder `dat` then unzip the  dataset into the folder. 
+The structure will similar to this:
 
 ~~~
     kws
@@ -46,9 +47,9 @@ create a folder `dat` then unzip the above dataset into the folder.
      |- kws.py
 ~~~
 
-The dataset contains many voice commands and noises records. Most of the records are length 1 seconds or less. 
+The dataset contains many voice commands and noises records. Most of the records are in 1 seconds length or less. 
 
-The available labels are:
+The available labels in the dataset are:
 ~~~
 'backward', 'bed', 'bird', 'cat', 'dog', 'down', 'eight', 'five', 'follow', 'forward',
 'four','go','happy','house','learn','left','marvin','nine','no','off','on','one','right',
@@ -59,14 +60,13 @@ The available labels are:
 
 The Audio format in the example is `16bit, 16kHz, 1CH`
 
-
 ## MFCC
 
-I would suggest you google/baidu to have further understanding of the MFCC. 
+I would suggest to google/baidu for more info of the MFCC. 
 
-The short explanation, is it takes voice input (1D, time-sequence data) and generate a image (2D) using mel[ody] scale. What make it different from simple FFT is it also scales the frequency in order to match more closely what the human ear can hear.
+The short explanation is it takes voice input (1D, time-sequence data) and generate a image (2D) using mel[ody] scale. What make it different from simple FFT is it also scales the frequency in order to match more closely what the human ear can hear.
 
-In this example, the windows size is `31.25ms` which is `512 point at 16kHz`. The windows over lapping is `50%` or `16.125ms`. Filter band number `26`, filter band low frequency `20Hz`, filter band high frequency  `4000`. 
+In this example, the windows size is `31.25ms` which is `512 point at 16kHz`. The windows over lapping is `50%` or the moving step is `16.125ms`. Filter band number `26`, filter band low frequency `20Hz`, filter band high frequency  `4000`. 
 
 You should be familiar with the above parameters if you have checked any MFCC tutorials. If you haven't, it doesn't matter, just leave them as they were. 
 
@@ -74,14 +74,14 @@ You should be familiar with the above parameters if you have checked any MFCC tu
 
 As said before, the datasets are all equal to or below 1 sec. Before training, these voice commands are padding to 1 seconds which have all len = `16000`. If we split the 16000 into size of 512 with overlapping of 50%, we will get `63` pieces.  
 
-Normally, we takes 13 coefficients in each windows `512 point or 31.25ms`(see how much the data is compressed !). But we will ignore the first one. I dont know why but peoples are doing this (maybe the very low frequency are less meaningful in speech?). So, every `512` audio data we got `12` coefficients.
+Normally, we takes 13 coefficients in each windows `512 point or 31.25ms`(see how much the data is compressed !). But we will ignore the first one. I dont know why but people are doing this (maybe the very low frequency are less meaningful in speech?). So, every `512` audio data we got `12` coefficients.
 
 Then it is easy to guess why the MFCC "image" has `63` in width (timestamp) and `12` in height (coefficients). 
 
 
 ## Porting
 
-The example under `mcu` is originally for STM32 with DFSDM and digital microphone. The specific board I use is [STM32L476-Discovery](https://www.st.com/en/evaluation-tools/32l476gdiscovery.html) together with RT-Thread. 
+The example under `mcu` was originally built for STM32 with DFSDM and digital microphone. The board I use was [STM32L476-Discovery](https://www.st.com/en/evaluation-tools/32l476gdiscovery.html) together with RT-Thread. 
 
 However, it is quiet straight forward to port to your development board. 
 MCUs based on cortex-M only need to provide an audio source from the mic (also include CMSIS-DSP for FFT)
@@ -89,19 +89,19 @@ MCUs based on cortex-M only need to provide an audio source from the mic (also i
 
 ## Performances
 
-**model performance**
+**Model Performance**
 
 Top 1 Accuracy :0.83371195
 
 Top 2 Accuracy:0.91076785
 
-It takes `15,020` bytes of RAM and `62,787` 8-bit weighs. 
+It takes `15,020` bytes of RAM and `62,787` 8-bit weighs (ROM). 
 
 The MAC operation is `2M`, which is equal to `4M` FLOP. 
 
 It takes `48ms` on the STM32L467 @ 150MHz to predict 1 second of voice. 
 
-The STM32L4 can do average `43 MAC operation` in one microsecond, equal to `0.29 MAC/Hz`. 
+The STM32L4 can do average `43.5 MAC operation` in one microsecond, equal to `0.29 MAC/Hz`. 
 
 Please check the log for details.
 
@@ -153,18 +153,6 @@ Efficiency 43.53 ops/us
 Total Memory cost (Network and NNoM): 15020
 msh > 
 ~~~
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
