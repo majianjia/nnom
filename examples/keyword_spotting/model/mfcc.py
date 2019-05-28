@@ -6,8 +6,21 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 import os
+import random
 
-def generate_mfcc(sig, rate, sig_len, winlen=0.03125, winstep=0.03125/2, numcep=13, nfilt=26, nfft=512, lowfreq=20, highfreq=4000, winfunc=np.hanning, ceplifter=0, preemph=0.97):
+def load_noise(path='dat/_background_noise_/'):
+    noise = []
+    files = os.listdir(path)
+    for f in files:
+        filename = f
+        if ('wav' not in filename):
+            continue
+        f = os.path.join(path, f)
+        (rate, sig) = wav.read(f)
+        noise.append(sig)
+    return  noise
+
+def generate_mfcc(sig, rate, sig_len, noise=None, noise_weight=0.2, winlen=0.03125, winstep=0.03125/2, numcep=13, nfilt=26, nfft=512, lowfreq=20, highfreq=4000, winfunc=np.hanning, ceplifter=0, preemph=0.97):
     if(len(sig) != sig_len):
         if(len(sig)< sig_len):
             sig = np.pad(sig, (0, sig_len - len(sig)), 'constant')
@@ -16,12 +29,19 @@ def generate_mfcc(sig, rate, sig_len, winlen=0.03125, winstep=0.03125/2, numcep=
     # i dont know, 'tensorflow' normalization
     sig = sig.astype('float') / 32768
 
+    if(noise is not None):
+        noise = noise[random.randint(0, len(noise)-1)] # pick a noise
+        start = random.randint(0, len(noise)-sig_len) # pick a sequence
+        noise = noise[start:start+sig_len]
+        noise = noise.astype('float')/32768
+        sig = sig * (1-noise_weight) + noise * noise_weight
+        #wav.write('noise_test.wav', rate, sig)
     mfcc_feat = mfcc(sig, rate, winlen=winlen, winstep=winstep, numcep=numcep, nfilt=nfilt, nfft=nfft, lowfreq=lowfreq,
                      highfreq=highfreq, winfunc=winfunc, ceplifter=ceplifter, preemph=preemph)
     mfcc_feat = mfcc_feat.astype('float32')
     return mfcc_feat
 
-def merge_mfcc_file(input_path='dat/', sig_len=16000, winlen=0.03125, winstep=0.03125/2, numcep=13, nfilt=26, nfft=512,
+def merge_mfcc_file(input_path='dat/', mix_noise=True, sig_len=16000, winlen=0.03125, winstep=0.03125/2, numcep=13, nfilt=26, nfft=512,
                     lowfreq=20, highfreq=4000, winfunc=np.hanning, ceplifter=0, preemph=0.97):
 
     train_data = []
@@ -30,6 +50,11 @@ def merge_mfcc_file(input_path='dat/', sig_len=16000, winlen=0.03125, winstep=0.
     train_lable = []
     test_label = []
     validate_label =[]
+
+    if mix_noise:
+        noise = load_noise()
+    else:
+        noise = None
 
     with open(input_path + 'testing_list.txt', 'r') as f:
         test_list = f.read()
@@ -65,7 +90,7 @@ def merge_mfcc_file(input_path='dat/', sig_len=16000, winlen=0.03125, winstep=0.
                 filename = f
                 f = os.path.join(fi_d, f)
                 (rate, sig) = wav.read(f)
-                data = generate_mfcc(sig, rate, sig_len, winlen=winlen, winstep=winstep, numcep=numcep, nfilt=nfilt, nfft=nfft, lowfreq=lowfreq,
+                data = generate_mfcc(sig, rate, sig_len, noise=noise, winlen=winlen, winstep=winstep, numcep=numcep, nfilt=nfilt, nfft=nfft, lowfreq=lowfreq,
                      highfreq=highfreq, winfunc=winfunc, ceplifter=ceplifter, preemph=preemph)
                 data = np.array(data) # ?? no idea why this works
 

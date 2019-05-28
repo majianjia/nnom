@@ -2,19 +2,16 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 from matplotlib import cm
+import os
+
 import keras
 from keras.models import Sequential, load_model
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Model
 from keras.layers import *
 from keras.callbacks import ModelCheckpoint
-
-import os
-import sys
-nnscript = os.path.abspath('../../scripts')
-sys.path.append(nnscript)
-
 from nnom_utils import *
+
 from mfcc import *
 
 model_path = 'model.h5'
@@ -45,26 +42,23 @@ def train(x_train, y_train, x_test, y_test, type, batch_size=64, epochs=100):
     x = ReLU()(x)
     x = MaxPool2D((2, 1), strides=(2, 1), padding="valid")(x)
 
-    x = Conv2D(32 ,kernel_size=(5, 5), strides=(1, 1), padding="valid")(x)
+    x = Conv2D(32 ,kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 1),strides=(2, 1), padding="valid")(x)
 
-    x = Conv2D(64 ,kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-    x = Dropout(0.1)(x)
-
-    x = Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
+    x = Conv2D(64 ,kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 1), strides=(2, 1), padding="valid")(x)
     x = Dropout(0.2)(x)
 
-    x = Flatten()(x)
-    x = Dense(64)(x)
-    x = Dropout(0.2)(x)
+    x = Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
+    x = BatchNormalization()(x)
     x = ReLU()(x)
+    x = Dropout(0.3)(x)
+
+    x = Flatten()(x)
     x = Dense(type)(x)
 
     predictions = Softmax()(x)
@@ -128,9 +122,11 @@ def main():
     # label
     #selected_lable = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go']
     #selected_lable = ['marvin', 'sheila', 'yes', 'no', 'left', 'right', 'forward', 'backward', 'stop', 'go']
+
     selected_lable = ['backward', 'bed', 'bird', 'cat', 'dog', 'down', 'eight','five', 'follow', 'forward',
                       'four','go','happy','house','learn','left','marvin','nine','no','off','on','one','right',
                       'seven','sheila','six','stop','three','tree','two','up','visual','yes','zero']
+
     # parameters
     epochs = 20
     batch_size = 64
@@ -157,8 +153,8 @@ def main():
     x_val = (x_val / quantise_factor)
 
     # training data enforcement
-    x_train = np.vstack((x_train, x_train*0.8, x_train*0.64))
-    y_train = np.hstack((y_train, y_train, y_train))
+    x_train = np.vstack((x_train, x_train*0.8))
+    y_train = np.hstack((y_train, y_train))
     print(y_train.shape)
 
     # saturation to -1 to 1
@@ -174,7 +170,7 @@ def main():
     print('quantised', 'x_train shape:', x_train.shape, 'max', x_train.max(), 'min', x_train.min())
     print("dataset abs mean at", abs(x_test).mean()*128)
 
-    # test
+    # test, if you want to see a few random MFCC imagea. 
     if(0):
         which = 232
         while True:
@@ -213,17 +209,16 @@ def main():
 
     generate_model(model, np.vstack((x_test, x_val)), name="weights.h")
 
-    if(1):
-        acc = history.history['acc']
-        val_acc = history.history['val_acc']
+	acc = history.history['acc']
+	val_acc = history.history['val_acc']
 
-        plt.plot(range(0, epochs), acc, color='red', label='Training acc')
-        plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')
-        plt.title('Training and validation accuracy')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.legend()
-        plt.show()
+	plt.plot(range(0, epochs), acc, color='red', label='Training acc')
+	plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')
+	plt.title('Training and validation accuracy')
+	plt.xlabel('Epochs')
+	plt.ylabel('Loss')
+	plt.legend()
+	plt.show()
 
 
 if __name__=='__main__':
