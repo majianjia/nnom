@@ -50,7 +50,7 @@ def train(x_train, y_train, x_test, y_test, type, batch_size=64, epochs=100):
     x = Conv2D(64 ,kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
-    x = MaxPool2D((2, 1), strides=(2, 1), padding="valid")(x)
+    #x = MaxPool2D((2, 1), strides=(2, 1), padding="valid")(x)
     x = Dropout(0.2)(x)
 
     x = Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
@@ -119,7 +119,7 @@ def main():
         np.save('val_label.npy', y_val)
 
 
-    # label
+    # label: the selected label will be recognised, while the others will be classified to "unknow". 
     #selected_lable = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go']
     #selected_lable = ['marvin', 'sheila', 'yes', 'no', 'left', 'right', 'forward', 'backward', 'stop', 'go']
 
@@ -209,16 +209,16 @@ def main():
 
     generate_model(model, np.vstack((x_test, x_val)), name="weights.h")
 
-	acc = history.history['acc']
-	val_acc = history.history['val_acc']
+    acc = history.history['acc']
+    val_acc = history.history['val_acc']
 
-	plt.plot(range(0, epochs), acc, color='red', label='Training acc')
-	plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')
-	plt.title('Training and validation accuracy')
-	plt.xlabel('Epochs')
-	plt.ylabel('Loss')
-	plt.legend()
-	plt.show()
+    plt.plot(range(0, epochs), acc, color='red', label='Training acc')
+    plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')
+    plt.title('Training and validation accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
 
 
 if __name__=='__main__':
