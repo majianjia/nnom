@@ -77,7 +77,6 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
 
 #ifdef NNOM_USING_CMSIS_NN
-
 	//RGB
 	// ch_im_in = 3, w = h
 	if (layer->in->shape.c == 3 && layer->in->shape.h == layer->in->shape.w)
@@ -260,7 +259,6 @@ nnom_status_t dense_run(nnom_layer_t *layer)
 	nnom_status_t result = NN_SUCCESS;
 	nnom_dense_layer_t *cl = (nnom_dense_layer_t *)(layer);
 
-	// test, optimize
 #if !(DENSE_WEIGHT_OPT)
 	#ifdef NNOM_USING_CMSIS_NN
 		result = (nnom_status_t)arm_fully_connected_q7(
@@ -293,11 +291,7 @@ nnom_status_t dense_run(nnom_layer_t *layer)
 nnom_status_t activation_run(nnom_layer_t *layer)
 {
 	nnom_activation_layer_t *cl = (nnom_activation_layer_t *)layer;
-	// set up buf
-	cl->act->data = layer->in->mem->blk;
-	cl->act->size = layer->out->shape.h * layer->out->shape.w * layer->out->shape.c;
-	cl->act->fmt = layer->in->qfmt;
-	return cl->act->run(layer, cl->act);
+	return act_direct_run(layer, cl->act, layer->in->mem->blk, shape_size(&layer->out->shape), layer->in->qfmt);
 }
 
 nnom_status_t maxpool_run(nnom_layer_t *layer)
@@ -370,7 +364,7 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
-// sum pooling, dynamic change Q format, must be used in the last layer
+// sum pooling, dynamic change Q format, must be used in the last layer before softmax in current version
 nnom_status_t sumpool_run(nnom_layer_t *layer)
 {
 	nnom_sumpool_layer_t *cl = (nnom_sumpool_layer_t *)(layer);

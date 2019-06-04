@@ -39,7 +39,7 @@ size_t nnom_mem_stat(void)
 	return nnom_memory_taken;
 }
 
-// get the size of an module model
+// get the size of an IO module
 static size_t io_mem_size(nnom_layer_io_t *io)
 {
 	size_t size = 0;
@@ -53,7 +53,6 @@ static size_t io_mem_size(nnom_layer_io_t *io)
 	}
 	return size;
 }
-
 
 size_t nnom_alignto(size_t value, uint32_t alignment)
 {

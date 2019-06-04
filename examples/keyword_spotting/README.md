@@ -15,10 +15,10 @@ The target application of KWS could be: low-power wakeup, speech control toys ..
 
 ## How does this example work?
 
-- It uses microphone on development board to capture continuous voice. 
-- The voice will be splited and then converted to Mel-Frequency Cepstral Coefficients([MFCC](https://en.wikipedia.org/wiki/Mel-frequency_cepstrum)).
+- It uses a microphone on the development board to capture continuous voice. 
+- The voice will be split and then converted to Mel-Frequency Cepstral Coefficients([MFCC](https://en.wikipedia.org/wiki/Mel-frequency_cepstrum)).
 - The output of MFCC is similar to an image.
-- Use neural network to recognise these MFCCs same as to classify images. 
+- Use the neural network to recognise these MFCCs same as to classify images. 
 
 A few one second MFCC result are shown below:
 
@@ -26,13 +26,13 @@ A few one second MFCC result are shown below:
 ![](kws_mfcc_example2.png)
 ![](kws_mfcc_example3.png)
 
-The size of image is `(63, 12, 1)`. 
+The size of the image is `(63, 12, 1)`. 
 There is no difference for the Neural Network to do image classification or speech commands recognition. What's more in KWS are the mic driver and MFCC. 
 
 ## Preparations
 
 Download the [Google speech command dataset](http://download.tensorflow.org/data/speech_commands_v0.02.tar.gz).
-Create a folder `dat` then unzip the  dataset into the folder. 
+Create a folder `dat` then unzip the dataset into the folder. 
 The structure will similar to this:
 
 ~~~
@@ -47,7 +47,7 @@ The structure will similar to this:
      |- kws.py
 ~~~
 
-The dataset contains many voice commands and noises records. Most of the records are in 1 seconds length or less. 
+The dataset contains many voice commands and noises records. Most of the records are in 1 second length or less. 
 
 The available labels in the dataset are:
 ~~~
@@ -64,17 +64,17 @@ The Audio format in the example is `16bit, 16kHz, 1CH`
 
 I would suggest to google/baidu for more info of the MFCC. 
 
-The short explanation is it takes voice input (1D, time-sequence data) and generate a image (2D) using mel[ody] scale. What make it different from simple FFT is it also scales the frequency in order to match more closely what the human ear can hear.
+The short explanation is it takes voice input (1D, time-sequence data) and generate an image (2D) using mel[ody] scale. What makes it different from simple FFT is it also scales the frequency in order to match more closely what the human ear can hear.
 
-In this example, the windows size is `31.25ms` which is `512 point at 16kHz`. The windows over lapping is `50%` or the moving step is `16.125ms`. Filter band number `26`, filter band low frequency `20Hz`, filter band high frequency  `4000`. 
+In this example, the size of the windows is `31.25ms` which is `512 point at 16kHz`. The windows's overlapping is `50%` or the moving step is `16.125ms`. Filter band number `26`, filter band low frequency `20Hz`, filter band high frequency  `4000`. 
 
 You should be familiar with the above parameters if you have checked any MFCC tutorials. If you haven't, it doesn't matter, just leave them as they were. 
 
 > MFCC must be implemented in both MCU and PC. 
 
-As said before, the datasets are all equal to or below 1 sec. Before training, these voice commands are padding to 1 seconds which have all len = `16000`. If we split the 16000 into size of 512 with overlapping of 50%, we will get `63` pieces.  
+As said before, the datasets are all equal to or below 1 sec. Before training, these voice commands are padding to 1 second which have all len = `16000`. If we split the 16000 into size of 512 with overlapping of 50%, we will get `63` pieces.  
 
-Normally, we takes 13 coefficients in each windows `512 point or 31.25ms`(see how much the data is compressed !). But we will ignore the first one. I dont know why but people are doing this (maybe the very low frequency are less meaningful in speech?). So, every `512` audio data we got `12` coefficients.
+Normally, we take 13 coefficients in each windows `512 point or 31.25ms`(see how much the data is compressed !). But we will ignore the first one. I dont know why but people are doing this (maybe the very low frequency are less meaningful in speech?). So, every `512` audio data we got `12` coefficients.
 
 Then it is easy to guess why the MFCC "image" has `63` in width (timestamp) and `12` in height (coefficients). 
 
@@ -83,7 +83,7 @@ Then it is easy to guess why the MFCC "image" has `63` in width (timestamp) and 
 
 The example under `mcu` was originally built for STM32 with DFSDM and digital microphone. The board I use was [STM32L476-Discovery](https://www.st.com/en/evaluation-tools/32l476gdiscovery.html) together with RT-Thread. 
 
-However, it is quiet straight forward to port to your development board. 
+However, it is quite straight forward to port to your development board. 
 MCUs based on cortex-M only need to provide an audio source from the mic (also include CMSIS-DSP for FFT)
 
 
