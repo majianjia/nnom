@@ -19,7 +19,7 @@
 
 #include "nnom.h"
 
-typedef struct _nnom_predic_t
+typedef struct _nnom_predict_t
 {
 	uint16_t *confusion_mat; // confusiong matrix
 	uint32_t *top_k;		 // which stored the num of prediction in rank_k, example: Top-2 = top_k[0]+top_k[1]
@@ -31,41 +31,41 @@ typedef struct _nnom_predic_t
 	uint32_t top_k_size; // number of k that wants to know.
 
 	// running
-	uint32_t predic_count; // how many prediction is done
+	uint32_t predict_count; // how many prediction is done
 
 	//timing
 	uint32_t t_run_total;	// total running time
-	uint32_t t_predic_start; // when it is initial
-	uint32_t t_predic_total; // total time of the whole test
-} nnom_predic_t;
+	uint32_t t_predict_start; // when it is initial
+	uint32_t t_predict_total; // total time of the whole test
+} nnom_predict_t;
 
 // create a prediction
 // input model, the buf pointer to the softwmax output (Temporary, this can be extract from model)
 // the size of softmax output (the num of lable)
 // the top k that wants to record.
-nnom_predic_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, size_t label_num, size_t top_k_size); // currently int8_t
+nnom_predict_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, size_t label_num, size_t top_k_size); // currently int8_t
 
 // after a new data is set in input
 // feed data to prediction
 // input the current label, (range from 0 to total number of label -1)
 // (the current input data should be set by user manully to the input buffer of the model.)
 // return NN_ARGUMENT_ERROR if parameter error
-int32_t prediction_run(nnom_predic_t *pre, uint32_t label);
+int32_t prediction_run(nnom_predict_t *pre, uint32_t label);
 
 // to mark prediction finished
-void prediction_end(nnom_predic_t *pre);
+void prediction_end(nnom_predict_t *pre);
 
 // free all resources
-void predicetion_delete(nnom_predic_t *pre);
+void prediction_delete(nnom_predict_t *pre);
 
 // print matrix
-void prediction_matrix(nnom_predic_t *pre);
+void prediction_matrix(nnom_predict_t *pre);
 
 // print top-k
-void prediction_top_k(nnom_predic_t *pre);
+void prediction_top_k(nnom_predict_t *pre);
 
 // this function is to print sumarry
-void prediction_summary(nnom_predic_t *pre);
+void prediction_summary(nnom_predict_t *pre);
 
 // -------------------------------
 
@@ -73,7 +73,7 @@ void prediction_summary(nnom_predic_t *pre);
 // this api test one set of data, return the prediction
 // return the predicted label
 // return NN_ARGUMENT_ERROR if parameter error
-nnom_status_t nnom_predic(nnom_model_t *m, uint32_t *label, float *prob);
+nnom_status_t nnom_predict(nnom_model_t *m, uint32_t *label, float *prob);
 
 void model_stat(nnom_model_t *m);
 

@@ -52,10 +52,10 @@ Total Memory cost (Network and NNoM): 32876
 
 ---
 
-## nnom_predic()
+## nnom_predict()
 
 ~~~C
-int32_t nnom_predic(nnom_model_t *m, uint32_t *label, float *prob);
+int32_t nnom_predict(nnom_model_t *m, uint32_t *label, float *prob);
 ~~~
 
 A standalone evaluation method, run single prodiction, return probability and top-1 label. 
@@ -82,7 +82,7 @@ The input buffer of the model must be feeded before calling this method.
 ## prediction_create()
 
 ~~~C
-nnom_predic_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, 
+nnom_predict_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, 
 		size_t label_num, size_t top_k_size);
 ~~~
 
@@ -109,7 +109,7 @@ Check later examples.
 ## prediction_run()
 
 ~~~c
-int32_t prediction_run(nnom_predic_t *pre, uint32_t label);
+int32_t prediction_run(nnom_predict_t *pre, uint32_t label);
 ~~~
 
 To run a prediction with the new data (feeded by user to the input_buffer which passed to Input layer).
@@ -128,7 +128,7 @@ To run a prediction with the new data (feeded by user to the input_buffer which 
 ## prediction_end()
 
 ~~~c
-void prediction_end(nnom_predic_t *pre);
+void prediction_end(nnom_predict_t *pre);
 ~~~
 
 To mark the prediction has done. 
@@ -144,7 +144,7 @@ To mark the prediction has done.
 ## prediction_delete()
 
 ~~~c
-void predicetion_delete(nnom_predic_t *pre);
+void predicetion_delete(nnom_predict_t *pre);
 ~~~
 
 To free all resources. 
@@ -159,7 +159,7 @@ To free all resources.
 ## prediction_matrix()
 
 ~~~C
-void prediction_matrix(nnom_predic_t *pre);
+void prediction_matrix(nnom_predict_t *pre);
 ~~~
 
 To print a confusion matrix when the prediction is done. 
@@ -193,7 +193,7 @@ actual
 ## prediction_top_k()
 
 ~~~C
-void prediction_top_k(nnom_predic_t *pre);
+void prediction_top_k(nnom_predict_t *pre);
 ~~~
 
 To print a Top-k when the prediction is done. 
@@ -222,7 +222,7 @@ Top 10 Accuracy: 99.60%
 ## prediction_summary()
 
 ~~~C
-void prediction_summary(nnom_predic_t *pre);
+void prediction_summary(nnom_predict_t *pre);
 ~~~
 
 To print a summary when the prediction is done. 
@@ -324,8 +324,8 @@ Prediction time :109299us
 Efficiency 60.48 ops/us
 Total Memory cost (Network and NNoM): 32876
 msh >pre
-predic
-msh >predic
+predict
+msh >predict
 Please select the NNoM binary test file and use Ymodem-128/1024  to send.
 CCCC 
 Prediction done.
@@ -349,7 +349,7 @@ Top 9 Accuracy: 99.14%
 Top 10 Accuracy: 99.60% 
 
 Confusion matrix:
-predic     0     1     2     3     4     5     6     7     8     9    10
+predict    0     1     2     3     4     5     6     7     8     9    10
 actual
    0 |   395     1     0     0     2     0     0     0     0     0    21   |  94%
    1 |     0   355     4     7     1     0     0     0     0     3    35   |  87%

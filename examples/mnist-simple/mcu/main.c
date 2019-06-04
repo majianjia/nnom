@@ -68,7 +68,7 @@ void mnist(int argc, char** argv)
 	
 	// copy data and do prediction
 	memcpy(nnom_input_data, (int8_t*)&img[index][0], 784);
-	nnom_predic(model, &predic_label, &prob);
+	nnom_predict(model, &predic_label, &prob);
 	time = rt_tick_get() - tick;
 	
 	//print original image to console
@@ -86,7 +86,7 @@ MSH_CMD_EXPORT(mnist, mnist);
 void nn_stat()
 {
 	model_stat(model);
-	rt_kprintf("Total Memory cost (Network and NNoM): %d\n", nnom_mem_stat());
+	printf("Total Memory cost (Network and NNoM): %d\n", nnom_mem_stat());
 }
 MSH_CMD_EXPORT(nn_stat, print nn model);
 FINSH_FUNCTION_EXPORT(nn_stat, nn_stat() to print data);
