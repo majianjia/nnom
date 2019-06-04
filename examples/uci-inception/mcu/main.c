@@ -1,21 +1,21 @@
 /*
- * Copyright (c) 2018-2019, Jianjia Ma
+ * Copyright (c) 2006-2018, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author       Notes
- * 2019-04-03     Jianjia Ma   The first version
+ * 2018-05-14     ZYH          first implementation
  */
  
 #include <stdio.h>
+#include "stm32l4xx_hal.h"
 #include "rtthread.h"
 #include "rtdevice.h"
 #include "nnom.h"
 
 #include "weights.h"
 #include "ymodem.h"
-
 
 // input data (int8 or q7)
 #define INPUT_RATE			50
@@ -26,9 +26,37 @@
 
 nnom_model_t *model;
 
+static TIM_HandleTypeDef s_TimerInstance = { 
+    .Instance = TIM2
+};
+void us_timer_enable()
+{
+    __TIM2_CLK_ENABLE();
+    s_TimerInstance.Init.Prescaler = 80;
+    s_TimerInstance.Init.CounterMode = TIM_COUNTERMODE_UP;
+    s_TimerInstance.Init.Period = 0xffffffff;
+    s_TimerInstance.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    s_TimerInstance.Init.RepetitionCounter = 0;
+    HAL_TIM_Base_Init(&s_TimerInstance);
+    HAL_TIM_Base_Start(&s_TimerInstance);
+}
+
+uint32_t us_timer_get()
+{
+	return __HAL_TIM_GET_COUNTER(&s_TimerInstance);
+}
+
 int main(void)
 {
+	rt_thread_delay(10);
+	
+	// for runtime stat
+	us_timer_enable();
+
 	model = nnom_model_create();
+	
+	// run once
+	model_run(model);
 }
 
 
@@ -38,7 +66,7 @@ int main(void)
 void nn_stat()
 {
 	model_stat(model);
-	rt_kprintf("NNOM: Total Mem: %d\n", nnom_mem_stat());
+	rt_kprintf("Total Memory cost (Network and NNoM): %d\n", nnom_mem_stat());
 }
 MSH_CMD_EXPORT(nn_stat, print nn model);
 FINSH_FUNCTION_EXPORT(nn_stat, nn_stat() to print data);
@@ -46,7 +74,7 @@ FINSH_FUNCTION_EXPORT(nn_stat, nn_stat() to print data);
 #endif
 
 
-// ------- Using Y-modem to send test data set. -------------
+// test -------------------------- Using Y-modem to send test data set. 
 
 #ifdef RT_USING_FINSH
 #include <finsh.h>
@@ -54,7 +82,7 @@ FINSH_FUNCTION_EXPORT(nn_stat, nn_stat() to print data);
 #define DATA_SIZE (INPUT_CH * INPUT_WIDTH * INPUT_HIGHT)
 #define LABEL_SIZE 128
 
-static size_t file_total_size;
+static size_t file_total_size, file_cur_size;
 
 //test
 struct rt_ringbuffer*  ringbuffer = RT_NULL;
@@ -74,6 +102,7 @@ static enum rym_code ymodem_on_begin(struct rym_ctx *ctx, rt_uint8_t *buf, rt_si
 	file_total_size = atol(file_size);
 	/* 4 bytes align */
 	file_total_size = (file_total_size + 3) / 4 * 4;
+	file_cur_size = 0;
 	
 	// local data size
 	test_label_countdown = 0;
@@ -105,7 +134,7 @@ static enum rym_code ymodem_on_data(struct rym_ctx *ctx, rt_uint8_t *buf, rt_siz
 			test_label_countdown --;
 			
 			// get input data
-			rt_ringbuffer_get(ringbuffer, (uint8_t*)&nnom_input_data[0], DATA_SIZE);
+			rt_ringbuffer_get(ringbuffer, (uint8_t*)nnom_input_data, DATA_SIZE);
 			
 			// do this prediction round.
 			prediction_run(prediction, test_label[test_total_count % LABEL_SIZE]);
@@ -121,11 +150,15 @@ static enum rym_code ymodem_on_data(struct rym_ctx *ctx, rt_uint8_t *buf, rt_siz
 	}
 }
 
+
 void predic() 
 {
 	struct rym_ctx rctx;
 
 	rt_kprintf("Please select the NNoM binary test file and use Ymodem-128/1024  to send.\n");
+
+	// preparing for prediction 
+	us_timer_enable();
 	
 	ringbuffer = rt_ringbuffer_create(4096);
 	
@@ -170,6 +203,15 @@ void matrix()
 FINSH_FUNCTION_EXPORT(matrix, matrix() to print confusion matrix);
 MSH_CMD_EXPORT(matrix, print confusion matrix);
 
+void reboot() 
+{
+	printf("\nThe answer is...%f\n", 42.0f);
+	rt_thread_delay(RT_TICK_PER_SECOND);
+	NVIC_SystemReset();
+}
+
+FINSH_FUNCTION_EXPORT(reboot, reboot() );
+MSH_CMD_EXPORT(reboot, reboot system);
 #endif
 
 

@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * 
  * Notice: 
- * Code in this file inlcudes derivative works from CMSIS, which is released under alternative license.
+ * Code in this file inlcudes derivative works from CMSIS
  * Please check the LICENSE file for detial.
  *
  * Change Logs:
@@ -214,11 +214,6 @@ void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
     }
 }
 
-
-
-//
-/// ******************* convolutional *************************
-//
 
 void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                                                 // input image
                                      const uint16_t dim_im_in_x,                                        // input image dimention x

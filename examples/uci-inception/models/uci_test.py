@@ -1,7 +1,9 @@
 '''
-    Copyright (c) 2018-2019, Jianjia Ma
- 
-    SPDX-License-Identifier: Apache-2.0
+    Copyright (c) 2018-2019
+    Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+    majianjia@live.com
+
+    SPDX-License-Identifier: LGPL-3.0
 
     Change Logs:
     Date           Author       Notes
@@ -20,9 +22,6 @@
 
 import matplotlib.pyplot as plt
 import os
-import sys
-nnscript = os.path.abspath('../../scripts')
-sys.path.append(nnscript)
 
 from keras.models import Sequential, load_model
 from keras.models import Model
@@ -101,18 +100,21 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
 
     inputs = Input(shape=x_train.shape[1:])
     x = Conv1D(32, kernel_size=(9), strides=(2), padding='same')(inputs)
+    x = BatchNormalization()(x)
     x = Dropout(0.2)(x)
     x = ReLU()(x)
     x = MaxPool1D(2, strides=2)(x)
 
     # inception - 1
     x1 = Conv1D(32, kernel_size=(5), strides=(1), padding="same")(x)
+    x1 = BatchNormalization()(x1)
     x1 = Dropout(0.2)(x1)
     x1 = ReLU()(x1)
     x1 = MaxPool1D(2, strides=2)(x1)
 
     # inception - 2
     x2 = Conv1D(32, kernel_size=(3), strides=(1), padding="same")(x)
+    x2 = BatchNormalization()(x2)
     x2 = Dropout(0.2)(x2)
     x2 = ReLU()(x2)
     x2 = MaxPool1D(2, strides=2)(x2)
