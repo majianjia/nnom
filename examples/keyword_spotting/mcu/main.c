@@ -272,7 +272,7 @@ int main(void)
 		
 		// ML
 		memcpy(nnom_input_data, mfcc_features_seq, MFCC_FEAT_SIZE);
-		nnom_predic(model, &label, &prob);
+		nnom_predict(model, &label, &prob);
 		
 		// output
 		if(prob > 0.5f)

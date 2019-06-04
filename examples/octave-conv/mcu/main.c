@@ -92,7 +92,7 @@ static size_t file_total_size, file_cur_size;
 
 //test
 struct rt_ringbuffer*  ringbuffer = RT_NULL;
-nnom_predic_t *prediction = NULL;
+nnom_predict_t *prediction = NULL;
 
 // parameters
 uint8_t	 test_label[LABEL_SIZE] = {0};  // where a batch of label stores
@@ -156,8 +156,7 @@ static enum rym_code ymodem_on_data(struct rym_ctx *ctx, rt_uint8_t *buf, rt_siz
 	}
 }
 
-
-void predic() 
+void predict() 
 {
 	struct rym_ctx rctx;
 
@@ -170,7 +169,7 @@ void predic()
 	
 	// delete first if it its not freed
 	if(prediction!=NULL)
-		predicetion_delete(prediction);
+		prediction_delete(prediction);
 	// create new instance (test with all k)
 	prediction = prediction_create(model, nnom_output_data, NUM_CLASS, NUM_CLASS-1);
 	
@@ -194,13 +193,20 @@ void predic()
 	
 	// free buffer
 	rt_ringbuffer_destroy(ringbuffer);
-	// predicetion_delete(prediction); // optional to free data now
+	// prediction_delete(prediction); // optional to free data now
 
 
 }
-FINSH_FUNCTION_EXPORT(predic, validate NNoM model implementation with test set);
-MSH_CMD_EXPORT(predic, validate NNoM model implementation with test set);
+FINSH_FUNCTION_EXPORT(predict, validate NNoM model implementation with test set);
+MSH_CMD_EXPORT(predict, validate NNoM model implementation with test set);
 
+void matrix()
+{
+	if(prediction != NULL)
+		prediction_matrix(prediction);
+}
+FINSH_FUNCTION_EXPORT(matrix, matrix() to print confusion matrix);
+MSH_CMD_EXPORT(matrix, print confusion matrix);
 
 void reboot() 
 {
@@ -208,9 +214,6 @@ void reboot()
 	rt_thread_delay(RT_TICK_PER_SECOND);
 	NVIC_SystemReset();
 }
-
-FINSH_FUNCTION_EXPORT(reboot, reboot() );
-MSH_CMD_EXPORT(reboot, reboot system);
 
 #endif
 

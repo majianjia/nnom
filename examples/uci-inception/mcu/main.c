@@ -22,7 +22,7 @@
 #define INPUT_CH			9	 
 #define INPUT_WIDTH			128
 #define INPUT_HIGHT			1
-#define DATA_TYPE_COUNT 	(6)		
+#define NUM_CLASS 			(6)		
 
 nnom_model_t *model;
 
@@ -86,7 +86,7 @@ static size_t file_total_size, file_cur_size;
 
 //test
 struct rt_ringbuffer*  ringbuffer = RT_NULL;
-nnom_predic_t *prediction = NULL;
+nnom_predict_t *prediction = NULL;
 
 // parameters
 uint8_t	 test_label[LABEL_SIZE] = {0};  // where a batch of label stores
@@ -149,9 +149,7 @@ static enum rym_code ymodem_on_data(struct rym_ctx *ctx, rt_uint8_t *buf, rt_siz
 		}
 	}
 }
-
-
-void predic() 
+void predict() 
 {
 	struct rym_ctx rctx;
 
@@ -164,9 +162,9 @@ void predic()
 	
 	// delete first if it its not freed
 	if(prediction!=NULL)
-		predicetion_delete(prediction);
+		prediction_delete(prediction);
 	// create new instance (test with all k)
-	prediction = prediction_create(model, nnom_output_data, DATA_TYPE_COUNT, DATA_TYPE_COUNT-1);
+	prediction = prediction_create(model, nnom_output_data, NUM_CLASS, NUM_CLASS-1);
 	
 	// begin
 	// data is feed in receiving callback
@@ -188,12 +186,12 @@ void predic()
 	
 	// free buffer
 	rt_ringbuffer_destroy(ringbuffer);
-	// predicetion_delete(prediction); // optional to free data now
+	// prediction_delete(prediction); // optional to free data now
 
 
 }
-FINSH_FUNCTION_EXPORT(predic, validate NNoM model implementation with test set);
-MSH_CMD_EXPORT(predic, validate NNoM model implementation with test set);
+FINSH_FUNCTION_EXPORT(predict, validate NNoM model implementation with test set);
+MSH_CMD_EXPORT(predict, validate NNoM model implementation with test set);
 
 void matrix()
 {
@@ -212,7 +210,28 @@ void reboot()
 
 FINSH_FUNCTION_EXPORT(reboot, reboot() );
 MSH_CMD_EXPORT(reboot, reboot system);
+
+// memory test
+void create_model() 
+{
+	printf("Model created \n");
+	main();
+}
+
+FINSH_FUNCTION_EXPORT(create_model, create_model  );
+MSH_CMD_EXPORT(create_model, create_model );
+
+// memory test
+void delete_model() 
+{
+	model_delete(model);
+	printf("Model deleted \n");
+}
+
+FINSH_FUNCTION_EXPORT(delete_model, delete_model model );
+MSH_CMD_EXPORT(delete_model, delete_model model);
 #endif
+
 
 
 

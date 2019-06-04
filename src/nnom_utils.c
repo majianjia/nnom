@@ -17,15 +17,15 @@
 #include "nnom.h"
 #include "nnom_utils.h"
 
-static nnom_predic_t *_predic_create_instance(nnom_model_t *m, size_t label_num, size_t top_k_size)
+static nnom_predict_t *_predict_create_instance(nnom_model_t *m, size_t label_num, size_t top_k_size)
 {
-	nnom_predic_t *pre;
+	nnom_predict_t *pre;
 	uint8_t *p;
 	size_t mem_size = 0;
 	
 	mem_size += nnom_alignto(label_num * label_num * 2, 4); // confusion_mat
 	mem_size += top_k_size * 4;						   		// top_k
-	mem_size += nnom_alignto(sizeof(nnom_predic_t), 4);
+	mem_size += nnom_alignto(sizeof(nnom_predict_t), 4);
 
 	// we dont use nnom_mem(), we dont count the memory
 	p = nnom_malloc(mem_size);
@@ -33,21 +33,21 @@ static nnom_predic_t *_predic_create_instance(nnom_model_t *m, size_t label_num,
 		return NULL;
 	nnom_memset(p, 0, mem_size);
 
-	pre = (nnom_predic_t *)p;
-	pre->confusion_mat = (uint16_t *)(p + nnom_alignto(sizeof(nnom_predic_t), 4));
-	pre->top_k = (uint32_t *)(p + nnom_alignto(sizeof(nnom_predic_t), 4) + nnom_alignto(label_num * label_num * 2, 4));
+	pre = (nnom_predict_t *)p;
+	pre->confusion_mat = (uint16_t *)(p + nnom_alignto(sizeof(nnom_predict_t), 4));
+	pre->top_k = (uint32_t *)(p + nnom_alignto(sizeof(nnom_predict_t), 4) + nnom_alignto(label_num * label_num * 2, 4));
 
 	// config
 	pre->label_num = label_num;
 	pre->top_k_size = top_k_size;
-	pre->predic_count = 0;
+	pre->predict_count = 0;
 
 	// run
 	pre->model = m;
 
 	pre->t_run_total = 0;	// model running time in total
-	pre->t_predic_start = 0; // when it is initial
-	pre->t_predic_total = 0; // total time of the whole test
+	pre->t_predict_start = 0; // when it is initial
+	pre->t_predict_total = 0; // total time of the whole test
 
 	return pre;
 }
@@ -56,9 +56,9 @@ static nnom_predic_t *_predic_create_instance(nnom_model_t *m, size_t label_num,
 // input model, the buf pointer to the softwmax output (Temporary, this can be extract from model)
 // the size of softmax output (the num of lable)
 // the top k that wants to record.
-nnom_predic_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, size_t label_num, size_t top_k_size)
+nnom_predict_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, size_t label_num, size_t top_k_size)
 {
-	nnom_predic_t *pre = _predic_create_instance(m, label_num, top_k_size);
+	nnom_predict_t *pre = _predict_create_instance(m, label_num, top_k_size);
 	if (!pre)
 		return NULL;
 	if (!m)
@@ -71,7 +71,7 @@ nnom_predic_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, size_t
 	pre->buf_prediction = buf_prediction;
 
 	// mark start time.
-	pre->t_predic_start = nnom_ms_get();
+	pre->t_predict_start = nnom_ms_get();
 
 	return pre;
 }
@@ -80,7 +80,7 @@ nnom_predic_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, size_t
 // feed data to prediction
 // input the current label, (range from 0 to total number of label -1)
 // (the current input data should be set by user manully to the input buffer of the model.)
-int32_t prediction_run(nnom_predic_t *pre, uint32_t label)
+int32_t prediction_run(nnom_predict_t *pre, uint32_t label)
 {
 	int max_val;
 	int max_index;
@@ -131,33 +131,33 @@ int32_t prediction_run(nnom_predic_t *pre, uint32_t label)
 	pre->confusion_mat[label * pre->label_num + max_index] += 1;
 
 	// prediction count
-	pre->predic_count++;
+	pre->predict_count++;
 
 	// return the prediction
 	return max_index;
 }
 
-void prediction_end(nnom_predic_t *pre)
+void prediction_end(nnom_predict_t *pre)
 {
 	if (!pre)
 		return;
-	pre->t_predic_total = nnom_ms_get() - pre->t_predic_start;
+	pre->t_predict_total = nnom_ms_get() - pre->t_predict_start;
 }
 
-void predicetion_delete(nnom_predic_t *pre)
+void prediction_delete(nnom_predict_t *pre)
 {
 	if (!pre)
 		return;
 	nnom_free(pre);
 }
 
-void prediction_matrix(nnom_predic_t *pre)
+void prediction_matrix(nnom_predict_t *pre)
 {
 	if (!pre)
 		return;
 	// print titles
 	NNOM_LOG("\nConfusion matrix:\n");
-	NNOM_LOG("predic");
+	NNOM_LOG("predict");
 	for (int i = 0; i < pre->label_num; i++)
 	{
 		NNOM_LOG("%6d", i);
@@ -169,7 +169,7 @@ void prediction_matrix(nnom_predic_t *pre)
 	{
 		uint32_t row_total = 0;
 
-		NNOM_LOG(" %3d |", i);
+		NNOM_LOG(" %3d | ", i);
 		for (int j = 0; j < pre->label_num; j++)
 		{
 			row_total += pre->confusion_mat[i * pre->label_num + j];
@@ -182,7 +182,7 @@ void prediction_matrix(nnom_predic_t *pre)
 }
 
 // top-k
-void prediction_top_k(nnom_predic_t *pre)
+void prediction_top_k(nnom_predict_t *pre)
 {
 	uint32_t top = 0;
 	if (!pre)
@@ -191,29 +191,29 @@ void prediction_top_k(nnom_predic_t *pre)
 	for (int i = 0; i < pre->top_k_size; i++)
 	{
 		top += pre->top_k[i];
-		if (top != pre->predic_count)
-			NNOM_LOG("Top %d Accuracy: %d.%02d%% \n", i + 1, (top * 100) / pre->predic_count,
-					((top * 100 * 100) / pre->predic_count)%100);
+		if (top != pre->predict_count)
+			NNOM_LOG("Top %d Accuracy: %d.%02d%% \n", i + 1, (top * 100) / pre->predict_count,
+					((top * 100 * 100) / pre->predict_count)%100);
 		else
 			NNOM_LOG("Top %d Accuracy: 100%% \n", i + 1);
 	}
 }
 
 // this function is to print sumarry
-void prediction_summary(nnom_predic_t *pre)
+void prediction_summary(nnom_predict_t *pre)
 {
 	if (!pre)
 		return;
 	// sumamry
 	NNOM_LOG("\nPrediction summary:\n");
-	NNOM_LOG("Test frames: %d\n", pre->predic_count);
-	NNOM_LOG("Test running time: %d sec\n", pre->t_predic_total / 1000);
+	NNOM_LOG("Test frames: %d\n", pre->predict_count);
+	NNOM_LOG("Test running time: %d sec\n", pre->t_predict_total / 1000);
 	NNOM_LOG("Model running time: %d ms\n", pre->t_run_total);
-	NNOM_LOG("Average prediction time: %d us\n", (pre->t_run_total * 1000) / pre->predic_count);
-	NNOM_LOG("Average effeciency: %d.%02d ops/us\n", (int)(((uint64_t)pre->model->total_ops * pre->predic_count) / (pre->t_run_total * 1000)),
-			(int)(((uint64_t)pre->model->total_ops * pre->predic_count)*100 / (pre->t_run_total * 1000))%100);
-	NNOM_LOG("Average frame rate: %d.%d Hz\n", 1000 / (pre->t_run_total / pre->predic_count),
-			(1000*10 / (pre->t_run_total / pre->predic_count))%10);
+	NNOM_LOG("Average prediction time: %d us\n", (pre->t_run_total * 1000) / pre->predict_count);
+	NNOM_LOG("Average effeciency: %d.%02d ops/us\n", (int)(((uint64_t)pre->model->total_ops * pre->predict_count) / (pre->t_run_total * 1000)),
+			(int)(((uint64_t)pre->model->total_ops * pre->predict_count)*100 / (pre->t_run_total * 1000))%100);
+	NNOM_LOG("Average frame rate: %d.%d Hz\n", 1000 / (pre->t_run_total / pre->predict_count),
+			(1000*10 / (pre->t_run_total / pre->predict_count))%10);
 
 	// print top-k
 	prediction_top_k(pre);
@@ -224,7 +224,7 @@ void prediction_summary(nnom_predic_t *pre)
 
 // stand alone prediction API
 // this api test one set of data, return the prediction
-nnom_status_t nnom_predic(nnom_model_t *m, uint32_t *label, float *prob)
+nnom_status_t nnom_predict(nnom_model_t *m, uint32_t *label, float *prob)
 {
 	int32_t max_val, max_index, sum;
 	int8_t *output;
