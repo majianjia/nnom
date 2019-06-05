@@ -2,9 +2,9 @@
 # Neural Network on Microcontroller (NNoM)
 [![Build Status](https://travis-ci.org/majianjia/nnom.svg?branch=master)](https://travis-ci.org/majianjia/nnom)
 
-NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. 
+NNoM is a high-level linference Neural Network library specifically for microcontrollers. 
 
-[[English Manual]](https://majianjia.github.io/nnom/) [[中文指南]](docs/rt-thread_guide.md) 
+[[English Manual]](https://majianjia.github.io/nnom/) [[Chinese Intro]](docs/rt-thread_guide.md) 
 
 **Highlights**
 
@@ -55,9 +55,9 @@ There is no need to learn TensorFlow/Lite or other libs.
 
 [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) 
 
-[RT-Thread Guide(中文指南)](https://majianjia.github.io/nnom/rt-thread_guide/)
+[RT-Thread Guide(Chinese)](https://majianjia.github.io/nnom/rt-thread_guide/)
 
-[RT-Thread-MNIST example (中文例子)](docs/example_mnist_simple_cn.md)
+[RT-Thread-MNIST example (Chinese)](docs/example_mnist_simple_cn.md)
 
 ## Examples
 
@@ -65,16 +65,10 @@ There is no need to learn TensorFlow/Lite or other libs.
 
 Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) and choose one to start with. 
 
-[MNIST-DenseNet example](examples/mnist-densenet)
-
-[Octave Convolution](examples/octave-conv)
-
-[Keyword Spotting](examples/keyword_spotting)
-
 
 ## Available Operations
 
-**Layers**
+**Core Layers**
 
 | Layers | Status |Layer API|Comments|
 | ------ |-- |--|--|
@@ -83,6 +77,7 @@ Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) 
 | Fully-connected | Beta| Dense()| |
 | Lambda |Alpha| Lambda() |single input / single output anonymous operation| 
 | Batch Normalization |Beta | N/A| This layer is merged to the last Conv by the script|
+| Concatenate | | Concat()| Concatenate through any axis|
 | Input/Output |Beta | Input()/Output()| |
 | Recurrent NN | Under Dev.| RNN()| Under Developpment |
 | Simple RNN | Under Dev. | SimpleCell()| Under Developpment |
@@ -120,7 +115,7 @@ Activation can be used by itself as layer, or can be attached to the previous la
 | Multiple  |Beta |Mult()||
 | Addition  | Beta|Add()||
 | Substraction  | Beta|Sub()||
-| Dot  | Under Dev. |||
+
 
 ## Dependencies
 

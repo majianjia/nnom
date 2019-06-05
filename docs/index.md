@@ -2,9 +2,9 @@
 
 [![Build Status](https://travis-ci.org/majianjia/nnom.svg?branch=master)](https://travis-ci.org/majianjia/nnom)
 
-NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. 
+NNoM is a high-level inference Neural Network library specifically for microcontrollers. 
 
-[[中文指南]](rt-thread_guide.md)
+[[Chinese Intro]](rt-thread_guide.md)
 
 **Highlights**
 
@@ -59,9 +59,9 @@ API manuals are available within this site.
 
 [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) 
 
-[RT-Thread Guide(中文指南)](rt-thread_guide.md)
+[RT-Thread Guide(Chinese)](rt-thread_guide.md)
 
-[RT-Thread-MNIST example (中文例子)](example_mnist_simple_cn.md)
+[RT-Thread-MNIST example (Chinese)](example_mnist_simple_cn.md)
 
 ---
 
@@ -95,8 +95,7 @@ Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for deta
 ---
 ## Available Operations
 
-
-**Layers**
+**Core Layers**
 
 | Layers | Status |Layer API|Comments|
 | ------ |-- |--|--|
@@ -105,6 +104,7 @@ Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for deta
 | Fully-connected | Beta| Dense()| |
 | Lambda |Alpha| Lambda() |single input / single output anonymous operation| 
 | Batch Normalization |Beta | N/A| This layer is merged to the last Conv by the script|
+| Concatenate | | Concat()| Concatenate through any axis|
 | Input/Output |Beta | Input()/Output()| |
 | Recurrent NN | Under Dev.| RNN()| Under Developpment |
 | Simple RNN | Under Dev. | SimpleCell()| Under Developpment |
@@ -115,7 +115,7 @@ Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for deta
 
 **Activations**
 
-Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](api_activations.md#Activation APIs) to reduce memory cost.
+Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](docs/A_Temporary_Guide_to_NNoM.md#addictionlly-activation-apis) to reduce memory cost.
 
 | Actrivation | Status |Layer API|Activation API|Comments|
 | ------ |-- |--|--|--|
@@ -142,7 +142,6 @@ Activation can be used by itself as layer, or can be attached to the previous la
 | Multiple  |Beta |Mult()||
 | Addition  | Beta|Add()||
 | Substraction  | Beta|Sub()||
-| Dot  | Under Dev. |||
 
 
 
