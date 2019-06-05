@@ -77,14 +77,19 @@ Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) 
 | Fully-connected | Beta| Dense()| |
 | Lambda |Alpha| Lambda() |single input / single output anonymous operation| 
 | Batch Normalization |Beta | N/A| This layer is merged to the last Conv by the script|
-| Concatenate | | Concat()| Concatenate through any axis|
-| Input/Output |Beta | Input()/Output()| |
-| Recurrent NN | Under Dev.| RNN()| Under Developpment |
-| Simple RNN | Under Dev. | SimpleCell()| Under Developpment |
-| Gated Recurrent Network (GRU)| Under Dev. | GRUCell()| Under Developpment |
 | Flatten|Beta | Flatten()| |
 | SoftMax|Beta | SoftMax()| Softmax only has layer API| 
 | Activation|Beta| Activation()|A layer instance for activation|
+| Input/Output |Beta | Input()/Output()| |
+
+** RNN Layers **
+
+| Layers | Status |Layer API|Comments|
+| ------ |-- |--|--|
+| Recurrent NN | Under Dev.| RNN()| Under Developpment |
+| Simple RNN | Under Dev. | SimpleCell()| Under Developpment |
+| Gated Recurrent Network (GRU)| Under Dev. | GRUCell()| Under Developpment |
+
 
 **Activations**
 
@@ -112,6 +117,7 @@ Activation can be used by itself as layer, or can be attached to the previous la
 
 | Matrix | Status |Layer API|Comments|
 | ------ |-- |--|--|
+| Concatenate | | Concat()| Concatenate through any axis|
 | Multiple  |Beta |Mult()||
 | Addition  | Beta|Add()||
 | Substraction  | Beta|Sub()||

@@ -5,6 +5,7 @@ theme:
 
 repo_url: https://github.com/majianjia/nnom
 site_description: 'A higher-level Neural Network library for microcontrollers.'
+google_analytics: ['UA-141541198-1', 'majianjia.github.io/nnom']
 
 nav:
 - Overview: 'index.md'
@@ -13,18 +14,18 @@ nav:
 - APIs: 
   - Utils (Python): 'api_nnom_utils.md'
   - Model: 'api_model.md'
-  - Construction: 'api_construction.md'
+  - Construction Methods: 'api_construction.md'
   - Properties: 'api_properties.md'
   - Core Layers: 'api_layers.md'
-  - Pooling: 'api_pooling.md'
+  - Pooling Layers: 'api_pooling.md'
   - Activations: 'api_activations.md'
-  - Merges: 'api_merge.md'
-  - Evaluation: 'api_evaluation.md'
+  - Merges Layers: 'api_merge.md'
+  - Evaluation Methods: 'api_evaluation.md'
 - Legacy Guide:
   - A Temporary Guide: 'A_Temporary_Guide_to_NNoM.md'
   - Porting and Optimisation Guide: 'Porting_and_Optimisation_Guide.md'
   - Old Readme: 'legacy_README.md'
-- 中文: 
+- Chinese (中文): 
   - RT-Thread: 'rt-thread_guide.md'
   - MNIST-Simple: 'example_mnist_simple_cn.md'
 
