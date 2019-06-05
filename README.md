@@ -82,7 +82,7 @@ Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) 
 | Activation|Beta| Activation()|A layer instance for activation|
 | Input/Output |Beta | Input()/Output()| |
 
-** RNN Layers **
+**RNN Layers**
 
 | Layers | Status |Layer API|Comments|
 | ------ |-- |--|--|
