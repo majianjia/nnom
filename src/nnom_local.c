@@ -370,6 +370,39 @@ void local_zero_padding_q7(const q7_t *Im_in,           // input image
 	memset(p_out, 0, dim_im_out_x*ch_im_in*padding_bottom); 
 }
 
+void local_cropping_q7(const q7_t *Im_in,           // input image
+						 const uint16_t dim_im_in_x,    // input image dimention x
+						 const uint16_t dim_im_in_y,    // input image dimention y
+						 const uint16_t ch_im_in,       // number of input image channels
+						 const uint16_t padding_top,    // padding sizes y
+						 const uint16_t padding_bottom, // padding sizes y
+						 const uint16_t padding_left,   // padding sizes x
+						 const uint16_t padding_right,  // padding sizes x
+						 q7_t *Im_out,                  // output image
+						 const uint16_t dim_im_out_x,   // output image dimension x
+						 const uint16_t dim_im_out_y)   // output image dimension y 
+{
+	int i, row_size;
+	const q7_t * p_in = Im_in; 
+	
+	// top rows to ignore
+	p_in += dim_im_in_x*ch_im_in*padding_top;
+	
+	// middle
+	row_size = dim_im_out_x * ch_im_in;
+	for(i=0; i<dim_im_out_y; i++)
+	{
+		// left to ignore          
+		p_in += ch_im_in * padding_left;
+		// data - copy a row
+		memcpy(Im_out + i*row_size, p_in, row_size);
+		p_in += row_size;
+		// right to ingore
+		p_in += ch_im_in * padding_right;
+	}
+
+}
+
 void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to vector
                                   const q7_t *pM,               // pointer to matrix
                                   const uint16_t dim_vec,       // length of the vector

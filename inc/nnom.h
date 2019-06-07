@@ -48,6 +48,7 @@ typedef enum
 	NNOM_BATCHNORM,
 	NNOM_DENSE,
 	NNOM_ZERO_PADDING,
+	NNOM_CROPPING,
 	NNOM_RNN,
 	NNOM_ACTIVATION,
 	NNOM_RELU,
@@ -81,6 +82,7 @@ typedef enum
 			"BatchNorm",	\
 			"Dense",        \
 			"ZeroPad",	    \
+			"Cropping",     \
 			"RNN",          \
 			"Activation",   \
 			"ReLU",         \

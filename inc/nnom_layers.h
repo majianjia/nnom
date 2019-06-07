@@ -60,6 +60,9 @@ typedef struct _nnom_zero_padding_layer_t
 	nnom_border_t pad;
 } nnom_zero_padding_layer_t;
 
+// Cropping, same as zeropadding
+typedef nnom_zero_padding_layer_t nnom_cropping_layer_t;
+
 // lambda layer
 typedef struct _nnom_lambda_layer_t
 {
@@ -188,10 +191,11 @@ nnom_layer_t *SumPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
 nnom_layer_t *GlobalMaxPool(void);
 nnom_layer_t *GlobalAvgPool(void);
 nnom_layer_t *GlobalSumPool(void);
-nnom_layer_t *UpSample(nnom_shape_t kernel);	// UpSampling, whcih is acturally the unpooling 
 
-// Zero padding
+// padding, cropping, upsample
+nnom_layer_t *UpSample(nnom_shape_t kernel);	
 nnom_layer_t *ZeroPadding(nnom_border_t pad);
+nnom_layer_t *Cropping(nnom_border_t pad);
 
 // Activation
 nnom_layer_t *Activation(nnom_activation_t *act);

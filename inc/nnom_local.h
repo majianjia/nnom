@@ -167,6 +167,18 @@ void local_zero_padding_q7(const q7_t *Im_in,           // input image
 						 q7_t *Im_out,                  // output image
 						 const uint16_t dim_im_out_x,   // output image dimension x
 						 const uint16_t dim_im_out_y);  // output image dimension y 
+						 
+void local_cropping_q7(const q7_t *Im_in,           // input image
+						 const uint16_t dim_im_in_x,    // input image dimention x
+						 const uint16_t dim_im_in_y,    // input image dimention y
+						 const uint16_t ch_im_in,       // number of input image channels
+						 const uint16_t padding_top,    // padding sizes y
+						 const uint16_t padding_bottom, // padding sizes y
+						 const uint16_t padding_left,   // padding sizes x
+						 const uint16_t padding_right,  // padding sizes x
+						 q7_t *Im_out,                  // output image
+						 const uint16_t dim_im_out_x,   // output image dimension x
+						 const uint16_t dim_im_out_y);  // output image dimension y 
 
 void local_fully_connected_q7_opt(const q7_t * pV,    // pointer to vector
                                     const q7_t * pM,    // pointer to matrix

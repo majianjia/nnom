@@ -171,6 +171,25 @@ nnom_status_t zero_padding_out_shape(nnom_layer_t* layer)
 	return NN_SUCCESS;
 }
 
+nnom_status_t cropping_out_shape(nnom_layer_t* layer)
+{
+	nnom_cropping_layer_t *cl = (nnom_cropping_layer_t *)layer;
+	
+	// get the last layer's output as input shape
+	layer->in->shape = layer->in->hook.io->shape;
+	
+	// output shape
+	if(layer->in->shape.w <= (cl->pad.left + cl->pad.right) || 
+		layer->in->shape.h <= (cl->pad.top + cl->pad.bottom))
+		return NN_ARGUMENT_ERROR;
+	
+	layer->out->shape.w = layer->in->shape.w - (cl->pad.left + cl->pad.right);
+	layer->out->shape.h = layer->in->shape.h - (cl->pad.top + cl->pad.bottom);
+	layer->out->shape.c = layer->in->shape.c;
+	return NN_SUCCESS;
+}
+
+
 // the state buffer and computational buffer shape of the cell
 nnom_status_t simplecell_out_shape(nnom_layer_t* layer, nnom_rnn_cell_t* cell)
 {

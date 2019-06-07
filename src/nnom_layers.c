@@ -231,6 +231,20 @@ nnom_layer_t *ZeroPadding(nnom_border_t pad)
 	return (nnom_layer_t*)layer;
 }
 
+// Cropping layer
+nnom_layer_t *Cropping(nnom_border_t pad)
+{
+	nnom_layer_t *layer;
+	// most setting are the same as zero padding
+	layer = ZeroPadding(pad);
+	
+	layer->type = NNOM_CROPPING;
+	layer->run = cropping_run;
+	layer->comp_out_shape = cropping_out_shape;
+
+	return layer;
+}
+
 // up sampling layer
 nnom_layer_t *UpSample(nnom_shape_t kernel)
 {
@@ -264,8 +278,6 @@ nnom_layer_t *UpSample(nnom_shape_t kernel)
 	
 	return (nnom_layer_t*)layer;
 }
-
-
 
 // Simple RNN
 // unit = output shape
