@@ -120,6 +120,12 @@
     <li class="toctree-l3"><a href="#upsample">UpSample()</a></li>
     
 
+    <li class="toctree-l3"><a href="#zeropadding">ZeroPadding()</a></li>
+    
+
+    <li class="toctree-l3"><a href="#cropping">Cropping()</a></li>
+    
+
     <li class="toctree-l3"><a href="#lambda">Lambda()</a></li>
     
 
@@ -322,7 +328,35 @@
 <p>A basic up sampling, using nearest interpolation</p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong>kernel:</strong> a shape subject return by <code>kernel()</code>, the interpolation size.</li>
+<li><strong>kernel:</strong> a shape object returned by <code>kernel()</code>, the interpolation size.</li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The layer instance</li>
+</ul>
+<hr />
+<h2 id="zeropadding">ZeroPadding()</h2>
+<pre><code class="C">nnom_layer_t *ZeroPadding(nnom_border_t pad);
+</code></pre>
+
+<p>Pad zeros to the image for each edge (top, bottom, left, right)</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>pad:</strong> a border object returned by <code>border()</code>, contains top, bottom, left and right padding.</li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The layer instance</li>
+</ul>
+<hr />
+<h2 id="cropping">Cropping()</h2>
+<pre><code class="C">nnom_layer_t *Cropping(nnom_border_t pad);
+</code></pre>
+
+<p>It crops along spatial dimensions.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>pad:</strong> a border object returned by <code>border()</code>, contains top, bottom, left and right size.</li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
@@ -330,8 +364,8 @@
 </ul>
 <hr />
 <h2 id="lambda">Lambda()</h2>
-<pre><code class="C">// Lambda Layers
-// layer.run()   , required
+<pre><code class="C">
+// layer.run()   , compulsory
 // layer.oshape(), optional, call default_output_shape() if left NULL
 // layer.free()  , optional, called while model is deleting, to free private resources
 // parameters    , private parameters for run method, left NULL if not needed.
@@ -344,9 +378,9 @@ nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),
 <p>Lambda layer is an anonymous layer (interface), which allows user to do customized operation between the layer's input data and output data. </p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong>(<em>run)(nnom_layer_t </em>):</strong> or so called run method, is the method to do the customized operation. </li>
-<li><strong>(<em>oshape)(nnom_layer_t </em>):</strong> is to calculate the output shape according to the input shape during compiling. If this method is not presented, the input shape will be passed to the output shape.   </li>
-<li><strong>(<em>free)(nnom_layer_t </em>):</strong> is to free the resources allocated by users. this will be called when deleting models. Leave it NULL if no resources need to be released. </li>
+<li><strong><code>(*run)(nnom_layer_t *)</code>:</strong> or so called run method, is the method to do the customized operation. </li>
+<li><strong><code>(*oshape)(nnom_layer_t *)</code>:</strong> is to calculate the output shape according to the input shape during compiling. If this method is not presented, the input shape will be passed to the output shape.   </li>
+<li><strong><code>(*free)(nnom_layer_t *)</code>:</strong> is to free the resources allocated by the users. This method will be called when the model is deleting. Leave it NULL if no resources need to be released. </li>
 <li><strong>parameters:</strong> is the pointer to user configurations. User can access to it in all three methods above.</li>
 </ul>
 <p><strong>Return</strong></p>
@@ -355,6 +389,7 @@ nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),
 </ul>
 <p><strong>Notes</strong></p>
 <ul>
+<li>All methods with type <code>nnom_status_t</code> must return <code>NN_SUCCESS</code> to allow the inference process. Any return other than that will stop the inference of the model. </li>
 <li>When <code>oshape()</code> is presented, please refer to examples of other similar layers. The shape passing must be handle carefully.</li>
 <li>This method is called in compiling, thus it can also do works other than calculating output shape only. An exmaple is the <code>global_pooling_output_shape()</code> fills in the parameters left by <code>GlobalXXXPool()</code></li>
 </ul>

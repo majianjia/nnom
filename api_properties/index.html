@@ -98,7 +98,7 @@
     <li class="toctree-l3"><a href="#properties">Properties</a></li>
     
 
-    <li class="toctree-l3"><a href="#typesdef">typesdef</a></li>
+    <li class="toctree-l3"><a href="#typedef">Typedef</a></li>
     
 
     <li class="toctree-l3"><a href="#methods">Methods</a></li>
@@ -110,6 +110,8 @@
             <li><a class="toctree-l4" href="#kernel">kernel()</a></li>
         
             <li><a class="toctree-l4" href="#stride">stride()</a></li>
+        
+            <li><a class="toctree-l4" href="#border">border()</a></li>
         
             <li><a class="toctree-l4" href="#qformat">qformat()</a></li>
         
@@ -219,8 +221,10 @@
                 <h2 id="properties">Properties</h2>
 <p>Properties include some basic properties such as shape of the data buffer, Q-format of the data.</p>
 <hr />
-<h2 id="typesdef">typesdef</h2>
-<pre><code class="C">typedef struct _nnom_shape
+<h2 id="typedef">Typedef</h2>
+<pre><code class="C">#define nnom_shape_data_t uint16_t
+
+typedef struct _nnom_shape
 {
     nnom_shape_data_t h, w, c;
 } nnom_shape_t;
@@ -242,6 +246,11 @@ typedef struct _nnom_qformat
     int8_t n, m;
 } nnom_qformat_t;
 
+typedef struct _nnom_border_t
+{
+    nnom_shape_data_t top, bottom, left, right;
+} nnom_border_t;
+
 </code></pre>
 
 <hr />
@@ -254,7 +263,7 @@ typedef struct _nnom_qformat
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong> h:</strong> size of H, or number of row, or y axis in image. </li>
-<li><strong> w:</strong> size of W, or number of row, or x axis in image.</li>
+<li><strong> w:</strong> size of W, or number of column, or x axis in image.</li>
 <li><strong> c:</strong> size of channel. </li>
 </ul>
 <p><strong>Return</strong></p>
@@ -270,7 +279,7 @@ typedef struct _nnom_qformat
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong> h:</strong> size of kernel in H, or number of row, or y axis in image. </li>
-<li><strong> w:</strong> size of kernel in W, or number of row, or x axis in image.</li>
+<li><strong> w:</strong> size of kernel in W, or number of column, or x axis in image.</li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
@@ -285,7 +294,24 @@ typedef struct _nnom_qformat
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong> h:</strong> size of stride in H, or number of row, or y axis in image. </li>
-<li><strong> w:</strong> size of stride in  W, or number of row, or x axis in image.</li>
+<li><strong> w:</strong> size of stride in  W, or number of column, or x axis in image.</li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>A shape instance. </li>
+</ul>
+<hr />
+<h2 id="border">border()</h2>
+<pre><code class="C">nnom_border_t border(size_t top, size_t bottom, size_t left, size_t right);
+</code></pre>
+
+<p>It pack the 4 padding/cropping value to a border object. </p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> top:</strong> the padding/cropping at the top edge of the image.</li>
+<li><strong> bottom:</strong> the padding/cropping at the bottom edge of the image.</li>
+<li><strong> left:</strong> the padding/cropping at the left edge of the image.</li>
+<li><strong> right:</strong> the padding/cropping at the right edge of the image.</li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
