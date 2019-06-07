@@ -29,6 +29,8 @@ nnom_status_t dense_run(nnom_layer_t *layer);
 nnom_status_t rnn_run(nnom_layer_t *layer);
 nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer);
 
+nnom_status_t zero_padding_run(nnom_layer_t * layer);
+
 nnom_status_t activation_run(nnom_layer_t *layer);
 nnom_status_t softmax_run(nnom_layer_t *layer);
 

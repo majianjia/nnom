@@ -330,6 +330,46 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,         
     }
 }
 
+void local_zero_padding_q7(const q7_t *Im_in,           // input image
+						 const uint16_t dim_im_in_x,    // input image dimention x
+						 const uint16_t dim_im_in_y,    // input image dimention y
+						 const uint16_t ch_im_in,       // number of input image channels
+						 const uint16_t padding_top,    // padding sizes y
+						 const uint16_t padding_bottom, // padding sizes y
+						 const uint16_t padding_left,   // padding sizes x
+						 const uint16_t padding_right,  // padding sizes x
+						 q7_t *Im_out,                  // output image
+						 const uint16_t dim_im_out_x,   // output image dimension x
+						 const uint16_t dim_im_out_y)   // output image dimension y 
+{
+	int i, size;
+	q7_t * p_out = Im_out; 
+	
+	// top rows
+	size = dim_im_out_x*ch_im_in*padding_top;
+	memset(p_out, 0, size); 
+	p_out += size;
+	
+	// middle
+	for(i=0; i<dim_im_in_y; i++)
+	{
+		// left - set to 0
+		size = ch_im_in * padding_left;
+		memset(p_out, 0, size); 
+		p_out += size;
+		// data - copy a row
+		size = dim_im_in_x * ch_im_in;
+		memcpy(p_out, Im_in + i*size, size);
+		p_out += size;
+		// right - set to 0
+		size = ch_im_in * padding_right;
+		memset(p_out, 0, size); 
+		p_out += size;
+	}
+	// bottom rows
+	memset(p_out, 0, dim_im_out_x*ch_im_in*padding_bottom); 
+}
+
 void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to vector
                                   const q7_t *pM,               // pointer to matrix
                                   const uint16_t dim_vec,       // length of the vector
@@ -612,6 +652,9 @@ void local_relu_q7(q7_t *data, uint32_t size)
     }
 }
 
+
+
+
 // matrix ops
 void local_mult_q7(q7_t *pSrcA,
                    q7_t *pSrcB,
@@ -632,7 +675,6 @@ void local_mult_q7(q7_t *pSrcA,
     }
 }
 
-// own
 void local_add_q7(q7_t *pSrcA,
                   q7_t *pSrcB,
                   q7_t *pDst,
@@ -652,7 +694,6 @@ void local_add_q7(q7_t *pSrcA,
     }
 }
 
-// own
 void local_sub_q7(q7_t *pSrcA,
                   q7_t *pSrcB,
                   q7_t *pDst,

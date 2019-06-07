@@ -32,6 +32,9 @@ nnom_status_t dw_conv2d_out_shape(nnom_layer_t *layer);
 nnom_status_t dense_out_shape(nnom_layer_t *layer);
 nnom_status_t rnn_out_shape(nnom_layer_t *layer);
 
+// padding
+nnom_status_t zero_padding_out_shape(nnom_layer_t* layer);
+
 // activation
 nnom_status_t relu_out_shape(nnom_layer_t *layer);
 nnom_status_t softmax_out_shape(nnom_layer_t *layer);

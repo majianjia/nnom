@@ -53,6 +53,13 @@ typedef struct _nnom_dense_layer_t
 
 } nnom_dense_layer_t;
 
+// zero padding
+typedef struct _nnom_zero_padding_layer_t
+{
+	nnom_layer_t super;
+	nnom_border_t pad;
+} nnom_zero_padding_layer_t;
+
 // lambda layer
 typedef struct _nnom_lambda_layer_t
 {
@@ -158,6 +165,7 @@ typedef struct _nnom_concat_layer
 nnom_shape_t shape(size_t h, size_t w, size_t c);
 nnom_shape_t kernel(size_t h, size_t w);
 nnom_shape_t stride(size_t h, size_t w);
+nnom_border_t border(size_t top, size_t bottom, size_t left, size_t right);
 nnom_qformat_t qformat(int8_t m, int8_t n);
 size_t shape_size(nnom_shape_t *s);
 
@@ -181,6 +189,9 @@ nnom_layer_t *GlobalMaxPool(void);
 nnom_layer_t *GlobalAvgPool(void);
 nnom_layer_t *GlobalSumPool(void);
 nnom_layer_t *UpSample(nnom_shape_t kernel);	// UpSampling, whcih is acturally the unpooling 
+
+// Zero padding
+nnom_layer_t *ZeroPadding(nnom_border_t pad);
 
 // Activation
 nnom_layer_t *Activation(nnom_activation_t *act);
