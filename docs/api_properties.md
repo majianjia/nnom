@@ -5,8 +5,11 @@ Properties include some basic properties such as shape of the data buffer, Q-for
 
 ---
 
-## typesdef
+## Typedef
+
 ~~~C
+#define nnom_shape_data_t uint16_t
+
 typedef struct _nnom_shape
 {
 	nnom_shape_data_t h, w, c;
@@ -29,6 +32,11 @@ typedef struct _nnom_qformat
 	int8_t n, m;
 } nnom_qformat_t;
 
+typedef struct _nnom_border_t
+{
+	nnom_shape_data_t top, bottom, left, right;
+} nnom_border_t;
+
 ~~~
 
 ---
@@ -46,7 +54,7 @@ nnom_shape_t shape(size_t h, size_t w, size_t c);
 **Arguments**
 
 - ** h:** size of H, or number of row, or y axis in image. 
-- ** w:** size of W, or number of row, or x axis in image.
+- ** w:** size of W, or number of column, or x axis in image.
 - ** c:** size of channel. 
 
 **Return**
@@ -66,7 +74,7 @@ Use in pooling or convolutional layer to specified the kernel size.
 **Arguments**
 
 - ** h:** size of kernel in H, or number of row, or y axis in image. 
-- ** w:** size of kernel in W, or number of row, or x axis in image.
+- ** w:** size of kernel in W, or number of column, or x axis in image.
 
 **Return**
 
@@ -85,7 +93,28 @@ Use in pooling or convolutional layer to specified the stride size.
 **Arguments**
 
 - ** h:** size of stride in H, or number of row, or y axis in image. 
-- ** w:** size of stride in  W, or number of row, or x axis in image.
+- ** w:** size of stride in  W, or number of column, or x axis in image.
+
+**Return**
+
+- A shape instance. 
+
+---
+
+## border() 
+
+~~~C
+nnom_border_t border(size_t top, size_t bottom, size_t left, size_t right);
+~~~
+
+It pack the 4 padding/cropping value to a border object. 
+
+**Arguments**
+
+- ** top:** the padding/cropping at the top edge of the image.
+- ** bottom:** the padding/cropping at the bottom edge of the image.
+- ** left:** the padding/cropping at the left edge of the image.
+- ** right:** the padding/cropping at the right edge of the image.
 
 **Return**
 

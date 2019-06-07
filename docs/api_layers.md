@@ -104,7 +104,6 @@ This funtion is for 1D or 2D, mutiple channels depthwise convolution.
 
 When it is used for 1D convolution, the H should be set to 1 constantly in kernel and stride.  
 
-
 ---
 
 ## Dense()
@@ -124,7 +123,6 @@ A fully connected layer. It will flatten the data if the last output is mutiple-
 
 - The layer instance
 
-
 ---
 
 ## UpSample()
@@ -137,21 +135,55 @@ A basic up sampling, using nearest interpolation
 
 **Arguments**
 
-- **kernel:** a shape subject return by `kernel()`, the interpolation size.
+- **kernel:** a shape object returned by `kernel()`, the interpolation size.
 
 **Return**
 
 - The layer instance
 
+---
 
+## ZeroPadding()
+
+~~~C
+nnom_layer_t *ZeroPadding(nnom_border_t pad);
+~~~
+
+Pad zeros to the image for each edge (top, bottom, left, right)
+
+**Arguments**
+
+- **pad:** a border object returned by `border()`, contains top, bottom, left and right padding.
+
+**Return**
+
+- The layer instance
+
+---
+
+## Cropping()
+
+~~~C
+nnom_layer_t *Cropping(nnom_border_t pad);
+~~~
+
+It crops along spatial dimensions.
+
+**Arguments**
+
+- **pad:** a border object returned by `border()`, contains top, bottom, left and right size.
+
+**Return**
+
+- The layer instance
 
 ---
 
 ## Lambda()
 
 ~~~C
-// Lambda Layers
-// layer.run()   , required
+
+// layer.run()   , compulsory
 // layer.oshape(), optional, call default_output_shape() if left NULL
 // layer.free()  , optional, called while model is deleting, to free private resources
 // parameters    , private parameters for run method, left NULL if not needed.
@@ -165,9 +197,9 @@ Lambda layer is an anonymous layer (interface), which allows user to do customiz
 
 **Arguments**
 
-- **(*run)(nnom_layer_t *):** or so called run method, is the method to do the customized operation. 
-- **(*oshape)(nnom_layer_t *):** is to calculate the output shape according to the input shape during compiling. If this method is not presented, the input shape will be passed to the output shape.   
-- **(*free)(nnom_layer_t *):** is to free the resources allocated by users. this will be called when deleting models. Leave it NULL if no resources need to be released. 
+- **`(*run)(nnom_layer_t *)`:** or so called run method, is the method to do the customized operation. 
+- **`(*oshape)(nnom_layer_t *)`:** is to calculate the output shape according to the input shape during compiling. If this method is not presented, the input shape will be passed to the output shape.   
+- **`(*free)(nnom_layer_t *)`:** is to free the resources allocated by the users. This method will be called when the model is deleting. Leave it NULL if no resources need to be released. 
 - **parameters:** is the pointer to user configurations. User can access to it in all three methods above.
 
 **Return**
@@ -176,6 +208,7 @@ Lambda layer is an anonymous layer (interface), which allows user to do customiz
 
 **Notes**
 
+- All methods with type `nnom_status_t` must return `NN_SUCCESS` to allow the inference process. Any return other than that will stop the inference of the model. 
 - When `oshape()` is presented, please refer to examples of other similar layers. The shape passing must be handle carefully.
 - This method is called in compiling, thus it can also do works other than calculating output shape only. An exmaple is the `global_pooling_output_shape()` fills in the parameters left by `GlobalXXXPool()`
 

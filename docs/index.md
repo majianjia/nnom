@@ -104,12 +104,15 @@ Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for deta
 | Fully-connected | Beta| Dense()| |
 | Lambda |Alpha| Lambda() |single input / single output anonymous operation| 
 | Batch Normalization |Beta | N/A| This layer is merged to the last Conv by the script|
-| Input/Output |Beta | Input()/Output()| |
 | Flatten|Beta | Flatten()| |
 | SoftMax|Beta | SoftMax()| Softmax only has layer API| 
 | Activation|Beta| Activation()|A layer instance for activation|
+| Input/Output |Beta | Input()/Output()| |
+| Up Sampling | Beta|UpSample()||
+| Zero Padding | Beta |ZeroPadding()||
+| Cropping | Beta |Cropping()||
 
-** RNN Layers **
+**RNN Layers**
 
 | Layers | Status |Layer API|Comments|
 | ------ |-- |--|--|
@@ -137,7 +140,6 @@ Activation can be used by itself as layer, or can be attached to the previous la
 | Global Max Pooling  | Beta|GlobalMaxPool()||
 | Global Average Pooling | Beta|GlobalAvgPool()||
 | Global Sum Pooling | Beta|GlobalSumPool()|A better alternative to Global average pooling in MCU before Softmax|
-| Up Sampling | Beta|UpSample()||
 
 **Matrix Operations Layers**
 
@@ -147,6 +149,3 @@ Activation can be used by itself as layer, or can be attached to the previous la
 | Multiple  |Beta |Mult()||
 | Addition  | Beta|Add()||
 | Substraction  | Beta|Sub()||
-
-
-
