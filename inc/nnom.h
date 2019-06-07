@@ -47,6 +47,8 @@ typedef enum
 	NNOM_DW_CONV_2D,
 	NNOM_BATCHNORM,
 	NNOM_DENSE,
+	NNOM_ZERO_PADDING,
+	NNOM_CROPPING,
 	NNOM_RNN,
 	NNOM_ACTIVATION,
 	NNOM_RELU,
@@ -79,6 +81,8 @@ typedef enum
 			"DW_Conv2D",    \
 			"BatchNorm",	\
 			"Dense",        \
+			"ZeroPad",	    \
+			"Cropping",     \
 			"RNN",          \
 			"Activation",   \
 			"ReLU",         \
@@ -134,10 +138,15 @@ typedef enum
 
 // basic types
 #define nnom_shape_data_t uint16_t
-typedef struct _nnom_shape
+typedef struct _nnom_shape_t
 {
 	nnom_shape_data_t h, w, c;
 } nnom_shape_t;
+
+typedef struct _nnom_border_t
+{
+	nnom_shape_data_t top, bottom, left, right;
+} nnom_border_t;
 
 // nnom_shape_axis_t type provide the axis[] format access to nnom_shape_t
 typedef union {

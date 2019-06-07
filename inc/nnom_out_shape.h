@@ -32,6 +32,11 @@ nnom_status_t dw_conv2d_out_shape(nnom_layer_t *layer);
 nnom_status_t dense_out_shape(nnom_layer_t *layer);
 nnom_status_t rnn_out_shape(nnom_layer_t *layer);
 
+// padding, cropping, upsample
+nnom_status_t upsample_out_shape(nnom_layer_t *layer);
+nnom_status_t zero_padding_out_shape(nnom_layer_t* layer);
+nnom_status_t cropping_out_shape(nnom_layer_t* layer);
+
 // activation
 nnom_status_t relu_out_shape(nnom_layer_t *layer);
 nnom_status_t softmax_out_shape(nnom_layer_t *layer);
@@ -41,7 +46,6 @@ nnom_status_t maxpooling_out_shape(nnom_layer_t *layer);
 nnom_status_t avgpooling_out_shape(nnom_layer_t *layer);
 nnom_status_t sumpooling_out_shape(nnom_layer_t *layer);
 nnom_status_t global_pooling_out_shape(nnom_layer_t *layer);
-nnom_status_t upsample_out_shape(nnom_layer_t *layer);
 
 // utils
 nnom_status_t flatten_out_shape(nnom_layer_t *layer);

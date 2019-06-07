@@ -165,6 +165,38 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 }
 
 
+nnom_status_t zero_padding_run(nnom_layer_t * layer)
+{
+	nnom_zero_padding_layer_t *cl = (nnom_zero_padding_layer_t*)layer;
+	
+	local_zero_padding_q7(layer->in->mem->blk, 
+						layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+						cl->pad.top,
+						cl->pad.bottom,
+						cl->pad.left,
+						cl->pad.right,
+						layer->out->mem->blk,
+						layer->out->shape.w, layer->out->shape.h);
+
+	return NN_SUCCESS;
+}
+
+nnom_status_t cropping_run(nnom_layer_t * layer)
+{
+	nnom_cropping_layer_t *cl = (nnom_cropping_layer_t*)layer;
+	
+	local_cropping_q7(layer->in->mem->blk, 
+						layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+						cl->pad.top,
+						cl->pad.bottom,
+						cl->pad.left,
+						cl->pad.right,
+						layer->out->mem->blk,
+						layer->out->shape.w, layer->out->shape.h);
+
+	return NN_SUCCESS;
+}
+
 nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer)
 {
 	/*
