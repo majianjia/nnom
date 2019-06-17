@@ -96,8 +96,6 @@
         
             <li><a class="toctree-l4" href="#generate_weights">generate_weights()</a></li>
         
-            <li><a class="toctree-l4" href="#generate_weights_1">generate_weights()</a></li>
-        
             <li><a class="toctree-l4" href="#evaluate_model">evaluate_model()</a></li>
         
             <li><a class="toctree-l4" href="#generate_test_bin">generate_test_bin()</a></li>
@@ -272,22 +270,6 @@ These functions are located in <code>scripts/nnom_utils.py</code></p>
 </ul>
 <hr />
 <h2 id="generate_weights">generate_weights()</h2>
-<pre><code class="python">generate_weights(model, name='weights.h', shift_list=None)
-</code></pre>
-
-<p>Scans all the layer which includes weights, quantise the weights and put them into the c header.</p>
-<p><strong>Arguments</strong></p>
-<ul>
-<li><strong>model:</strong> the trained Keras model</li>
-<li><strong>name:</strong> the c file name to store weigths.</li>
-<li><strong>shift_list:</strong> the shift list returned by <code>layers_output_ranges(model, x_test)</code></li>
-</ul>
-<p><strong>Notes</strong></p>
-<ul>
-<li>Use function individually when willing to use none-supported operation by <code>generate_model()</code></li>
-</ul>
-<hr />
-<h2 id="generate_weights_1">generate_weights()</h2>
 <pre><code class="python">generate_weights(model, name='weights.h', shift_list=None)
 </code></pre>
 
