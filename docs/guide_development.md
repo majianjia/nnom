@@ -33,25 +33,82 @@ Building an ad-hoc model is sooo easy with NNoM since most of the codes are auto
 
 
 ### What can NNoM provide to embedded engineers?
-It's **easy to use** and **easy to evaluate**. 
+It provide an **easy to use** and **easy to evaluate** inference tools for fast neural network development. 
 
 As embedded engineers, we might not know well how does neural network work and how can we optimize it for the MCU. 
 
-NNoM together with Keras can help you to start practicing within half an hour. There is no need to learn other ML lib from scratch. Deployment can be done with one line of python code following Keras model. 
+NNoM together with Keras can help you to start practicing within half an hour. There is no need to learn other ML lib from scratch. Deployment can be done with one line of python code after you have trained an model using Keras. 
 
-Other than building a model, NNoM also provides a set of evaluation methods. Evaluation will give developer a layer-to-layer performance evaluation to user. 
+Other than building a model, NNoM also provides a set of evaluation methods. These evaluation methods will give the developer a layer-to-layer performance evaluation of the model. 
 
-Developers then can modify the ad-hoc model to increase efficency or to lower the memory cost. 
+Developers can then modify the ad-hoc model to increase efficency or to lower the memory cost. 
 (Please check the following Performance sections for detials.)
-
 
 ## NNoM Structure
 
+As mentioned in many other docs, NNoM uses a layer-based structure. 
+The most benefit is the model structure can be directly seemed from the codes.
+
+It also makes the model convertion from other layer-based lib (Keras, TensorLayer, Caffe) to NNoM model very straight forward. 
+
+NNoM uses a compiler to manage the layer structure and other resources. After compiling, all layers inside the model will be put into a shortcut list per the running order. Beside that, arguments will be filled in and the memory will be allocated to each layer (Memory are reused in between layers). Therefore, no memory allocation performed in the runtime, performance is the same as running backend function directly.   
+
+The NNoM is more on manage the higher-level structure, context argument and memory. The actual arithmetics are done by the backend functions.
+
+Currently, NNoM support a pure C backend and CMSIS-NN backend. 
+The CMSIS-NN is an highly optimized low-level NN core for ARM-Cortex-M microcontroller. 
+Please check the [optimize guide](Porting_and_Optimisation_Guide.md) for utilisation.
 
 ## Optimation 
 
+The CMSIS-NN can provide upto 5 times performance comparing to the pure C backend on Cortex-M MCUs. It maximises the performance by using SIMD and other instructions(__SSAT, ...).
+
+These optimizations come with different constrains. This is why CMSIS-NN provides many variances to one operators (such as 1x1 convolution, RGB convolution, none-square/square, they are all convolution only with different routines). 
+
+NNoM will automaticly select the best operator for the layer when it is available. Sometime, it is not possible to use CMSIS-NN because the condition is not met. CMSIS-NN provides a subset operator to the local pure C backend. When it is not possible to use CMSIS-NN, NNoM will run the layer using the C backend end instead. It is vary from layer to layer whether use CMSIS-NN or C backend. 
+
+The example condition for convolutions are list below:
+
+|Operation|Input Channel|Output Channel|
+|-------|-------|-------|
+|Convolution |  multiple of 4| multiple of 2 |
+|Pointwise Convolution |  multiple of 4| multiple of 2 |
+|Depthwise Convolution |  multiple of 2| multiple of 2 |
+
+The full details can be found in [CMSIS-NN's source code](https://github.com/ARM-software/CMSIS_5) and [documentation](https://www.keil.com/pack/doc/CMSIS/NN/html/index.html). 
+Some of them can be further optimized by square shape, however, the optimization is less significant. 
+
+> Trick, if you keep the channel size is a multiple of 4, it should work in most of the case.
+
+If you are not sure whether the optimization is working, simply us the `model_stat()` in [Evaluation API](api_evaluation.md) to print the performance of each layer. Comparison will be shown in the following sections.  
+
+Fully connected layers and pooling layers are less constrained. 
 
 ## Performance
+
+Performances are vary. 
+Efficiencies are more constant.
+
+We can use *Multiply–accumulate operation (MAC) per Hz (MACops/Hz)* to evaluate the efficency. 
+It simply means how many MAC can be done in one cycle. 
+
+Currently, NNoM only count MAC operations on Convolution layers and Dense layers since other layers (pooling, padding) are much lesser. 
+
+Running an model on CMSIS-NN and NNoM will have the same performance, when a model is fully compliant  with CMSIS-NN and running on Cortex-M4/7/33/35P. ("compliant" means it meets the optimization condition in above discussion). 
+
+For example, in [CMSIS-NN paper](https://arxiv.org/pdf/1801.06601), the authors used an STM32F746@216MHz to run a model with 24.7M(MACops) tooks 99.1ms in total.
+
+The runtime of each layer were recorded. What hasn't been shown in the paper is this table. (refer to Table 1 in the paper)
+
+|       |Layer|Input ch|output ch|Ops|Runtime|Efficiency|
+|-------|-------|-------|-----|-------|----|-------|
+|Layer 1| Convolution|3|32|4.9M|31.4ms|	|
+|Layer 3| Convolution|32|32|13.1M|42.8ms||
+|Layer 5| Convolution|32|64|6.6M|22.6ms||
+|Layer 7| Fully-connected|1024|10|20k|0.1ms||
+|Total| |||24.7M|99.1||
+
+ 
 
 
 ## Evaluations
