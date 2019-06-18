@@ -51,6 +51,8 @@ There is no need to learn TensorFlow/Lite or other libs.
 
 [5 min to NNoM Guide](docs/guide_5_min_to_nnom.md)
 
+[Development Guide](docs/guide_development.md)
+
 [The temporary guide](docs/A_Temporary_Guide_to_NNoM.md)
 
 [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) 

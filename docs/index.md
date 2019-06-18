@@ -55,6 +55,8 @@ API manuals are available within this site.
 
 [5 min to NNoM Guide](guide_5_min_to_nnom.md)
 
+[Development Guide](guide_development.md)
+
 [The temporary guide](A_Temporary_Guide_to_NNoM.md)
 
 [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) 
