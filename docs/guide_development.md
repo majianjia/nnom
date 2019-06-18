@@ -143,7 +143,7 @@ In typical applications:
 
 [Use microphone to spot key-word commands](https://github.com/majianjia/nnom/tree/master/examples/keyword_spotting). A model takes `63 x 12 x 1` MFCC data, `2.09M MACops`, STM32F746 will take around `2.09M/0.58/216MHz = 16.7ms` to do one inference. 
 
-> *Notes, MACops/Hz in NNoM is less than the CMSIS-NN in the paper, this is because NNoM considers the operator and its following activation as one single layer. For example, the running time cost by the convolution layer is can be the time cost by `operator(Conv) + activation(ReLU)`.*
+> *Notes, MACops/Hz in NNoM is less than the CMSIS-NN in the paper, this is because NNoM considers the operator and its following activation as one single layer. For example, the running time cost by the convolution layer is the time cost by `operator(Conv)` +  the time cost by `activation(ReLU)`.*
 
 -----
 
