@@ -156,7 +156,7 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t * Im_in,  // inp
                                                        q15_t * bufferA, //buffer space for input
                                                        q7_t * bufferB);   //buffer space for output
 
-void local_zero_padding_q7(const q7_t *Im_in,           // input image
+void local_zero_padding_HWC_q7(const q7_t *Im_in,           // input image
 						 const uint16_t dim_im_in_x,    // input image dimention x
 						 const uint16_t dim_im_in_y,    // input image dimention y
 						 const uint16_t ch_im_in,       // number of input image channels
@@ -168,7 +168,7 @@ void local_zero_padding_q7(const q7_t *Im_in,           // input image
 						 const uint16_t dim_im_out_x,   // output image dimension x
 						 const uint16_t dim_im_out_y);  // output image dimension y 
 						 
-void local_cropping_q7(const q7_t *Im_in,           // input image
+void local_cropping_HWC_q7(const q7_t *Im_in,           // input image
 						 const uint16_t dim_im_in_x,    // input image dimention x
 						 const uint16_t dim_im_in_y,    // input image dimention y
 						 const uint16_t ch_im_in,       // number of input image channels
