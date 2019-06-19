@@ -618,12 +618,18 @@ def generate_model(model, x_test, name='weights.h'):
                 fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n'%(id, LI[inp][0]))
             else:
                 raise Exception('unsupported layer', layer.name, layer)
-        # the last layer is the output layer
+        # FIXME, test later.
         if('softmax' in layer.name
            or ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')):
-            fp.write('\tlayer[%s] = model.hook(Output(shape(%s,1,1), nnom_output_data), layer[%s]);\n'%(id+1, layer.input.shape[1], id))
+            fp.write('\tlayer[%s] = model.hook(Output(shape(%s,1,1), nnom_output_data), layer[%s]);\n'%(id+1, layer.output.shape[1], id))
+        elif len(layer.output.shape) == 4:
+            fp.write('\tlayer[%s] = model.hook(Output(shape%s, nnom_output_data), layer[%s]);\n'%(id+1, layer.output.shape[1:], id))
+        elif len(layer.output.shape) == 3:
+            fp.write('\tlayer[%s] = model.hook(Output(shape(1,%s,%s), nnom_output_data), layer[%s]);\n'%(id+1, layer.output.shape[1], layer.output.shape[2], id))
+        elif len(layer.output.shape) == 2:
+            fp.write('\tlayer[%s] = model.hook(Output(shape(%s,1,1), nnom_output_data), layer[%s]);\n'%(id+1, layer.output.shape[1], id))
         else:
-            fp.write('\tlayer[%s] = model.hook(Output(shape%s, nnom_output_data), layer[%s]);\n'%(id+1, layer.shape[1:], id))
+            raise Exception('unsupported output shape of the last layer', layer.name, layer)
         fp.write('\tmodel_compile(&model, layer[0], layer[%s]);\n'%(id+1))
         if(ID>32):
             fp.write('\tfree(layer);\n')

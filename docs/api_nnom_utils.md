@@ -82,26 +82,6 @@ Scans all the layer which includes weights, quantise the weights and put them in
 
 ---
 
-## generate_weights()
-
-~~~python
-generate_weights(model, name='weights.h', shift_list=None)
-~~~
-
-Scans all the layer which includes weights, quantise the weights and put them into the c header.
-
-**Arguments**
-
-- **model:** the trained Keras model
-- **name:** the c file name to store weigths.
-- **shift_list:** the shift list returned by `layers_output_ranges(model, x_test)`
-
-
-**Notes**
-
-- Use function individually when willing to use none-supported operation by `generate_model()`
-
----
 
 ## evaluate_model()
 

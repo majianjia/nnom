@@ -11,6 +11,7 @@ nav:
 - Overview: 'index.md'
 - Guides:
   - 5 min to NNoM: 'guide_5_min_to_nnom.md'
+  - Development Guide: 'guide_development.md'
 - APIs: 
   - Utils (Python): 'api_nnom_utils.md'
   - Model: 'api_model.md'
