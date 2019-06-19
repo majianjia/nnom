@@ -13,6 +13,7 @@
  * Date           Author       Notes
  * 2019-02-05     Jianjia Ma   The first version
  * 2019-03-19     Jianjia Ma   Local C implementation partly from CMSIS-NN
+ * 2019-06-19     Jianjia Ma   Implement CHW functions 
  */
 
 #include "nnom.h"
@@ -62,6 +63,49 @@ void local_avepool_q7_HWC(const q7_t *Im_in,           // input image
     }
 }
 
+void local_avepool_q7_CHW(const q7_t *Im_in,           // input image
+                          const uint16_t dim_im_in_x,  // input image dimension x or W
+                          const uint16_t dim_im_in_y,  // input image dimension y or H
+                          const uint16_t ch_im_in,     // number of input image channels
+                          const uint16_t dim_kernel_x, // window kernel size
+                          const uint16_t dim_kernel_y, // window kernel size
+                          const uint16_t padding_x,    // padding sizes
+                          const uint16_t padding_y,    // padding sizes
+                          const uint16_t stride_x,     // stride
+                          const uint16_t stride_y,     // stride
+                          const uint16_t dim_im_out_x, // output image dimension x or W
+                          const uint16_t dim_im_out_y, // output image dimension y or H
+                          q7_t *bufferA,               // a buffer for local storage, NULL by now
+                          q7_t *Im_out)
+{
+    int16_t i_ch_in, i_x, i_y;
+    int16_t k_x, k_y;
+
+    for (i_ch_in = 0; i_ch_in < ch_im_in; i_ch_in++)
+    {
+        for (i_y = 0; i_y < dim_im_out_y; i_y++)
+        {
+            for (i_x = 0; i_x < dim_im_out_x; i_x++)
+            {
+                int sum = 0;
+                int count = 0;
+                for (k_y = i_y * stride_y - padding_y; k_y < i_y * stride_y - padding_y + dim_kernel_y; k_y++)
+                {
+                    for (k_x = i_x * stride_x - padding_x; k_x < i_x * stride_x - padding_x + dim_kernel_x; k_x++)
+                    {
+                        if (k_y >= 0 && k_x >= 0 && k_y < dim_im_in_y && k_x < dim_im_in_x)
+                        {
+                            sum += Im_in[i_ch_in*dim_im_in_x*dim_im_in_y + (k_x + k_y * dim_im_in_x)];
+                            count++;
+                        }
+                    }
+                }
+                Im_out[i_ch_in*dim_im_out_x*dim_im_out_y + (i_x + i_y * dim_im_out_x)] = sum / count;
+            }
+        }
+    }
+}
+
 // modified from CMSIS-NN test_ref
 void local_maxpool_q7_HWC(const q7_t *Im_in,           // input image
                           const uint16_t dim_im_in_x,  // input image dimension x or W
@@ -102,6 +146,50 @@ void local_maxpool_q7_HWC(const q7_t *Im_in,           // input image
                     }
                 }
                 Im_out[i_ch_in + ch_im_in * (i_x + i_y * dim_im_out_x)] = max;
+            }
+        }
+    }
+}
+
+void local_maxpool_q7_CHW(const q7_t *Im_in,           // input image
+                          const uint16_t dim_im_in_x,  // input image dimension x or W
+                          const uint16_t dim_im_in_y,  // input image dimension y or H
+                          const uint16_t ch_im_in,     // number of input image channels
+                          const uint16_t dim_kernel_x, // window kernel size
+                          const uint16_t dim_kernel_y, // window kernel size
+                          const uint16_t padding_x,    // padding sizes
+                          const uint16_t padding_y,    // padding sizes
+                          const uint16_t stride_x,     // stride
+                          const uint16_t stride_y,     // stride
+                          const uint16_t dim_im_out_x, // output image dimension x or W
+                          const uint16_t dim_im_out_y, // output image dimension y or H
+                          q7_t *bufferA,               // a buffer for local storage, NULL by now
+                          q7_t *Im_out)
+{
+    int16_t i_ch_in, i_x, i_y;
+    int16_t k_x, k_y;
+
+    for (i_ch_in = 0; i_ch_in < ch_im_in; i_ch_in++)
+    {
+        for (i_y = 0; i_y < dim_im_out_y; i_y++)
+        {
+            for (i_x = 0; i_x < dim_im_out_x; i_x++)
+            {
+                int max = -129;
+                for (k_y = i_y * stride_y - padding_y; k_y < i_y * stride_y - padding_y + dim_kernel_y; k_y++)
+                {
+                    for (k_x = i_x * stride_x - padding_x; k_x < i_x * stride_x - padding_x + dim_kernel_x; k_x++)
+                    {
+                        if (k_y >= 0 && k_x >= 0 && k_y < dim_im_in_y && k_x < dim_im_in_x)
+                        {
+                            if (Im_in[i_ch_in + ch_im_in * (k_x + k_y * dim_im_in_x)] > max)
+                            {
+                                max = Im_in[i_ch_in * dim_im_in_x * dim_im_in_y + (k_x + k_y * dim_im_in_x)];
+                            }
+                        }
+                    }
+                }
+                Im_out[i_ch_in * dim_im_out_x * dim_im_out_y +(i_x + i_y * dim_im_out_x)] = max;
             }
         }
     }
@@ -180,6 +268,79 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
     return output_shift;
 }
 
+// temporary for the thesis
+// shift according to the maximum
+int32_t local_sumpool_q7_CHW(const q7_t *Im_in,           // input image
+                             const uint16_t dim_im_in_x,  // input image dimension x or W
+                             const uint16_t dim_im_in_y,  // input image dimension y or H
+                             const uint16_t ch_im_in,     // number of input image channels
+                             const uint16_t dim_kernel_x, // window kernel size
+                             const uint16_t dim_kernel_y, // window kernel size
+                             const uint16_t padding_x,    // padding sizes
+                             const uint16_t padding_y,    // padding sizes
+                             const uint16_t stride_x,     // stride
+                             const uint16_t stride_y,     // stride
+                             const uint16_t dim_im_out_x, // output image dimension x or W
+                             const uint16_t dim_im_out_y, // output image dimension y or H
+                             q7_t *bufferA,               // a buffer for local storage, size = 4*output_size
+                             q7_t *Im_out)
+{
+    int16_t i_ch_in, i_x, i_y;
+    int16_t k_x, k_y;
+    int32_t *buf = (int32_t *)bufferA;
+	// stage2
+    int32_t max_abs = 0;
+    int32_t output_shift;
+    size_t output_size = dim_im_out_x * dim_im_out_x * ch_im_in;
+
+    // save in 32bit
+    for (i_ch_in = 0; i_ch_in < ch_im_in; i_ch_in++)
+    {
+        for (i_y = 0; i_y < dim_im_out_y; i_y++)
+        {
+            for (i_x = 0; i_x < dim_im_out_x; i_x++)
+            {
+                int sum = 0;
+                for (k_y = i_y * stride_y - padding_y; k_y < i_y * stride_y - padding_y + dim_kernel_y; k_y++)
+                {
+                    for (k_x = i_x * stride_x - padding_x; k_x < i_x * stride_x - padding_x + dim_kernel_x; k_x++)
+                    {
+                        if (k_y >= 0 && k_x >= 0 && k_y < dim_im_in_y && k_x < dim_im_in_x)
+                        {
+                            sum += Im_in[i_ch_in*dim_im_in_x*dim_im_in_y + (k_x + k_y * dim_im_in_x)];
+                        }
+                    }
+                }
+                // 32bit
+                buf[i_ch_in*dim_im_out_x*dim_im_out_y + (i_x + i_y * dim_im_out_x)] = sum;
+            }
+        }
+    }
+
+    // find max amount results
+    for (int i = 0; i < output_size; i++)
+    {
+        int32_t val = buf[i];
+        if (val < 0)
+            val = -val;
+        if (val > max_abs)
+            max_abs = val;
+    }
+    // find best shift to cover the max
+    for (output_shift = 0;; output_shift++)
+    {
+        if (127 * (1 + output_shift) >= max_abs)
+            break;
+    }
+
+    // shift the results
+    for (int i = 0; i < output_size; i++)
+    {
+        Im_out[i] = buf[i] >> output_shift;
+    }
+    return output_shift;
+}
+
 // customised up sample pooling
 void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
                           const uint16_t dim_im_in_x,  // input image dimension x or W
@@ -193,25 +354,58 @@ void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
                           q7_t *Im_out)
 {
     int16_t i_x, i_y;
-
-
+	
     // for loop for each pixel in input image.
     for (i_y = 0; i_y < dim_im_in_x; i_y++)
     {
         for (i_x = 0; i_x < dim_im_in_y; i_x++)
         {
             // copy all the channels together. 
-            const q7_t *pin = Im_in + (i_y * dim_im_in_x + i_x ) * ch_im_in;
+            const q7_t *p_in = Im_in + (i_y * dim_im_in_x + i_x ) * ch_im_in;
             q7_t *pout = Im_out + (i_y * dim_im_in_x * dim_kernel_x * dim_kernel_y + i_x * dim_kernel_y) * ch_im_in;
 
             // cpy along x axis
             for(int i = 0; i<dim_kernel_x; i++)
-                memcpy(pout + i*ch_im_in, pin, ch_im_in);
+                memcpy(pout + i*ch_im_in, p_in, ch_im_in);
             // duplicate the copied x data into y axis. 
             for(int i = 0; i<dim_kernel_y-1; i++)
                 memcpy(pout + (i+1) * ch_im_in * dim_im_in_x * dim_kernel_x, pout, ch_im_in * dim_kernel_x);
         }
     }
+}
+
+void local_up_sampling_q7_CHW(const q7_t *Im_in,       // input image
+                          const uint16_t dim_im_in_x,  // input image dimension x or W
+                          const uint16_t dim_im_in_y,  // input image dimension y or H
+                          const uint16_t ch_im_in,     // number of input image channels
+                          const uint16_t dim_kernel_x, // window kernel size
+                          const uint16_t dim_kernel_y, // window kernel size
+                          const uint16_t dim_im_out_x, // output image dimension x or W
+                          const uint16_t dim_im_out_y, // output image dimension y or H
+                          q7_t *bufferA,               // a buffer for local storage, NULL by now
+                          q7_t *Im_out)
+{
+    int16_t i_x, i_y, ch;
+	// for loop for channel
+	for(ch=0; ch<ch_im_in; ch++)
+	{
+		// for loop for each pixel in input image.
+		for (i_y = 0; i_y < dim_im_in_x; i_y++)
+		{
+			for (i_x = 0; i_x < dim_im_in_y; i_x++)
+			{
+				const q7_t *p_in = Im_in + (i_y * dim_im_in_x + i_x ) + ch_im_in * dim_im_in_x * dim_im_in_y;
+				q7_t *pout = Im_out + (i_y * dim_im_in_x * dim_kernel_x * dim_kernel_y + i_x * dim_kernel_y) + ch_im_in * dim_im_out_x * dim_im_out_y;
+
+				// cpy along x axis
+				for(int i = 0; i<dim_kernel_x; i++)
+					*(pout + i) =  *p_in;
+				// duplicate the copied x data into y axis. 
+				for(int i = 1; i<dim_kernel_y-1; i++)
+					memcpy(pout + i * dim_im_in_x * dim_kernel_x, pout, dim_kernel_x);
+			}
+		}
+	}
 }
 
 
@@ -273,6 +467,8 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                         
         }
     }
 }
+
+
 
 void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,           // input image
                                                      const uint16_t dim_im_in_x,  // input image dimention x
@@ -370,6 +566,50 @@ void local_zero_padding_HWC_q7(const q7_t *Im_in,           // input image
 	memset(p_out, 0, dim_im_out_x*ch_im_in*padding_bottom); 
 }
 
+void local_zero_padding_CHW_q7(const q7_t *Im_in,           // input image
+						 const uint16_t dim_im_in_x,    // input image dimention x
+						 const uint16_t dim_im_in_y,    // input image dimention y
+						 const uint16_t ch_im_in,       // number of input image channels
+						 const uint16_t padding_top,    // padding sizes y
+						 const uint16_t padding_bottom, // padding sizes y
+						 const uint16_t padding_left,   // padding sizes x
+						 const uint16_t padding_right,  // padding sizes x
+						 q7_t *Im_out,                  // output image
+						 const uint16_t dim_im_out_x,   // output image dimension x
+						 const uint16_t dim_im_out_y)   // output image dimension y 
+{
+	int i, size, ch_offset;
+	q7_t * p_out = Im_out; 
+	
+	for(int ch=0; ch < ch_im_in; ch++)
+	{
+		p_out = Im_out + ch * dim_im_out_x * dim_im_out_y;
+		// top rows
+		size = dim_im_out_x*padding_top;
+		memset(p_out, 0, size);
+		p_out += size;
+		
+		// middle
+		ch_offset = ch*dim_im_in_x*dim_im_in_y;
+		for(i=0; i<dim_im_in_y; i++)
+		{
+			// left - set to 0
+			memset(p_out, 0, padding_left); 
+			p_out += padding_left;
+			// data - copy a row
+			memcpy(p_out, Im_in + i*dim_im_in_x + ch_offset, dim_im_in_x);
+			p_out += dim_im_in_x;
+			// right - set to 0
+			memset(p_out, 0, size); 
+			p_out += padding_right;
+		}
+		// bottom
+		memset(p_out, 0, dim_im_out_x*padding_bottom); 
+	}
+
+}
+
+
 void local_cropping_HWC_q7(const q7_t *Im_in,           // input image
 						 const uint16_t dim_im_in_x,    // input image dimention x
 						 const uint16_t dim_im_in_y,    // input image dimention y
@@ -401,6 +641,36 @@ void local_cropping_HWC_q7(const q7_t *Im_in,           // input image
 		p_in += ch_im_in * padding_right;
 	}
 
+}
+
+void local_cropping_CHW_q7(const q7_t *Im_in,           // input image
+						 const uint16_t dim_im_in_x,    // input image dimention x
+						 const uint16_t dim_im_in_y,    // input image dimention y
+						 const uint16_t ch_im_in,       // number of input image channels
+						 const uint16_t padding_top,    // padding sizes y
+						 const uint16_t padding_bottom, // padding sizes y
+						 const uint16_t padding_left,   // padding sizes x
+						 const uint16_t padding_right,  // padding sizes x
+						 q7_t *Im_out,                  // output image
+						 const uint16_t dim_im_out_x,   // output image dimension x
+						 const uint16_t dim_im_out_y)   // output image dimension y 
+{
+	int i, ch, ch_offset;
+	const q7_t * p_in; 
+	
+	for(ch=0; ch < ch_im_in; ch++)
+	{
+		p_in = Im_in + dim_im_in_x * dim_im_in_y * ch; 	// ch offset to input image
+		p_in += dim_im_in_x*padding_top; 				// top to ignore
+		
+		ch_offset = ch*dim_im_out_x*dim_im_out_y;
+		for(i=0; i<dim_im_out_y; i++)
+		{	
+			// data - middle of a row
+			memcpy(Im_out + i*dim_im_out_x + ch_offset, p_in+padding_left, dim_im_out_x); 
+			p_in += dim_im_in_x; // middle and right padding	
+		}
+	}	
 }
 
 void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to vector

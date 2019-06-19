@@ -55,10 +55,25 @@ static inline int __NNOM_USAT(int32_t value, int32_t bit) {
 #endif
 
 
-// Those functions/tables below are modifed from CMSIS-NN lib
+// Those functions/tables below are partially modifed from CMSIS-NN lib
 // https://github.com/ARM-software/CMSIS_5
 //
 void local_avepool_q7_HWC(const q7_t * Im_in, // input image
+                            const uint16_t dim_im_in_x,   	// input image dimension x or W
+							const uint16_t dim_im_in_y,   	// input image dimension y or H
+                            const uint16_t ch_im_in,    	// number of input image channels
+                            const uint16_t dim_kernel_x,  	// window kernel size
+							const uint16_t dim_kernel_y,  	// window kernel size
+                            const uint16_t padding_x, 		// padding sizes
+							const uint16_t padding_y, 		// padding sizes
+                            const uint16_t stride_x,  		// stride
+							const uint16_t stride_y,  		// stride
+                            const uint16_t dim_im_out_x,  	// output image dimension x or W
+							const uint16_t dim_im_out_y,  	// output image dimension y or H
+                            q7_t * bufferA, 				// a buffer for local storage, NULL by now
+                            q7_t * Im_out);
+
+void local_avepool_q7_CHW(const q7_t * Im_in, // input image
                             const uint16_t dim_im_in_x,   	// input image dimension x or W
 							const uint16_t dim_im_in_y,   	// input image dimension y or H
                             const uint16_t ch_im_in,    	// number of input image channels
@@ -89,7 +104,37 @@ void local_maxpool_q7_HWC(const q7_t * Im_in, 				// input image
                             q7_t * bufferA, 				// a buffer for local storage, NULL by now
                             q7_t * Im_out);
 
+void local_maxpool_q7_CHW(const q7_t * Im_in, 				// input image
+                            const uint16_t dim_im_in_x,   	// input image dimension x or W
+							const uint16_t dim_im_in_y,   	// input image dimension y or H
+                            const uint16_t ch_im_in,    	// number of input image channels
+                            const uint16_t dim_kernel_x,  	// window kernel size
+							const uint16_t dim_kernel_y,  	// window kernel size
+                            const uint16_t padding_x, 		// padding sizes
+							const uint16_t padding_y, 		// padding sizes
+                            const uint16_t stride_x,  		// stride
+							const uint16_t stride_y,  		// stride
+                            const uint16_t dim_im_out_x,  	// output image dimension x or W
+							const uint16_t dim_im_out_y,  	// output image dimension y or H
+                            q7_t * bufferA, 				// a buffer for local storage, NULL by now
+                            q7_t * Im_out);
+							
 int32_t local_sumpool_q7_HWC(const q7_t * Im_in, // input image
+                            const uint16_t dim_im_in_x,   	// input image dimension x or W
+							const uint16_t dim_im_in_y,   	// input image dimension y or H
+                            const uint16_t ch_im_in,    	// number of input image channels
+                            const uint16_t dim_kernel_x,  	// window kernel size
+							const uint16_t dim_kernel_y,  	// window kernel size
+                            const uint16_t padding_x, 		// padding sizes
+							const uint16_t padding_y, 		// padding sizes
+                            const uint16_t stride_x,  		// stride
+							const uint16_t stride_y,  		// stride
+                            const uint16_t dim_im_out_x,  	// output image dimension x or W
+							const uint16_t dim_im_out_y,  	// output image dimension y or H
+                            q7_t * bufferA, 				// a buffer for local storage, size = 4*output_size
+                            q7_t * Im_out);
+							
+int32_t local_sumpool_q7_CHW(const q7_t * Im_in, // input image
                             const uint16_t dim_im_in_x,   	// input image dimension x or W
 							const uint16_t dim_im_in_y,   	// input image dimension y or H
                             const uint16_t ch_im_in,    	// number of input image channels
@@ -106,6 +151,17 @@ int32_t local_sumpool_q7_HWC(const q7_t * Im_in, // input image
 
 // customised up sample pooling
 void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
+                          const uint16_t dim_im_in_x,  // input image dimension x or W
+                          const uint16_t dim_im_in_y,  // input image dimension y or H
+                          const uint16_t ch_im_in,     // number of input image channels
+                          const uint16_t dim_kernel_x, // window kernel size
+                          const uint16_t dim_kernel_y, // window kernel size
+                          const uint16_t dim_im_out_x, // output image dimension x or W
+                          const uint16_t dim_im_out_y, // output image dimension y or H
+                          q7_t *bufferA,               // NULL
+                          q7_t *Im_out);
+						  
+void local_up_sampling_q7_CHW(const q7_t *Im_in,       // input image
                           const uint16_t dim_im_in_x,  // input image dimension x or W
                           const uint16_t dim_im_in_y,  // input image dimension y or H
                           const uint16_t ch_im_in,     // number of input image channels
@@ -168,7 +224,31 @@ void local_zero_padding_HWC_q7(const q7_t *Im_in,           // input image
 						 const uint16_t dim_im_out_x,   // output image dimension x
 						 const uint16_t dim_im_out_y);  // output image dimension y 
 						 
+void local_zero_padding_CHW_q7(const q7_t *Im_in,           // input image
+						 const uint16_t dim_im_in_x,    // input image dimention x
+						 const uint16_t dim_im_in_y,    // input image dimention y
+						 const uint16_t ch_im_in,       // number of input image channels
+						 const uint16_t padding_top,    // padding sizes y
+						 const uint16_t padding_bottom, // padding sizes y
+						 const uint16_t padding_left,   // padding sizes x
+						 const uint16_t padding_right,  // padding sizes x
+						 q7_t *Im_out,                  // output image
+						 const uint16_t dim_im_out_x,   // output image dimension x
+						 const uint16_t dim_im_out_y);  // output image dimension y 
+						 
 void local_cropping_HWC_q7(const q7_t *Im_in,           // input image
+						 const uint16_t dim_im_in_x,    // input image dimention x
+						 const uint16_t dim_im_in_y,    // input image dimention y
+						 const uint16_t ch_im_in,       // number of input image channels
+						 const uint16_t padding_top,    // padding sizes y
+						 const uint16_t padding_bottom, // padding sizes y
+						 const uint16_t padding_left,   // padding sizes x
+						 const uint16_t padding_right,  // padding sizes x
+						 q7_t *Im_out,                  // output image
+						 const uint16_t dim_im_out_x,   // output image dimension x
+						 const uint16_t dim_im_out_y);  // output image dimension y 
+						 
+void local_cropping_CHW_q7(const q7_t *Im_in,           // input image
 						 const uint16_t dim_im_in_x,    // input image dimention x
 						 const uint16_t dim_im_in_y,    // input image dimention y
 						 const uint16_t ch_im_in,       // number of input image channels
@@ -295,9 +375,6 @@ static const q7_t nnom_tanh_table_q7[256] = {
     0x9f, 0xa2, 0xa6, 0xaa, 0xaf, 0xb4, 0xb9, 0xbf,
     0xc5, 0xcb, 0xd2, 0xd9, 0xe1, 0xe8, 0xf0, 0xf8,
 };
-
-
-
 
 
 #endif
