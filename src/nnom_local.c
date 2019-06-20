@@ -186,7 +186,7 @@ void local_maxpool_q7_CHW(const q7_t *Im_in,           // input image
                     {
                         if (k_y >= 0 && k_x >= 0 && k_y < dim_im_in_y && k_x < dim_im_in_x)
                         {
-                            if (Im_in[i_ch_in + ch_im_in * (k_x + k_y * dim_im_in_x)] > max)
+                            if (Im_in[i_ch_in * dim_im_in_x * dim_im_in_y + (k_x + k_y * dim_im_in_x)] > max)
                             {
                                 max = Im_in[i_ch_in * dim_im_in_x * dim_im_in_y + (k_x + k_y * dim_im_in_x)];
                             }
@@ -512,23 +512,23 @@ void local_convolve_CHW_q7_nonsquare(const q7_t *Im_in,                         
 #else
                 conv_out = bias[i] << bias_shift;
 #endif
-                for (m = 0; m < dim_kernel_y; m++)
-                {
-                    for (n = 0; n < dim_kernel_x; n++)
-                    {
-                        // if-for implementation
-                        in_row = stride_y * j + m - padding_y;
-                        in_col = stride_x * k + n - padding_x;
-                        if (in_row >= 0 && in_col >= 0 && in_row < dim_im_in_y && in_col < dim_im_in_x)
-                        {
-                            for (l = 0; l < ch_im_in; l++)
-                            {
+				for (m = 0; m < dim_kernel_y; m++)
+				{
+					for (n = 0; n < dim_kernel_x; n++)
+					{
+						// if-for implementation
+						in_row = stride_y * j + m - padding_y;
+						in_col = stride_x * k + n - padding_x;
+						if (in_row >= 0 && in_col >= 0 && in_row < dim_im_in_y && in_col < dim_im_in_x)
+						{
+							for (l = 0; l < ch_im_in; l++)
+							{
 								conv_out += Im_in[(in_row * dim_im_in_x + in_col) + l * dim_im_in_x * dim_im_in_y] *
-									wt[(m * dim_kernel_x + n) * ch_im_in * ch_im_out + l * ch_im_in + i];
-                            }
-                        }
-                    }
-                }
+									wt[(m * dim_kernel_x + n) * ch_im_in * ch_im_out + l * ch_im_out + i];
+							}
+						}
+					}
+				}
                 Im_out[i * dim_im_out_x * dim_im_out_y + (j * dim_im_out_x + k)] = (q7_t)__NNOM_SSAT((conv_out >> out_shift), 8);
             }
         }

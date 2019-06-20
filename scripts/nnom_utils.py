@@ -429,7 +429,8 @@ def generate_model(model, x_test, name='weights.h', format='hwc'):
             # FIXME: add more that could be skiped
             if('lambda' in layer.name or
                'dropout' in layer.name or
-               'batch_normalization' in layer.name): # flatten layer can be skipped in HWC but have to present in CHW
+               'batch_normalization' in layer.name or
+                ('flatten' in layer.name and 'chw' not in format)): # flatten layer can be skipped in HWC but have to present in CHW
                 return True
             return False
         for id,layer in enumerate(L):
@@ -588,7 +589,7 @@ def generate_model(model, x_test, name='weights.h', format='hwc'):
                         id,  cfg['cropping'][0], cfg['cropping'][1], LI[inp][0]))
 
             # others
-            elif('flatten' in layer.name and 'chw' in format): # flatten is needed in CHW backend but not needed in HWC
+            elif('flatten' in layer.name): # flatten is needed in CHW backend but not needed in HWC
                 inp = layer.input.name.replace(':', '/').split('/')[0]
                 fp.write('\tlayer[%s] = model.hook(Flatten(), layer[%s]);\n'%(id, LI[inp][0]))
             elif('concatenate' in layer.name):

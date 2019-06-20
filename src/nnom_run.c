@@ -57,10 +57,11 @@ void hwc2chw_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
 void chw2hwc_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
 {
 	int im_size = shape.w * shape.h;
+	int h_step;
 	
 	for(int h=0; h<shape.h; h++)
 	{
-		int h_step = shape.w * h;
+		h_step = shape.w * h;
 		for(int w=0; w<shape.w; w++)
 		{
 			for(int c=0; c<shape.c; c++)
@@ -70,7 +71,6 @@ void chw2hwc_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
 			}
 		}
 	}
-
 }
 
 nnom_status_t flatten_run(nnom_layer_t *layer)
@@ -246,7 +246,7 @@ nnom_status_t cropping_run(nnom_layer_t * layer)
 	nnom_cropping_layer_t *cl = (nnom_cropping_layer_t*)layer;
 	
 #ifdef NNOM_USING_CHW
-	local_cropping_HWC_q7(
+	local_cropping_CHW_q7(
 #else
 	local_cropping_HWC_q7(
 #endif	
