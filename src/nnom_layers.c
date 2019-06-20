@@ -592,7 +592,11 @@ nnom_layer_t *Flatten(void)
 	layer->comp_out_shape = flatten_out_shape;
 	// set buf state
 	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_NULL;
+	#ifdef NNOM_USING_CHW
+		out->type = LAYER_BUF_TEMP; // test for CHW format
+	#else
+		out->type = LAYER_BUF_NULL; 
+	#endif
 	// put in & out on the layer.
 	layer->in = io_init(layer, in);
 	layer->out = io_init(layer, out);

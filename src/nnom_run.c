@@ -36,8 +36,49 @@ nnom_status_t output_run(nnom_layer_t *layer)
 	memcpy(cl->buf, layer->in->mem->blk, shape_size(&layer->in->shape)); // in->memory -> user memory
 	return NN_SUCCESS;
 }
+
+// pass original shape, in buffer and out buffer
+void hwc2chw_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
+{
+	for(int c=0; c<shape.c; c++)
+	{	
+		for(int h=0; h<shape.h; h++)
+		{
+			for(int w=0; w<shape.w; w++)
+			{
+				*p_out = p_in[(h*shape.w + shape.h)*shape.c + c];	
+				p_out++;
+			}
+		}
+	}
+}
+
+// pass original shape, in buffer and out buffer
+void chw2hwc_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
+{
+	int im_size = shape.w * shape.h;
+	
+	for(int h=0; h<shape.h; h++)
+	{
+		int h_step = shape.w * h;
+		for(int w=0; w<shape.w; w++)
+		{
+			for(int c=0; c<shape.c; c++)
+			{
+				*p_out = p_in[im_size * c + h_step + w];	
+				p_out++;
+			}
+		}
+	}
+
+}
+
 nnom_status_t flatten_run(nnom_layer_t *layer)
 {
+	#ifdef NNOM_USING_CHW
+	// CHW format must reorder to HWC for dense layer and all other 1D layer (?)
+	chw2hwc_q7(layer->in->shape, layer->in->mem->blk, layer->out->mem->blk);
+	#endif
 	// you must be kidding me
 	return NN_SUCCESS;
 }
@@ -76,7 +117,20 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 {
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
 
-#ifdef NNOM_USING_CMSIS_NN
+#ifdef NNOM_USING_CHW
+	// CHW format
+	local_convolve_CHW_q7_nonsquare(
+				layer->in->mem->blk,
+				layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+				cl->weights->p_value, layer->out->shape.c,
+				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
+				cl->bias->p_value, cl->bias_shift, cl->output_shift,
+				layer->out->mem->blk,
+				layer->out->shape.w, layer->out->shape.h, (q15_t *)(layer->comp->mem->blk), NULL);
+	return NN_SUCCESS;
+#else
+	// HWC format
+	#ifdef NNOM_USING_CMSIS_NN
 	//RGB
 	// ch_im_in = 3, w = h
 	if (layer->in->shape.c == 3 && layer->in->shape.h == layer->in->shape.w)
@@ -149,8 +203,8 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 				layer->out->mem->blk,
 				layer->out->shape.w, layer->out->shape.h, (q15_t *)(layer->comp->mem->blk), NULL);
 	}
-// end of cmsis nn
-#else
+	// end of cmsis nn
+	#else
 	// local implementation
 	local_convolve_HWC_q7_nonsquare(
 				layer->in->mem->blk,
@@ -161,7 +215,8 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 				layer->out->mem->blk,
 				layer->out->shape.w, layer->out->shape.h, (q15_t *)(layer->comp->mem->blk), NULL);
 	return NN_SUCCESS;
-#endif
+	#endif
+#endif // end of CHW/HWC
 }
 
 
@@ -169,7 +224,12 @@ nnom_status_t zero_padding_run(nnom_layer_t * layer)
 {
 	nnom_zero_padding_layer_t *cl = (nnom_zero_padding_layer_t*)layer;
 	
-	local_zero_padding_HWC_q7(layer->in->mem->blk, 
+#ifdef NNOM_USING_CHW
+	local_zero_padding_CHW_q7(
+#else
+	local_zero_padding_HWC_q7(
+#endif
+						layer->in->mem->blk, 
 						layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
 						cl->pad.top,
 						cl->pad.bottom,
@@ -185,7 +245,12 @@ nnom_status_t cropping_run(nnom_layer_t * layer)
 {
 	nnom_cropping_layer_t *cl = (nnom_cropping_layer_t*)layer;
 	
-	local_cropping_HWC_q7(layer->in->mem->blk, 
+#ifdef NNOM_USING_CHW
+	local_cropping_HWC_q7(
+#else
+	local_cropping_HWC_q7(
+#endif	
+						layer->in->mem->blk, 
 						layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
 						cl->pad.top,
 						cl->pad.bottom,
@@ -330,7 +395,18 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 {
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)(layer);
 
-#ifdef NNOM_USING_CMSIS_NN
+#ifdef NNOM_USING_CHW
+	local_maxpool_q7_CHW(layer->in->mem->blk, 				
+			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+			cl->kernel.w, cl->kernel.h, 
+			cl->pad.w, cl->pad.h,
+			cl->stride.w, cl->stride.h,
+			layer->out->shape.w, layer->out->shape.h,
+			NULL,
+			layer->out->mem->blk);
+#else //end of CHW
+	// HWC
+	#ifdef NNOM_USING_CMSIS_NN
 	// 2D, square
 	if (layer->in->shape.w == layer->in->shape.h &&
 		layer->out->shape.w == layer->out->shape.h)
@@ -345,7 +421,7 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 	}
 	// none square 2D, or 1D
 	else
-#endif
+	#endif
 	{
 		// CMSIS-NN does not support none-square pooling, we have to use local implementation
 		local_maxpool_q7_HWC(layer->in->mem->blk, 				
@@ -357,15 +433,25 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 				NULL,
 				layer->out->mem->blk);
 	}
-
+#endif // CHW/HWC
 	return NN_SUCCESS;
 }
 
 nnom_status_t avgpool_run(nnom_layer_t *layer)
 {
 	nnom_avgpool_layer_t *cl = (nnom_avgpool_layer_t *)(layer);
-
-#ifdef NNOM_USING_CMSIS_NN
+	
+#ifdef NNOM_USING_CHW
+	local_avepool_q7_CHW(layer->in->mem->blk, 				
+			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+			cl->kernel.w, cl->kernel.h, 
+			cl->pad.w, cl->pad.h,
+			cl->stride.w, cl->stride.h,
+			layer->out->shape.w, layer->out->shape.h,
+			NULL,
+			layer->out->mem->blk);
+#else //end of CHW
+	#ifdef NNOM_USING_CMSIS_NN
 	// 2D, square
 	if (layer->in->shape.w == layer->in->shape.h &&
 		layer->out->shape.w == layer->out->shape.h)
@@ -380,7 +466,7 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 	}
 	// none square 2D, or 1D
 	else
-#endif
+	#endif
 	{
 		// CMSIS-NN does not support none-square pooling, we have to use local implementation
 		local_avepool_q7_HWC(layer->in->mem->blk, 				
@@ -392,7 +478,7 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 				NULL,
 				layer->out->mem->blk);
 	}
-
+#endif
 	return NN_SUCCESS;
 }
 
@@ -400,7 +486,13 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 nnom_status_t sumpool_run(nnom_layer_t *layer)
 {
 	nnom_sumpool_layer_t *cl = (nnom_sumpool_layer_t *)(layer);
-	local_sumpool_q7_HWC(layer->in->mem->blk, 				
+	
+#ifdef NNOM_USING_CHW
+	local_sumpool_q7_CHW(				
+#else
+	local_sumpool_q7_HWC(
+#endif
+			layer->in->mem->blk, 				
 			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
 			cl->kernel.w, cl->kernel.h, 
 			cl->pad.w, cl->pad.h,
@@ -416,7 +508,12 @@ nnom_status_t sumpool_run(nnom_layer_t *layer)
 nnom_status_t upsample_run(nnom_layer_t *layer)
 {
 	nnom_upsample_layer_t *cl = (nnom_upsample_layer_t *)(layer);
-	local_up_sampling_q7_HWC(layer->in->mem->blk, 				
+#ifdef NNOM_USING_CHW
+	local_up_sampling_q7_CHW(				
+#else
+	local_up_sampling_q7_HWC(
+#endif
+			layer->in->mem->blk, 				
 			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
 			cl->kernel.w, cl->kernel.h, 
 			layer->out->shape.w, layer->out->shape.h,
