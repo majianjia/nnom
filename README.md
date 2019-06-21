@@ -1,6 +1,7 @@
 
 # Neural Network on Microcontroller (NNoM)
 [![Build Status](https://travis-ci.org/majianjia/nnom.svg?branch=master)](https://travis-ci.org/majianjia/nnom)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 NNoM is a high-level linference Neural Network library specifically for microcontrollers. 
 
@@ -16,6 +17,8 @@ NNoM is a high-level linference Neural Network library specifically for microcon
 
 The structure of NNoM is shown below:
 ![](docs/figures/nnom_structure.png)
+
+More detail avaialble in [Development Guide](docs/guide_development.md)
 
 Discussions welcome using [issues](https://github.com/majianjia/nnom/issues). Pull request welcome. QQ/TIM group: 763089399.
 
@@ -51,8 +54,6 @@ There is no need to learn TensorFlow/Lite or other libs.
 
 [5 min to NNoM Guide](docs/guide_5_min_to_nnom.md)
 
-[Development Guide](docs/guide_development.md)
-
 [The temporary guide](docs/A_Temporary_Guide_to_NNoM.md)
 
 [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) 
@@ -67,30 +68,33 @@ There is no need to learn TensorFlow/Lite or other libs.
 
 Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) and choose one to start with. 
 
-
 ## Available Operations
+
+[[API Manual]](https://majianjia.github.io/nnom/)
+
+> *Notes: NNoM now supports both HWC and CHW formats. Some operation might not support both format currently. Please check the tables for the current status. *
 
 **Core Layers**
 
-| Layers | Status |Layer API|Comments|
-| ------ |-- |--|--|
-| Convolution  | Beta|Conv2D()|Support 1/2D|
-| Depthwise Conv | Beta|DW_Conv2D()|Support 1/2D|
-| Fully-connected | Beta| Dense()| |
-| Lambda |Alpha| Lambda() |single input / single output anonymous operation| 
-| Batch Normalization |Beta | N/A| This layer is merged to the last Conv by the script|
-| Flatten|Beta | Flatten()| |
-| SoftMax|Beta | SoftMax()| Softmax only has layer API| 
-| Activation|Beta| Activation()|A layer instance for activation|
-| Input/Output |Beta | Input()/Output()| |
-| Up Sampling | Beta|UpSample()||
-| Zero Padding | Beta |ZeroPadding()||
-| Cropping | Beta |Cropping()||
+| Layers |HWC|CHW |Layer API|Comments|
+| ------ |----|---- |------|------|
+| Convolution  |✓|✓|Conv2D()|Support 1/2D|
+| Depthwise Conv |✓|✓|DW_Conv2D()|Support 1/2D|
+| Fully-connected |✓|✓| Dense()| |
+| Lambda |✓|✓| Lambda() |single input / single output anonymous operation| 
+| Batch Normalization |✓| ✓| N/A| This layer is merged to the last Conv by the script|
+| Flatten|✓|✓| Flatten()| |
+| SoftMax|✓|✓| SoftMax()| Softmax only has layer API| 
+| Activation|✓|✓| Activation()|A layer instance for activation|
+| Input/Output |✓|✓| Input()/Output()| |
+| Up Sampling |✓| ✓|UpSample()||
+| Zero Padding | ✓| ✓|ZeroPadding()||
+| Cropping |✓ |✓ |Cropping()||
 
 **RNN Layers**
 
 | Layers | Status |Layer API|Comments|
-| ------ |-- |--|--|
+| ------ | ------ | ------| ------|
 | Recurrent NN | Under Dev.| RNN()| Under Developpment |
 | Simple RNN | Under Dev. | SimpleCell()| Under Developpment |
 | Gated Recurrent Network (GRU)| Under Dev. | GRUCell()| Under Developpment |
@@ -99,31 +103,32 @@ Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) 
 
 Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](docs/A_Temporary_Guide_to_NNoM.md#addictionlly-activation-apis) to reduce memory cost.
 
-| Actrivation | Status |Layer API|Activation API|Comments|
+| Actrivation | HWC| CHW|Layer API|Activation API|Comments|
 | ------ |-- |--|--|--|
-| ReLU  | Beta|ReLU()|act_relu()||
-| TanH | Beta|TanH()|act_tanh()||
-|Sigmoid|Beta| Sigmoid()|act_sigmoid()||
+| ReLU  | ✓|✓|ReLU()|act_relu()||
+| TanH | ✓|✓|TanH()|act_tanh()||
+|Sigmoid|✓|✓| Sigmoid()|act_sigmoid()||
 
 **Pooling Layers**
 
-| Pooling | Status |Layer API|Comments|
-| ------ |-- |--|--|
-| Max Pooling  | Beta|MaxPool()||
-| Average Pooling | Beta|AvgPool()||
-| Sum Pooling | Beta|SumPool()| |
-| Global Max Pooling  | Beta|GlobalMaxPool()||
-| Global Average Pooling | Beta|GlobalAvgPool()||
-| Global Sum Pooling | Beta|GlobalSumPool()|A better alternative to Global average pooling in MCU before Softmax|
+| Pooling | HWC|CHW |Layer API|Comments|
+| ------ |---- |----|----|----|
+| Max Pooling  |✓|✓|MaxPool()||
+| Average Pooling | ✓|✓|AvgPool()||
+| Sum Pooling | ✓|✓|SumPool()| |
+| Global Max Pooling |✓|✓|GlobalMaxPool()||
+| Global Average Pooling |✓|✓|GlobalAvgPool()||
+| Global Sum Pooling |✓|✓|GlobalSumPool()|A better alternative to Global average pooling in MCU before Softmax|
 
 **Matrix Operations Layers**
 
-| Matrix | Status |Layer API|Comments|
-| ------ |-- |--|--|
-| Concatenate | | Concat()| Concatenate through any axis|
-| Multiple  |Beta |Mult()||
-| Addition  | Beta|Add()||
-| Substraction  | Beta|Sub()||
+| Matrix |HWC|CHW|Layer API|Comments|
+| ------ |-- |--|--|--|
+| Concatenate |✓|✓| Concat()| Concatenate through any axis|
+| Multiple  |✓|✓|Mult()||
+| Addition  |✓|✓|Add()||
+| Substraction  |✓|✓|Sub()||
+
 
 ## Dependencies
 
@@ -133,7 +138,7 @@ NNoM now use the local pure C backend implementation by default. Thus, there is 
 ## Optimization
 [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) is an optimized backend for ARM-Cortex-M4/7/33/35P. You can select it for up to 5x performance compared to the default C backend. NNoM will use the equivalent method in CMSIS-NN if the condition met. 
 
-Check [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) for detail. 
+Please check [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) for detail. 
 
 ## Contacts
 Jianjia Ma

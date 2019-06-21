@@ -182,7 +182,7 @@ def fuse_bn_to_conv(layer):
         # after that, the model will be destroyed.. need a better way to pass the new weight
         layer.set_weights([c_w, c_b])
 
-def generate_weights(model, name='weights.h', shift_list=None):
+def generate_weights(model, name='weights.h', format='hwc', shift_list=None):
     # Quantize weights to 8-bits using (min,max) and write to file
     f = open(name, 'w')
     f.close()
@@ -249,19 +249,28 @@ def generate_weights(model, name='weights.h', shift_list=None):
             var_name = var_name.replace(':', '_')
             with open(name, 'a') as f:
                 f.write('#define ' + var_name.upper() + ' {')
-
-            if (len(var_values.shape) == 3):  # 1D convolution layer weights
-                transposed_wts = np.transpose(var_values, (2, 0, 1))
-                #transposed_wts = var_values
-            elif (len(var_values.shape) > 2):  # 2D convolution layer weights
-                transposed_wts = np.transpose(var_values, (3, 0, 1, 2))
-            else:  # fully connected layer weights or biases of any layer
-                # test, use opt weight reorder
+            # CHW format
+            if ('chw' in format):
                 if "dense" in var_name and "kernel" in var_name:
                     transposed_wts = np.transpose(var_values)
-                    transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
+                    transposed_wts = convert_to_x4_q7_weights(
+                        np.reshape(transposed_wts, (transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
+                # all other kernels, bias stay the same
                 else:
-                    transposed_wts = np.transpose(var_values)
+                    transposed_wts = var_values
+            # HWC format
+            else:
+                if (len(var_values.shape) == 3):  # 1D convolution layer weights
+                    transposed_wts = np.transpose(var_values, (2, 0, 1))
+                elif (len(var_values.shape) == 4):  # 2D convolution layer weights
+                    transposed_wts = np.transpose(var_values, (3, 0, 1, 2))
+                else:  # fully connected layer weights or biases of any layer
+                    # test, use opt weight reorder
+                    if "dense" in var_name and "kernel" in var_name:
+                        transposed_wts = np.transpose(var_values)
+                        transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
+                    else:
+                        transposed_wts = np.transpose(var_values)
 
             print("  reshape to:",transposed_wts.shape)
 
@@ -366,9 +375,9 @@ def layers_output_ranges(model, x_test):
     print("shift list", shift_list)
     return shift_list
 
-def generate_model(model, x_test, name='weights.h'):
+def generate_model(model, x_test, name='weights.h', format='hwc'):
     shift_list = layers_output_ranges(model, x_test)
-    generate_weights(model, name=name, shift_list=shift_list)
+    generate_weights(model, name=name, format=format, shift_list=shift_list)
     if(type(model.layers[0]) != InputLayer):
         L = [model.input] + model.layers
     else:
@@ -421,7 +430,7 @@ def generate_model(model, x_test, name='weights.h'):
             if('lambda' in layer.name or
                'dropout' in layer.name or
                'batch_normalization' in layer.name or
-               'flatten' in layer.name):
+                ('flatten' in layer.name and 'chw' not in format)): # flatten layer can be skipped in HWC but have to present in CHW
                 return True
             return False
         for id,layer in enumerate(L):
@@ -477,7 +486,9 @@ def generate_model(model, x_test, name='weights.h'):
                     inshape = layer.input_shape[1:]
                 except:
                     inshape = layer.shape[1:]
-                if (len(inshape) == 2):  # 1-D input
+                if (len(inshape) == 1):  # 1-D input
+                    fp.write('\tlayer[%d] = Input(shape(%d,1,1), nnom_input_data);\n' % (id, inshape[0]))
+                elif (len(inshape) == 2):  # 1-D input
                     fp.write('\tlayer[%d] = Input(shape(1,%d,%d), nnom_input_data);\n' % (id, inshape[0], inshape[1]))
                 else:
                     fp.write('\tlayer[%d] = Input(shape%s, nnom_input_data);\n' % (id, inshape))
@@ -578,6 +589,9 @@ def generate_model(model, x_test, name='weights.h'):
                         id,  cfg['cropping'][0], cfg['cropping'][1], LI[inp][0]))
 
             # others
+            elif('flatten' in layer.name): # flatten is needed in CHW backend but not needed in HWC
+                inp = layer.input.name.replace(':', '/').split('/')[0]
+                fp.write('\tlayer[%s] = model.hook(Flatten(), layer[%s]);\n'%(id, LI[inp][0]))
             elif('concatenate' in layer.name):
                 inps = [input.name.replace(':','/').split('/')[0] for input in layer.input]
                 inX = ''

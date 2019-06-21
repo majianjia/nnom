@@ -45,4 +45,7 @@ nnom_status_t add_run(nnom_layer_t *layer);
 nnom_status_t sub_run(nnom_layer_t *layer);
 nnom_status_t mult_run(nnom_layer_t *layer);
 
+void hwc2chw_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out);
+void chw2hwc_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out);
+
 #endif

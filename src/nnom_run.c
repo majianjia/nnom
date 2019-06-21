@@ -27,7 +27,11 @@
 nnom_status_t input_run(nnom_layer_t *layer)
 {
 	nnom_io_layer_t *cl = (nnom_io_layer_t *)layer;
+#ifdef NNOM_USING_CHW
+	hwc2chw_q7(layer->in->shape, cl->buf, layer->in->mem->blk); // 
+#else
 	memcpy(layer->in->mem->blk, cl->buf, shape_size(&layer->in->shape));
+#endif
 	return NN_SUCCESS;
 }
 nnom_status_t output_run(nnom_layer_t *layer)
@@ -36,8 +40,51 @@ nnom_status_t output_run(nnom_layer_t *layer)
 	memcpy(cl->buf, layer->in->mem->blk, shape_size(&layer->in->shape)); // in->memory -> user memory
 	return NN_SUCCESS;
 }
+
+// change format from CHW to HWC
+// the shape of the data, input data, output data
+void hwc2chw_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
+{
+	for(int c=0; c<shape.c; c++)
+	{	
+		for(int h=0; h<shape.h; h++)
+		{
+			for(int w=0; w<shape.w; w++)
+			{
+				*p_out = p_in[(h*shape.w + w)*shape.c + c];	
+				p_out++;
+			}
+		}
+	}
+}
+
+// change format from CHW to HWC
+// the shape of the data, input data, output data
+void chw2hwc_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
+{
+	int im_size = shape.w * shape.h;
+	int h_step;
+	
+	for(int h=0; h<shape.h; h++)
+	{
+		h_step = shape.w * h;
+		for(int w=0; w<shape.w; w++)
+		{
+			for(int c=0; c<shape.c; c++)
+			{
+				*p_out = p_in[im_size * c + h_step + w];	
+				p_out++;
+			}
+		}
+	}
+}
+
 nnom_status_t flatten_run(nnom_layer_t *layer)
 {
+	#ifdef NNOM_USING_CHW
+	// CHW format must reorder to HWC for dense layer and all other 1D layer (?)
+	chw2hwc_q7(layer->in->shape, layer->in->mem->blk, layer->out->mem->blk);
+	#endif
 	// you must be kidding me
 	return NN_SUCCESS;
 }
@@ -47,15 +94,17 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 	nnom_status_t result = NN_SUCCESS;
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
 
-	// CMSIS-NN only support 1 mulplipier in depthwise conv
-	if (cl->filter_mult != 1 || layer->in->shape.c % 2 != 0 || layer->out->shape.c % 2)
-		return NN_ARGUMENT_ERROR;
-
-	// cmsis-nn dw does not support multiplier, we need to do it by our own
-#ifdef NNOM_USING_CMSIS_NN
-	result = (nnom_status_t)arm_depthwise_separable_conv_HWC_q7_nonsquare(
-#else
-	local_depthwise_separable_conv_HWC_q7_nonsquare(
+#ifdef NNOM_USING_CHW
+	local_depthwise_separable_conv_CHW_q7_nonsquare(
+#else	
+	#ifdef NNOM_USING_CMSIS_NN
+		// CMSIS-NN only support 1 mulplipier in depthwise conv
+		if (cl->filter_mult != 1 || layer->in->shape.c % 2 != 0 || layer->out->shape.c % 2)
+			return NN_ARGUMENT_ERROR;
+		result = (nnom_status_t)arm_depthwise_separable_conv_HWC_q7_nonsquare(
+	#else
+		local_depthwise_separable_conv_HWC_q7_nonsquare(
+	#endif
 #endif
 		layer->in->mem->blk,
 		layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
@@ -76,7 +125,20 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 {
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
 
-#ifdef NNOM_USING_CMSIS_NN
+#ifdef NNOM_USING_CHW
+	// CHW format
+	local_convolve_CHW_q7_nonsquare(
+				layer->in->mem->blk,
+				layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+				cl->weights->p_value, layer->out->shape.c,
+				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
+				cl->bias->p_value, cl->bias_shift, cl->output_shift,
+				layer->out->mem->blk,
+				layer->out->shape.w, layer->out->shape.h, (q15_t *)(layer->comp->mem->blk), NULL);
+	return NN_SUCCESS;
+#else
+	// HWC format
+	#ifdef NNOM_USING_CMSIS_NN
 	//RGB
 	// ch_im_in = 3, w = h
 	if (layer->in->shape.c == 3 && layer->in->shape.h == layer->in->shape.w)
@@ -149,8 +211,8 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 				layer->out->mem->blk,
 				layer->out->shape.w, layer->out->shape.h, (q15_t *)(layer->comp->mem->blk), NULL);
 	}
-// end of cmsis nn
-#else
+	// end of cmsis nn
+	#else
 	// local implementation
 	local_convolve_HWC_q7_nonsquare(
 				layer->in->mem->blk,
@@ -161,7 +223,8 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 				layer->out->mem->blk,
 				layer->out->shape.w, layer->out->shape.h, (q15_t *)(layer->comp->mem->blk), NULL);
 	return NN_SUCCESS;
-#endif
+	#endif
+#endif // end of CHW/HWC
 }
 
 
@@ -169,7 +232,12 @@ nnom_status_t zero_padding_run(nnom_layer_t * layer)
 {
 	nnom_zero_padding_layer_t *cl = (nnom_zero_padding_layer_t*)layer;
 	
-	local_zero_padding_HWC_q7(layer->in->mem->blk, 
+#ifdef NNOM_USING_CHW
+	local_zero_padding_CHW_q7(
+#else
+	local_zero_padding_HWC_q7(
+#endif
+						layer->in->mem->blk, 
 						layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
 						cl->pad.top,
 						cl->pad.bottom,
@@ -185,7 +253,12 @@ nnom_status_t cropping_run(nnom_layer_t * layer)
 {
 	nnom_cropping_layer_t *cl = (nnom_cropping_layer_t*)layer;
 	
-	local_cropping_HWC_q7(layer->in->mem->blk, 
+#ifdef NNOM_USING_CHW
+	local_cropping_CHW_q7(
+#else
+	local_cropping_HWC_q7(
+#endif	
+						layer->in->mem->blk, 
 						layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
 						cl->pad.top,
 						cl->pad.bottom,
@@ -330,7 +403,18 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 {
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)(layer);
 
-#ifdef NNOM_USING_CMSIS_NN
+#ifdef NNOM_USING_CHW
+	local_maxpool_q7_CHW(layer->in->mem->blk, 				
+			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+			cl->kernel.w, cl->kernel.h, 
+			cl->pad.w, cl->pad.h,
+			cl->stride.w, cl->stride.h,
+			layer->out->shape.w, layer->out->shape.h,
+			NULL,
+			layer->out->mem->blk);
+#else //end of CHW
+	// HWC
+	#ifdef NNOM_USING_CMSIS_NN
 	// 2D, square
 	if (layer->in->shape.w == layer->in->shape.h &&
 		layer->out->shape.w == layer->out->shape.h)
@@ -345,7 +429,7 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 	}
 	// none square 2D, or 1D
 	else
-#endif
+	#endif
 	{
 		// CMSIS-NN does not support none-square pooling, we have to use local implementation
 		local_maxpool_q7_HWC(layer->in->mem->blk, 				
@@ -357,15 +441,25 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 				NULL,
 				layer->out->mem->blk);
 	}
-
+#endif // CHW/HWC
 	return NN_SUCCESS;
 }
 
 nnom_status_t avgpool_run(nnom_layer_t *layer)
 {
 	nnom_avgpool_layer_t *cl = (nnom_avgpool_layer_t *)(layer);
-
-#ifdef NNOM_USING_CMSIS_NN
+	
+#ifdef NNOM_USING_CHW
+	local_avepool_q7_CHW(layer->in->mem->blk, 				
+			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+			cl->kernel.w, cl->kernel.h, 
+			cl->pad.w, cl->pad.h,
+			cl->stride.w, cl->stride.h,
+			layer->out->shape.w, layer->out->shape.h,
+			NULL,
+			layer->out->mem->blk);
+#else //end of CHW
+	#ifdef NNOM_USING_CMSIS_NN
 	// 2D, square
 	if (layer->in->shape.w == layer->in->shape.h &&
 		layer->out->shape.w == layer->out->shape.h)
@@ -380,7 +474,7 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 	}
 	// none square 2D, or 1D
 	else
-#endif
+	#endif
 	{
 		// CMSIS-NN does not support none-square pooling, we have to use local implementation
 		local_avepool_q7_HWC(layer->in->mem->blk, 				
@@ -392,7 +486,7 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 				NULL,
 				layer->out->mem->blk);
 	}
-
+#endif
 	return NN_SUCCESS;
 }
 
@@ -400,7 +494,13 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 nnom_status_t sumpool_run(nnom_layer_t *layer)
 {
 	nnom_sumpool_layer_t *cl = (nnom_sumpool_layer_t *)(layer);
-	local_sumpool_q7_HWC(layer->in->mem->blk, 				
+	
+#ifdef NNOM_USING_CHW
+	local_sumpool_q7_CHW(				
+#else
+	local_sumpool_q7_HWC(
+#endif
+			layer->in->mem->blk, 				
 			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
 			cl->kernel.w, cl->kernel.h, 
 			cl->pad.w, cl->pad.h,
@@ -416,7 +516,12 @@ nnom_status_t sumpool_run(nnom_layer_t *layer)
 nnom_status_t upsample_run(nnom_layer_t *layer)
 {
 	nnom_upsample_layer_t *cl = (nnom_upsample_layer_t *)(layer);
-	local_up_sampling_q7_HWC(layer->in->mem->blk, 				
+#ifdef NNOM_USING_CHW
+	local_up_sampling_q7_CHW(				
+#else
+	local_up_sampling_q7_HWC(
+#endif
+			layer->in->mem->blk, 				
 			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
 			cl->kernel.w, cl->kernel.h, 
 			layer->out->shape.w, layer->out->shape.h,
@@ -438,79 +543,95 @@ nnom_status_t softmax_run(nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
+static inline int chw_i(int hwc)
+{
+	hwc = hwc+1;			
+	if(hwc>2) hwc= 0;
+	return hwc;
+}
+
+static inline int hwc_i(int chw)
+{
+	chw = chw -1;			
+	if(chw<0) chw=2;
+	return chw;
+}
+
 nnom_status_t concat_run(nnom_layer_t *layer)
 {
 	// by default, concat layer has mutiple (>=2) input and 1 output.
 	nnom_concat_layer_t *cl = (nnom_concat_layer_t *)layer;
 	nnom_shape_axis_t *out_shape = (nnom_shape_axis_t *)(&layer->out->shape); // get the shape.axis[0,1,2...] access to shape type
 	nnom_shape_axis_t *in_shape;
-	uint32_t offset;
 	nnom_layer_io_t *in;
 
-	// last axis, shape c
-	offset = cl->axis;
-
-	// concat by different axis, TODO, change to nested loop
-	// the concat axis might be different, means that, the block size for each input could be different
-	if (offset == 0)
+#ifdef NNOM_USING_CHW
+	// Concatenate for HWC	
+	uint8_t *pin;
+	uint8_t *pout = layer->out->mem->blk;
+	uint32_t block_size;
+	uint32_t n_block;
+	
+	// calcualte number of block to concat. the other shapes before the concat axis
+	in_shape = (nnom_shape_axis_t*)(&layer->in->shape);
+	n_block = 1;
+	for(int i= 0; i< chw_i(cl->axis); i++)
 	{
-		uint8_t *pin;
-		uint8_t *pout = layer->out->mem->blk;
+		n_block *= in_shape->axis[hwc_i(i)];
+	}
+	
+	// concat all input layers
+	for(int i=0; i<n_block; i++)
+	{
 		in = layer->in;
 		while (in != NULL)
 		{
-			pin = in->mem->blk;
-			memcpy(pout, pin, shape_size(&in->shape));
-			pout += shape_size(&in->shape);
-
+			in_shape = (nnom_shape_axis_t*)(&in->shape);
+			// the block size of concat data in this layer
+			block_size = 1;
+			for(int j= 2; j >= chw_i(cl->axis); j--)
+				block_size *= in_shape->axis[hwc_i(j)];
+			// concat		
+			pin = (uint8_t *)in->mem->blk + i * block_size;
+			memcpy(pout, pin, block_size);
+			pout += block_size;
 			in = in->aux;
 		}
 	}
-	else if (offset == 1)
+	
+#else // end of HWC concate
+	
+	// Concatenate for HWC	
+	uint8_t *pin;
+	uint8_t *pout = layer->out->mem->blk;
+	uint32_t block_size;
+	uint32_t n_block;
+	
+	// calcualte number of block to concat. the other shapes before the concat axis
+	in_shape = (nnom_shape_axis_t*)(&layer->in->shape);
+	n_block = 1;
+	for(int i=0; i< cl->axis; i++)
+		n_block *= in_shape->axis[i];
+	
+	// concat all input layers
+	for(int i=0; i<n_block; i++)
 	{
-		uint8_t *pin;
-		uint8_t *pout = layer->out->mem->blk;
-		uint32_t block_size;
-
-		for (int j = 0; j < out_shape->axis[0]; j++)
+		in = layer->in;
+		while (in != NULL)
 		{
-			in = layer->in;
-			while (in != NULL)
-			{
-				in_shape = (nnom_shape_axis_t*)(&in->shape);
-				block_size = in_shape->axis[2] * in_shape->axis[1];
-				pin = (uint8_t *)in->mem->blk + j * block_size;
-				memcpy(pout, pin, block_size);
-				pout += block_size;
-
-				in = in->aux;
-			}
+			in_shape = (nnom_shape_axis_t*)(&in->shape);
+			// the block size of concat data in this layer
+			block_size = 1;
+			for(int j=cl->axis; j < 3; j++)
+				block_size *= in_shape->axis[j];
+			// concat		
+			pin = (uint8_t *)in->mem->blk + i * block_size;
+			memcpy(pout, pin, block_size);
+			pout += block_size;
+			in = in->aux;
 		}
 	}
-	else if (offset == 2)
-	{
-		uint32_t total_size = 0; 
-		uint8_t *pin;
-		uint8_t *pout = layer->out->mem->blk;
-		uint32_t block_size;
-
-		for (int j = 0; j < out_shape->axis[1] * out_shape->axis[0]; j++)
-		{
-			in = layer->in;
-			while (in != NULL)
-			{
-				in_shape = (nnom_shape_axis_t*)(&in->shape);
-				block_size = in_shape->axis[2];
-				pin = (uint8_t*)in->mem->blk + j * block_size;
-				memcpy(pout, pin, block_size);
-				pout += block_size;
-				total_size += block_size;
-
-				in = in->aux;
-			}
-		}
-	}
-
+#endif
 	return NN_SUCCESS;
 }
 
