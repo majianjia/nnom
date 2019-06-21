@@ -27,7 +27,11 @@
 nnom_status_t input_run(nnom_layer_t *layer)
 {
 	nnom_io_layer_t *cl = (nnom_io_layer_t *)layer;
+#ifdef NNOM_USING_CHW
+	hwc2chw_q7(layer->in->shape, cl->buf, layer->in->mem->blk); // 
+#else
 	memcpy(layer->in->mem->blk, cl->buf, shape_size(&layer->in->shape));
+#endif
 	return NN_SUCCESS;
 }
 nnom_status_t output_run(nnom_layer_t *layer)
@@ -37,7 +41,8 @@ nnom_status_t output_run(nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
-// pass original shape, in buffer and out buffer
+// change format from CHW to HWC
+// the shape of the data, input data, output data
 void hwc2chw_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
 {
 	for(int c=0; c<shape.c; c++)
@@ -46,14 +51,15 @@ void hwc2chw_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
 		{
 			for(int w=0; w<shape.w; w++)
 			{
-				*p_out = p_in[(h*shape.w + shape.h)*shape.c + c];	
+				*p_out = p_in[(h*shape.w + w)*shape.c + c];	
 				p_out++;
 			}
 		}
 	}
 }
 
-// pass original shape, in buffer and out buffer
+// change format from CHW to HWC
+// the shape of the data, input data, output data
 void chw2hwc_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
 {
 	int im_size = shape.w * shape.h;
@@ -88,15 +94,17 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 	nnom_status_t result = NN_SUCCESS;
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
 
-	// CMSIS-NN only support 1 mulplipier in depthwise conv
-	if (cl->filter_mult != 1 || layer->in->shape.c % 2 != 0 || layer->out->shape.c % 2)
-		return NN_ARGUMENT_ERROR;
-
-	// cmsis-nn dw does not support multiplier, we need to do it by our own
-#ifdef NNOM_USING_CMSIS_NN
-	result = (nnom_status_t)arm_depthwise_separable_conv_HWC_q7_nonsquare(
-#else
-	local_depthwise_separable_conv_HWC_q7_nonsquare(
+#ifdef NNOM_USING_CHW
+	local_depthwise_separable_conv_CHW_q7_nonsquare(
+#else	
+	#ifdef NNOM_USING_CMSIS_NN
+		// CMSIS-NN only support 1 mulplipier in depthwise conv
+		if (cl->filter_mult != 1 || layer->in->shape.c % 2 != 0 || layer->out->shape.c % 2)
+			return NN_ARGUMENT_ERROR;
+		result = (nnom_status_t)arm_depthwise_separable_conv_HWC_q7_nonsquare(
+	#else
+		local_depthwise_separable_conv_HWC_q7_nonsquare(
+	#endif
 #endif
 		layer->in->mem->blk,
 		layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
@@ -535,79 +543,95 @@ nnom_status_t softmax_run(nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
+static inline int chw_i(int hwc)
+{
+	hwc = hwc+1;			
+	if(hwc>2) hwc= 0;
+	return hwc;
+}
+
+static inline int hwc_i(int chw)
+{
+	chw = chw -1;			
+	if(chw<0) chw=2;
+	return chw;
+}
+
 nnom_status_t concat_run(nnom_layer_t *layer)
 {
 	// by default, concat layer has mutiple (>=2) input and 1 output.
 	nnom_concat_layer_t *cl = (nnom_concat_layer_t *)layer;
 	nnom_shape_axis_t *out_shape = (nnom_shape_axis_t *)(&layer->out->shape); // get the shape.axis[0,1,2...] access to shape type
 	nnom_shape_axis_t *in_shape;
-	uint32_t offset;
 	nnom_layer_io_t *in;
 
-	// last axis, shape c
-	offset = cl->axis;
-
-	// concat by different axis, TODO, change to nested loop
-	// the concat axis might be different, means that, the block size for each input could be different
-	if (offset == 0)
+#ifdef NNOM_USING_CHW
+	// Concatenate for HWC	
+	uint8_t *pin;
+	uint8_t *pout = layer->out->mem->blk;
+	uint32_t block_size;
+	uint32_t n_block;
+	
+	// calcualte number of block to concat. the other shapes before the concat axis
+	in_shape = (nnom_shape_axis_t*)(&layer->in->shape);
+	n_block = 1;
+	for(int i= 0; i< chw_i(cl->axis); i++)
 	{
-		uint8_t *pin;
-		uint8_t *pout = layer->out->mem->blk;
+		n_block *= in_shape->axis[hwc_i(i)];
+	}
+	
+	// concat all input layers
+	for(int i=0; i<n_block; i++)
+	{
 		in = layer->in;
 		while (in != NULL)
 		{
-			pin = in->mem->blk;
-			memcpy(pout, pin, shape_size(&in->shape));
-			pout += shape_size(&in->shape);
-
+			in_shape = (nnom_shape_axis_t*)(&in->shape);
+			// the block size of concat data in this layer
+			block_size = 1;
+			for(int j= 2; j >= chw_i(cl->axis); j--)
+				block_size *= in_shape->axis[hwc_i(j)];
+			// concat		
+			pin = (uint8_t *)in->mem->blk + i * block_size;
+			memcpy(pout, pin, block_size);
+			pout += block_size;
 			in = in->aux;
 		}
 	}
-	else if (offset == 1)
+	
+#else // end of HWC concate
+	
+	// Concatenate for HWC	
+	uint8_t *pin;
+	uint8_t *pout = layer->out->mem->blk;
+	uint32_t block_size;
+	uint32_t n_block;
+	
+	// calcualte number of block to concat. the other shapes before the concat axis
+	in_shape = (nnom_shape_axis_t*)(&layer->in->shape);
+	n_block = 1;
+	for(int i=0; i< cl->axis; i++)
+		n_block *= in_shape->axis[i];
+	
+	// concat all input layers
+	for(int i=0; i<n_block; i++)
 	{
-		uint8_t *pin;
-		uint8_t *pout = layer->out->mem->blk;
-		uint32_t block_size;
-
-		for (int j = 0; j < out_shape->axis[0]; j++)
+		in = layer->in;
+		while (in != NULL)
 		{
-			in = layer->in;
-			while (in != NULL)
-			{
-				in_shape = (nnom_shape_axis_t*)(&in->shape);
-				block_size = in_shape->axis[2] * in_shape->axis[1];
-				pin = (uint8_t *)in->mem->blk + j * block_size;
-				memcpy(pout, pin, block_size);
-				pout += block_size;
-
-				in = in->aux;
-			}
+			in_shape = (nnom_shape_axis_t*)(&in->shape);
+			// the block size of concat data in this layer
+			block_size = 1;
+			for(int j=cl->axis; j < 3; j++)
+				block_size *= in_shape->axis[j];
+			// concat		
+			pin = (uint8_t *)in->mem->blk + i * block_size;
+			memcpy(pout, pin, block_size);
+			pout += block_size;
+			in = in->aux;
 		}
 	}
-	else if (offset == 2)
-	{
-		uint32_t total_size = 0; 
-		uint8_t *pin;
-		uint8_t *pout = layer->out->mem->blk;
-		uint32_t block_size;
-
-		for (int j = 0; j < out_shape->axis[1] * out_shape->axis[0]; j++)
-		{
-			in = layer->in;
-			while (in != NULL)
-			{
-				in_shape = (nnom_shape_axis_t*)(&in->shape);
-				block_size = in_shape->axis[2];
-				pin = (uint8_t*)in->mem->blk + j * block_size;
-				memcpy(pout, pin, block_size);
-				pout += block_size;
-				total_size += block_size;
-
-				in = in->aux;
-			}
-		}
-	}
-
+#endif
 	return NN_SUCCESS;
 }
 

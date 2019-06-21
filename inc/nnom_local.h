@@ -59,244 +59,265 @@ static inline int __NNOM_USAT(int32_t value, int32_t bit) {
 // https://github.com/ARM-software/CMSIS_5
 //
 void local_avepool_q7_HWC(const q7_t * Im_in, // input image
-                            const uint16_t dim_im_in_x,   	// input image dimension x or W
-							const uint16_t dim_im_in_y,   	// input image dimension y or H
-                            const uint16_t ch_im_in,    	// number of input image channels
-                            const uint16_t dim_kernel_x,  	// window kernel size
-							const uint16_t dim_kernel_y,  	// window kernel size
-                            const uint16_t padding_x, 		// padding sizes
-							const uint16_t padding_y, 		// padding sizes
-                            const uint16_t stride_x,  		// stride
-							const uint16_t stride_y,  		// stride
-                            const uint16_t dim_im_out_x,  	// output image dimension x or W
-							const uint16_t dim_im_out_y,  	// output image dimension y or H
-                            q7_t * bufferA, 				// a buffer for local storage, NULL by now
-                            q7_t * Im_out);
+	const uint16_t dim_im_in_x,   	// input image dimension x or W
+	const uint16_t dim_im_in_y,   	// input image dimension y or H
+	const uint16_t ch_im_in,    	// number of input image channels
+	const uint16_t dim_kernel_x,  	// window kernel size
+	const uint16_t dim_kernel_y,  	// window kernel size
+	const uint16_t padding_x, 		// padding sizes
+	const uint16_t padding_y, 		// padding sizes
+	const uint16_t stride_x,  		// stride
+	const uint16_t stride_y,  		// stride
+	const uint16_t dim_im_out_x,  	// output image dimension x or W
+	const uint16_t dim_im_out_y,  	// output image dimension y or H
+	q7_t * bufferA, 				// a buffer for local storage, NULL by now
+	q7_t * Im_out);
 
 void local_avepool_q7_CHW(const q7_t * Im_in, // input image
-                            const uint16_t dim_im_in_x,   	// input image dimension x or W
-							const uint16_t dim_im_in_y,   	// input image dimension y or H
-                            const uint16_t ch_im_in,    	// number of input image channels
-                            const uint16_t dim_kernel_x,  	// window kernel size
-							const uint16_t dim_kernel_y,  	// window kernel size
-                            const uint16_t padding_x, 		// padding sizes
-							const uint16_t padding_y, 		// padding sizes
-                            const uint16_t stride_x,  		// stride
-							const uint16_t stride_y,  		// stride
-                            const uint16_t dim_im_out_x,  	// output image dimension x or W
-							const uint16_t dim_im_out_y,  	// output image dimension y or H
-                            q7_t * bufferA, 				// a buffer for local storage, NULL by now
-                            q7_t * Im_out);
+	const uint16_t dim_im_in_x,   	// input image dimension x or W
+	const uint16_t dim_im_in_y,   	// input image dimension y or H
+	const uint16_t ch_im_in,    	// number of input image channels
+	const uint16_t dim_kernel_x,  	// window kernel size
+	const uint16_t dim_kernel_y,  	// window kernel size
+	const uint16_t padding_x, 		// padding sizes
+	const uint16_t padding_y, 		// padding sizes
+	const uint16_t stride_x,  		// stride
+	const uint16_t stride_y,  		// stride
+	const uint16_t dim_im_out_x,  	// output image dimension x or W
+	const uint16_t dim_im_out_y,  	// output image dimension y or H
+	q7_t * bufferA, 				// a buffer for local storage, NULL by now
+	q7_t * Im_out);
 
 // modified from CMSIS-NN test_ref                            
 void local_maxpool_q7_HWC(const q7_t * Im_in, 				// input image
-                            const uint16_t dim_im_in_x,   	// input image dimension x or W
-							const uint16_t dim_im_in_y,   	// input image dimension y or H
-                            const uint16_t ch_im_in,    	// number of input image channels
-                            const uint16_t dim_kernel_x,  	// window kernel size
-							const uint16_t dim_kernel_y,  	// window kernel size
-                            const uint16_t padding_x, 		// padding sizes
-							const uint16_t padding_y, 		// padding sizes
-                            const uint16_t stride_x,  		// stride
-							const uint16_t stride_y,  		// stride
-                            const uint16_t dim_im_out_x,  	// output image dimension x or W
-							const uint16_t dim_im_out_y,  	// output image dimension y or H
-                            q7_t * bufferA, 				// a buffer for local storage, NULL by now
-                            q7_t * Im_out);
+	const uint16_t dim_im_in_x,   	// input image dimension x or W
+	const uint16_t dim_im_in_y,   	// input image dimension y or H
+	const uint16_t ch_im_in,    	// number of input image channels
+	const uint16_t dim_kernel_x,  	// window kernel size
+	const uint16_t dim_kernel_y,  	// window kernel size
+	const uint16_t padding_x, 		// padding sizes
+	const uint16_t padding_y, 		// padding sizes
+	const uint16_t stride_x,  		// stride
+	const uint16_t stride_y,  		// stride
+	const uint16_t dim_im_out_x,  	// output image dimension x or W
+	const uint16_t dim_im_out_y,  	// output image dimension y or H
+	q7_t * bufferA, 				// a buffer for local storage, NULL by now
+	q7_t * Im_out);
 
 void local_maxpool_q7_CHW(const q7_t * Im_in, 				// input image
-                            const uint16_t dim_im_in_x,   	// input image dimension x or W
-							const uint16_t dim_im_in_y,   	// input image dimension y or H
-                            const uint16_t ch_im_in,    	// number of input image channels
-                            const uint16_t dim_kernel_x,  	// window kernel size
-							const uint16_t dim_kernel_y,  	// window kernel size
-                            const uint16_t padding_x, 		// padding sizes
-							const uint16_t padding_y, 		// padding sizes
-                            const uint16_t stride_x,  		// stride
-							const uint16_t stride_y,  		// stride
-                            const uint16_t dim_im_out_x,  	// output image dimension x or W
-							const uint16_t dim_im_out_y,  	// output image dimension y or H
-                            q7_t * bufferA, 				// a buffer for local storage, NULL by now
-                            q7_t * Im_out);
+	const uint16_t dim_im_in_x,   	// input image dimension x or W
+	const uint16_t dim_im_in_y,   	// input image dimension y or H
+	const uint16_t ch_im_in,    	// number of input image channels
+	const uint16_t dim_kernel_x,  	// window kernel size
+	const uint16_t dim_kernel_y,  	// window kernel size
+	const uint16_t padding_x, 		// padding sizes
+	const uint16_t padding_y, 		// padding sizes
+	const uint16_t stride_x,  		// stride
+	const uint16_t stride_y,  		// stride
+	const uint16_t dim_im_out_x,  	// output image dimension x or W
+	const uint16_t dim_im_out_y,  	// output image dimension y or H
+	q7_t * bufferA, 				// a buffer for local storage, NULL by now
+	q7_t * Im_out);
 							
 int32_t local_sumpool_q7_HWC(const q7_t * Im_in, // input image
-                            const uint16_t dim_im_in_x,   	// input image dimension x or W
-							const uint16_t dim_im_in_y,   	// input image dimension y or H
-                            const uint16_t ch_im_in,    	// number of input image channels
-                            const uint16_t dim_kernel_x,  	// window kernel size
-							const uint16_t dim_kernel_y,  	// window kernel size
-                            const uint16_t padding_x, 		// padding sizes
-							const uint16_t padding_y, 		// padding sizes
-                            const uint16_t stride_x,  		// stride
-							const uint16_t stride_y,  		// stride
-                            const uint16_t dim_im_out_x,  	// output image dimension x or W
-							const uint16_t dim_im_out_y,  	// output image dimension y or H
-                            q7_t * bufferA, 				// a buffer for local storage, size = 4*output_size
-                            q7_t * Im_out);
+	const uint16_t dim_im_in_x,   	// input image dimension x or W
+	const uint16_t dim_im_in_y,   	// input image dimension y or H
+	const uint16_t ch_im_in,    	// number of input image channels
+	const uint16_t dim_kernel_x,  	// window kernel size
+	const uint16_t dim_kernel_y,  	// window kernel size
+	const uint16_t padding_x, 		// padding sizes
+	const uint16_t padding_y, 		// padding sizes
+	const uint16_t stride_x,  		// stride
+	const uint16_t stride_y,  		// stride
+	const uint16_t dim_im_out_x,  	// output image dimension x or W
+	const uint16_t dim_im_out_y,  	// output image dimension y or H
+	q7_t * bufferA, 				// a buffer for local storage, size = 4*output_size
+	q7_t * Im_out);
 							
 int32_t local_sumpool_q7_CHW(const q7_t * Im_in, // input image
-                            const uint16_t dim_im_in_x,   	// input image dimension x or W
-							const uint16_t dim_im_in_y,   	// input image dimension y or H
-                            const uint16_t ch_im_in,    	// number of input image channels
-                            const uint16_t dim_kernel_x,  	// window kernel size
-							const uint16_t dim_kernel_y,  	// window kernel size
-                            const uint16_t padding_x, 		// padding sizes
-							const uint16_t padding_y, 		// padding sizes
-                            const uint16_t stride_x,  		// stride
-							const uint16_t stride_y,  		// stride
-                            const uint16_t dim_im_out_x,  	// output image dimension x or W
-							const uint16_t dim_im_out_y,  	// output image dimension y or H
-                            q7_t * bufferA, 				// a buffer for local storage, size = 4*output_size
-                            q7_t * Im_out);
+	const uint16_t dim_im_in_x,   	// input image dimension x or W
+	const uint16_t dim_im_in_y,   	// input image dimension y or H
+	const uint16_t ch_im_in,    	// number of input image channels
+	const uint16_t dim_kernel_x,  	// window kernel size
+	const uint16_t dim_kernel_y,  	// window kernel size
+	const uint16_t padding_x, 		// padding sizes
+	const uint16_t padding_y, 		// padding sizes
+	const uint16_t stride_x,  		// stride
+	const uint16_t stride_y,  		// stride
+	const uint16_t dim_im_out_x,  	// output image dimension x or W
+	const uint16_t dim_im_out_y,  	// output image dimension y or H
+	q7_t * bufferA, 				// a buffer for local storage, size = 4*output_size
+	q7_t * Im_out);
 
 // customised up sample pooling
 void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
-                          const uint16_t dim_im_in_x,  // input image dimension x or W
-                          const uint16_t dim_im_in_y,  // input image dimension y or H
-                          const uint16_t ch_im_in,     // number of input image channels
-                          const uint16_t dim_kernel_x, // window kernel size
-                          const uint16_t dim_kernel_y, // window kernel size
-                          const uint16_t dim_im_out_x, // output image dimension x or W
-                          const uint16_t dim_im_out_y, // output image dimension y or H
-                          q7_t *bufferA,               // NULL
-                          q7_t *Im_out);
+	const uint16_t dim_im_in_x,  // input image dimension x or W
+	const uint16_t dim_im_in_y,  // input image dimension y or H
+	const uint16_t ch_im_in,     // number of input image channels
+	const uint16_t dim_kernel_x, // window kernel size
+	const uint16_t dim_kernel_y, // window kernel size
+	const uint16_t dim_im_out_x, // output image dimension x or W
+	const uint16_t dim_im_out_y, // output image dimension y or H
+	q7_t *bufferA,               // NULL
+	q7_t *Im_out);
 						  
 void local_up_sampling_q7_CHW(const q7_t *Im_in,       // input image
-                          const uint16_t dim_im_in_x,  // input image dimension x or W
-                          const uint16_t dim_im_in_y,  // input image dimension y or H
-                          const uint16_t ch_im_in,     // number of input image channels
-                          const uint16_t dim_kernel_x, // window kernel size
-                          const uint16_t dim_kernel_y, // window kernel size
-                          const uint16_t dim_im_out_x, // output image dimension x or W
-                          const uint16_t dim_im_out_y, // output image dimension y or H
-                          q7_t *bufferA,               // NULL
-                          q7_t *Im_out);
+	const uint16_t dim_im_in_x,  // input image dimension x or W
+	const uint16_t dim_im_in_y,  // input image dimension y or H
+	const uint16_t ch_im_in,     // number of input image channels
+	const uint16_t dim_kernel_x, // window kernel size
+	const uint16_t dim_kernel_y, // window kernel size
+	const uint16_t dim_im_out_x, // output image dimension x or W
+	const uint16_t dim_im_out_y, // output image dimension y or H
+	q7_t *bufferA,               // NULL
+	q7_t *Im_out);
 
 void local_convolve_HWC_q7_nonsquare(const q7_t * Im_in,            // input image
-                                       const uint16_t dim_im_in_x,  // input image dimention x
-                                       const uint16_t dim_im_in_y,  // input image dimention y
-                                       const uint16_t ch_im_in,     // number of input image channels
-                                       const q7_t * wt,             // kernel weights 
-                                       const uint16_t ch_im_out,    // number of filters, i.e., output image channels
-                                       const uint16_t dim_kernel_x, // filter kernel size x
-                                       const uint16_t dim_kernel_y, // filter kernel size y
-                                       const uint16_t padding_x,    // padding sizes x
-                                       const uint16_t padding_y,    // padding sizes y
-                                       const uint16_t stride_x,     // stride x
-                                       const uint16_t stride_y,     // stride y
-                                       const q7_t * bias,           // bias
-                                       const uint16_t bias_shift, const uint16_t out_shift, q7_t * Im_out,  // output image
-                                       const uint16_t dim_im_out_x, // output image dimension x
-                                       const uint16_t dim_im_out_y, // output image dimension y
-                                       q15_t * bufferA,             //buffer space for input
-                                       q7_t * bufferB);             //buffer space for output
+	const uint16_t dim_im_in_x,  // input image dimention x
+	const uint16_t dim_im_in_y,  // input image dimention y
+	const uint16_t ch_im_in,     // number of input image channels
+	const q7_t * wt,             // kernel weights 
+	const uint16_t ch_im_out,    // number of filters, i.e., output image channels
+	const uint16_t dim_kernel_x, // filter kernel size x
+	const uint16_t dim_kernel_y, // filter kernel size y
+	const uint16_t padding_x,    // padding sizes x
+	const uint16_t padding_y,    // padding sizes y
+	const uint16_t stride_x,     // stride x
+	const uint16_t stride_y,     // stride y
+	const q7_t * bias,           // bias
+	const uint16_t bias_shift, const uint16_t out_shift, q7_t * Im_out,  // output image
+	const uint16_t dim_im_out_x, // output image dimension x
+	const uint16_t dim_im_out_y, // output image dimension y
+	q15_t * bufferA,             //buffer space for input
+	q7_t * bufferB);             //buffer space for output
 									   
 void local_convolve_CHW_q7_nonsquare(const q7_t * Im_in,            // input image
-                                       const uint16_t dim_im_in_x,  // input image dimention x
-                                       const uint16_t dim_im_in_y,  // input image dimention y
-                                       const uint16_t ch_im_in,     // number of input image channels
-                                       const q7_t * wt,             // kernel weights 
-                                       const uint16_t ch_im_out,    // number of filters, i.e., output image channels
-                                       const uint16_t dim_kernel_x, // filter kernel size x
-                                       const uint16_t dim_kernel_y, // filter kernel size y
-                                       const uint16_t padding_x,    // padding sizes x
-                                       const uint16_t padding_y,    // padding sizes y
-                                       const uint16_t stride_x,     // stride x
-                                       const uint16_t stride_y,     // stride y
-                                       const q7_t * bias,           // bias
-                                       const uint16_t bias_shift, const uint16_t out_shift, q7_t * Im_out,  // output image
-                                       const uint16_t dim_im_out_x, // output image dimension x
-                                       const uint16_t dim_im_out_y, // output image dimension y
-                                       q15_t * bufferA,             //buffer space for input
-                                       q7_t * bufferB);             //buffer space for output
+	const uint16_t dim_im_in_x,  // input image dimention x
+	const uint16_t dim_im_in_y,  // input image dimention y
+	const uint16_t ch_im_in,     // number of input image channels
+	const q7_t * wt,             // kernel weights 
+	const uint16_t ch_im_out,    // number of filters, i.e., output image channels
+	const uint16_t dim_kernel_x, // filter kernel size x
+	const uint16_t dim_kernel_y, // filter kernel size y
+	const uint16_t padding_x,    // padding sizes x
+	const uint16_t padding_y,    // padding sizes y
+	const uint16_t stride_x,     // stride x
+	const uint16_t stride_y,     // stride y
+	const q7_t * bias,           // bias
+	const uint16_t bias_shift, const uint16_t out_shift, q7_t * Im_out,  // output image
+	const uint16_t dim_im_out_x, // output image dimension x
+	const uint16_t dim_im_out_y, // output image dimension y
+	q15_t * bufferA,             //buffer space for input
+	q7_t * bufferB);             //buffer space for output
 
 void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t * Im_in,  // input image
-                                                       const uint16_t dim_im_in_x,  // input image dimention x
-                                                       const uint16_t dim_im_in_y,  // input image dimention y
-                                                       const uint16_t ch_im_in, // number of input image channels
-                                                       const q7_t * wt, // kernel weights 
-                                                       const uint16_t ch_im_out,    // number of filters, i.e., output image channels
-                                                       const uint16_t dim_kernel_x, // filter kernel size x
-                                                       const uint16_t dim_kernel_y, // filter kernel size y
-                                                       const uint16_t padding_x,    // padding sizes x
-                                                       const uint16_t padding_y,    // padding sizes y
-                                                       const uint16_t stride_x, // stride x
-                                                       const uint16_t stride_y, // stride y
-                                                       const q7_t * bias,   // bias
-                                                       const uint16_t bias_shift,   // amount of left-shift for bias
-                                                       const uint16_t out_shift,    // amount of right-shift for output
-                                                       q7_t * Im_out,   // output image
-                                                       const uint16_t dim_im_out_x, // output image dimension x
-                                                       const uint16_t dim_im_out_y, // output image dimension y
-                                                       q15_t * bufferA, //buffer space for input
-                                                       q7_t * bufferB);   //buffer space for output
+	const uint16_t dim_im_in_x,  // input image dimention x
+	const uint16_t dim_im_in_y,  // input image dimention y
+	const uint16_t ch_im_in, // number of input image channels
+	const q7_t * wt, // kernel weights 
+	const uint16_t ch_im_out,    // number of filters, i.e., output image channels
+	const uint16_t dim_kernel_x, // filter kernel size x
+	const uint16_t dim_kernel_y, // filter kernel size y
+	const uint16_t padding_x,    // padding sizes x
+	const uint16_t padding_y,    // padding sizes y
+	const uint16_t stride_x, // stride x
+	const uint16_t stride_y, // stride y
+	const q7_t * bias,   // bias
+	const uint16_t bias_shift,   // amount of left-shift for bias
+	const uint16_t out_shift,    // amount of right-shift for output
+	q7_t * Im_out,   // output image
+	const uint16_t dim_im_out_x, // output image dimension x
+	const uint16_t dim_im_out_y, // output image dimension y
+	q15_t * bufferA, //buffer space for input
+	q7_t * bufferB);   //buffer space for output
+													   
+void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,           // input image
+	const uint16_t dim_im_in_x,  // input image dimention x
+	const uint16_t dim_im_in_y,  // input image dimention y
+	const uint16_t ch_im_in,     // number of input image channels
+	const q7_t *wt,              // kernel weights
+	const uint16_t ch_im_out,    // number of filters, i.e., output image channels
+	const uint16_t dim_kernel_x, // filter kernel size x
+	const uint16_t dim_kernel_y, // filter kernel size y
+	const uint16_t padding_x,    // padding sizes x
+	const uint16_t padding_y,    // padding sizes y
+	const uint16_t stride_x,     // stride x
+	const uint16_t stride_y,     // stride y
+	const q7_t *bias,            // bias
+	const uint16_t bias_shift,   // amount of left-shift for bias
+	const uint16_t out_shift,    // amount of right-shift for output
+	q7_t *Im_out,                // output image
+	const uint16_t dim_im_out_x, // output image dimension x
+	const uint16_t dim_im_out_y, // output image dimension y
+	q15_t *bufferA,              //buffer space for input
+	q7_t *bufferB);                //buffer space for output
 
 void local_zero_padding_HWC_q7(const q7_t *Im_in,           // input image
-						 const uint16_t dim_im_in_x,    // input image dimention x
-						 const uint16_t dim_im_in_y,    // input image dimention y
-						 const uint16_t ch_im_in,       // number of input image channels
-						 const uint16_t padding_top,    // padding sizes y
-						 const uint16_t padding_bottom, // padding sizes y
-						 const uint16_t padding_left,   // padding sizes x
-						 const uint16_t padding_right,  // padding sizes x
-						 q7_t *Im_out,                  // output image
-						 const uint16_t dim_im_out_x,   // output image dimension x
-						 const uint16_t dim_im_out_y);  // output image dimension y 
+	const uint16_t dim_im_in_x,    // input image dimention x
+	const uint16_t dim_im_in_y,    // input image dimention y
+	const uint16_t ch_im_in,       // number of input image channels
+	const uint16_t padding_top,    // padding sizes y
+	const uint16_t padding_bottom, // padding sizes y
+	const uint16_t padding_left,   // padding sizes x
+	const uint16_t padding_right,  // padding sizes x
+	q7_t *Im_out,                  // output image
+	const uint16_t dim_im_out_x,   // output image dimension x
+	const uint16_t dim_im_out_y);  // output image dimension y 
 						 
 void local_zero_padding_CHW_q7(const q7_t *Im_in,           // input image
-						 const uint16_t dim_im_in_x,    // input image dimention x
-						 const uint16_t dim_im_in_y,    // input image dimention y
-						 const uint16_t ch_im_in,       // number of input image channels
-						 const uint16_t padding_top,    // padding sizes y
-						 const uint16_t padding_bottom, // padding sizes y
-						 const uint16_t padding_left,   // padding sizes x
-						 const uint16_t padding_right,  // padding sizes x
-						 q7_t *Im_out,                  // output image
-						 const uint16_t dim_im_out_x,   // output image dimension x
-						 const uint16_t dim_im_out_y);  // output image dimension y 
+	const uint16_t dim_im_in_x,    // input image dimention x
+	const uint16_t dim_im_in_y,    // input image dimention y
+	const uint16_t ch_im_in,       // number of input image channels
+	const uint16_t padding_top,    // padding sizes y
+	const uint16_t padding_bottom, // padding sizes y
+	const uint16_t padding_left,   // padding sizes x
+	const uint16_t padding_right,  // padding sizes x
+	q7_t *Im_out,                  // output image
+	const uint16_t dim_im_out_x,   // output image dimension x
+	const uint16_t dim_im_out_y);  // output image dimension y 
 						 
 void local_cropping_HWC_q7(const q7_t *Im_in,           // input image
-						 const uint16_t dim_im_in_x,    // input image dimention x
-						 const uint16_t dim_im_in_y,    // input image dimention y
-						 const uint16_t ch_im_in,       // number of input image channels
-						 const uint16_t padding_top,    // padding sizes y
-						 const uint16_t padding_bottom, // padding sizes y
-						 const uint16_t padding_left,   // padding sizes x
-						 const uint16_t padding_right,  // padding sizes x
-						 q7_t *Im_out,                  // output image
-						 const uint16_t dim_im_out_x,   // output image dimension x
-						 const uint16_t dim_im_out_y);  // output image dimension y 
+	const uint16_t dim_im_in_x,    // input image dimention x
+	const uint16_t dim_im_in_y,    // input image dimention y
+	const uint16_t ch_im_in,       // number of input image channels
+	const uint16_t padding_top,    // padding sizes y
+	const uint16_t padding_bottom, // padding sizes y
+	const uint16_t padding_left,   // padding sizes x
+	const uint16_t padding_right,  // padding sizes x
+	q7_t *Im_out,                  // output image
+	const uint16_t dim_im_out_x,   // output image dimension x
+	const uint16_t dim_im_out_y);  // output image dimension y 
 						 
 void local_cropping_CHW_q7(const q7_t *Im_in,           // input image
-						 const uint16_t dim_im_in_x,    // input image dimention x
-						 const uint16_t dim_im_in_y,    // input image dimention y
-						 const uint16_t ch_im_in,       // number of input image channels
-						 const uint16_t padding_top,    // padding sizes y
-						 const uint16_t padding_bottom, // padding sizes y
-						 const uint16_t padding_left,   // padding sizes x
-						 const uint16_t padding_right,  // padding sizes x
-						 q7_t *Im_out,                  // output image
-						 const uint16_t dim_im_out_x,   // output image dimension x
-						 const uint16_t dim_im_out_y);  // output image dimension y 
+	const uint16_t dim_im_in_x,    // input image dimention x
+	const uint16_t dim_im_in_y,    // input image dimention y
+	const uint16_t ch_im_in,       // number of input image channels
+	const uint16_t padding_top,    // padding sizes y
+	const uint16_t padding_bottom, // padding sizes y
+	const uint16_t padding_left,   // padding sizes x
+	const uint16_t padding_right,  // padding sizes x
+	q7_t *Im_out,                  // output image
+	const uint16_t dim_im_out_x,   // output image dimension x
+	const uint16_t dim_im_out_y);  // output image dimension y 
 
 void local_fully_connected_q7_opt(const q7_t * pV,    // pointer to vector
-                                    const q7_t * pM,    // pointer to matrix
-                                    const uint16_t dim_vec, // length of the vector
-                                    const uint16_t num_of_rows, // numCol of A
-                                    const uint16_t bias_shift,  // amount of left-shift for bias
-                                    const uint16_t out_shift,   // amount of right-shift for output
-                                    const q7_t * bias, q7_t * pOut, // output operand
-                                    q15_t * vec_buffer);
+	const q7_t * pM,    // pointer to matrix
+	const uint16_t dim_vec, // length of the vector
+	const uint16_t num_of_rows, // numCol of A
+	const uint16_t bias_shift,  // amount of left-shift for bias
+	const uint16_t out_shift,   // amount of right-shift for output
+	const q7_t * bias, q7_t * pOut, // output operand
+	q15_t * vec_buffer);
 
 
 void local_fully_connected_q7(const q7_t * pV,    // pointer to vector
-                                const q7_t * pM,    // pointer to matrix
-                                const uint16_t dim_vec, // length of the vector
-                                const uint16_t num_of_rows, // numCol of A
-                                const uint16_t bias_shift,  // amount of left-shift for bias
-                                const uint16_t out_shift,   // amount of right-shift for output
-                                const q7_t * bias, q7_t * pOut, // output operand
-                                q15_t * vec_buffer);
+	const q7_t * pM,    // pointer to matrix
+	const uint16_t dim_vec, // length of the vector
+	const uint16_t num_of_rows, // numCol of A
+	const uint16_t bias_shift,  // amount of left-shift for bias
+	const uint16_t out_shift,   // amount of right-shift for output
+	const q7_t * bias, q7_t * pOut, // output operand
+	q15_t * vec_buffer);
 
 
 // softmax

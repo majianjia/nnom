@@ -731,7 +731,9 @@ nnom_layer_t *Concat(int8_t axis)
 		uint32_t shape_element_num = sizeof(nnom_shape_t) / sizeof(nnom_shape_data_t);
 		if (axis < 0)
 			axis = (shape_element_num + axis);
-		layer->axis = axis;
+		else if (axis >0)
+			axis = axis -1; // keras use axis start from 1. we are using 0, 1, 2 (check?)
+		layer->axis = axis; 
 	}
 
 	return (nnom_layer_t *)layer;
