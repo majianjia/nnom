@@ -18,6 +18,7 @@ nnom_layer_t* Input(nnom_shape_t input_shape, * p_buf);
 ~~~
 
 **A model must start with a Input layer** to copy input data from user memory space to NNoM memory space. 
+If NNoM is set to CHW format, the Input layer will also change the input format from HWC (regular store format for image in memory) to CHW during copying. 
 
 **Arguments**
 

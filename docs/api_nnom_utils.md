@@ -15,7 +15,7 @@ Tutorial is comming, before it arrives, please refer to [examples](https://githu
 ## generate_model()
 
 ~~~python
-generate_model(model, x_test, name='weights.h')
+generate_model(model, x_test, name='weights.h', format='hwc')
 ~~~
 
 **This is all you need**
@@ -31,11 +31,15 @@ This method is the most frequently used function for deployment.
 - **model:** the trained Keras model
 - **x_test:** the dataset used to check the output range of each layer.  
 - **name:** the name of the automatically generated c file. 
+- **format:** indicate the backend format, options between `'hwc'` and `'chw'`. See notes
 
 **Notes**
 
 - This method might not be updated from time to time with new features in NNoM. 
 - Currently, only support single input, single output models. 
+- The default backend format is set to 'hwc', also call 'channel last', which is the same format as CMSIS-NN. This format is optimal for CPU. 
+'chw' format, call 'channel first', is for MCU with hardware AI accelerator (such as [Kendryte K210](https://kendryte.com/)).
+This setting only affects the format in the backend. the frontend will always use 'HWC' for data shape. 
 
 ---
 
@@ -65,7 +69,7 @@ This function is to check the output range and generate the output shifting list
 ## generate_weights()
 
 ~~~python
-generate_weights(model, name='weights.h', shift_list=None)
+generate_weights(model, name='weights.h', format='hwc', shift_list=None)
 ~~~
 
 Scans all the layer which includes weights, quantise the weights and put them into the c header.
@@ -75,6 +79,7 @@ Scans all the layer which includes weights, quantise the weights and put them in
 - **model:** the trained Keras model
 - **name:** the c file name to store weigths.
 - **shift_list:** the shift list returned by `layers_output_ranges(model, x_test)`
+- **format:** indicate the backend format, options between `'hwc'` and `'chw'`. See notes in [generate_model()](#generate_model)
 
 **Notes**
 

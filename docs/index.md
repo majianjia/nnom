@@ -1,6 +1,7 @@
 # Neural Network on Microcontroller (NNoM)
 
 [![Build Status](https://travis-ci.org/majianjia/nnom.svg?branch=master)](https://travis-ci.org/majianjia/nnom)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 NNoM is a high-level inference Neural Network library specifically for microcontrollers. 
 
@@ -16,6 +17,8 @@ NNoM is a high-level inference Neural Network library specifically for microcont
 
 The structure of NNoM is shown below:
 ![](figures/nnom_structure.png)
+
+More detail avaialble in [Development Guide](guide_development.md)
 
 ## Licenses
 

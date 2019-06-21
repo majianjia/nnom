@@ -1,6 +1,7 @@
 
 # Neural Network on Microcontroller (NNoM)
 [![Build Status](https://travis-ci.org/majianjia/nnom.svg?branch=master)](https://travis-ci.org/majianjia/nnom)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 NNoM is a high-level linference Neural Network library specifically for microcontrollers. 
 
@@ -16,6 +17,8 @@ NNoM is a high-level linference Neural Network library specifically for microcon
 
 The structure of NNoM is shown below:
 ![](docs/figures/nnom_structure.png)
+
+More detail avaialble in [Development Guide](docs/guide_development.md)
 
 Discussions welcome using [issues](https://github.com/majianjia/nnom/issues). Pull request welcome. QQ/TIM group: 763089399.
 
@@ -51,8 +54,6 @@ There is no need to learn TensorFlow/Lite or other libs.
 
 [5 min to NNoM Guide](docs/guide_5_min_to_nnom.md)
 
-[Development Guide](docs/guide_development.md)
-
 [The temporary guide](docs/A_Temporary_Guide_to_NNoM.md)
 
 [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) 
@@ -68,6 +69,8 @@ There is no need to learn TensorFlow/Lite or other libs.
 Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) and choose one to start with. 
 
 ## Available Operations
+
+[[API Manual]](https://majianjia.github.io/nnom/)
 
 > *Notes: NNoM now supports both HWC and CHW formats. Some operation might not support both format currently. Please check the tables for the current status. *
 
@@ -109,7 +112,7 @@ Activation can be used by itself as layer, or can be attached to the previous la
 **Pooling Layers**
 
 | Pooling | HWC|CHW |Layer API|Comments|
-| ------ |-- |--|--|--|
+| ------ |---- |----|----|----|
 | Max Pooling  |✓|✓|MaxPool()||
 | Average Pooling | ✓|✓|AvgPool()||
 | Sum Pooling | ✓|✓|SumPool()| |
@@ -121,7 +124,7 @@ Activation can be used by itself as layer, or can be attached to the previous la
 
 | Matrix |HWC|CHW|Layer API|Comments|
 | ------ |-- |--|--|--|
-| Concatenate |✓|| Concat()| Concatenate through any axis|
+| Concatenate |✓|✓| Concat()| Concatenate through any axis|
 | Multiple  |✓|✓|Mult()||
 | Addition  |✓|✓|Add()||
 | Substraction  |✓|✓|Sub()||
@@ -135,7 +138,7 @@ NNoM now use the local pure C backend implementation by default. Thus, there is 
 ## Optimization
 You can select [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. 
 
-Check [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) for detail. 
+Please check [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) for detail. 
 
 ## Contacts
 Jianjia Ma
