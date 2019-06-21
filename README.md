@@ -104,7 +104,7 @@ Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) 
 Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](docs/A_Temporary_Guide_to_NNoM.md#addictionlly-activation-apis) to reduce memory cost.
 
 | Actrivation | HWC| CHW|Layer API|Activation API|Comments|
-| ------ |-- |--|--|--|
+| ------ |-- |--|--|--|--|
 | ReLU  | ✓|✓|ReLU()|act_relu()||
 | TanH | ✓|✓|TanH()|act_tanh()||
 |Sigmoid|✓|✓| Sigmoid()|act_sigmoid()||
@@ -112,11 +112,11 @@ Activation can be used by itself as layer, or can be attached to the previous la
 **Pooling Layers**
 
 | Pooling | HWC|CHW |Layer API|Comments|
-| ------ |---- |----|----|----|
-| Max Pooling  |✓|✓|MaxPool()||
-| Average Pooling | ✓|✓|AvgPool()||
-| Sum Pooling | ✓|✓|SumPool()| |
-| Global Max Pooling |✓|✓|GlobalMaxPool()||
+| ------ |----|----|----|----|
+| Max Pooling |✓|✓|MaxPool()||
+| Average Pooling |✓|✓|AvgPool()||
+| Sum Pooling |✓|✓|SumPool()||
+| Global Max Pooling|✓|✓|GlobalMaxPool()||
 | Global Average Pooling |✓|✓|GlobalAvgPool()||
 | Global Sum Pooling |✓|✓|GlobalSumPool()|A better alternative to Global average pooling in MCU before Softmax|
 
