@@ -249,8 +249,7 @@ For example, the accelerometer data consist of 3-axis (channel) measurement per 
 <p>Building an ad-hoc model is sooo easy with NNoM since most of the codes are automatically generated. </p>
 <h3 id="what-can-nnom-provide-to-embedded-engineers">What can NNoM provide to embedded engineers?</h3>
 <p>It provides an <strong>easy to use</strong> and <strong>easy to evaluate</strong> inference tools for fast neural network development. </p>
-<p>As embedded engineers, we might not know well how does neural network work and how can we optimize it for the MCU. </p>
-<p>NNoM together with Keras can help you to start practising within half an hour. There is no need to learn other ML libs from scratch. Deployment can be done with one line of python code after you have trained a model using Keras. </p>
+<p>As embedded engineers, we might not know well how does neural network work and how can we optimize it for the MCU. NNoM together with Keras can help you to start practising within half an hour. There is no need to learn other ML libs from scratch. Deployment can be done with one line of python code after you have trained a model using Keras. </p>
 <p>Other than building a model, NNoM also provides a set of evaluation methods. These evaluation methods will give the developer a layer-to-layer performance evaluation of the model. </p>
 <p>Developers can then modify the ad-hoc model to increase efficiency or to lower the memory cost. 
 (Please check the following Performance sections for detail.)</p>
@@ -270,6 +269,7 @@ Please check the <a href="../Porting_and_Optimisation_Guide/">optimization guide
 <h2 id="quantisation">Quantisation</h2>
 <p>NNoM currently only support 8bit weights and 8bit activations. The model will be quantised through model conversion <code>generate_model(model, x_test, name='weights.h')</code>. </p>
 <p>The input data (activations) will need to be quantised then feed to the model. </p>
+<p>Please see any example for quantising the input data.</p>
 <hr />
 <h2 id="optimization">Optimization</h2>
 <p>The CMSIS-NN can provide up to 5 times performance compared to the pure C backend on Cortex-M MCUs. It maximises the performance by using SIMD and other instructions(__SSAT, ...).</p>
@@ -307,7 +307,7 @@ Some of them can be further optimized by square shape, however, the optimization
 <blockquote>
 <p>Trick, if you keep the channel size is a multiple of 4, it should work in most of the case.</p>
 </blockquote>
-<p>If you are not sure whether the optimization is working, simply us the <code>model_stat()</code> in <a href="../api_evaluation/">Evaluation API</a> to print the performance of each layer. The comparison will be shown in the following sections.  </p>
+<p>If you are not sure whether the optimization is working, simply use the <code>model_stat()</code> in <a href="../api_evaluation/">Evaluation API</a> to print the performance of each layer. The comparison will be shown in the following sections.  </p>
 <p>Fully connected layers and pooling layers are less constrained. </p>
 <hr />
 <h2 id="performance">Performance</h2>
@@ -385,13 +385,13 @@ It simply means how many MAC can be done in one cycle. </p>
 </blockquote>
 <p>In the table, layer 3 and 5 are both Convolution layer with input and output channel size equal to a multiple of 4. Layer 1 with input channel = 3. </p>
 <p>You can already see the efficiency difference. When input channel = 3, the convolution is performed by <code>arm_convolve_HWC_q7_RGB()</code>. This method is partially optimized since the input channel is not a multiple of 4, While Layer 3 and layer 5 are fully optimized. The efficiency difference is already huge (<code>0.36</code> vs <code>0.71/0.68</code>). </p>
-<p>To achieve high efficiency, you should keep both input channel = a multiple of 4 and output is a multiple of 2. </p>
-<p>What does this number mean? You can estimate your runtime while designing your ad-hoc model. </p>
+<p>To achieve high efficiency, you should keep both input channel is a multiple of 4 and output is a multiple of 2. </p>
+<p>What does this number mean? You can use this number to estimate the best size of the model to fit the targeting MCU. </p>
 <p>In typical applications:</p>
 <p><a href="https://github.com/majianjia/nnom/tree/master/examples/uci-inception">Use motion sensor to recognise human activity</a>. A model takes <code>9</code> channels time sequence data, <code>0.67M MACops</code>, STM32F746 will take around <code>0.67M/0.58/216MHz = 5.3ms</code> to do one inference. </p>
 <p><a href="https://github.com/majianjia/nnom/tree/master/examples/keyword_spotting">Use microphone to spot key-word commands</a>. A model takes <code>63 x 12 x 1</code> MFCC data, <code>2.09M MACops</code>, STM32F746 will take around <code>2.09M/0.58/216MHz = 16.7ms</code> to do one inference. </p>
 <blockquote>
-<p><em>Notes, MACops/Hz in NNoM is less than the CMSIS-NN in the paper, this is because NNoM considers the operator and its following activation as one single layer. For example, the running time cost by the convolution layer is can be the time cost by <code>operator(Conv) + activation(ReLU)</code>.</em></p>
+<p><em>Notes, MACops/Hz in NNoM is less than the CMSIS-NN in the paper, this is because NNoM considers the operator and its following activation as one single layer. For example, the running time cost by the convolution layer is the time cost by <code>operator(Conv)</code> +  the time cost by <code>activation(ReLU)</code>.</em></p>
 </blockquote>
 <hr />
 <h2 id="evaluations">Evaluations</h2>
@@ -400,9 +400,9 @@ It simply means how many MAC can be done in one cycle. </p>
 If your system support print through a console (such as serial port), the evaluation can be printed on the console. </p>
 <p>Firstly, the model structure is printed during compiling in <code>model_compile()</code>, which is normally called in <code>nnom_model_create()</code>.</p>
 <p>Secondly, the runtime performance is printed by <code>model_stat()</code>.</p>
-<p>Thirdly, there is a set of <code>prediction_*()</code> APIs to validate a set of testing data and print out Top-K accuracy, confusion matrix.   </p>
+<p>Thirdly, there is a set of <code>prediction_*()</code> APIs to validate a set of testing data and print out Top-K accuracy, confusion matrix and other info.   </p>
 <h3 id="an-nnom-model">An NNoM model</h3>
-<p>This is what a typical model looks like in the <code>weights.h</code> or <code>model.h</code> or whatever you name is. These codes are generated by the script. 
+<p>This is what a typical model looks like in the <code>weights.h</code> or <code>model.h</code> or whatever you name it. These codes are generated by the script. 
 In user's <code>main()</code>, call <code>nnom_model_create()</code> will create and compile the model.</p>
 <pre><code>...
 
@@ -470,7 +470,8 @@ Compling done in 179 ms
 </code></pre>
 
 <p>It shows the run order, Layer names, activations, the output shape of the layer, the operation counts, the buffer size, and the memory block assignments. </p>
-<p>Later, it prints the maximum memory cost for each memory block. Since the memory block is shared between layers, the model only use 3 memory blocks, altogether gives a sum memory cost by <code>18144 Bytes</code>. </p>
+<p>Later, it prints the maximum memory cost for each memory block. Since the memory block is shared between layers, the model only 
+e 3 memory blocks, altogether gives a sum memory cost by <code>18144 Bytes</code>. </p>
 <h3 id="runtime-statistices">Runtime statistices</h3>
 <p>This is an example printed by <code>model_stat()</code>.</p>
 <blockquote>

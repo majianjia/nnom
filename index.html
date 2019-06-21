@@ -215,7 +215,8 @@
             <div class="section">
               
                 <h1 id="neural-network-on-microcontroller-nnom">Neural Network on Microcontroller (NNoM)</h1>
-<p><a href="https://travis-ci.org/majianjia/nnom"><img alt="Build Status" src="https://travis-ci.org/majianjia/nnom.svg?branch=master" /></a></p>
+<p><a href="https://travis-ci.org/majianjia/nnom"><img alt="Build Status" src="https://travis-ci.org/majianjia/nnom.svg?branch=master" /></a>
+<a href="https://opensource.org/licenses/Apache-2.0"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a></p>
 <p>NNoM is a high-level inference Neural Network library specifically for microcontrollers. </p>
 <p><a href="rt-thread_guide/">[Chinese Intro]</a></p>
 <p><strong>Highlights</strong></p>
@@ -228,6 +229,7 @@
 </ul>
 <p>The structure of NNoM is shown below:
 <img alt="" src="figures/nnom_structure.png" /></p>
+<p>More detail avaialble in <a href="guide_development/">Development Guide</a></p>
 <h2 id="licenses">Licenses</h2>
 <p>NNoM is released under Apache License 2.0 since nnom-V0.2.0. 
 License and copyright information can be found within the code.</p>
@@ -275,12 +277,16 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 <p>Check <a href="Porting_and_Optimisation_Guide/">Porting and optimising Guide</a> for detail. </p>
 <hr />
 <h2 id="available-operations">Available Operations</h2>
+<blockquote>
+<p>*Notes: NNoM now supports both HWC and CHW formats. Some operation might not support both format currently. Please check the tables for the current status. *</p>
+</blockquote>
 <p><strong>Core Layers</strong></p>
 <table>
 <thead>
 <tr>
 <th>Layers</th>
-<th>Status</th>
+<th>HWC</th>
+<th>CHW</th>
 <th>Layer API</th>
 <th>Comments</th>
 </tr>
@@ -288,73 +294,85 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 <tbody>
 <tr>
 <td>Convolution</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>Conv2D()</td>
 <td>Support 1/2D</td>
 </tr>
 <tr>
 <td>Depthwise Conv</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>DW_Conv2D()</td>
 <td>Support 1/2D</td>
 </tr>
 <tr>
 <td>Fully-connected</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>Dense()</td>
 <td></td>
 </tr>
 <tr>
 <td>Lambda</td>
-<td>Alpha</td>
+<td>✓</td>
+<td>✓</td>
 <td>Lambda()</td>
 <td>single input / single output anonymous operation</td>
 </tr>
 <tr>
 <td>Batch Normalization</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>N/A</td>
 <td>This layer is merged to the last Conv by the script</td>
 </tr>
 <tr>
 <td>Flatten</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>Flatten()</td>
 <td></td>
 </tr>
 <tr>
 <td>SoftMax</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>SoftMax()</td>
 <td>Softmax only has layer API</td>
 </tr>
 <tr>
 <td>Activation</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>Activation()</td>
 <td>A layer instance for activation</td>
 </tr>
 <tr>
 <td>Input/Output</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>Input()/Output()</td>
 <td></td>
 </tr>
 <tr>
 <td>Up Sampling</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>UpSample()</td>
 <td></td>
 </tr>
 <tr>
 <td>Zero Padding</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>ZeroPadding()</td>
 <td></td>
 </tr>
 <tr>
 <td>Cropping</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>Cropping()</td>
 <td></td>
 </tr>
@@ -393,46 +411,18 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 </table>
 <p><strong>Activations</strong></p>
 <p>Activation can be used by itself as layer, or can be attached to the previous layer as <a href="docs/A_Temporary_Guide_to_NNoM.md#addictionlly-activation-apis">"actail"</a> to reduce memory cost.</p>
-<table>
-<thead>
-<tr>
-<th>Actrivation</th>
-<th>Status</th>
-<th>Layer API</th>
-<th>Activation API</th>
-<th>Comments</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>ReLU</td>
-<td>Beta</td>
-<td>ReLU()</td>
-<td>act_relu()</td>
-<td></td>
-</tr>
-<tr>
-<td>TanH</td>
-<td>Beta</td>
-<td>TanH()</td>
-<td>act_tanh()</td>
-<td></td>
-</tr>
-<tr>
-<td>Sigmoid</td>
-<td>Beta</td>
-<td>Sigmoid()</td>
-<td>act_sigmoid()</td>
-<td></td>
-</tr>
-</tbody>
-</table>
+<p>| Actrivation | HWC| CHW|Layer API|Activation API|Comments|
+| ------ |-- |--|--|--|
+| ReLU  | ✓|✓|ReLU()|act_relu()||
+| TanH | ✓|✓|TanH()|act_tanh()||
+|Sigmoid|✓|✓| Sigmoid()|act_sigmoid()||</p>
 <p><strong>Pooling Layers</strong></p>
 <table>
 <thead>
 <tr>
 <th>Pooling</th>
-<th>Status</th>
+<th>HWC</th>
+<th>CHW</th>
 <th>Layer API</th>
 <th>Comments</th>
 </tr>
@@ -440,37 +430,43 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 <tbody>
 <tr>
 <td>Max Pooling</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>MaxPool()</td>
 <td></td>
 </tr>
 <tr>
 <td>Average Pooling</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>AvgPool()</td>
 <td></td>
 </tr>
 <tr>
 <td>Sum Pooling</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>SumPool()</td>
 <td></td>
 </tr>
 <tr>
 <td>Global Max Pooling</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>GlobalMaxPool()</td>
 <td></td>
 </tr>
 <tr>
 <td>Global Average Pooling</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>GlobalAvgPool()</td>
 <td></td>
 </tr>
 <tr>
 <td>Global Sum Pooling</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>GlobalSumPool()</td>
 <td>A better alternative to Global average pooling in MCU before Softmax</td>
 </tr>
@@ -481,7 +477,8 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 <thead>
 <tr>
 <th>Matrix</th>
-<th>Status</th>
+<th>HWC</th>
+<th>CHW</th>
 <th>Layer API</th>
 <th>Comments</th>
 </tr>
@@ -489,25 +486,29 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 <tbody>
 <tr>
 <td>Concatenate</td>
+<td>✓</td>
 <td></td>
 <td>Concat()</td>
 <td>Concatenate through any axis</td>
 </tr>
 <tr>
 <td>Multiple</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>Mult()</td>
 <td></td>
 </tr>
 <tr>
 <td>Addition</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>Add()</td>
 <td></td>
 </tr>
 <tr>
 <td>Substraction</td>
-<td>Beta</td>
+<td>✓</td>
+<td>✓</td>
 <td>Sub()</td>
 <td></td>
 </tr>
@@ -563,5 +564,5 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 
 <!--
 MkDocs version : 1.0.4
-Build Date UTC : 2019-06-18 16:14:41
+Build Date UTC : 2019-06-21 19:55:14
 -->

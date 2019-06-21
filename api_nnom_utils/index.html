@@ -232,7 +232,7 @@ These functions are located in <code>scripts/nnom_utils.py</code></p>
 <h1 id="api">API</h1>
 <hr />
 <h2 id="generate_model">generate_model()</h2>
-<pre><code class="python">generate_model(model, x_test, name='weights.h')
+<pre><code class="python">generate_model(model, x_test, name='weights.h', format='hwc')
 </code></pre>
 
 <p><strong>This is all you need</strong></p>
@@ -247,11 +247,15 @@ These functions are located in <code>scripts/nnom_utils.py</code></p>
 <li><strong>model:</strong> the trained Keras model</li>
 <li><strong>x_test:</strong> the dataset used to check the output range of each layer.  </li>
 <li><strong>name:</strong> the name of the automatically generated c file. </li>
+<li><strong>format:</strong> indicate the backend format, options between <code>'hwc'</code> and <code>'chw'</code>. See notes</li>
 </ul>
 <p><strong>Notes</strong></p>
 <ul>
 <li>This method might not be updated from time to time with new features in NNoM. </li>
 <li>Currently, only support single input, single output models. </li>
+<li>The default backend format is set to 'hwc', also call 'channel last', which is the same format as CMSIS-NN. This format is optimal for CPU. 
+'chw' format, call 'channel first', is for MCU with hardware AI accelerator (such as <a href="https://kendryte.com/">Kendryte K210</a>).
+This setting only affects the format in the backend. the frontend will always use 'HWC' for data shape. </li>
 </ul>
 <hr />
 <h2 id="layers_output_ranges">layers_output_ranges()</h2>
@@ -274,7 +278,7 @@ These functions are located in <code>scripts/nnom_utils.py</code></p>
 </ul>
 <hr />
 <h2 id="generate_weights">generate_weights()</h2>
-<pre><code class="python">generate_weights(model, name='weights.h', shift_list=None)
+<pre><code class="python">generate_weights(model, name='weights.h', format='hwc', shift_list=None)
 </code></pre>
 
 <p>Scans all the layer which includes weights, quantise the weights and put them into the c header.</p>
@@ -283,6 +287,7 @@ These functions are located in <code>scripts/nnom_utils.py</code></p>
 <li><strong>model:</strong> the trained Keras model</li>
 <li><strong>name:</strong> the c file name to store weigths.</li>
 <li><strong>shift_list:</strong> the shift list returned by <code>layers_output_ranges(model, x_test)</code></li>
+<li><strong>format:</strong> indicate the backend format, options between <code>'hwc'</code> and <code>'chw'</code>. See notes in <a href="#generate_model">generate_model()</a></li>
 </ul>
 <p><strong>Notes</strong></p>
 <ul>
