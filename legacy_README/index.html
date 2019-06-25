@@ -236,14 +236,14 @@
 <p><a href="https://travis-ci.org/majianjia/nnom"><img alt="Build Status" src="https://travis-ci.org/majianjia/nnom.svg?branch=master" /></a></p>
 <p>NNoM is a higher-level layer-based Neural Network library specifically for microcontrollers. </p>
 <p>NNoM is released under LGPL-V3.0, please check the license file for detail. </p>
-<p><a href="docs/A%20Temporary%20Guide%20to%20NNoM.md">The Temporary Guide</a></p>
-<p><a href="docs/Porting%20and%20Optimisation%20Guide.md">Porting and Optimising Guide</a></p>
+<p><a href="../A_Temporary_Guide_to_NNoM/">The Temporary Guide</a></p>
+<p><a href="docs/Porting_and_Optimisation_Guide.md">Porting and Optimising Guide</a></p>
 <h2 id="dependencies">Dependencies</h2>
 <p>NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. </p>
 <blockquote>
 <p>However, you can still select <a href="https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN">CMSIS-NN/DSP</a> as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. </p>
 <p>Simply <code>#define NNOM_USING_CMSIS_NN</code> in <code>nnom_port.h</code> and include CMSIS-NN in your project. 
-Check <a href="docs/Porting%20and%20Optimisation%20Guide.md">Porting and Optimising Guide</a> for detail. </p>
+Check <a href="../Porting_and_Optimisation_Guide/">Porting and Optimising Guide</a> for detail. </p>
 </blockquote>
 <h2 id="why-nnom">Why NNoM?</h2>
 <p>The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.</p>
@@ -256,8 +256,8 @@ Check <a href="docs/Porting%20and%20Optimisation%20Guide.md">Porting and Optimis
 </blockquote>
 <p><strong>If you would like to try those more up-to-date, decent and complex structures on MCU</strong> </p>
 <p><strong>NNoM can help you to build them with only a few lines of C codes</strong>, same as you did with Python in <a href="https://keras.io/"><strong>Keras</strong></a></p>
-<p>Inception example: <a href="examples/uci-inception">uci-inception</a></p>
-<p>DenseNet example: <a href="examples/mnist-densenet">mnist-densenet</a></p>
+<p>Inception example: <a href="../examples/uci-inception">uci-inception</a></p>
+<p>DenseNet example: <a href="../examples/mnist-densenet">mnist-densenet</a></p>
 <p>A simple example:</p>
 <pre><code class="c">#define INPUT_HIGHT 1
 #define INPUT_WIDTH 128
@@ -333,7 +333,7 @@ while(1){
 }
 </code></pre>
 
-<p>Please check <a href="docs/A%20Temporary%20Guide%20to%20NNoM.md">A brief manual</a> for more API details. </p>
+<p>Please check <a href="../A_Temporary_Guide_to_NNoM/">A brief manual</a> for more API details. </p>
 <h2 id="available-operations">Available Operations</h2>
 <p><strong>Layers</strong></p>
 <table>
@@ -415,7 +415,7 @@ while(1){
 </tbody>
 </table>
 <p><strong>Activations</strong></p>
-<p>Activation can be used by itself as layer, or can be attached to the previous layer as <a href="docs/A%20Temporary%20Guide%20to%20NNoM.md#addictionlly-activation-apis">"actail"</a> to reduce memory cost.</p>
+<p>Activation can be used by itself as layer, or can be attached to the previous layer as <a href="../A_Temporary_Guide_to_NNoM/#addictionlly-activation-apis">"actail"</a> to reduce memory cost.</p>
 <table>
 <thead>
 <tr>
@@ -557,7 +557,7 @@ while(1){
 <h1 id="deploying-keras-model-to-nnom">Deploying Keras model to NNoM</h1>
 <p>You can now use <a href="scripts/nnom_utils.py#L284">generate_model(model, x_data)</a> to deploy your model to <code>weights.h</code> directly. </p>
 <p>Then simply call <code>nnom_model_create()</code> in your <code>main()</code> to compile the model on your platform.</p>
-<p>Please check <a href="docs/A%20Temporary%20Guide%20to%20NNoM.md">A brief manual</a>
+<p>Please check <a href="docs/A_Temporary_Guide_to_NNoM.md">A brief manual</a>
 and <a href="examples/mnist-densenet">MNIST-DenseNet</a> example.</p>
 <h1 id="porting">Porting</h1>
 <p>Simply modify the <a href="port/nnom_port.h">nnom_port.h</a> according to your platform.</p>
@@ -565,7 +565,7 @@ and <a href="examples/mnist-densenet">MNIST-DenseNet</a> example.</p>
 <p>To optimise for ARM chips, it is required to include the <a href="https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN">CMSIS-NN lib</a> in your projects.
 Then define <code>#define NNOM_USE_CMSIS_NN</code> in the <code>nnom_port.h</code></p>
 </blockquote>
-<p>Please check <a href="docs/Porting%20and%20Optimisation%20Guide.md">Porting and Optimising Guide</a> for detial. </p>
+<p>Please check <a href="../Porting_and_Optimisation_Guide/">Porting and Optimising Guide</a> for detial. </p>
 <h1 id="current-critical-limitations">Current Critical Limitations</h1>
 <ul>
 <li>Support 8-bit quantisation only. </li>
