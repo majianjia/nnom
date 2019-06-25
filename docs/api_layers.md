@@ -227,7 +227,7 @@ layer = Conv2D(32, kernel(1, 5), stride(1, 2), PADDING_VALID, &conv2d_3_w, &conv
 ** DW_Conv2D:**
 ~~~C
 nnom_layer_t *layer;
-layer = Conv2D(32, kernel(3, 3), stride(1, 1), PADDING_VALID, &conv2d_3_w, &conv2d_3_b);`
+layer = DW_Conv2D(1, kernel(3, 3), stride(1, 1), PADDING_VALID, &conv2d_3_w, &conv2d_3_b);`
 ~~~
 
 ** Dense:**
