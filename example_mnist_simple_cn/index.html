@@ -75,6 +75,10 @@
                     
     <a class="" href="../guide_development/">Development Guide</a>
                 </li>
+                <li class="">
+                    
+    <a class="" href="../Porting_and_Optimisation_Guide/">Porting and Optimisation Guide</a>
+                </li>
     </ul>
 	    </li>
           
@@ -131,10 +135,6 @@
                 </li>
                 <li class="">
                     
-    <a class="" href="../Porting_and_Optimisation_Guide/">Porting and Optimisation Guide</a>
-                </li>
-                <li class="">
-                    
     <a class="" href="../legacy_README/">Old Readme</a>
                 </li>
     </ul>
@@ -166,6 +166,8 @@
             <li><a class="toctree-l4" href="#4">4 建立自己的模型</a></li>
         
             <li><a class="toctree-l4" href="#5">5 结语</a></li>
+        
+            <li><a class="toctree-l4" href="#appendix">Appendix</a></li>
         
         </ul>
     
@@ -235,6 +237,13 @@
 *需要打开 msh 支持        
 </code></pre>
 
+<p>此外，默认移植文件和本例子依赖 libc， 所以需要打开 RT-Thread 的 libc 支持:</p>
+<pre><code>RT-Thread Components  ---&gt;
+    POSIX layer and C standard library  ---&gt;
+        [*] Enable libc APIs from toolchain ... ---&gt;
+</code></pre>
+
+<p><em>如果遇到问题或者环境不允许使用 libc，请看 <a href="#appendix">Appendix</a></em></p>
 <p>源码请到<a href="https://github.com/majianjia/nnom">GitHub</a></p>
 <h2 id="2">2. 复制例子文件</h2>
 <p>把 <code>packages/nnom-latest/examples/mnist-simple/mcu</code> 目录下的三个文件 <code>image.h</code>, <code>weights.h</code>和 <code>main.c</code> 复制到工程目录的 <code>application/</code>。替换掉默认的 <code>main.c</code>。先不用管这三个文件的内容。</p>
@@ -348,6 +357,26 @@ Probability: 100%
 <p>使用 NNoM 来部署神经网络真的很简单。基础的代码不过两三行，NNoM 能轻松让你的 MCU 也神经一把~ 变成真正的 Edge AI 设备。</p>
 <p>这个例子仅使用了最简单的 API 搭建了最基础的卷积模型。</p>
 <p>高级用法和更多例子请查看<a href="https://majianjia.github.io/nnom/">API 文档</a>和<a href="https://github.com/majianjia/nnom/tree/master/examples">其他例子</a></p>
+<h2 id="appendix">Appendix</h2>
+<p>如果无法打开 libc 支持，或者你的工程不允许打开 libc 支持，可以通过简单的移植完全去掉 nnom 对 libc 依赖。</p>
+<ul>
+<li>首先把<code>application/main.c</code> 里面所有的 <code>printf</code> 替换成 RTT 对应的版本 <code>rt_kprinf</code>.</li>
+<li>然后，修改移植文件 <code>packages/nnom-latest/port</code>， 把里面的c标准接口改为rtt对应的接口。（也就是在 <code>malloc(), free(), memset(), printf()</code> 前面加上<code>rt_</code> 前缀。记得在他们之前加入rtt的头文件<code>rtthread.h</code>。）</li>
+</ul>
+<p>觉得麻烦可以直接复制下面的代码，替换掉对应的部分。</p>
+<pre><code>#include &quot;rtthread.h&quot;
+// memory interfaces
+#define nnom_malloc(n)      rt_malloc(n) 
+#define nnom_free(p)        rt_free(p)
+#define nnom_memset(p,v,s)  rt_memset(p,v,s)
+
+// runtime &amp; debuges
+#define nnom_us_get()       0
+#define nnom_ms_get()       0
+#define NNOM_LOG(...)       rt_kprintf(__VA_ARGS__)
+</code></pre>
+
+<p>到此，这个例子和 nnom 就完全脱离 libc 依赖啦。现在可以尝试重新编译运行了。</p>
               
             </div>
           </div>
