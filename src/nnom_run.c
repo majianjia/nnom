@@ -543,25 +543,28 @@ nnom_status_t softmax_run(nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
+#ifdef NNOM_USING_CHW
+// axis index converter between HWC and CHW
 static inline int chw_i(int hwc)
 {
-	hwc = hwc+1;			
-	if(hwc>2) hwc= 0;
+	hwc = hwc + 1;			
+	if(hwc>2) 
+		hwc = 0;
 	return hwc;
 }
-
 static inline int hwc_i(int chw)
 {
-	chw = chw -1;			
-	if(chw<0) chw=2;
+	chw = chw - 1;			
+	if(chw<0) 
+		chw = 2;
 	return chw;
 }
+#endif
 
 nnom_status_t concat_run(nnom_layer_t *layer)
 {
 	// by default, concat layer has mutiple (>=2) input and 1 output.
 	nnom_concat_layer_t *cl = (nnom_concat_layer_t *)layer;
-	nnom_shape_axis_t *out_shape = (nnom_shape_axis_t *)(&layer->out->shape); // get the shape.axis[0,1,2...] access to shape type
 	nnom_shape_axis_t *in_shape;
 	nnom_layer_io_t *in;
 

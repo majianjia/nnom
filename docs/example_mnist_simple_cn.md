@@ -33,6 +33,16 @@ RT-Thread online packages  --->
 *需要打开 msh 支持		
 ~~~
 
+此外，默认移植文件和本例子依赖 libc， 所以需要打开 RT-Thread 的 libc 支持:
+
+~~~
+RT-Thread Components  --->
+    POSIX layer and C standard library  --->
+        [*] Enable libc APIs from toolchain ...	--->
+~~~
+*如果遇到问题或者环境不允许使用 libc，请看 [Appendix](#appendix)*
+
+
 源码请到[GitHub](https://github.com/majianjia/nnom)
 
 
@@ -178,13 +188,29 @@ Probability: 100%
 高级用法和更多例子请查看[API 文档](https://majianjia.github.io/nnom/)和[其他例子](https://github.com/majianjia/nnom/tree/master/examples)
 
 
+## Appendix
+
+如果无法打开 libc 支持，或者你的工程不允许打开 libc 支持，可以通过简单的移植完全去掉 nnom 对 libc 依赖。
 
 
+- 首先把`application/main.c` 里面所有的 `printf` 替换成 RTT 对应的版本 `rt_kprinf`.
+- 然后，修改移植文件 `packages/nnom-latest/port`， 把里面的c标准接口改为rtt对应的接口。（也就是在 `malloc(), free(), memset(), printf()` 前面加上`rt_` 前缀。记得在他们之前加入rtt的头文件`rtthread.h`。）
 
+觉得麻烦可以直接复制下面的代码，替换掉对应的部分。
+~~~
+#include "rtthread.h"
+// memory interfaces
+#define nnom_malloc(n)   	rt_malloc(n) 
+#define nnom_free(p)		rt_free(p)
+#define nnom_memset(p,v,s)	rt_memset(p,v,s)
 
+// runtime & debuges
+#define nnom_us_get()		0
+#define nnom_ms_get()		0
+#define NNOM_LOG(...)		rt_kprintf(__VA_ARGS__)
+~~~
 
-
-
+到此，这个例子和 nnom 就完全脱离 libc 依赖啦。现在可以尝试重新编译运行了。
 
 
 

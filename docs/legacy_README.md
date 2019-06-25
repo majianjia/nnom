@@ -5,9 +5,10 @@ NNoM is a higher-level layer-based Neural Network library specifically for micro
 
 NNoM is released under LGPL-V3.0, please check the license file for detail. 
 
-[The Temporary Guide](docs/A%20Temporary%20Guide%20to%20NNoM.md)
+[The Temporary Guide](A_Temporary_Guide_to_NNoM.md)
 
-[Porting and Optimising Guide](docs/Porting%20and%20Optimisation%20Guide.md)
+[Porting and Optimising Guide](docs/Porting_and_Optimisation_Guide.md)
+
 
 ## Dependencies
 
@@ -16,7 +17,7 @@ NNoM now use the local pure C backend implementation by default. Thus, there is 
 >However, you can still select [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. 
 >
 >Simply `#define NNOM_USING_CMSIS_NN` in `nnom_port.h` and include CMSIS-NN in your project. 
->Check [Porting and Optimising Guide](docs/Porting%20and%20Optimisation%20Guide.md) for detail. 
+>Check [Porting and Optimising Guide](Porting_and_Optimisation_Guide.md) for detail. 
 
 
 ## Why NNoM?
@@ -36,9 +37,9 @@ Nowadays, neural networks are **wider**, **deeper**, and **denser**.
 **NNoM can help you to build them with only a few lines of C codes**, same as you did with Python in [**Keras**](https://keras.io/)
 
 
-Inception example: [uci-inception](examples/uci-inception)
+Inception example: [uci-inception](../examples/uci-inception)
 
-DenseNet example: [mnist-densenet](examples/mnist-densenet)
+DenseNet example: [mnist-densenet](../examples/mnist-densenet)
 
 
 
@@ -125,7 +126,7 @@ while(1){
     model_run(&model);
 }
 ~~~~
-Please check [A brief manual](docs/A%20Temporary%20Guide%20to%20NNoM.md) for more API details. 
+Please check [A brief manual](A_Temporary_Guide_to_NNoM.md) for more API details. 
 
 
 ## Available Operations
@@ -148,7 +149,7 @@ Please check [A brief manual](docs/A%20Temporary%20Guide%20to%20NNoM.md) for mor
 
 **Activations**
 
-Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](docs/A%20Temporary%20Guide%20to%20NNoM.md#addictionlly-activation-apis) to reduce memory cost.
+Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](A_Temporary_Guide_to_NNoM.md#addictionlly-activation-apis) to reduce memory cost.
 
 | Actrivation | Status |Layer API|Activation API|Comments|
 | ------ |-- |--|--|--|
@@ -201,7 +202,7 @@ You can now use [generate_model(model, x_data)](scripts/nnom_utils.py#L284) to d
 
 Then simply call `nnom_model_create()` in your `main()` to compile the model on your platform.
 
-Please check [A brief manual](docs/A%20Temporary%20Guide%20to%20NNoM.md)
+Please check [A brief manual](docs/A_Temporary_Guide_to_NNoM.md)
 and [MNIST-DenseNet](examples/mnist-densenet) example.
 
 
@@ -213,7 +214,7 @@ Simply modify the [nnom_port.h](port/nnom_port.h) according to your platform.
 > To optimise for ARM chips, it is required to include the [CMSIS-NN lib](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) in your projects.
 > Then define `#define NNOM_USE_CMSIS_NN` in the `nnom_port.h`
 
-Please check [Porting and Optimising Guide](docs/Porting%20and%20Optimisation%20Guide.md) for detial. 
+Please check [Porting and Optimising Guide](Porting_and_Optimisation_Guide.md) for detial. 
 
 # Current Critical Limitations 
 - Support 8-bit quantisation only. 
