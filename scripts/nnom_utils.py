@@ -185,6 +185,7 @@ def fuse_bn_to_conv(layer):
 def generate_weights(model, name='weights.h', format='hwc', shift_list=None):
     # Quantize weights to 8-bits using (min,max) and write to file
     f = open(name, 'w')
+    f.write('#include "nnom.h"\n\n')
     f.close()
 
     for curr_idx, layer in  enumerate(model.layers):
