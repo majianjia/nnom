@@ -134,6 +134,7 @@ typedef struct _nnom_maxpool_layer_t
 	nnom_shape_t stride;
 	nnom_shape_t pad;
 	nnom_padding_t padding_type;
+	int16_t output_shift;			// reserve
 } nnom_maxpool_layer_t;
 
 // Avg Pooling
