@@ -296,6 +296,7 @@ def generate_weights(model, name='weights.h', format='hwc', shift_list=None):
 
 def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
     # limit the test data size
+    x_test = np.random.shuffle(x_test)
     if(x_test.shape[0] > calibrate_size):
         x_test = x_test[:1000]
     # test, show the output ranges
