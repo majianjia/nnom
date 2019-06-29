@@ -146,7 +146,7 @@ def main(weights='weights.h'):
                 out = np.asarray(out)
                 num, prop = out.argmax(), out[out.argmax()]
                 rnum = y_test[i].argmax()
-                if((rnum == num) and (prop > 0.8)):
+                if(rnum == num):
                     #print('test image %d is %d, predict correctly with prop %s'%(i, rnum, prop))
                     rP += 1.0
                 if((i>0) and ((i%1000)==0)):
