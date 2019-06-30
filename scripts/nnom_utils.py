@@ -339,7 +339,7 @@ def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
             bins = np.arange(-abs_max, abs_max, abs_max/2048*2)
             q_bins = np.arange(-abs_max, abs_max, abs_max/256*2)
             flat_hist = np.histogram(features.flatten(), bins=bins)[0]
-            kl_list = []
+            kl_loss = []
             kl_shifts = []
             for shift in range(8):
                 t = 2 ** (dec_bits + shift)     # 2-based threshold
@@ -358,19 +358,19 @@ def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
                 flat_hist[flat_hist==0] = small_var
                 act_hist[act_hist==0] = small_var
                 kl = scipy.stats.entropy(flat_hist, act_hist)
-                kl_list.append(kl)
+                kl_loss.append(kl)
                 kl_shifts.append(dec_bits + shift)
                 """
                 ax = plt.subplot(8, 1, shift+1)
                 ax.plot(flat_hist)
                 ax.plot(act_hist)
                 """
-            new_dec = kl_shifts[np.argmin(kl_list)] # set the dec_bit to the KLD results
+            new_dec = kl_shifts[np.argmin(kl_loss)] # set the dec_bit to the KLD results
             #plt.show()
-            print("KLD lost", kl_list)
+            print("KLD loss", kl_loss)
             print("KLD shift", kl_shifts)
             if(new_dec != dec_bits):
-                print("Quantisation of this layer using KLD method, original shift",dec_bits, "KLD results", new_dec)
+                print("Layer:",layer.name,"using KLD method, original shift",dec_bits, "KLD results", new_dec)
                 dec_bits = new_dec
         print( layer.name, "max value:", max_val, "min value:", min_val,"dec bit", dec_bits)
         # record the shift
