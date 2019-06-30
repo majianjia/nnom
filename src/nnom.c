@@ -799,7 +799,7 @@ nnom_status_t block_mem_set(nnom_model_t *m, void *buf)
 	{
 		if (m->blocks[index].size == 0)
 			break;
-		m->blocks[index].blk = (void *)((unsigned long)buf + mem_offset);
+		m->blocks[index].blk = (void *)((uint8_t*)buf + mem_offset);
 		mem_offset += m->blocks[index].size;
 	}
 	return NN_SUCCESS;

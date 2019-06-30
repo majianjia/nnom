@@ -103,9 +103,9 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_conv2d_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
-	comp = (void *)((unsigned long)out + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_conv2d_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
+	comp = (void *)((uint8_t*)out + sizeof(nnom_layer_io_t));
 
 	// set type in layer parent
 	layer->super.type = NNOM_CONV_2D;
@@ -169,9 +169,9 @@ nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_dense_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
-	comp = (void *)((unsigned long)out + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_dense_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
+	comp = (void *)((uint8_t*)out + sizeof(nnom_layer_io_t));
 
 	// set type in layer parent
 	layer->super.type = NNOM_DENSE;
@@ -210,8 +210,8 @@ nnom_layer_t *ZeroPadding(nnom_border_t pad)
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_zero_padding_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_zero_padding_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
 
 	// set type in layer parent
 	layer->super.type = NNOM_ZERO_PADDING;
@@ -258,8 +258,8 @@ nnom_layer_t *UpSample(nnom_shape_t kernel)
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_upsample_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_upsample_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
 
 	// set type in layer parent
 	layer->super.type = NNOM_UPSAMPLE;
@@ -315,9 +315,9 @@ nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence)
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_rnn_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
-	comp = (void *)((unsigned long)out + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_rnn_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
+	comp = (void *)((uint8_t*)out + sizeof(nnom_layer_io_t));
 
 	// set type in layer parent
 	layer->super.type = NNOM_RNN;
@@ -360,8 +360,8 @@ nnom_layer_t *Activation(nnom_activation_t *act)
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_activation_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_activation_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
 
 	// set type in layer parent
 	layer->super.type = NNOM_ACTIVATION;
@@ -427,8 +427,8 @@ nnom_layer_t *Softmax(void)
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
 
 	// set type in layer parent
 	layer->type = NNOM_SOFTMAX;
@@ -457,9 +457,9 @@ nnom_layer_t *MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_maxpool_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
-	comp = (void *)((unsigned long)out + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_maxpool_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
+	comp = (void *)((uint8_t*)out + sizeof(nnom_layer_io_t));
 
 	// set type in layer parent
 	layer->super.type = NNOM_MAXPOOL;
@@ -583,8 +583,8 @@ nnom_layer_t *Flatten(void)
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
 
 	// set type in layer parent
 	layer->type = NNOM_FLATTEN;
@@ -616,8 +616,8 @@ nnom_layer_t *Input(nnom_shape_t input_shape, void *p_buf)
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_io_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_io_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
 
 	// set type in layer parent
 	layer->super.type = NNOM_INPUT;
@@ -667,8 +667,8 @@ nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_lambda_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_lambda_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
 
 	// set buf type.
 	in->type = LAYER_BUF_TEMP;
@@ -712,8 +712,8 @@ nnom_layer_t *Concat(int8_t axis)
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_concat_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_concat_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
 
 	// set type in layer parent
 	layer->super.type = NNOM_CONCAT;
@@ -755,9 +755,9 @@ static nnom_layer_t *_same_shape_matrix_layer()
 		return NULL;
 
 	// distribut the memory to sub handles.
-	in = (void *)((unsigned long)layer + sizeof(nnom_matrix_layer_t));
-	out = (void *)((unsigned long)in + sizeof(nnom_layer_io_t));
-	//comp = (void *)((unsigned long)out + sizeof(nnom_layer_io_t));
+	in = (void *)((uint8_t*)layer + sizeof(nnom_matrix_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
+	//comp = (void *)((uint8_t*)out + sizeof(nnom_layer_io_t));
 
 	// set type in layer parent
 	layer->super.comp_out_shape = same_shape_matrix_output_shape;

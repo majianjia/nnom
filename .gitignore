@@ -7,6 +7,6 @@ site
 *.bin
 __pycache__
 *.h5
+*.obj
+*.sconsign.dblite
 .ipynb_checkpoints
-
-
