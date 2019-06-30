@@ -456,13 +456,15 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 			cl->pad.w, cl->pad.h,
 			cl->stride.w, cl->stride.h,
 			layer->out->shape.w, layer->out->shape.h,
+			cl->output_shift,
 			NULL,
 			layer->out->mem->blk);
 #else //end of CHW
 	#ifdef NNOM_USING_CMSIS_NN
 	// 2D, square
 	if (layer->in->shape.w == layer->in->shape.h &&
-		layer->out->shape.w == layer->out->shape.h)
+		layer->out->shape.w == layer->out->shape.h &&
+		cl->output_shift == 0)
 	{
 		arm_avepool_q7_HWC(
 			layer->in->mem->blk,
@@ -483,6 +485,7 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 				cl->pad.w, cl->pad.h,
 				cl->stride.w, cl->stride.h,
 				layer->out->shape.w, layer->out->shape.h,
+				cl->output_shift,
 				NULL,
 				layer->out->mem->blk);
 	}

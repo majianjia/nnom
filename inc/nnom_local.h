@@ -58,35 +58,37 @@ static inline int __NNOM_USAT(int32_t value, int32_t bit) {
 // Those functions/tables below are partially modifed from CMSIS-NN lib
 // https://github.com/ARM-software/CMSIS_5
 //
-void local_avepool_q7_HWC(const q7_t * Im_in, // input image
-	const uint16_t dim_im_in_x,   	// input image dimension x or W
-	const uint16_t dim_im_in_y,   	// input image dimension y or H
-	const uint16_t ch_im_in,    	// number of input image channels
-	const uint16_t dim_kernel_x,  	// window kernel size
-	const uint16_t dim_kernel_y,  	// window kernel size
-	const uint16_t padding_x, 		// padding sizes
-	const uint16_t padding_y, 		// padding sizes
-	const uint16_t stride_x,  		// stride
-	const uint16_t stride_y,  		// stride
-	const uint16_t dim_im_out_x,  	// output image dimension x or W
-	const uint16_t dim_im_out_y,  	// output image dimension y or H
-	q7_t * bufferA, 				// a buffer for local storage, NULL by now
-	q7_t * Im_out);
+void local_avepool_q7_HWC(const q7_t *Im_in,           // input image
+	const uint16_t dim_im_in_x,  // input image dimension x or W
+	const uint16_t dim_im_in_y,  // input image dimension y or H
+	const uint16_t ch_im_in,     // number of input image channels
+	const uint16_t dim_kernel_x, // window kernel size
+	const uint16_t dim_kernel_y, // window kernel size
+	const uint16_t padding_x,    // padding sizes
+	const uint16_t padding_y,    // padding sizes
+	const uint16_t stride_x,     // stride
+	const uint16_t stride_y,     // stride
+	const uint16_t dim_im_out_x, // output image dimension x or W
+	const uint16_t dim_im_out_y, // output image dimension y or H
+	const uint16_t output_shift, // output right shift
+	q7_t *bufferA,               // a buffer for local storage, NULL by now
+	q7_t *Im_out);
 
-void local_avepool_q7_CHW(const q7_t * Im_in, // input image
-	const uint16_t dim_im_in_x,   	// input image dimension x or W
-	const uint16_t dim_im_in_y,   	// input image dimension y or H
-	const uint16_t ch_im_in,    	// number of input image channels
-	const uint16_t dim_kernel_x,  	// window kernel size
-	const uint16_t dim_kernel_y,  	// window kernel size
-	const uint16_t padding_x, 		// padding sizes
-	const uint16_t padding_y, 		// padding sizes
-	const uint16_t stride_x,  		// stride
-	const uint16_t stride_y,  		// stride
-	const uint16_t dim_im_out_x,  	// output image dimension x or W
-	const uint16_t dim_im_out_y,  	// output image dimension y or H
-	q7_t * bufferA, 				// a buffer for local storage, NULL by now
-	q7_t * Im_out);
+void local_avepool_q7_CHW(const q7_t *Im_in,           // input image
+	const uint16_t dim_im_in_x,  // input image dimension x or W
+	const uint16_t dim_im_in_y,  // input image dimension y or H
+	const uint16_t ch_im_in,     // number of input image channels
+	const uint16_t dim_kernel_x, // window kernel size
+	const uint16_t dim_kernel_y, // window kernel size
+	const uint16_t padding_x,    // padding sizes
+	const uint16_t padding_y,    // padding sizes
+	const uint16_t stride_x,     // stride
+	const uint16_t stride_y,     // stride
+	const uint16_t dim_im_out_x, // output image dimension x or W
+	const uint16_t dim_im_out_y, // output image dimension y or H
+	const uint16_t output_shift, // output right shift
+	q7_t *bufferA,               // a buffer for local storage, NULL by now
+	q7_t *Im_out);
 
 // modified from CMSIS-NN test_ref                            
 void local_maxpool_q7_HWC(const q7_t * Im_in, 				// input image

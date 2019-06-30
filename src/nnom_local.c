@@ -32,6 +32,7 @@ void local_avepool_q7_HWC(const q7_t *Im_in,           // input image
 	const uint16_t stride_y,     // stride
 	const uint16_t dim_im_out_x, // output image dimension x or W
 	const uint16_t dim_im_out_y, // output image dimension y or H
+	const uint16_t output_shift, // output right shift
 	q7_t *bufferA,               // a buffer for local storage, NULL by now
 	q7_t *Im_out)
 {
@@ -57,7 +58,7 @@ void local_avepool_q7_HWC(const q7_t *Im_in,           // input image
                         }
                     }
                 }
-                Im_out[i_ch_in + ch_im_in * (i_x + i_y * dim_im_out_x)] = sum / count;
+                Im_out[i_ch_in + ch_im_in * (i_x + i_y * dim_im_out_x)] = sum / (count>>output_shift);
             }
         }
     }
@@ -75,6 +76,7 @@ void local_avepool_q7_CHW(const q7_t *Im_in,           // input image
 	const uint16_t stride_y,     // stride
 	const uint16_t dim_im_out_x, // output image dimension x or W
 	const uint16_t dim_im_out_y, // output image dimension y or H
+	const uint16_t output_shift, // output right shift
 	q7_t *bufferA,               // a buffer for local storage, NULL by now
 	q7_t *Im_out)
 {
@@ -102,7 +104,7 @@ void local_avepool_q7_CHW(const q7_t *Im_in,           // input image
                         }
                     }
                 }
-                Im_out[i_ch_in*dim_im_out_x*dim_im_out_y + (i_x + i_y * dim_im_out_x)] = sum / count;
+                Im_out[i_ch_in*dim_im_out_x*dim_im_out_y + (i_x + i_y * dim_im_out_x)] = sum / (count>>output_shift);
             }
         }
     }

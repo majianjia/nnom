@@ -185,6 +185,7 @@ def fuse_bn_to_conv(layer):
 def generate_weights(model, name='weights.h', format='hwc', shift_list=None):
     # Quantize weights to 8-bits using (min,max) and write to file
     f = open(name, 'w')
+    f.write('#include "nnom.h"\n\n')
     f.close()
 
     for curr_idx, layer in  enumerate(model.layers):
@@ -293,7 +294,11 @@ def generate_weights(model, name='weights.h', format='hwc', shift_list=None):
                   ' min: (' + str(np.min(var_values)) + ',' + str(min_value) + ')')
             """
 
-def layers_output_ranges(model, x_test):
+def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
+    # limit the test data size
+    np.random.shuffle(x_test)
+    if(x_test.shape[0] > calibrate_size):
+        x_test = x_test[:1000]
     # test, show the output ranges
     shift_list = {}
     # FIXME: only support one input
@@ -302,27 +307,71 @@ def layers_output_ranges(model, x_test):
     else:
         L = model.layers
     last_layer = None
-    for layer in L:
+
+    for layer in L: # layer loop
         if("input" in layer.name):
             features = x_test
         else:
-            # batch_normalization will need to be handle differently, since we are fusing the weight to its predecessor.
+            # batch_normalization will need to be handled differently, since we are fusing the weight to its predecessor.
             # sigmoid and tanh are different, their shift is fixed to 7
             if(is_shift_layer(layer) or
                 ('batch_normalization' in layer.name) or
                 ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
                 ('activation' in layer.name and layer.get_config()['activation'] == 'tanh')):
                 layer_model = Model(inputs=model.input, outputs=layer.output)
-                # FIXME, when the test data is too large, it might return memory error. need to slice data into small pices
                 features = layer_model.predict(x_test)
             else:
                 # leave the features not changed, so this layer shift will be the same
                 # as its inputs
                 pass
+        #  no saturation shift
         max_val = features.max()
         min_val = features.min()
         int_bits = int(np.ceil(np.log2(max(abs(max_val), abs(min_val)))))
         dec_bits = 7 - int_bits
+
+        # saturation shift, using KLD method
+        # Ref: http://on-demand.gputechconf.com/gtc/2017/presentation/s7310-8-bit-inference-with-tensorrt.pdf
+        if(kld):
+            import scipy.stats
+            abs_max = max(abs(max_val), abs(min_val))
+            small_var = 1e-5
+            bins = np.arange(-abs_max, abs_max, abs_max/2048*2)
+            q_bins = np.arange(-abs_max, abs_max, abs_max/256*2)
+            flat_hist = np.histogram(features.flatten(), bins=bins)[0]
+            kl_loss = []
+            kl_shifts = []
+            for shift in range(8):
+                t = 2 ** (dec_bits + shift)     # 2-based threshold
+                act = np.round(features.flatten() * t)
+                act = act / t
+                act = np.clip(act, -128/t, 127/t)
+                act = np.histogram(act, bins=q_bins)[0]
+                act_hist = np.zeros(2047)
+                chunk = int(2048/256)
+                for i in range(int(255)):
+                    none_zero = np.count_nonzero(flat_hist[i*chunk:(i+1)*chunk])
+                    if none_zero == 0:
+                        continue
+                    for j in range(chunk):
+                        act_hist[i*chunk+j] = act[i]/none_zero if flat_hist[i*chunk+j] != 0 else 0
+                flat_hist[flat_hist==0] = small_var
+                act_hist[act_hist==0] = small_var
+                kl = scipy.stats.entropy(flat_hist, act_hist)
+                kl_loss.append(kl)
+                kl_shifts.append(dec_bits + shift)
+                """
+                ax = plt.subplot(8, 1, shift+1)
+                ax.plot(flat_hist)
+                ax.plot(act_hist)
+                """
+            new_dec = kl_shifts[np.argmin(kl_loss)] # set the dec_bit to the KLD results
+            #plt.show()
+            print("KLD loss", kl_loss)
+            print("KLD shift", kl_shifts)
+            if(new_dec != dec_bits):
+                print("Layer:",layer.name,"using KLD method, original shift",dec_bits, "KLD results", new_dec)
+                dec_bits = new_dec
         print( layer.name, "max value:", max_val, "min value:", min_val,"dec bit", dec_bits)
         # record the shift
         if(model.input == layer and type(model.layers[0]) != InputLayer):
@@ -332,6 +381,7 @@ def layers_output_ranges(model, x_test):
         if ('batch_normalization' in layer.name):
             shift_list[last_layer.name] = dec_bits  # use the bn layer shift to update the last layer.
         last_layer = layer
+
     LM = {}
     for layer in model.layers:
         LM[layer.name] = layer
@@ -375,8 +425,8 @@ def layers_output_ranges(model, x_test):
     print("shift list", shift_list)
     return shift_list
 
-def generate_model(model, x_test, name='weights.h', format='hwc'):
-    shift_list = layers_output_ranges(model, x_test)
+def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
+    shift_list = layers_output_ranges(model, x_test, kld)
     generate_weights(model, name=name, format=format, shift_list=shift_list)
     if(type(model.layers[0]) != InputLayer):
         L = [model.input] + model.layers
