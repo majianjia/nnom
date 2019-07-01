@@ -35,6 +35,7 @@ def build_model(x_shape):
     x = Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding='valid')(inputs)
     x = BatchNormalization()(x)
 
+    """ 
     x = DepthwiseConv2D(kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
 
@@ -46,7 +47,7 @@ def build_model(x_shape):
     x = BatchNormalization()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
-
+   
     x = Conv2D(24, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
     x = BatchNormalization()(x)
 
@@ -54,7 +55,7 @@ def build_model(x_shape):
     x = BatchNormalization()(x)
     x = ReLU()(x)
 
-    """
+
     x1 = Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
     x2 = Conv2D(32, kernel_size=(5, 5), strides=(1, 1), padding="same")(x)
     x3 = Conv2D(32, kernel_size=(1, 1), strides=(1, 1), padding="same")(x)
@@ -62,7 +63,7 @@ def build_model(x_shape):
     x = Concatenate(axis=-1)([x1, x2, x3])
     """
 
-    x = Conv2D(32, kernel_size=(3,3), strides=(2,2), padding="same")(x)
+    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
@@ -70,10 +71,8 @@ def build_model(x_shape):
 
     x = Flatten()(x)
     x = Dense(64)(x)
-    x = Dropout(0.2)(x)
-    x = Dense(32)(x)
-
     x = ReLU()(x)
+    x = Dropout(0.2)(x)
     x = Dense(10)(x)
     predictions = Softmax()(x)
 
@@ -118,7 +117,7 @@ def main(weights='weights.h'):
     config.gpu_options.allow_growth = True
     session = tf.Session(config=config)
 
-    epochs = 1
+    epochs = 3
     num_classes = 10
 
     # The data, split between train and test sets:
@@ -150,10 +149,10 @@ def main(weights='weights.h'):
     generate_test_bin(x_test*127, y_test, name='mnist_test_data.bin')
 
     # build model
-    #model = build_model(x_test.shape[1:])
+    model = build_model(x_test.shape[1:])
 
     # train model
-    #history = train(model, x_train,y_train, x_test, y_test, batch_size=64, epochs=epochs)
+    history = train(model, x_train,y_train, x_test, y_test, batch_size=64, epochs=epochs)
 
     # get best model
     model_path = os.path.join(save_dir, model_name)
@@ -164,7 +163,7 @@ def main(weights='weights.h'):
 
     # save weight
     #generate_model(model, np.vstack((x_train, x_test)), name="weights.h")
-    generate_model(model,  x_test, format='hwc', name="weights.h", kld=True)
+    generate_model(model,  x_test, format='hwc', name="weights.h")
 
     # --------- for test in CI ----------
     #if(os.getenv('NNOM_TEST_ON_CI') == 'YES'):
