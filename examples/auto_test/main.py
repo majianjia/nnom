@@ -32,7 +32,7 @@ save_dir = os.path.join(os.getcwd(), 'saved_models')
 
 def build_model(x_shape):
     inputs = Input(shape=x_shape)
-    x = Conv2D(8, kernel_size=(3, 3), strides=(1, 1), padding='valid')(inputs)
+    x = Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding='valid')(inputs)
     x = BatchNormalization()(x)
 
     x = DepthwiseConv2D(kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
@@ -40,30 +40,29 @@ def build_model(x_shape):
 
     # x = Cropping2D(cropping=((3,2),(3,1)))(x)
     # x = UpSampling2D(size=(2,2))(x)
+    # x = ZeroPadding2D(padding=((1, 2), (3, 4)))(x)
 
     x = Conv2D(24, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
-    # x = ZeroPadding2D(padding=((1, 2), (3, 4)))(x)
-    x = Conv2D(12, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
-    x = BatchNormalization()(x)
 
-    x = DepthwiseConv2D(kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
+    x = Conv2D(24, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
     x = BatchNormalization()(x)
 
     x = Conv2D(24, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
-    # x = UpSampling2D(size=(2,2))(x)
 
-    x1 = Conv2D(8, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
-    x2 = Conv2D(8, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
-    x3 = Conv2D(8, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
+    """
+    x1 = Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
+    x2 = Conv2D(32, kernel_size=(5, 5), strides=(1, 1), padding="same")(x)
+    x3 = Conv2D(32, kernel_size=(1, 1), strides=(1, 1), padding="same")(x)
 
     x = Concatenate(axis=-1)([x1, x2, x3])
+    """
 
-    x = Conv2D(24, kernel_size=(3,3), strides=(2,2), padding="same")(x)
+    x = Conv2D(32, kernel_size=(3,3), strides=(2,2), padding="same")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
@@ -151,10 +150,10 @@ def main(weights='weights.h'):
     generate_test_bin(x_test*127, y_test, name='mnist_test_data.bin')
 
     # build model
-    model = build_model(x_test.shape[1:])
+    #model = build_model(x_test.shape[1:])
 
     # train model
-    history = train(model, x_train,y_train, x_test, y_test, batch_size=64, epochs=epochs)
+    #history = train(model, x_train,y_train, x_test, y_test, batch_size=64, epochs=epochs)
 
     # get best model
     model_path = os.path.join(save_dir, model_name)
@@ -165,7 +164,7 @@ def main(weights='weights.h'):
 
     # save weight
     #generate_model(model, np.vstack((x_train, x_test)), name="weights.h")
-    generate_model(model,  x_test, format='hwc', name="weights.h")
+    generate_model(model,  x_test, format='hwc', name="weights.h", kld=True)
 
     # --------- for test in CI ----------
     #if(os.getenv('NNOM_TEST_ON_CI') == 'YES'):
@@ -173,6 +172,9 @@ def main(weights='weights.h'):
     if not (os.path.exists("tmp")):
         os.mkdir("tmp")
     (x_test_original*127).astype(np.int8).tofile('tmp/input.raw')
+
+    # build nnom
+    os.system("scons")
 
     # do inference
     path = ".\mnist.exe" if 'win' in sys.platform else "./mnist"

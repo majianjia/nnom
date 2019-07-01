@@ -14,7 +14,6 @@
 #include <assert.h>
 
 #include "nnom.h"
-
 #include "weights.h"
 
 int8_t* load(const char* file, size_t * size)

@@ -10,3 +10,4 @@ Debug
 *.obj
 *.sconsign.dblite
 .ipynb_checkpoints
+weights.h
