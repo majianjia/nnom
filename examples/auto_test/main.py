@@ -32,9 +32,9 @@ save_dir = os.path.join(os.getcwd(), 'saved_models')
 
 def build_model(x_shape):
     inputs = Input(shape=x_shape)
-    x = Conv2D(8, kernel_size=(3, 3), strides=(2, 2), padding='valid')(inputs)
+    x = Conv2D(8, kernel_size=(3, 3), strides=(1, 1), padding='valid')(inputs)
     x = BatchNormalization()(x)
-    """
+
     x = DepthwiseConv2D(kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
 
@@ -63,12 +63,11 @@ def build_model(x_shape):
 
     x = Concatenate(axis=-1)([x1, x2, x3])
 
-    # x = Conv2D(24, kernel_size=(3,3), strides=(2,2), padding="same")(x)
-    # x = BatchNormalization()(x)
+    x = Conv2D(24, kernel_size=(3,3), strides=(2,2), padding="same")(x)
+    x = BatchNormalization()(x)
     x = ReLU()(x)
-    # x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
+    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
     x = Dropout(0.2)(x)
-    """
 
     x = Flatten()(x)
     x = Dense(64)(x)
@@ -102,7 +101,7 @@ def train(model, x_train, y_train, x_test, y_test, batch_size=64, epochs=50):
             period=1)
     callback_lists = [checkpoint]
 
-    history =  model.fit(x_train, y_train,
+    history = model.fit(x_train, y_train,
               batch_size=batch_size,
               epochs=epochs,
               verbose=2,
@@ -114,9 +113,7 @@ def train(model, x_train, y_train, x_test, y_test, batch_size=64, epochs=50):
 
     return history
 
-
-if __name__ == "__main__":
-
+def main(weights='weights.h'):
     # fixed the gpu error
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -182,39 +179,13 @@ if __name__ == "__main__":
     if(0 == os.system(path)):
         result = np.genfromtxt('tmp/result.csv', delimiter=',', skip_header=1)
         result = result[:,0] # the first column is the label, the second is the probability
-        #label = np.argwhere(y_test_original == 1).astype(np.int)[:, 1]  # one hot -> number label
         label = y_test_original
-        plt.plot(result[:100])
-        plt.show()
-        plt.plot(label[:100])
-        plt.show()
-        print(result, result.shape)
-        print(label, label.shape)
-        print(np.sum(result == label))
+        acc = np.sum(result == label)/len(result)
+        if (acc > 0.8):
+            print("Top 1 Accuracy using NNoM  %.2f%%" %(acc *100))
+            return 0
+        else:
+            raise Exception('test failed, accuracy is %.1f%% < 80%%' % (acc * 100.0))
 
-        #print('%.1f%%(%s) out of %s is correct predicted'%(rP*100.0/i, rP, i))
-    """
-    if(3>2):
-        return 0
-    else:
-        raise Exception('test failed, accuracy is %.1f%% < 80%%'%(rP*100.0/i))
-    """
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    main()

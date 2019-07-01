@@ -37,32 +37,53 @@ int main(int argc, char* argv[])
 {
 	FILE* fp;
 	nnom_model_t* model;
-	//nnom_predict_t * pre;
+	nnom_predict_t * pre;
 	int8_t* input;
 	float prob;
 	uint32_t label;
 	size_t size = 0;
+
+	input = load("mnist_test_data.bin", &size);	// load a continuous input dataset (test bin)
+	fp = fopen("tmp/result.csv", "w");			// csv file for result
+	fprintf(fp, "label, prob\n");				// header of csv
+	printf("validation size: %d\n", (int)size); 
 	
-	model = nnom_model_create();			// create NNoM model
-	input = load("tmp/input.raw", &size);	// load a continuous input dataset
-	printf("validation size: %d\n", size);	
-	fp = fopen("tmp/result.csv", "w");		// file for result
-	fprintf(fp, "label, prob\n");
+	model = nnom_model_create();				// create NNoM model
+	pre = prediction_create(model, nnom_output_data, 10, 4); // mnist, 10 classes, get top-4
 	
-	//pre = prediction_create(model, nnom_input_data, 10, 9);
-	
-	// do inference for each input data, the input size is same as input buffer define in "weights.h"
-	for(long i=0; i*sizeof(nnom_input_data) < size; i++)
+	// now takes label and data from the file and data
+	for(int seek=0; seek < size;)
 	{
-		memcpy(nnom_input_data, input + i*sizeof(nnom_input_data), sizeof(nnom_input_data));
-		nnom_predict(model, &label, &prob);
-		//label = prediction_run(pre, 0); prob = 1;
-		fprintf(fp, "%d,%f\n", label, prob);
+		// labels
+		uint8_t true_label[128];
+		memcpy(true_label, input + seek, 128);
+		seek += 128;
+		// data
+		for(int i=0; i < 128; i++)
+		{
+			if(seek >= size)
+				break;
+			memcpy(nnom_input_data, input + seek, sizeof(nnom_input_data));
+			seek += sizeof(nnom_input_data);
+			
+			//nnom_predict(model, &label, &prob);				// this will work independently
+			prediction_run(pre, true_label[i], &label, &prob);  // this provide more infor but requires prediction API
+			
+			// save results
+			fprintf(fp, "%d,%f\n", label, prob);
+		}
 	}
+
+	// print prediction result
+	prediction_end(pre);
 	prediction_summary(pre);
-	fclose(fp);
+	prediction_delete(pre);
+
+	// model
+	model_stat(model);
 	model_delete(model);
+
+	fclose(fp);
 	free(input);
-	
 	return 0;
 }

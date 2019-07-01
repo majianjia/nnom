@@ -21,6 +21,7 @@ static nnom_predict_t *_predict_create_instance(nnom_model_t *m, size_t label_nu
 {
 	nnom_predict_t *pre;
 	uint8_t *p;
+	/*
 	size_t mem_size = 0;
 	
 	mem_size += nnom_alignto(label_num * label_num * 2, 4); // confusion_mat
@@ -36,7 +37,20 @@ static nnom_predict_t *_predict_create_instance(nnom_model_t *m, size_t label_nu
 	pre = (nnom_predict_t *)p;
 	pre->confusion_mat = (uint16_t *)(p + nnom_alignto(sizeof(nnom_predict_t), 4));
 	pre->top_k = (uint32_t *)(p + nnom_alignto(sizeof(nnom_predict_t), 4) + nnom_alignto(label_num * label_num * 2, 4));
-
+	*/
+	pre = (nnom_predict_t *)nnom_malloc(sizeof(nnom_predict_t));
+	if(pre == NULL)
+		return NULL;
+	pre->top_k = (uint32_t *)nnom_malloc(top_k_size * sizeof(uint32_t));
+	pre->confusion_mat = (uint16_t *)nnom_malloc(label_num * label_num * sizeof(uint16_t));
+	if(pre->top_k == NULL || pre->confusion_mat == NULL)
+	{
+		nnom_free(pre->top_k); nnom_free(pre->confusion_mat); nnom_free(pre);
+		return NULL;
+	}
+	memset(pre->top_k, 0, top_k_size * sizeof(uint32_t));
+	memset(pre->confusion_mat, 0, label_num * label_num * sizeof(uint16_t));
+	
 	// config
 	pre->label_num = label_num;
 	pre->top_k_size = top_k_size;
@@ -52,6 +66,15 @@ static nnom_predict_t *_predict_create_instance(nnom_model_t *m, size_t label_nu
 	return pre;
 }
 
+static void _predict_delete_instance(nnom_predict_t *pre)
+{
+	if(pre == NULL)
+		return;
+	nnom_free(pre->top_k); 
+	nnom_free(pre->confusion_mat);
+	nnom_free(pre); 
+}
+
 // create a prediction
 // input model, the buf pointer to the softwmax output (Temporary, this can be extract from model)
 // the size of softmax output (the num of lable)
@@ -63,7 +86,7 @@ nnom_predict_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, size_
 		return NULL;
 	if (!m)
 	{
-		nnom_free(pre);
+		_predict_delete_instance(pre);
 		return NULL;
 	}
 
@@ -80,12 +103,13 @@ nnom_predict_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, size_
 // feed data to prediction
 // input the current label, (range from 0 to total number of label -1)
 // (the current input data should be set by user manully to the input buffer of the model.)
-int32_t prediction_run(nnom_predict_t *pre, uint32_t label)
+nnom_status_t prediction_run(nnom_predict_t *pre, uint32_t true_label, uint32_t*predict_label, float* prob)
 {
 	int max_val;
 	int max_index;
 	uint32_t true_ranking = 0;
 	uint32_t start;
+	uint32_t sum = 0;
 
 	if (!pre)
 		return NN_ARGUMENT_ERROR;
@@ -102,12 +126,12 @@ int32_t prediction_run(nnom_predict_t *pre, uint32_t label)
 	// find the ranking of the prediced label.
 	for (uint32_t j = 0; j < pre->label_num; j++)
 	{
-		if (j == label)
+		if (j == true_label)
 			continue;
-		if (pre->buf_prediction[label] < pre->buf_prediction[j])
+		if (pre->buf_prediction[true_label] < pre->buf_prediction[j])
 			true_ranking++;
 		// while value[label] = value[j]. only when label > j, label is the second of j
-		else if (pre->buf_prediction[label] == pre->buf_prediction[j] && j < label)
+		else if (pre->buf_prediction[true_label] == pre->buf_prediction[j] && j < true_label)
 			true_ranking++;
 	}
 
@@ -125,16 +149,21 @@ int32_t prediction_run(nnom_predict_t *pre, uint32_t label)
 			max_val = pre->buf_prediction[j];
 			max_index = j;
 		}
+		sum += pre->buf_prediction[j];
 	}
-
+	// result
+	if(sum != 0)
+		*prob = (float)max_val / (float)sum;
+	*predict_label = max_index;
+	
 	// fill confusion matrix
-	pre->confusion_mat[label * pre->label_num + max_index] += 1;
+	pre->confusion_mat[true_label * pre->label_num + max_index] += 1;
 
 	// prediction count
 	pre->predict_count++;
 
 	// return the prediction
-	return max_index;
+	return NN_SUCCESS;
 }
 
 void prediction_end(nnom_predict_t *pre)
@@ -146,9 +175,7 @@ void prediction_end(nnom_predict_t *pre)
 
 void prediction_delete(nnom_predict_t *pre)
 {
-	if (!pre)
-		return;
-	nnom_free(pre);
+	_predict_delete_instance(pre);
 }
 
 void prediction_matrix(nnom_predict_t *pre)
@@ -209,10 +236,13 @@ void prediction_summary(nnom_predict_t *pre)
 	NNOM_LOG("Test frames: %d\n", pre->predict_count);
 	NNOM_LOG("Test running time: %d sec\n", pre->t_predict_total / 1000);
 	NNOM_LOG("Model running time: %d ms\n", pre->t_run_total);
-	NNOM_LOG("Average prediction time: %d us\n", (pre->t_run_total * 1000) / pre->predict_count);
-	NNOM_LOG("Average effeciency: %d.%02d ops/us\n", (int)(((uint64_t)pre->model->total_ops * pre->predict_count) / (pre->t_run_total * 1000)),
+	if(pre->predict_count !=0)
+		NNOM_LOG("Average prediction time: %d us\n", (pre->t_run_total * 1000) / pre->predict_count);
+	if(pre->t_run_total != 0)
+		NNOM_LOG("Average effeciency: %d.%02d ops/us\n", (int)(((uint64_t)pre->model->total_ops * pre->predict_count) / (pre->t_run_total * 1000)),
 			(int)(((uint64_t)pre->model->total_ops * pre->predict_count)*100 / (pre->t_run_total * 1000))%100);
-	NNOM_LOG("Average frame rate: %d.%d Hz\n", 1000 / (pre->t_run_total / pre->predict_count),
+	if(pre->t_run_total !=0 && pre->predict_count !=0)
+		NNOM_LOG("Average frame rate: %d.%d Hz\n", 1000 / (pre->t_run_total / pre->predict_count),
 			(1000*10 / (pre->t_run_total / pre->predict_count))%10);
 
 	// print top-k
@@ -252,7 +282,8 @@ nnom_status_t nnom_predict(nnom_model_t *m, uint32_t *label, float *prob)
 	}
 	// send results
 	*label = max_index;
-	*prob  = (float)max_val/(float)sum; 
+	if(sum !=0)
+		*prob  = (float)max_val/(float)sum; 
 	
 	return NN_SUCCESS;
 }
@@ -277,7 +308,7 @@ static void layer_stat(nnom_layer_t *layer)
 		NNOM_LOG("%3d.%02dG     ", layer->stat.macc/(1000*1000*1000), layer->stat.macc%(1000*1000*1000)/(10*1000*1000)); // xxx.xx G
 
 	// layer efficiency
-	if (layer->stat.macc != 0)
+	if (layer->stat.macc != 0 && layer->stat.time != 0)
 		NNOM_LOG("%d.%02d\n", layer->stat.macc / layer->stat.time, (layer->stat.macc * 100) / (layer->stat.time) % 100);
 	else
 		NNOM_LOG("\n");
@@ -313,7 +344,8 @@ void model_stat(nnom_model_t *m)
 	NNOM_LOG("Total ops (MAC): %d", total_ops);
 	NNOM_LOG("(%d.%02dM)\n", total_ops/(1000*1000), total_ops%(1000*1000)/(10000));
 	NNOM_LOG("Prediction time :%dus\n", total_time);
-	NNOM_LOG("Efficiency %d.%02d ops/us\n",
+	if(total_time != 0)
+		NNOM_LOG("Efficiency %d.%02d ops/us\n",
 		   (total_ops / total_time),
 		   (total_ops * 100) / (total_time) % 100);
 }

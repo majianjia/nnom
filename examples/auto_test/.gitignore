@@ -4,6 +4,9 @@
 tmp
 *.exe
 CMSIS_5
+*.sln
+*.vcxproj*
+Debug
 *.obj
 *.sconsign.dblite
 .ipynb_checkpoints

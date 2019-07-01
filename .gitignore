@@ -1,6 +1,7 @@
 SConscript*
 .vscode
 .vs
+.idea
 site
 *.o
 *.txt
