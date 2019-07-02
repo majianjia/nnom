@@ -71,6 +71,7 @@ int main(int argc, char* argv[])
 			// save results
 			fprintf(fp, "%d,%f\n", label, prob);
 		}
+		printf("Processing %d / %d\n", seek, size);
 	}
 
 	// print prediction result

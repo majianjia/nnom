@@ -69,6 +69,12 @@ def build_model(x_shape):
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
     x = Dropout(0.2)(x)
 
+    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
+    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
+    x = Dropout(0.2)(x)
+
     x = Flatten()(x)
     x = Dense(64)(x)
     x = ReLU()(x)
@@ -142,11 +148,14 @@ def main():
     x_train = x_train/255
     print("data range", x_test.min(), x_test.max())
 
+    # generate binary dataset for NNoM validation, 0~1 -> 0~127, q7
+    generate_test_bin(x_test*127, y_test, name='mnist_test_data.bin')
+
     # build model
     model = build_model(x_test.shape[1:])
 
     # train model
-    history = train(model, x_train,y_train, x_test, y_test, epochs=epochs)
+    history = train(model, x_train.copy(), y_train, x_test.copy(), y_test, epochs=epochs)
 
     # -------- generate weights.h (NNoM model) ----------
     # get best model
@@ -158,9 +167,6 @@ def main():
 
     # save weight
     generate_model(model,  x_test, format='hwc', name="weights.h")
-
-    # generate binary
-    generate_test_bin(x_test*127, y_test, name='mnist_test_data.bin')
 
     # --------- for test in CI ----------
     # build nnom
