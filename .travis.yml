@@ -17,10 +17,10 @@ before_script:
 
 script:
   - export PYTHONPATH=`pwd`/scripts
-  - echo ====== New auto-test ======
-  - cd examples/auto_test && python main.py && cd ../.. -
-  #- mkdir -p examples/mnist-densenet/tmp
-  #- echo ====== local NNOM test ======
+  #- echo ====== New auto-test ======
+  #- cd examples/auto_test && python main.py && cd ../.. -
+  - mkdir -p examples/mnist-densenet/tmp
+  - echo ====== local NNOM test ======
   #- cd examples/mnist-densenet && python model/mnist_densenet.py && cp -v weights.h mcu && scons && NNOM_TEST_ON_CI=YES python model/mnist_densenet.py && cd -
   #- echo ====== CMSIS NN NNOM test ======
   #- cd examples/mnist-densenet && USE_CMSIS_NN=YES scons && NNOM_TEST_ON_CI=YES python model/mnist_densenet.py && cd -
