@@ -41,7 +41,7 @@ def build_model(x_shape):
     x = UpSampling2D(size=(2,2))(x)
     x = ZeroPadding2D(padding=((1, 2), (3, 4)))(x)
     """
-
+    """
     x = Conv2D(24, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
@@ -61,7 +61,6 @@ def build_model(x_shape):
     x3 = Conv2D(32, kernel_size=(1, 1), strides=(1, 1), padding="same")(x)
 
     x = Concatenate(axis=-1)([x1, x2, x3])
-    """
     """
 
     x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
@@ -164,19 +163,13 @@ def main():
     generate_test_bin(x_test*127, y_test, name='mnist_test_data.bin')
 
     # --------- for test in CI ----------
-    #if(os.getenv('NNOM_TEST_ON_CI') == 'YES'):
-    # input for NNoM
-    if not (os.path.exists("tmp")):
-        os.mkdir("tmp")
-    (x_test_original*127).astype(np.int8).tofile('tmp/input.raw')
-
     # build nnom
     os.system("scons")
 
     # do inference
-    path = ".\mnist.exe" if 'win' in sys.platform else "./mnist"
-    if(0 == os.system(path)):
-        result = np.genfromtxt('tmp/result.csv', delimiter=',', skip_header=1)
+    cmd = ".\mnist.exe" if 'win' in sys.platform else "./mnist"
+    if(0 == os.system(cmd)):
+        result = np.genfromtxt('result.csv', delimiter=',', skip_header=1)
         result = result[:,0] # the first column is the label, the second is the probability
         label = y_test_original
         acc = np.sum(result == label)/len(result)
