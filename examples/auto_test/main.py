@@ -32,11 +32,13 @@ def build_model(x_shape):
     inputs = Input(shape=x_shape)
     x = Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding='valid')(inputs)
     x = BatchNormalization()(x)
+    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
 
+    """
     x = DepthwiseConv2D(kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
 
-    """
+    
     x = Cropping2D(cropping=((3,2),(3,1)))(x)
     x = UpSampling2D(size=(2,2))(x)
     x = ZeroPadding2D(padding=((1, 2), (3, 4)))(x)
@@ -61,19 +63,20 @@ def build_model(x_shape):
     x3 = Conv2D(32, kernel_size=(1, 1), strides=(1, 1), padding="same")(x)
 
     x = Concatenate(axis=-1)([x1, x2, x3])
+    
+
+    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
+    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
+    x = Dropout(0.2)(x)
+
+    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
+    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
+    x = Dropout(0.2)(x)
     """
-
-    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
-    x = Dropout(0.2)(x)
-
-    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
-    x = Dropout(0.2)(x)
 
     x = Flatten()(x)
     x = Dense(64)(x)
@@ -158,7 +161,7 @@ def main():
     history = train(model, x_train.copy(), y_train, x_test.copy(), y_test, epochs=epochs)
 
     # -------- generate weights.h (NNoM model) ----------
-    # get best model
+    # get the best model
     model_path = os.path.join(save_dir, model_name)
     model = load_model(model_path)
 
