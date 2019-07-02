@@ -31,7 +31,7 @@ save_dir = os.path.join(os.getcwd(), 'saved_models')
 def build_model(x_shape):
     inputs = Input(shape=x_shape)
     x = Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding='valid')(inputs)
-    x = BatchNormalization()(x)
+    #x = BatchNormalization()(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
 
     """
@@ -66,13 +66,13 @@ def build_model(x_shape):
     
     """
     x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
-    x = BatchNormalization()(x)
+    #x = BatchNormalization()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
     x = Dropout(0.2)(x)
 
     x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
-    x = BatchNormalization()(x)
+    #x = BatchNormalization()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
     x = Dropout(0.2)(x)
