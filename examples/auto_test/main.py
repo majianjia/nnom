@@ -8,8 +8,6 @@
     2019-06-30     Jianjia Ma   The first version
 '''
 
-
-
 import matplotlib.pyplot as plt
 import sys
 import os
@@ -35,18 +33,22 @@ def build_model(x_shape):
     x = Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding='valid')(inputs)
     x = BatchNormalization()(x)
 
-    """ 
+
     x = DepthwiseConv2D(kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
 
-    # x = Cropping2D(cropping=((3,2),(3,1)))(x)
-    # x = UpSampling2D(size=(2,2))(x)
-    # x = ZeroPadding2D(padding=((1, 2), (3, 4)))(x)
+
+    x = Cropping2D(cropping=((3,2),(3,1)))(x)
+    """
+    x = UpSampling2D(size=(2,2))(x)
+    x = ZeroPadding2D(padding=((1, 2), (3, 4)))(x)
+    """
 
     x = Conv2D(24, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
+
    
     x = Conv2D(24, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
     x = BatchNormalization()(x)
@@ -62,6 +64,7 @@ def build_model(x_shape):
 
     x = Concatenate(axis=-1)([x1, x2, x3])
     """
+    """
 
     x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
     x = BatchNormalization()(x)
@@ -70,7 +73,7 @@ def build_model(x_shape):
     x = Dropout(0.2)(x)
 
     x = Flatten()(x)
-    x = Dense(64)(x)
+    x = Dense(32)(x)
     x = ReLU()(x)
     x = Dropout(0.2)(x)
     x = Dense(10)(x)
@@ -117,7 +120,7 @@ def main(weights='weights.h'):
     config.gpu_options.allow_growth = True
     session = tf.Session(config=config)
 
-    epochs = 3
+    epochs = 5
     num_classes = 10
 
     # The data, split between train and test sets:
