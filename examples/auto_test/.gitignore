@@ -11,3 +11,4 @@ Debug
 *.sconsign.dblite
 .ipynb_checkpoints
 weights.h
+result.csv

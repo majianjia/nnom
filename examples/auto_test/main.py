@@ -64,19 +64,18 @@ def build_model(x_shape):
 
     x = Concatenate(axis=-1)([x1, x2, x3])
     
-
-    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
-    x = Dropout(0.2)(x)
-
-    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
-    x = Dropout(0.2)(x)
     """
+    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
+    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
+    x = Dropout(0.2)(x)
+
+    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
+    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
+    x = Dropout(0.2)(x)
 
     x = Flatten()(x)
     x = Dense(64)(x)
