@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 	size_t size = 0;
 
 	input = load("mnist_test_data.bin", &size);	// load a continuous input dataset (test bin)
-	fp = fopen("tmp/result.csv", "w");			// csv file for result
+	fp = fopen("result.csv", "w");			// csv file for result
 	fprintf(fp, "label, prob\n");				// header of csv
 	printf("validation size: %d\n", (int)size); 
 	
