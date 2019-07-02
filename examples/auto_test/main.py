@@ -33,17 +33,14 @@ def build_model(x_shape):
     x = Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding='valid')(inputs)
     x = BatchNormalization()(x)
 
-
     x = DepthwiseConv2D(kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
 
-
+    """
     x = Cropping2D(cropping=((3,2),(3,1)))(x)
-    """
     x = UpSampling2D(size=(2,2))(x)
-    """
     x = ZeroPadding2D(padding=((1, 2), (3, 4)))(x)
-
+    """
 
     x = Conv2D(24, kernel_size=(3, 3), strides=(1, 1), padding="same")(x)
     x = BatchNormalization()(x)
@@ -115,7 +112,7 @@ def train(model, x_train, y_train, x_test, y_test, batch_size=64, epochs=50):
 
     return history
 
-def main(weights='weights.h'):
+def main():
     # fixed the gpu error
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -139,25 +136,20 @@ def main(weights='weights.h'):
     # reshape to 4 d becaue we build for 4d?
     x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], x_train.shape[2], 1)
     x_test = x_test.reshape(x_test.shape[0], x_test.shape[1], x_test.shape[2], 1)
-    #x_train = x_train.reshape(x_train.shape[0], x_train.shape[1]* x_train.shape[2])  # for dense
-    #x_test = x_test.reshape(x_test.shape[0], x_test.shape[1]* x_test.shape[2])
     print('x_train shape:', x_train.shape)
 
     # quantize the range to q7
     x_test = x_test/255
     x_train = x_train/255
-
     print("data range", x_test.min(), x_test.max())
-
-    # generate binary
-    generate_test_bin(x_test*127, y_test, name='mnist_test_data.bin')
 
     # build model
     model = build_model(x_test.shape[1:])
 
     # train model
-    history = train(model, x_train,y_train, x_test, y_test, batch_size=64, epochs=epochs)
+    history = train(model, x_train,y_train, x_test, y_test, epochs=epochs)
 
+    # -------- generate weights.h (NNoM model) ----------
     # get best model
     model_path = os.path.join(save_dir, model_name)
     model = load_model(model_path)
@@ -166,8 +158,10 @@ def main(weights='weights.h'):
     evaluate_model(model, x_test, y_test)
 
     # save weight
-    #generate_model(model, np.vstack((x_train, x_test)), name="weights.h")
     generate_model(model,  x_test, format='hwc', name="weights.h")
+
+    # generate binary
+    generate_test_bin(x_test*127, y_test, name='mnist_test_data.bin')
 
     # --------- for test in CI ----------
     #if(os.getenv('NNOM_TEST_ON_CI') == 'YES'):
