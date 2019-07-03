@@ -10,8 +10,8 @@ before_script:
   - sudo apt-get update
   - python3 --version
   - python2 --version
-  - "sudo apt-get install -qq python-tk scons git || true"
-  - "sudo pip install tensorflow keras matplotlib scikit-learn || true"
+  - "sudo apt-get install -qq python-tk pip3 scons git || true"
+  - "sudo pip3 install tensorflow keras matplotlib scikit-learn || true"
   - "pip list"
 
 script:
