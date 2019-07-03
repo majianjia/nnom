@@ -120,10 +120,12 @@ def train(model, x_train, y_train, x_test, y_test, batch_size=64, epochs=50):
     return history
 
 def main():
+    """
     # fixed the gpu error
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     session = tf.Session(config=config)
+    """
 
     epochs = 1
     num_classes = 10
