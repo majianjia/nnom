@@ -87,7 +87,7 @@ def build_model(x_shape):
     model = Model(inputs=inputs, outputs=predictions)
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer='adadelta',
+                  optimizer='adam',
                   metrics=['accuracy'])
     model.summary()
     return model
