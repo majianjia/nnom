@@ -90,7 +90,7 @@ def build_model(x_shape):
                   optimizer='adadelta',
                   metrics=['accuracy'])
     model.summary()
-    return
+    return model
 
 def train(model, x_train, y_train, x_test, y_test, batch_size=64, epochs=50):
 
