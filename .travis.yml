@@ -10,9 +10,9 @@ before_script:
   - sudo apt-get update
   - python3 --version
   - python2 --version
-  - "sudo apt-get install -qq python-tk scons git conda || true"
-  - "sudo conda install tensorflow keras matplotlib scikit-learn || true"
-  - "conda list"
+  - "sudo apt-get install -qq python-tk scons git || true"
+  - "sudo pip install tensorflow keras matplotlib scikit-learn || true"
+  - "pip list"
 
 script:
   #- export PYTHONPATH=`pwd`/scripts
