@@ -117,13 +117,30 @@ def is_shift_layer(layer):
        'conv1d' in layer.name or
        'dense' in layer.name or
        'softmax' in layer.name or
+        'sigmoid' in layer.name or
+        'tanh' in layer.name or
         ('add' in layer.name and 'zero' not in layer.name) or # the name, zero_padding contains 'add'
         'subtract' in layer.name or
         'multiply' in layer.name or
-       ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')
+       ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')or
+       ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
+       ('activation' in layer.name and layer.get_config()['activation'] == 'tanh')
     ):
         return True
     return False
+
+def is_shift_fixed(layer):
+    ''' layer which shift to a fixed value'''
+    #FIXME: add more which will change the output shift
+    if('softmax' in layer.name or
+        'sigmoid' in layer.name or
+        'tanh' in layer.name or
+        ('activation' in layer.name and layer.get_config()['activation'] == 'softmax') or
+        ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
+        ('activation' in layer.name and layer.get_config()['activation'] == 'tanh')
+    ):
+        return True
+    return  False
 
 def fuse_bn_to_conv(layer):
     # try to fuse BN layer to convolutional
@@ -315,16 +332,14 @@ def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
             # batch_normalization will need to be handled differently, since we are fusing the weight to its predecessor.
             # sigmoid and tanh are different, their shift is fixed to 7
             if(is_shift_layer(layer) or
-                ('batch_normalization' in layer.name) or
-                ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
-                ('activation' in layer.name and layer.get_config()['activation'] == 'tanh')):
+                ('batch_normalization' in layer.name)):
                 layer_model = Model(inputs=model.input, outputs=layer.output)
                 features = layer_model.predict(x_test)
             else:
                 # leave the features not changed, so this layer shift will be the same
                 # as its inputs
                 pass
-        #  no saturation shift
+        #  calculate no saturation shift
         max_val = features.max()
         min_val = features.min()
         int_bits = int(np.ceil(np.log2(max(abs(max_val), abs(min_val)))))
@@ -332,7 +347,7 @@ def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
 
         # saturation shift, using KLD method
         # Ref: http://on-demand.gputechconf.com/gtc/2017/presentation/s7310-8-bit-inference-with-tensorrt.pdf
-        if(kld):
+        if(kld and not is_shift_fixed(layer)): # test
             import scipy.stats
             abs_max = max(abs(max_val), abs(min_val))
             small_var = 1e-5
@@ -370,8 +385,9 @@ def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
             print("KLD loss", kl_loss)
             print("KLD shift", kl_shifts)
             if(new_dec != dec_bits):
-                print("Layer:",layer.name,"using KLD method, original shift",dec_bits, "KLD results", new_dec)
+                print(layer.name,"is using KLD method, original shift",dec_bits, "KLD results", new_dec)
                 dec_bits = new_dec
+
         print( layer.name, "max value:", max_val, "min value:", min_val,"dec bit", dec_bits)
         # record the shift
         if(model.input == layer and type(model.layers[0]) != InputLayer):
@@ -754,7 +770,7 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
             intt = int(np.ceil(np.log2(max(abs(min_value), abs(max_value)))))
             dec = 7 - intt
             print(var_name, "Dec num:", dec)
-
+    return scores
 
 
 class nnom:

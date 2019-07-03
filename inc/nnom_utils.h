@@ -50,7 +50,7 @@ nnom_predict_t *prediction_create(nnom_model_t *m, int8_t *buf_prediction, size_
 // input the current label, (range from 0 to total number of label -1)
 // (the current input data should be set by user manully to the input buffer of the model.)
 // return NN_ARGUMENT_ERROR if parameter error
-int32_t prediction_run(nnom_predict_t *pre, uint32_t label);
+nnom_status_t prediction_run(nnom_predict_t *pre, uint32_t true_label, uint32_t* predict_label, float* prob);
 
 // to mark prediction finished
 void prediction_end(nnom_predict_t *pre);

@@ -1,0 +1,14 @@
+.vscode
+.idea
+.shift_list
+tmp
+*.exe
+CMSIS_5
+*.sln
+*.vcxproj*
+Debug
+*.obj
+*.sconsign.dblite
+.ipynb_checkpoints
+weights.h
+result.csv

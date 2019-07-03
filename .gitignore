@@ -1,12 +1,13 @@
 SConscript*
 .vscode
 .vs
+.idea
 site
 *.o
 *.txt
 *.bin
 __pycache__
 *.h5
+*.obj
+*.sconsign.dblite
 .ipynb_checkpoints
-
-
