@@ -11,7 +11,7 @@ before_script:
   - python3 --version
   - python2 --version
   - "sudo apt-get install -qq python-tk scons git || true"
-  - "sudo pip3 install tensorflow keras matplotlib scikit-learn || true"
+  - "sudo pip install tensorflow keras matplotlib scikit-learn || true"
   - "pip list"
 
 script:
