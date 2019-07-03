@@ -149,7 +149,7 @@ def main():
         result = np.genfromtxt('result.csv', delimiter=',', skip_header=1)
         result = result[:,0] # the first column is the label, the second is the probability
         label = y_test_original
-        acc = np.sum(result == label)/len(result)
+        acc = np.sum(result == label).astype('float32')/len(result)
         if (acc > 0.8):
             print("Top 1 Accuracy using NNoM  %.2f%%" %(acc *100))
             return 0
