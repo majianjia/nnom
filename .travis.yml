@@ -15,9 +15,9 @@ before_script:
   - "pip list"
 
 script:
-  - export PYTHONPATH=`pwd`/scripts
+  #- export PYTHONPATH=`pwd`/scripts
   - echo ====== New auto-test ======
-  - cd examples/auto_test && python main.py -
+  - cd examples/auto_test && python3 main.py -
   #- mkdir -p examples/mnist-densenet/tmp
   #- echo ====== local NNOM test ======
   #- cd examples/mnist-densenet && python model/mnist_densenet.py && cp -v weights.h mcu && scons && NNOM_TEST_ON_CI=YES python model/mnist_densenet.py && cd -
