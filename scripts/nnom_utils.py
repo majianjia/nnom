@@ -770,7 +770,7 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
             intt = int(np.ceil(np.log2(max(abs(min_value), abs(max_value)))))
             dec = 7 - intt
             print(var_name, "Dec num:", dec)
-
+    return scores
 
 
 class nnom:

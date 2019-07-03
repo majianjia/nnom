@@ -8,7 +8,6 @@
     2019-06-30     Jianjia Ma   The first version
 '''
 
-#import matplotlib.pyplot as plt
 import sys
 import os
 os.sys.path.append(os.path.abspath("../../scripts"))
@@ -32,19 +31,18 @@ def build_model(x_shape):
     x = Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding='valid')(inputs)
     x = BatchNormalization()(x)
 
-    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
+    x = Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
     x = Dropout(0.2)(x)
 
-    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
+    x = Conv2D(64, kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
-    x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
     x = Dropout(0.2)(x)
 
-    x = Conv2D(32, kernel_size=(3,3), strides=(1,1), padding="valid")(x)
+    x = Conv2D(64, kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
@@ -133,25 +131,27 @@ def main():
     # generate binary dataset for NNoM validation, 0~1 -> 0~127, q7
     generate_test_bin(x_test*127, y_test, name='mnist_test_data.bin')
 
-    # evaluate
-    evaluate_model(model, x_test, y_test)
+    # evaluate in Keras (for comparision)
+    scores = evaluate_model(model, x_test, y_test)
 
-    # save weight
+    # generate NNoM model, x_test is the calibration dataset used in quantisation process
     generate_model(model,  x_test, format='hwc', name="weights.h")
 
     # --------- for test in CI ----------
-    # build nnom
+    # build NNoM
     os.system("scons")
 
-    # do inference
+    # do inference using NNoM
     cmd = ".\mnist.exe" if 'win' in sys.platform else "./mnist"
     if(0 == os.system(cmd)):
+        # get NNoM results
         result = np.genfromtxt('result.csv', delimiter=',', skip_header=1)
-        result = result[:,0] # the first column is the label, the second is the probability
-        label = y_test_original
+        result = result[:,0]        # the first column is the label, the second is the probability
+        label = y_test_original     # use the original numerical label
         acc = np.sum(result == label).astype('float32')/len(result)
         if (acc > 0.8):
-            print("Top 1 Accuracy using NNoM  %.2f%%" %(acc *100))
+            print("Top 1 Accuracy on Keras %.2f%%" %(scores[1]*100))
+            print("Top 1 Accuracy on NNoM  %.2f%%" %(acc *100))
             return 0
         else:
             raise Exception('test failed, accuracy is %.1f%% < 80%%' % (acc * 100.0))
