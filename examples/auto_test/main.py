@@ -84,14 +84,15 @@ def build_model(x_shape):
     x = Dense(10)(x)
     predictions = Softmax()(x)
 
-    return Model(inputs=inputs, outputs=predictions)
+    model = Model(inputs=inputs, outputs=predictions)
 
-
-def train(model, x_train, y_train, x_test, y_test, batch_size=64, epochs=50):
     model.compile(loss='categorical_crossentropy',
                   optimizer='adadelta',
                   metrics=['accuracy'])
     model.summary()
+    return
+
+def train(model, x_train, y_train, x_test, y_test, batch_size=64, epochs=50):
 
     # Save model and weights
     if not os.path.isdir(save_dir):
@@ -159,7 +160,7 @@ def main():
     model = build_model(x_test.shape[1:])
 
     # train model
-    history = train(model, x_train.copy(), y_train, x_test.copy(), y_test, epochs=epochs)
+    history = train(model, x_train, y_train, x_test, y_test, epochs=epochs)
 
     # -------- generate weights.h (NNoM model) ----------
     # get the best model
