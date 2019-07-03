@@ -27,7 +27,7 @@ from nnom_utils import *
 
 save_dir = 'keras_mnist_trained_model.h5'
 
-"""
+
 def build_model(x_shape):
     inputs = Input(shape=x_shape)
     x = Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding='valid')(inputs)
@@ -166,7 +166,7 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     del model
     K.clear_session()
     return history
-
+"""
 
 def main():
     """
@@ -197,19 +197,19 @@ def main():
     print('x_train shape:', x_train.shape)
 
     # quantize the range to q7
-    x_test = x_test/255
-    x_train = x_train/255
+    x_test = x_test.astype('float32')/255
+    x_train = x_train.astype('float32')/255
     print("data range", x_test.min(), x_test.max())
 
     # generate binary dataset for NNoM validation, 0~1 -> 0~127, q7
     generate_test_bin(x_test*127, y_test, name='mnist_test_data.bin')
 
     # build model
-    #model = build_model(x_test.shape[1:])
+    model = build_model(x_test.shape[1:])
 
     # train model
-    #history = train(model, x_train, y_train, x_test, y_test, epochs=epochs)
-    train( x_train, y_train, x_test, y_test, epochs=epochs)
+    history = train(model, x_train, y_train, x_test, y_test, epochs=epochs)
+    #train( x_train, y_train, x_test, y_test, epochs=epochs)
 
     # -------- generate weights.h (NNoM model) ----------
     # get the best model
