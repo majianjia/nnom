@@ -15,7 +15,7 @@ before_script:
   - "pip list"
 
 script:
-  #- export PYTHONPATH=`pwd`/scripts
+  - export PYTHONPATH=`pwd`/scripts
   - echo ====== New auto-test ======
   - cd examples/auto_test && python main.py -
   #- mkdir -p examples/mnist-densenet/tmp
