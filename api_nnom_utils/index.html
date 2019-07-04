@@ -232,7 +232,7 @@ These functions are located in <code>scripts/nnom_utils.py</code></p>
 <h1 id="api">API</h1>
 <hr />
 <h2 id="generate_model">generate_model()</h2>
-<pre><code class="python">generate_model(model, x_test, name='weights.h', format='hwc')
+<pre><code class="python">generate_model(model, x_test, name='weights.h', format='hwc', kld=True)
 </code></pre>
 
 <p><strong>This is all you need</strong></p>
@@ -245,9 +245,10 @@ These functions are located in <code>scripts/nnom_utils.py</code></p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong>model:</strong> the trained Keras model</li>
-<li><strong>x_test:</strong> the dataset used to check the output range of each layer.  </li>
+<li><strong>x_test:</strong> the dataset used to check calibrate the output data quantisation range of each layer.  </li>
 <li><strong>name:</strong> the name of the automatically generated c file. </li>
 <li><strong>format:</strong> indicate the backend format, options between <code>'hwc'</code> and <code>'chw'</code>. See notes</li>
+<li><strong>kld:</strong> <code>True</code>, use KLD method for activation quantisation (saturated). <code>False</code>, use min-max method (nonsaturated). </li>
 </ul>
 <p><strong>Notes</strong></p>
 <ul>
@@ -256,17 +257,20 @@ These functions are located in <code>scripts/nnom_utils.py</code></p>
 <li>The default backend format is set to 'hwc', also call 'channel last', which is the same format as CMSIS-NN. This format is optimal for CPU. 
 'chw' format, call 'channel first', is for MCU with hardware AI accelerator (such as <a href="https://kendryte.com/">Kendryte K210</a>).
 This setting only affects the format in the backend. the frontend will always use 'HWC' for data shape. </li>
+<li>About activation quantisat method options, check <a href="http://on-demand.gputechconf.com/gtc/2017/presentation/s7310-8-bit-inference-with-tensorrt.pdf">TensorRT notes</a> for detail. </li>
 </ul>
 <hr />
 <h2 id="layers_output_ranges">layers_output_ranges()</h2>
-<pre><code class="python">layers_output_ranges(model, x_test):
+<pre><code class="python">layers_output_ranges(model, x_test, kld=True, calibrate_size=1000)
 </code></pre>
 
 <p>This function is to check the output range and generate the output shifting list of each layer. It will automatically distinguish whether a layer can change its output Q format or not. </p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong>model:</strong> the trained Keras model</li>
-<li><strong>x_test:</strong> the dataset used to check the output range of each layer.  </li>
+<li><strong>x_test:</strong> the dataset for calibrating quantisation.</li>
+<li><strong>kld:</strong> <code>True</code>, use KLD method for activation quantisation (saturated). <code>False</code>, use min-max method (nonsaturated). </li>
+<li><strong>calibrate_size:</strong> how many data for calibration. TensorRT suggest 1000 is enough. If <code>x_test</code> is longger than this value, it will randomly pick the lenght from the <code>x_test</code>.</li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
@@ -305,7 +309,7 @@ This setting only affects the format in the backend. the frontend will always us
 <li><strong>x_test:</strong> the dataset for testing (one hot format)</li>
 <li><strong>y_test:</strong> the label for testing dataset</li>
 <li><strong>running_time:</strong> check running time for one prediction</li>
-<li><strong>to_file:</strong> the file to save the results. </li>
+<li><strong>to_file:</strong> save above metrics to the file . </li>
 </ul>
 <hr />
 <h2 id="generate_test_bin">generate_test_bin()</h2>

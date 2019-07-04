@@ -411,11 +411,44 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 </table>
 <p><strong>Activations</strong></p>
 <p>Activation can be used by itself as layer, or can be attached to the previous layer as <a href="docs/A_Temporary_Guide_to_NNoM.md#addictionlly-activation-apis">"actail"</a> to reduce memory cost.</p>
-<p>| Actrivation | HWC| CHW|Layer API|Activation API|Comments|
-| ------ |-- |--|--|--|
-| ReLU  | ✓|✓|ReLU()|act_relu()||
-| TanH | ✓|✓|TanH()|act_tanh()||
-|Sigmoid|✓|✓| Sigmoid()|act_sigmoid()||</p>
+<table>
+<thead>
+<tr>
+<th>Actrivation</th>
+<th>HWC</th>
+<th>CHW</th>
+<th>Layer API</th>
+<th>Activation API</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ReLU</td>
+<td>✓</td>
+<td>✓</td>
+<td>ReLU()</td>
+<td>act_relu()</td>
+<td></td>
+</tr>
+<tr>
+<td>TanH</td>
+<td>✓</td>
+<td>✓</td>
+<td>TanH()</td>
+<td>act_tanh()</td>
+<td></td>
+</tr>
+<tr>
+<td>Sigmoid</td>
+<td>✓</td>
+<td>✓</td>
+<td>Sigmoid()</td>
+<td>act_sigmoid()</td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <p><strong>Pooling Layers</strong></p>
 <table>
 <thead>
@@ -487,7 +520,7 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 <tr>
 <td>Concatenate</td>
 <td>✓</td>
-<td></td>
+<td>✓</td>
 <td>Concat()</td>
 <td>Concatenate through any axis</td>
 </tr>
@@ -564,5 +597,5 @@ There is no need to learn TensorFlow/Lite or other libs.  </p>
 
 <!--
 MkDocs version : 1.0.4
-Build Date UTC : 2019-06-25 13:38:32
+Build Date UTC : 2019-07-04 15:18:00
 -->

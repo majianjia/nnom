@@ -311,18 +311,21 @@ Total Memory cost (Network and NNoM): 32876
 <p>Check later examples. </p>
 <hr />
 <h2 id="prediction_run">prediction_run()</h2>
-<pre><code class="c">int32_t prediction_run(nnom_predict_t *pre, uint32_t label);
+<pre><code class="c">nnom_status_t prediction_run(nnom_predict_t *pre, 
+    uint32_t true_label, uint32_t* predict_label, float* prob)
 </code></pre>
 
 <p>To run a prediction with the new data (feeded by user to the input_buffer which passed to Input layer).</p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong>pre:</strong> the prediction instance created by <code>prediction_create()</code>.</li>
-<li><strong>label:</strong> the true label of this data.</li>
+<li><strong>true_label:</strong> true label of this data.</li>
+<li><strong>predict_label:</strong> the predicted label of this data (top-1 results).</li>
+<li><strong>prob:</strong> the probability of this label.</li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
-<li>The top-1 prediction of current data. </li>
+<li>nnom_status_t </li>
 </ul>
 <hr />
 <h2 id="prediction_end">prediction_end()</h2>
@@ -428,8 +431,7 @@ Average frame rate: 8.0 Hz
 <p>Then you can use <code>prediction_matrix()</code>, <code>prediction_top_k()</code>, and <code>prediction_summary()</code> to see the results.</p>
 <p>In addition, you can call <code>model_stat()</code> to see the performance of the last prediction. </p>
 <p>After all, call <code>prediction_delete()</code> to release all memory. </p>
-<p><strong>How to implement in real-life scenarios</strong></p>
-<p>Please check the UCI_HAR example for coding detail with RT-Thread and Y-modem. </p>
+<p>Log from <a href="https://github.com/majianjia/nnom/tree/master/examples/keyword_spotting">Key-word Spotting Example</a>. </p>
 <pre><code>
 msh &gt;                                                                                                                                   
  \ | /
