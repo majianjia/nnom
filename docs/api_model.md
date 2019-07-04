@@ -46,7 +46,7 @@ Delete and free all the resources created with the model.
 nnom_status_t sequencial_compile(nnom_model_t *m);
 ~~~
 
-Compile a sequencial model which is constructed by sequencial construction APIs. 
+Compile a sequencial model which is constructed by sequencial construction APIs.
 
 **Arguments**
 

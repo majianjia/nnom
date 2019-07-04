@@ -109,7 +109,8 @@ Check later examples.
 ## prediction_run()
 
 ~~~c
-int32_t prediction_run(nnom_predict_t *pre, uint32_t label);
+nnom_status_t prediction_run(nnom_predict_t *pre, 
+	uint32_t true_label, uint32_t* predict_label, float* prob)
 ~~~
 
 To run a prediction with the new data (feeded by user to the input_buffer which passed to Input layer).
@@ -117,11 +118,13 @@ To run a prediction with the new data (feeded by user to the input_buffer which 
 **Arguments**
 
 - **pre:** the prediction instance created by `prediction_create()`.
-- **label:** the true label of this data.
+- **true_label:** true label of this data.
+- **predict_label:** the predicted label of this data (top-1 results).
+- **prob:** the probability of this label.
 
 **Return**
 
-- The top-1 prediction of current data. 
+- nnom_status_t 
 
 ---
 
@@ -267,9 +270,7 @@ In addition, you can call `model_stat()` to see the performance of the last pred
 After all, call `prediction_delete()` to release all memory. 
 
 
-**How to implement in real-life scenarios**
-
-Please check the UCI_HAR example for coding detail with RT-Thread and Y-modem. 
+Log from [Key-word Spotting Example](https://github.com/majianjia/nnom/tree/master/examples/keyword_spotting). 
 
 ~~~
 

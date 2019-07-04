@@ -132,7 +132,7 @@ Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for deta
 Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](docs/A_Temporary_Guide_to_NNoM.md#addictionlly-activation-apis) to reduce memory cost.
 
 | Actrivation | HWC| CHW|Layer API|Activation API|Comments|
-| ------ |-- |--|--|--|
+| ------ |-- |--|--|--|--|
 | ReLU  | ✓|✓|ReLU()|act_relu()||
 | TanH | ✓|✓|TanH()|act_tanh()||
 |Sigmoid|✓|✓| Sigmoid()|act_sigmoid()||
@@ -152,7 +152,7 @@ Activation can be used by itself as layer, or can be attached to the previous la
 
 | Matrix |HWC|CHW|Layer API|Comments|
 | ------ |-- |--|--|--|
-| Concatenate |✓|| Concat()| Concatenate through any axis|
+| Concatenate |✓|✓| Concat()| Concatenate through any axis|
 | Multiple  |✓|✓|Mult()||
 | Addition  |✓|✓|Add()||
 | Substraction  |✓|✓|Sub()||

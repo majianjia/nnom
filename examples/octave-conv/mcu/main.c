@@ -120,6 +120,9 @@ static enum rym_code ymodem_on_begin(struct rym_ctx *ctx, rt_uint8_t *buf, rt_si
 
 static enum rym_code ymodem_on_data(struct rym_ctx *ctx, rt_uint8_t *buf, rt_size_t len) 
 {
+	uint32_t label;
+	float prob = 0;
+	
 	// put data in buffer, then get it as block. 
 	rt_ringbuffer_put(ringbuffer, buf, len);
 	
@@ -143,7 +146,7 @@ static enum rym_code ymodem_on_data(struct rym_ctx *ctx, rt_uint8_t *buf, rt_siz
 			rt_ringbuffer_get(ringbuffer, (uint8_t*)nnom_input_data, DATA_SIZE);
 			
 			// do this prediction round.
-			prediction_run(prediction, test_label[test_total_count % LABEL_SIZE]);
+			prediction_run(prediction, test_label[test_total_count % LABEL_SIZE], &label, &prob);  
 			
 			// we can use the count in prediction as well.
 			test_total_count += 1;
