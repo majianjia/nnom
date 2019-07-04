@@ -15,7 +15,7 @@ Tutorial is comming, before it arrives, please refer to [examples](https://githu
 ## generate_model()
 
 ~~~python
-generate_model(model, x_test, name='weights.h', format='hwc')
+generate_model(model, x_test, name='weights.h', format='hwc', kld=True)
 ~~~
 
 **This is all you need**
@@ -29,9 +29,10 @@ This method is the most frequently used function for deployment.
 **Arguments**
 
 - **model:** the trained Keras model
-- **x_test:** the dataset used to check the output range of each layer.  
+- **x_test:** the dataset used to check calibrate the output data quantisation range of each layer.  
 - **name:** the name of the automatically generated c file. 
 - **format:** indicate the backend format, options between `'hwc'` and `'chw'`. See notes
+- **kld:** `True`, use KLD method for activation quantisation (saturated). `False`, use min-max method (nonsaturated). 
 
 **Notes**
 
@@ -40,13 +41,14 @@ This method is the most frequently used function for deployment.
 - The default backend format is set to 'hwc', also call 'channel last', which is the same format as CMSIS-NN. This format is optimal for CPU. 
 'chw' format, call 'channel first', is for MCU with hardware AI accelerator (such as [Kendryte K210](https://kendryte.com/)).
 This setting only affects the format in the backend. the frontend will always use 'HWC' for data shape. 
+- About activation quantisat method options, check [TensorRT notes](http://on-demand.gputechconf.com/gtc/2017/presentation/s7310-8-bit-inference-with-tensorrt.pdf) for detail. 
 
 ---
 
 ## layers_output_ranges()
 
 ~~~python
-layers_output_ranges(model, x_test):
+layers_output_ranges(model, x_test, kld=True, calibrate_size=1000)
 ~~~
 
 This function is to check the output range and generate the output shifting list of each layer. It will automatically distinguish whether a layer can change its output Q format or not. 
@@ -54,7 +56,9 @@ This function is to check the output range and generate the output shifting list
 **Arguments**
 
 - **model:** the trained Keras model
-- **x_test:** the dataset used to check the output range of each layer.  
+- **x_test:** the dataset for calibrating quantisation.
+- **kld:** `True`, use KLD method for activation quantisation (saturated). `False`, use min-max method (nonsaturated). 
+- **calibrate_size:** how many data for calibration. TensorRT suggest 1000 is enough. If `x_test` is longger than this value, it will randomly pick the lenght from the `x_test`.
 
 **Return**
 
@@ -102,7 +106,7 @@ Evaluate the model after training. It do running time check, Top-k(k=1,2) accura
 - **x_test:** the dataset for testing (one hot format)
 - **y_test:** the label for testing dataset
 - **running_time:** check running time for one prediction
-- **to_file:** the file to save the results. 
+- **to_file:** save above metrics to the file . 
 
 ---
 
