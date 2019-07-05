@@ -48,10 +48,10 @@ int main(int argc, char* argv[])
 	printf("validation size: %d\n", (int)size); 
 	
 	model = nnom_model_create();				// create NNoM model
-	pre = prediction_create(model, nnom_output_data, 10, 4); // mnist, 10 classes, get top-4
+	pre = prediction_create(model, nnom_output_data, sizeof(nnom_output_data), 4); // mnist, 10 classes, get top-4
 	
 	// now takes label and data from the file and data
-	for(int seek=0; seek < size;)
+	for(size_t seek=0; seek < size;)
 	{
 		// labels
 		uint8_t true_label[128];
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
 			// save results
 			fprintf(fp, "%d,%f\n", label, prob);
 		}
-		printf("Processing %d%%\n", seek*100 / size);
+		printf("Processing %d%%\n", seek * 100 / size);
 	}
 
 	// print prediction result

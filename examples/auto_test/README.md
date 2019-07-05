@@ -68,7 +68,7 @@ model = build_model(x_test.shape[1:])
 train(model, x_train,y_train, x_test, y_test, epochs=epochs)
 ~~~
 
-We first load the MNIST dataset (if it is the first time, Keras will download the dataset for you), then scales them int to a range of 0~1 by dividing 255. (MNIST dataset is 28 x 28 x 8bit grey scale image). Instead of 0~255, now images are represented by 0~1. Then build the model and train it the same way as most of the other tutorials you can find online. This section will finally save the trained model in our working directory.
+We first load the MNIST dataset (if it is the first time, Keras will download the dataset for you), then scales them int to a range of 0 ~ 1 by dividing 255. (MNIST dataset is 28 x 28 x 8bit grey scale image). Instead of 0 ~ 255, now images are represented by 0 ~ 1. Then build the model and train it the same way as most of the other tutorials you can find online. This section will finally save the trained model in our working directory.
 
 If you are not familiar with Keras model, you can check the “build_model()” in “main.py” for detail. This example shows a simple feed-forward model, however, complex models will be the same.
 

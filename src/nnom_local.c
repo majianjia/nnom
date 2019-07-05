@@ -1000,7 +1000,7 @@ void local_softmax_q7(const q7_t *vec_in, const uint32_t dim_vec, q7_t *p_out)
     }
 }
 
-void local_sigmoid_q7(q7_t *data, uint32_t size, uint16_t int_width)
+void local_sigmoid_q7(q7_t * data, uint32_t size, int16_t int_width)
 {
     uint32_t i = size;
     q7_t *pIn = data;
@@ -1033,7 +1033,7 @@ void local_sigmoid_q7(q7_t *data, uint32_t size, uint16_t int_width)
     }
 }
 
-void local_tanh_q7(q7_t *data, uint32_t size, uint16_t int_width)
+void local_tanh_q7(q7_t *data, uint32_t size, int16_t int_width)
 {
     uint32_t i = size;
     q7_t *pIn = data;

@@ -147,9 +147,9 @@ def main():
         # get NNoM results
         result = np.genfromtxt('result.csv', delimiter=',', skip_header=1)
         result = result[:,0]        # the first column is the label, the second is the probability
-        label = y_test_original     # use the original numerical label
+        label = y_test_original.flatten()     # use the original numerical label
         acc = np.sum(result == label).astype('float32')/len(result)
-        if (acc > 0.8):
+        if (acc > 0.5):
             print("Top 1 Accuracy on Keras %.2f%%" %(scores[1]*100))
             print("Top 1 Accuracy on NNoM  %.2f%%" %(acc *100))
             return 0

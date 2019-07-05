@@ -326,10 +326,10 @@ void local_fully_connected_q7(const q7_t * pV,    // pointer to vector
 void local_softmax_q7(const q7_t * vec_in, const uint32_t dim_vec, q7_t * p_out);
 
 // sigmoid
-void local_sigmoid_q7(q7_t * data, uint32_t size, uint16_t int_width);
+void local_sigmoid_q7(q7_t * data, uint32_t size, int16_t int_width);
 
 // tanh
-void local_tanh_q7(q7_t * data, uint32_t size, uint16_t int_width);
+void local_tanh_q7(q7_t * data, uint32_t size, int16_t int_width);
 
 // relu
 void local_relu_q7(q7_t * data, uint32_t size);

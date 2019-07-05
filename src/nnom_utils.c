@@ -101,45 +101,60 @@ nnom_status_t prediction_run(nnom_predict_t *pre, uint32_t true_label, uint32_t*
 	model_run(pre->model);
 	pre->t_run_total += nnom_ms_get() - start;
 
-	// find how many prediction is bigger than the ground true.
-	// Raning rules, same as tensorflow. however, predictions in MCU is more frequencly to have equal probability since it is using fixed-point.
-	// if ranking is 1, 2, =2(true), 4, 5, 6. the result will be top 3.
-	// if ranking is 1, 2(true), =2, 4, 5, 6. the result will be top 2.
-	// find the ranking of the prediced label.
-	for (uint32_t j = 0; j < pre->label_num; j++)
+	// only draw matrix and top k when number of label > 1
+	if (pre->label_num > 1)
 	{
-		if (j == true_label)
-			continue;
-		if (pre->buf_prediction[true_label] < pre->buf_prediction[j])
-			true_ranking++;
-		// while value[label] = value[j]. only when label > j, label is the second of j
-		else if (pre->buf_prediction[true_label] == pre->buf_prediction[j] && j < true_label)
-			true_ranking++;
-	}
-
-	if (true_ranking < pre->top_k_size)
-		pre->top_k[true_ranking]++;
-
-	// Find top 1 and return the current prediction.
-	// If there are several maximum prediction, return the first one.
-	max_val = pre->buf_prediction[0];
-	max_index = 0;
-	for (uint32_t j = 1; j < pre->label_num; j++)
-	{
-		if (pre->buf_prediction[j] > max_val)
+		// find how many prediction is bigger than the ground true.
+		// Raning rules, same as tensorflow. however, predictions in MCU is more frequencly to have equal probability since it is using fixed-point.
+		// if ranking is 1, 2, =2(true), 4, 5, 6. the result will be top 3.
+		// if ranking is 1, 2(true), =2, 4, 5, 6. the result will be top 2.
+		// find the ranking of the prediced label.
+		for (uint32_t j = 0; j < pre->label_num; j++)
 		{
-			max_val = pre->buf_prediction[j];
-			max_index = j;
+			if (j == true_label)
+				continue;
+			if (pre->buf_prediction[true_label] < pre->buf_prediction[j])
+				true_ranking++;
+			// while value[label] = value[j]. only when label > j, label is the second of j
+			else if (pre->buf_prediction[true_label] == pre->buf_prediction[j] && j < true_label)
+				true_ranking++;
 		}
-		sum += pre->buf_prediction[j];
+
+		if (true_ranking < pre->top_k_size)
+			pre->top_k[true_ranking]++;
+
+		// Find top 1 and return the current prediction.
+		// If there are several maximum prediction, return the first one.
+		max_val = pre->buf_prediction[0];
+		max_index = 0;
+		for (uint32_t j = 1; j < pre->label_num; j++)
+		{
+			if (pre->buf_prediction[j] > max_val)
+			{
+				max_val = pre->buf_prediction[j];
+				max_index = j;
+			}
+			sum += pre->buf_prediction[j];
+		}
+		// result
+		if (sum != 0)
+			* prob = (float)max_val / (float)sum;
+		else
+			*prob = 0;
+		*predict_label = max_index;
+
+		// fill confusion matrix
+		pre->confusion_mat[true_label * pre->label_num + max_index] += 1;
 	}
-	// result
-	if(sum != 0)
-		*prob = (float)max_val / (float)sum;
-	*predict_label = max_index;
-	
-	// fill confusion matrix
-	pre->confusion_mat[true_label * pre->label_num + max_index] += 1;
+	// only one neural as output. 
+	else
+	{
+		*prob = (float)pre->buf_prediction[0] / 127.f;
+		if (*prob >= 0.5f)
+			*predict_label = 1;
+		else
+			*predict_label = 0;
+	}
 
 	// prediction count
 	pre->predict_count++;
@@ -227,11 +242,15 @@ void prediction_summary(nnom_predict_t *pre)
 		NNOM_LOG("Average frame rate: %d.%d Hz\n", 1000 / (pre->t_run_total / pre->predict_count),
 			(1000*10 / (pre->t_run_total / pre->predict_count))%10);
 
-	// print top-k
-	prediction_top_k(pre);
+	// only valid for multiple labels 
+	if(pre->label_num > 1)
+	{
+		// print top-k
+		prediction_top_k(pre);
 
-	// print confusion matrix
-	prediction_matrix(pre);
+		// print confusion matrix
+		prediction_matrix(pre);
+	}
 }
 
 // stand alone prediction API
@@ -249,23 +268,38 @@ nnom_status_t nnom_predict(nnom_model_t *m, uint32_t *label, float *prob)
 	// get the output memory
 	output = m->tail->out->mem->blk;
 
-	// Top 1
-	max_val = output[0];
-	max_index = 0;
-	sum = max_val;
-	for (uint32_t i = 1; i < shape_size(&m->tail->out->shape); i++)
+	// multiple neural output
+	if (shape_size(&m->tail->out->shape) > 1)
 	{
-		if (output[i] > max_val)
+		// Top 1
+		max_val = output[0];
+		max_index = 0;
+		sum = max_val;
+		for (uint32_t i = 1; i < shape_size(&m->tail->out->shape); i++)
 		{
-			max_val = output[i];
-			max_index = i;
+			if (output[i] > max_val)
+			{
+				max_val = output[i];
+				max_index = i;
+			}
+			sum += output[i];
 		}
-		sum += output[i];
+		// send results
+		*label = max_index;
+		if(sum !=0)
+			*prob = (float)max_val/(float)sum; 
+		else
+			*prob = 0; 
 	}
-	// send results
-	*label = max_index;
-	if(sum !=0)
-		*prob  = (float)max_val/(float)sum; 
+	// single neural output
+	else
+	{
+		*prob = (float)output[0] / 127.f;
+		if (*prob >= 0.5f)
+			*label = 1;
+		else
+			*label = 0;
+	}
 	
 	return NN_SUCCESS;
 }
