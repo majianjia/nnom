@@ -79,8 +79,11 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
     dec_bits = 7 - int_bits
     x = np.round(x*2**dec_bits).astype(np.int8)
     # get label
-    test_label = np.argwhere(y == 1).astype(np.int8)  # test data
-    test_label = test_label[:, 1]
+    if(len(y.shape) >1):
+        test_label = np.argwhere(y == 1).astype(np.int8)  # test data
+        test_label = test_label[:, 1]
+    else:
+        test_label = y
 
     # get data
     dat = x.astype(dtype="byte")  # test data
@@ -723,11 +726,16 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
     print('Test loss:', scores[0])
     print('Top 1:', scores[1])
 
-    predictions = model.predict(x_test)
-    output = tf.keras.metrics.top_k_categorical_accuracy(y_test, predictions, k=2)
-    with tf.Session() as sess:
-        result = sess.run(output)
-    print("Top 2:",result)
+    if(len(y_test.shape)>1):
+        predictions = model.predict(x_test)
+        output = tf.keras.metrics.top_k_categorical_accuracy(y_test, predictions, k=2)
+        with tf.Session() as sess:
+            result = sess.run(output)
+        print("Top 2:",result)
+
+        predictions = model.predict(x_test)
+        matrix = metrics.confusion_matrix(y_test.argmax(axis=1), predictions.argmax(axis=1))
+        print(matrix)
 
     run_time = 0
     if running_time:
@@ -738,27 +746,22 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
         T = time.time() - T
         run_time = round((T / 10 / x_test.shape[0] * 1000 * 1000), 2)
         print("Runing time:",run_time , "us" )
-
-    predictions = model.predict(x_test)
-    matrix = metrics.confusion_matrix(y_test.argmax(axis=1), predictions.argmax(axis=1))
-    print(matrix)
     #
     with open(to_file, 'w') as f:
+        f.write("Runing time: "+ str(run_time) + "us" + "\n")
         f.write('Test loss:'+ str(scores[0]) + "\n")
         f.write('Top 1:'+ str(scores[1])+ "\n")
-        f.write("Top 2:"+ str(result)+ "\n")
-        f.write("Runing time: "+ str(run_time) + "us" + "\n")
-        #f.write(str(matrix))
-        for row in matrix:
-            row.tofile(f, sep=',')
-            f.write("\n")
-
+        if (len(y_test.shape) > 1):
+            f.write("Top 2:"+ str(result)+ "\n")
+            #f.write(str(matrix))
+            for row in matrix:
+                row.tofile(f, sep=',')
+                f.write("\n")
 
     # try to check the weight and bias dec ranges
     for layer in model.layers:
         if (not layer.weights):
             continue
-
         for var in layer.weights:
             var_name = str(var.name)
             if ("kernel" in var_name):
