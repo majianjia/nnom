@@ -129,7 +129,7 @@ def main():
     model = load_model(save_dir)
 
     # generate binary dataset for NNoM validation, 0~1 -> 0~127, q7
-    generate_test_bin(x_test*127, y_test, name='mnist_test_data.bin')
+    generate_test_bin(x_test*127, y_test, name='test_data.bin')
 
     # evaluate in Keras (for comparision)
     scores = evaluate_model(model, x_test, y_test)
