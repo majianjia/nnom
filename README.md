@@ -140,6 +140,18 @@ NNoM now use the local pure C backend implementation by default. Thus, there is 
 
 Please check [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) for detail. 
 
+## Known Issues
+### Converter do not support implicitly defined activations
+The script currently does not support implicit act:
+~~~
+Dense(32, activation="relu")
+~~~
+Use the explicit activation instead. 
+~~~
+Dense(32)
+Relu()
+~~~
+
 ## Contacts
 Jianjia Ma
 
