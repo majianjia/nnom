@@ -701,6 +701,29 @@ def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
                 fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n'%(id, LI[inp][0]))
             else:
                 raise Exception('unsupported layer', layer.name, layer)
+			
+            """
+            # temporary fixed for activations attached into layers in construction
+            def is_activation_attached(layer):
+                if(("Softmax" in layer.output.name and "softmax" not in layer.name)or
+                ("Relu" in layer.output.name and "re_lu" not in layer.name) or
+                ("Sigmoid" in layer.output.name and "sigmoid" not in layer.name) or
+                ("Tanh" in layer.output.name and "tanh" not in layer.name)):
+                    return True
+                return False
+            if "input" not in layer.name and is_activation_attached(layer):
+                inp = layer.output.name.replace(':', '/').split('/')[0]
+                cfg = layer.get_config()
+                if(cfg['activation'] == 'relu'):
+                    fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n'%(id, LI[inp][0]))
+                if(cfg['activation'] == 'tanh'):
+                    fp.write('\tlayer[%s] = model.active(act_tanh(%s_OUTPUT_SHIFT), layer[%s]);\n'%(id, inp.upper(), LI[inp][0]))
+                if(cfg['activation'] == 'sigmoid'):
+                    fp.write('\tlayer[%s] = model.active(act_sigmoid(%s_OUTPUT_SHIFT), layer[%s]);\n'%(id, inp.upper(), LI[inp][0]))
+                elif(cfg['activation'] == 'softmax'):
+                    fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n'%(id, LI[inp][0]))
+            """
+			
         # FIXME, test later.
         if('softmax' in layer.name
            or ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')):
