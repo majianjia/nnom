@@ -350,7 +350,7 @@ def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
 
         # saturation shift, using KLD method
         # Ref: http://on-demand.gputechconf.com/gtc/2017/presentation/s7310-8-bit-inference-with-tensorrt.pdf
-        if(kld and not is_shift_fixed(layer) and "input" not in layer.name): # test, also do not use kld in input layer
+        if(kld and not is_shift_fixed(layer) and "input" not in layer.name and "dense" not in layer.name): # test, also do not use kld in input layer
             import scipy.stats
             abs_max = max(abs(max_val), abs(min_val))
             small_var = 1e-5
@@ -359,7 +359,7 @@ def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
             flat_hist = np.histogram(features.flatten(), bins=bins)[0]
             kl_loss = []
             kl_shifts = []
-            for shift in range(8):
+            for shift in range(4):
                 t = 2 ** (dec_bits + shift)     # 2-based threshold
                 act = np.round(features.flatten() * t)
                 act = act / t
