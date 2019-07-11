@@ -12,3 +12,4 @@ Debug
 .ipynb_checkpoints
 weights.h
 result.csv
+test_*
