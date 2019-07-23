@@ -13,3 +13,4 @@ Debug
 weights.h
 result.csv
 test_*
+_cifar.py

@@ -25,6 +25,12 @@
 #define q15_t 	int16_t
 #define q31_t 	int32_t
 
+/* version */
+#define NNOM_MAJORVERSION     0L              /**< major version number */
+#define NNOM_SUBVERSION       2L              /**< minor version number */
+#define NNOM_REVISION         1L              /**< revise version number */
+#define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
+										 
 typedef enum
 {
 	NN_SUCCESS = 0,			/**< No error */

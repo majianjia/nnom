@@ -868,7 +868,8 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	if (output == NULL)
 		m->tail = find_last(input);
 
-	NNOM_LOG("\nStart compiling model...\n");
+	NNOM_LOG("\nNNoM version %d.%d.%d\n", NNOM_MAJORVERSION, NNOM_SUBVERSION, NNOM_REVISION);
+	NNOM_LOG("Start compiling model...\n");
 	NNOM_LOG("Layer(#)         Activation    output shape    ops(MAC)   mem(in, out, buf)      mem blk lifetime\n");
 	NNOM_LOG("-------------------------------------------------------------------------------------------------\n");
 
