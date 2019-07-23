@@ -18,8 +18,6 @@
 #include <stdbool.h>
 
 #include "nnom.h"
-#include "nnom_run.h"
-#include "nnom_activations.h"
 
 // RNN Options
 #define SEQUENCE_RETURN		true
@@ -68,7 +66,7 @@ typedef struct _nnom_lambda_layer_t
 {
 	nnom_layer_t super;
 	nnom_status_t (*run)(nnom_layer_t *layer);	  //
-	nnom_status_t (*oshape)(nnom_layer_t *layer); // equal to other layer's xxx_output_shape() method, which is to calculate the output shape.
+	nnom_status_t (*build)(nnom_layer_t *layer);  // equal to other layer's xxx_build() method, which is to calculate the output shape.
 	void *parameters;							  // parameters for lambda
 } nnom_lambda_layer_t;
 
@@ -171,13 +169,15 @@ nnom_shape_t kernel(size_t h, size_t w);
 nnom_shape_t stride(size_t h, size_t w);
 nnom_border_t border(size_t top, size_t bottom, size_t left, size_t right);
 nnom_qformat_t qformat(int8_t m, int8_t n);
-size_t shape_size(nnom_shape_t *s);
+size_t shape_size(nnom_shape_t* s);
 
-// utils
 // this function is to add a new IO to current inited IO
 // input, the targeted IO that the new IO will be added to
 // output , the new IO
-nnom_layer_io_t *io_add_aux(nnom_layer_io_t *targeted_io);
+nnom_layer_io_t* io_add_aux(nnom_layer_io_t* targeted_io);
+nnom_layer_io_t *io_init(void *owner_layer, nnom_layer_io_t *io);
+
+#define NN_CEILIF(x,y) ((x+y-1)/y)
 
 // Layer APIs ******
 
@@ -210,7 +210,6 @@ nnom_layer_t *Add(int32_t oshift);       // output shift
 nnom_layer_t *Sub(int32_t oshift);       // output shift			
 nnom_layer_t *Mult(int32_t oshift);      // output shift
 
-// utils
 nnom_layer_t *Flatten(void);
 nnom_layer_t *Concat(int8_t axis);
 
@@ -237,8 +236,69 @@ nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t* activation, const n
 
 // Lambda Layers
 nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),	// run method, required
-					 nnom_status_t (*oshape)(nnom_layer_t *), // optional, call default_output_shape() if left null
+					 nnom_status_t (*build)(nnom_layer_t *), // optional, call default_build() if left null
 					 nnom_status_t (*free)(nnom_layer_t *),   // not required if no resources needs to be deleted, can be left null.
 					 void *parameters);						  // user private parameters for run method, left null if not needed.
+
+
+// default
+nnom_status_t default_build(nnom_layer_t* layer);
+
+nnom_status_t input_build(nnom_layer_t* layer);
+nnom_status_t output_build(nnom_layer_t* layer);
+
+nnom_status_t conv2d_build(nnom_layer_t* layer);
+nnom_status_t dw_conv2d_build(nnom_layer_t* layer);
+nnom_status_t dense_build(nnom_layer_t* layer);
+nnom_status_t rnn_build(nnom_layer_t* layer);
+
+nnom_status_t upsample_build(nnom_layer_t* layer);
+nnom_status_t zero_padding_build(nnom_layer_t* layer);
+nnom_status_t cropping_build(nnom_layer_t* layer);
+
+nnom_status_t maxpooling_build(nnom_layer_t* layer);
+nnom_status_t avgpooling_build(nnom_layer_t* layer);
+nnom_status_t sumpooling_build(nnom_layer_t* layer);
+nnom_status_t global_pooling_build(nnom_layer_t* layer);
+
+nnom_status_t flatten_build(nnom_layer_t* layer);
+nnom_status_t concat_build(nnom_layer_t* layer);
+
+// run
+nnom_status_t input_run(nnom_layer_t* layer);
+nnom_status_t output_run(nnom_layer_t* layer);
+nnom_status_t flatten_run(nnom_layer_t* layer);
+
+nnom_status_t dw_conv2d_run(nnom_layer_t* layer);
+nnom_status_t conv2d_run(nnom_layer_t* layer);
+nnom_status_t dense_run(nnom_layer_t* layer);
+nnom_status_t rnn_run(nnom_layer_t* layer);
+nnom_status_t cell_simple_rnn_run(nnom_layer_t* layer);
+
+nnom_status_t upsample_run(nnom_layer_t* layer);
+nnom_status_t zero_padding_run(nnom_layer_t* layer);
+nnom_status_t cropping_run(nnom_layer_t* layer);
+
+nnom_status_t activation_run(nnom_layer_t* layer);
+nnom_status_t softmax_run(nnom_layer_t* layer);
+
+nnom_status_t maxpool_run(nnom_layer_t* layer);
+nnom_status_t avgpool_run(nnom_layer_t* layer);
+nnom_status_t sumpool_run(nnom_layer_t* layer);
+
+nnom_status_t concat_run(nnom_layer_t* layer);
+nnom_status_t add_run(nnom_layer_t* layer);
+nnom_status_t sub_run(nnom_layer_t* layer);
+nnom_status_t mult_run(nnom_layer_t* layer);
+
+
+// Activation APIs
+// Softmax is not considered as activation in NNoM, Softmax is in layer API.
+nnom_activation_t* act_relu(void);
+nnom_activation_t* act_sigmoid(int32_t dec_bit);
+nnom_activation_t* act_tanh(int32_t dec_bit);
+
+// direct API
+nnom_status_t act_direct_run(nnom_layer_t* layer, nnom_activation_t* act, void* data, size_t size, nnom_qformat_t fmt);
 
 #endif

@@ -15,7 +15,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdarg.h>
-#include "math.h"
 #include "nnom.h"
 
 const char default_layer_names[][12] = DEFUALT_LAYER_NAMES;
@@ -613,7 +612,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 		// 5.2 nested call the hooked output layers (if there are > 1 hooked to the output of this layer)
 
 		// 1. calculate output shape while all inputs are filled
-		layer->comp_out_shape(layer);
+		layer->build(layer);
 
 		// 2. add to shortcut list. 
 		layer_shortcut_add(start, layer);
@@ -963,7 +962,7 @@ nnom_status_t model_run_to(nnom_model_t *m, nnom_layer_t *end_layer)
 			return result;
 		}
 		// run callback
-		if( m->layer_callback != NULL)
+		if(m->layer_callback != NULL)
 		{
 			result = m->layer_callback(m, layer);
 			if (result != NN_SUCCESS)

@@ -27,8 +27,8 @@
 
 /* version */
 #define NNOM_MAJORVERSION     0L              /**< major version number */
-#define NNOM_SUBVERSION       2L              /**< minor version number */
-#define NNOM_REVISION         1L              /**< revise version number */
+#define NNOM_SUBVERSION       3L              /**< minor version number */
+#define NNOM_REVISION         0L              /**< revise version number */
 #define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 										 
 typedef enum
@@ -47,6 +47,7 @@ typedef enum
 typedef enum
 {
 	NNOM_INVALID = 0,
+	NNOM_BASE,
 	NNOM_INPUT,
 	NNOM_OUTPUT,
 	NNOM_CONV_2D,
@@ -81,6 +82,7 @@ typedef enum
 #define DEFUALT_LAYER_NAMES \
 	{                       \
 		"UNKNOWN",          \
+			"Base",			\
 			"Input",        \
 			"Output",       \
 			"Conv2D",       \
@@ -228,7 +230,7 @@ typedef struct _nnom_layer_io_t
 typedef struct _nnom_layer_t
 {
 	nnom_status_t (*run)(nnom_layer_t *layer);				// run method. required
-	nnom_status_t (*comp_out_shape)(nnom_layer_t *layer);	// compute output buffer shape. can be left null, will call default_output_shape()
+	nnom_status_t (*build)(nnom_layer_t *layer);			// compute output buffer shape. can be left null, will call default_build()
 	nnom_status_t (*free)(nnom_layer_t *layer);				// a callback to free private resources (comp buf not included) can be left null
 	nnom_buf_t *comp;		   								// computational buf
 	nnom_activation_t *actail; 								// I have an activation, I have a taill, wooo haaaa, acti-tail!!!
@@ -252,10 +254,7 @@ typedef struct _nnom_activation_t
 
 typedef struct _nnom_model nnom_model_t;
 
-#include "nnom_out_shape.h"
-#include "nnom_run.h"
 #include "nnom_layers.h"
-#include "nnom_activations.h"
 #include "nnom_utils.h"
 
 // models, I dont want to make model class as a child of layer class yet
@@ -289,6 +288,7 @@ typedef struct _nnom_model
 		NNOM_LOG("Error: NULL object.\n"); \
 		return NN_ARGUMENT_ERROR;          \
 	}
+
 
 // utils
 size_t nnom_alignto(size_t value, uint32_t alignment);

@@ -27,7 +27,9 @@ objs += Glob('main.c')
 #env.Append(CPPDEFINES=['__ARM_ARCH_8M_BASE__'])
 env.Append(CCFLAGS=['-g','-O0','-std=gnu99'])
 
-objs +=Glob('%s/src/*.c'%(ROOT))
+objs +=Glob('%s/src/core/*.c'%(ROOT))
+objs +=Glob('%s/src/layers/*.c'%(ROOT))
+objs +=Glob('%s/src/backends/*.c'%(ROOT))
 env.Append(CPPPATH=['%s/inc'%(ROOT),'%s/port'%(ROOT)])
 #env.Append(CPPDEFINES=['USE_NNOM_OUTPUT_SAVE'])
 
