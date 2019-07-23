@@ -12,3 +12,5 @@ Debug
 .ipynb_checkpoints
 weights.h
 result.csv
+test_*
+_cifar.py
