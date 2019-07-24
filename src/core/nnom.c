@@ -38,6 +38,34 @@ size_t nnom_mem_stat(void)
 	return nnom_memory_taken;
 }
 
+// tensor size
+size_t tensor_size(nnom_tensor_t* t)
+{
+	size_t size = 0;
+	if (t)
+	{
+		size = t->dim[0];
+		for (int i = 1; i < t->num_dim; i++)
+			size *= t->dim[i];
+	}
+	return size;
+}
+
+// initial tensor
+nnom_tensor_t* new_tensor(nnom_tensor_t* t, nnom_qformat_t qfmt, uint32_t num_dim, ...)
+{
+	if (!t)
+		t = nnom_mem(sizeof(nnom_tensor_t) + num_dim);
+	t->num_dim = num_dim;
+	t->qfmt = qfmt;
+	t->num_dim = num_dim;
+	// see if this work
+	for (int i = 0; i < num_dim; i++)
+		(*(nnom_shape_data_t*)(t + sizeof(nnom_tensor_t)))[i] = (*(nnom_shape_data_t*)(&num_dim))[i];
+
+	return t;
+}
+
 // get the size of an IO module
 static size_t io_mem_size(nnom_layer_io_t *io)
 {
@@ -46,7 +74,7 @@ static size_t io_mem_size(nnom_layer_io_t *io)
 	{
 		while (io)
 		{
-			size += shape_size(&io->shape);
+			size += tensor_size(&io->tensor);
 			io = io->aux;
 		}
 	}
@@ -497,7 +525,17 @@ static void print_layer_info(nnom_layer_t *layer, uint32_t layer_count)
 		NNOM_LOG("         - ");
 
 	// outshape (h, w, c), ops, input buf, output buf, computational buf.
-	NNOM_LOG("(%4d,%4d,%4d)  ", 	layer->out->shape.h, layer->out->shape.w, layer->out->shape.c);
+	//NNOM_LOG("(%4d,%4d,%4d)  ", 	layer->out->shape.h, layer->out->shape.w, layer->out->shape.c);
+
+	NNOM_LOG("(");
+	for (int i = 0; i < 3; i++)
+	{
+		if (layer->out->tensor.num_dim < i)
+			NNOM_LOG("%4d,", layer->out->tensor.dim[i]);
+		else 
+			NNOM_LOG("     ");
+	}
+	NNOM_LOG(")  ");
 	
 	// MAC operation
 	if(mac == 0)
@@ -571,7 +609,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 			{
 				in_blk = allocate_block(block_pool);
 				in_blk->owners += 1; // add 1
-				mem_size = nnom_alignto(shape_size(&in->shape), 4);
+				mem_size = nnom_alignto(tensor_size(&in->tensor), 4);
 				in_blk->size = mem_size > in_blk->size ? mem_size : in_blk->size;
 				// set the blk to the layer IO
 				in->mem = in_blk;
@@ -665,7 +703,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 				out_blk->owners = 1;
 				out_blk->state = NNOM_BUF_FILLED; // marked filled
 				// record maximum mem size in this block
-				mem_size = nnom_alignto(shape_size(&layer->out->shape), 4);
+				mem_size = nnom_alignto(tensor_size(&layer->out->tensor), 4);
 				out_blk->size = mem_size > out_blk->size ? mem_size : out_blk->size;
 				// set the blk to the layer IO
 				layer->out->mem = out_blk;
@@ -708,7 +746,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 					if (out->mem == NULL)
 						return NN_NO_MEMORY;
 					// record maximum mem size in this block
-					mem_size = nnom_alignto(shape_size(&out->shape), 4);
+					mem_size = nnom_alignto(tensor_size(&out->tensor), 4);
 					out->mem->size = mem_size > out->mem->size ? mem_size : out->mem->size;
 					// keep the block untill the last hooked layer is called.
 					out->mem->owners = nnom_hook_length(&out->hook); // set lifetime of the buffer = the num of hooked layers
@@ -804,6 +842,32 @@ nnom_status_t block_mem_set(nnom_model_t *m, void *buf)
 	return NN_SUCCESS;
 }
 
+// experimental: this function is temporary use to 
+// assign memory blk which has assigned to input and output to the corresponding tensor
+nnom_status_t tensor_mem_set(nnom_model_t *m)
+{
+	nnom_layer_t *layer = m->head;
+	nnom_layer_io_t *io;
+	while (layer)
+	{
+		io = layer->in;
+		while (io)
+		{
+			io->tensor.p_data = io->mem->blk;
+			io = io->aux;
+		}
+
+		io = layer->out;
+		while (io)
+		{
+			io->tensor.p_data = io->mem->blk;
+			io = io->aux;
+		}
+
+		layer = layer->shortcut;
+	}
+}
+
 // this function has to be used after memory is assigned to the layers.
 // it means it has to be call after compile_model() as well.
 // it simply get the output buffer and set the buffer to tailed activation of each layer..
@@ -819,10 +883,10 @@ nnom_status_t set_tailed_activation(nnom_model_t *m)
 		if (layer->actail != NULL)
 		{
 			layer->actail->data = layer->out->mem->blk;
-			layer->actail->size = shape_size(&layer->out->shape);
+			layer->actail->size = tensor_size(&layer->out->tensor);
 			// if actail has its own shifting, then leave it as it is. otherwise set it to same as output
 			if(layer->actail->fmt.m == 0 && layer->actail->fmt.n == 0)
-				layer->actail->fmt = layer->out->qfmt;
+				layer->actail->fmt = layer->out->tensor.qfmt;
 		}
 		if (layer->shortcut == NULL)
 			break;
@@ -895,6 +959,9 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 
 	// split the memory for every memory block
 	block_mem_set(m, buf);
+
+	// experimental: set memory from io to the io tensor 
+	tensor_mem_set(m);
 
 	// finally set the output buff to tailed activation on each layer
 	set_tailed_activation(m);

@@ -179,6 +179,15 @@ typedef struct _nnom_bias
 	size_t shift;
 } nnom_bias_t;
 
+// experimental
+typedef struct _nnom_tensor_t
+{
+	void* p_data;
+	nnom_shape_data_t *dim;
+	uint8_t num_dim;
+	nnom_qformat qfmt;
+} nnom_tensor_t;
+
 // nn wrappers
 typedef struct _nnom_layer_t 	nnom_layer_t;
 typedef struct _nnom_layer_io_t nnom_layer_io_t;
@@ -205,7 +214,7 @@ typedef struct _nnom_mem_block_t
 
 typedef struct _nnom_stat_t
 {
-	size_t macc; //num. of operation
+	size_t macc; //num. of mac operation
 	uint32_t time;
 } nnom_layer_stat_t;
 
@@ -219,11 +228,14 @@ typedef struct _nnom_layer_io_t
 {
 	nnom_layer_hook_t hook;		  // for example: (layer->out)--hook--(layer->in)
 	struct _nnom_layer_io_t *aux; // point to auxilary I/O (multiple I/O layer or RNN)
+
+	nnom_tensor_t tensor;		  // experimental 
+
 	nnom_mem_block_t *mem;		  // a memory block that use for input/output
 	nnom_layer_t *owner;		  // this io is belong to the owner layer.
-	nnom_shape_t shape;			  // shape of the buf
+	//nnom_shape_t shape;		  // shape of the buf
+	//nnom_qformat_t qfmt;        // the q format of the memory
 	uint8_t type;
-	nnom_qformat_t qfmt;          // the q format of the memory
 } nnom_layer_io_t;
 
 // layers base
@@ -233,13 +245,13 @@ typedef struct _nnom_layer_t
 	nnom_status_t (*build)(nnom_layer_t *layer);			// compute output buffer shape. can be left null, will call default_build()
 	nnom_status_t (*free)(nnom_layer_t *layer);				// a callback to free private resources (comp buf not included) can be left null
 	nnom_buf_t *comp;		   								// computational buf
-	nnom_activation_t *actail; 								// I have an activation, I have a taill, wooo haaaa, acti-tail!!!
+	nnom_activation_t *actail; 								// I have an activation, I have a tail, wooo haaaa, act-tail!!!
 
 	nnom_layer_type_t type;
 	nnom_layer_io_t *in;	// IO buff, last*layer, states
 	nnom_layer_io_t *out;   // IO buff, next*layer, states
 	nnom_layer_stat_t stat; // stats, timing, ops
-	nnom_layer_t *shortcut; // shortcut for point to the next layer, applied on compiling
+	nnom_layer_t *shortcut; // shortcut points to the next layer, applied on compiling
 } nnom_layer_t;
 
 // add data type later
@@ -291,6 +303,8 @@ typedef struct _nnom_model
 
 
 // utils
+nnom_tensor_t* new_tensor(nnom_tensor_t* t, nnom_qformat_t qfmt, uint32_t num_dim, ...);
+size_t tensor_size(nnom_tensor_t* t);
 size_t nnom_alignto(size_t value, uint32_t alignment);
 size_t nnom_io_length(nnom_layer_io_t *io);
 size_t nnom_hook_length(nnom_layer_hook_t *hook);

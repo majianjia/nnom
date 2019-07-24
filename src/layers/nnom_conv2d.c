@@ -85,6 +85,63 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 }
 
 
+nnom_layer_t* conv2d()
+{
+	nnom_conv2d_layer_t* layer;
+	nnom_buf_t* comp;
+	nnom_layer_io_t* in, * out;
+
+	// apply a block memory for all the sub handles.
+	size_t mem_size = sizeof(nnom_conv2d_layer_t) + sizeof(nnom_layer_io_t) * 2 + sizeof(nnom_buf_t);
+	layer = nnom_mem(mem_size);
+	if (layer == NULL)
+		return NULL;
+
+	// distribut the memory to sub handles.
+	in = (void*)((uint8_t*)layer + sizeof(nnom_conv2d_layer_t));
+	out = (void*)((uint8_t*)in + sizeof(nnom_layer_io_t));
+	comp = (void*)((uint8_t*)out + sizeof(nnom_layer_io_t));
+
+	// set type in layer parent
+	layer->super.type = NNOM_CONV_2D;
+	// set buf state
+	in->type = LAYER_BUF_TEMP;
+	out->type = LAYER_BUF_TEMP;
+	comp->type = LAYER_BUF_TEMP;
+	// put in & out on the layer.
+	layer->super.in = io_init(layer, in);
+	layer->super.out = io_init(layer, out);
+	layer->super.comp = comp;
+	// set run method & output shape
+	layer->super.run = conv2d_run;
+	layer->super.build = conv2d_build;
+
+	new_tensor(&layer->super.in->tensor, qformat(3, 5), 2, 128, 1);
+
+	// get the private parameters
+	layer->kernel = k;
+	layer->stride = s;
+	layer->bias = b;
+	layer->weights = w;
+	layer->output_shift = w->shift;
+	layer->bias_shift = b->shift; // bias is quantized to have maximum shift of weights
+	layer->filter_mult = filters; // for convs, this means filter number
+	layer->padding_type = pad_type;
+
+	// padding
+	if (layer->padding_type == PADDING_SAME)
+	{
+		layer->pad.w = (k.w - 1) / 2;
+		layer->pad.h = (k.h - 1) / 2;
+		layer->pad.c = (k.c - 1) / 2;
+	}
+
+	return (nnom_layer_t*)layer;
+
+
+	return layer;
+}
+
 nnom_status_t conv2d_build(nnom_layer_t *layer)
 {
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
