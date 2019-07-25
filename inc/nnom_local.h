@@ -54,10 +54,6 @@ static inline int __NNOM_USAT(int32_t value, int32_t bit) {
 }
 #endif
 
-void hwc2chw_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out);
-void chw2hwc_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out);
-
-
 
 // Those functions/tables below are partially modifed from CMSIS-NN lib
 // https://github.com/ARM-software/CMSIS_5

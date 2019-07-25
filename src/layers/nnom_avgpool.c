@@ -45,11 +45,13 @@ nnom_status_t avgpooling_build(nnom_layer_t *layer)
 	// avg pooling share the same output shape, stride, padding setting.
 	maxpooling_build(layer);
 
+	#ifdef NNOM_USING_CMSIS_NN
 	// however, avg pooling require a computational buffer.
 	//  bufferA size:  2*dim_im_out*ch_im_in
-	size = layer->out->shape.w > layer->out->shape.h ? 
-						layer->out->shape.w : layer->out->shape.h;
-	layer->comp->shape = shape(2 * size * layer->in->shape.c, 1, 1);
+	size = layer->out->tensor->dim[1] > layer->out->tensor->dim[0] ?
+						layer->out->tensor->dim[1] : layer->out->tensor->dim[0];
+	layer->comp->shape = shape(2 * size * layer->in->tensor->dim[2], 1, 1);
+	#endif
 
 	return NN_SUCCESS;
 }
@@ -59,44 +61,44 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 	nnom_avgpool_layer_t *cl = (nnom_avgpool_layer_t *)(layer);
 	
 #ifdef NNOM_USING_CHW
-	local_avepool_q7_CHW(layer->in->mem->blk, 				
-			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+	local_avepool_q7_CHW(layer->in->tensor->p_data, 				
+			layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 			cl->kernel.w, cl->kernel.h, 
 			cl->pad.w, cl->pad.h,
 			cl->stride.w, cl->stride.h,
-			layer->out->shape.w, layer->out->shape.h,
+			layer->out->tensor->dim[1], layer->out->tensor->dim[0],
 			cl->output_shift,
 			NULL,
-			layer->out->mem->blk);
+			layer->out->tensor->p_data);
 #else //end of CHW
 	#ifdef NNOM_USING_CMSIS_NN
 	// 2D, square
-	if (layer->in->shape.w == layer->in->shape.h &&
-		layer->out->shape.w == layer->out->shape.h &&
+	if (layer->in->tensor->dim[1] == layer->in->tensor->dim[0] &&
+		layer->out->tensor->dim[1] == layer->out->tensor->dim[0] &&
 		cl->output_shift == 0)
 	{
 		arm_avepool_q7_HWC(
-			layer->in->mem->blk,
-			layer->in->shape.w, layer->in->shape.c,
+			layer->in->tensor->p_data,
+			layer->in->tensor->dim[1], layer->in->tensor->dim[2],
 			cl->kernel.w, cl->pad.w, cl->stride.w,
-			layer->out->shape.w,
+			layer->out->tensor->dim[1],
 			layer->comp->mem->blk,
-			layer->out->mem->blk);
+			layer->out->tensor->p_data);
 	}
 	// none square 2D, or 1D
 	else
 	#endif
 	{
 		// CMSIS-NN does not support none-square pooling, we have to use local implementation
-		local_avepool_q7_HWC(layer->in->mem->blk, 				
-				layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+		local_avepool_q7_HWC(layer->in->tensor->p_data, 				
+				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 				cl->kernel.w, cl->kernel.h, 
 				cl->pad.w, cl->pad.h,
 				cl->stride.w, cl->stride.h,
-				layer->out->shape.w, layer->out->shape.h,
+				layer->out->tensor->dim[1], layer->out->tensor->dim[0],
 				cl->output_shift,
 				NULL,
-				layer->out->mem->blk);
+				layer->out->tensor->p_data);
 	}
 #endif
 	return NN_SUCCESS;

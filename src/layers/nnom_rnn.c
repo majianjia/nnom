@@ -46,6 +46,7 @@ nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t *activation, const n
 // RNN
 nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence)
 {
+
 	nnom_rnn_layer_t *layer;
 	nnom_buf_t *comp;
 	nnom_layer_io_t *in, *out;
@@ -91,10 +92,10 @@ nnom_status_t simplecell_build(nnom_layer_t* layer, nnom_rnn_cell_t* cell)
 }
 
 // TODO
-nnom_status_t rnn_build(nnom_layer_t *layer)
+nnom_status_t rnn_build(nnom_layer_t* layer)
 {
-	nnom_rnn_layer_t *cl = (nnom_rnn_layer_t *)layer;
-
+	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t*)layer;
+	/*
 	// get the last layer's output as input shape
 	layer->in->shape = layer->in->hook.io->shape;
 
@@ -118,6 +119,7 @@ nnom_status_t rnn_build(nnom_layer_t *layer)
 		layer->out->shape.w = 1;			  // timestamp
 		layer->out->shape.c = cl->cell->units; // output unit
 	}
+	*/
 	return NN_SUCCESS;
 }
 
@@ -183,6 +185,7 @@ nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer)
 nnom_status_t rnn_run(nnom_layer_t* layer)
 {
 	nnom_status_t result;
+	/*
 	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t*)(layer);
 	size_t timestamps_size = layer->in->shape.w;
 	size_t feature_size = layer->in->shape.c;
@@ -208,6 +211,7 @@ nnom_status_t rnn_run(nnom_layer_t* layer)
 		// run it
 		result = cl->cell->run(layer);
 	}
+	*/
 	return result;
 }
 

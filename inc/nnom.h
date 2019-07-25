@@ -185,7 +185,7 @@ typedef struct _nnom_tensor_t
 	void* p_data;
 	nnom_shape_data_t *dim;
 	uint8_t num_dim;
-	nnom_qformat qfmt;
+	nnom_qformat_t qfmt;
 } nnom_tensor_t;
 
 // nn wrappers
@@ -229,7 +229,7 @@ typedef struct _nnom_layer_io_t
 	nnom_layer_hook_t hook;		  // for example: (layer->out)--hook--(layer->in)
 	struct _nnom_layer_io_t *aux; // point to auxilary I/O (multiple I/O layer or RNN)
 
-	nnom_tensor_t tensor;		  // experimental 
+	nnom_tensor_t *tensor;		  // experimental 
 
 	nnom_mem_block_t *mem;		  // a memory block that use for input/output
 	nnom_layer_t *owner;		  // this io is belong to the owner layer.
@@ -255,17 +255,19 @@ typedef struct _nnom_layer_t
 } nnom_layer_t;
 
 // add data type later
+// probably change to tensor version. 
 typedef struct _nnom_activation_t
 {
-	nnom_status_t (*run)(nnom_layer_t *layer, struct _nnom_activation_t *act);
+	nnom_status_t (*run)(struct _nnom_activation_t *act);
 	void *data;  // data & type will be given before activation
 	size_t size; //
+	nnom_qformat_t qfmt; // data type
 	nnom_activation_type_t type;
-	nnom_qformat_t fmt; // data type
 } nnom_activation_t;
 
 typedef struct _nnom_model nnom_model_t;
 
+#include "nnom_tensor.h"
 #include "nnom_layers.h"
 #include "nnom_utils.h"
 
@@ -303,8 +305,6 @@ typedef struct _nnom_model
 
 
 // utils
-nnom_tensor_t* new_tensor(nnom_tensor_t* t, nnom_qformat_t qfmt, uint32_t num_dim, ...);
-size_t tensor_size(nnom_tensor_t* t);
 size_t nnom_alignto(size_t value, uint32_t alignment);
 size_t nnom_io_length(nnom_layer_io_t *io);
 size_t nnom_hook_length(nnom_layer_hook_t *hook);

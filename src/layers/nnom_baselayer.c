@@ -52,16 +52,22 @@ nnom_layer_t *BaseLayer()
 	return (nnom_layer_t *)layer;
 }
 
+
+
 // this is call while output shape is not defined.
 // this will set the output shape same as input shape, and it set only the primary IO
 // this cannot be used as first layer, of course...
 nnom_status_t default_build(nnom_layer_t *layer)
 {
 	// get the last layer's output as input shape
-	layer->in->shape = layer->in->hook.io->shape;
-	// output shape
-	layer->out->shape = layer->in->shape;
+	layer->in->tensor = layer->in->hook.io->tensor;
+	// output tensor
+	// 1. allocate a new tensor for output
+	// 2. set the same dim, qfmt to the new tensor.
+	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
+	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
 
+	// now this build has passed the input tensors (shapes, formats) to the new tensors. 
 	return NN_SUCCESS;
 }
 
@@ -69,6 +75,6 @@ nnom_status_t default_build(nnom_layer_t *layer)
 nnom_status_t default_run(nnom_layer_t *layer)
 {
 	if(layer->out->type != LAYER_BUF_NULL)
-		memcpy(layer->out->mem->blk, layer->in->mem->blk, shape_size(&layer->in->shape)); 
+		memcpy(layer->out->tensor->p_data, layer->in->tensor->p_data, tensor_size(layer->in->tensor)); 
 	return NN_SUCCESS;
 }

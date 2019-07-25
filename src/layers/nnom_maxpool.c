@@ -80,22 +80,27 @@ nnom_layer_t *MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
 nnom_status_t maxpooling_build(nnom_layer_t *layer)
 {
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)layer;
-	nnom_layer_io_t *in = layer->in;
-	nnom_layer_io_t *out = layer->out;
-	//get the last layer's output as input shape
-	in->shape = in->hook.io->shape;
 
+	// get the tensor from last layer's output
+	layer->in->tensor = layer->in->hook.io->tensor;
+
+	// create new tensor for output
+	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
+	// copy then change later. 
+	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
+
+	// now we set up the tensor shape, always HWC format
 	if (cl->padding_type == PADDING_SAME)
 	{
-		out->shape.h = NN_CEILIF((in->shape.h) ,(cl->stride.h));
-		out->shape.w = NN_CEILIF((in->shape.w) ,(cl->stride.w));
-		out->shape.c = in->shape.c;
+		layer->out->tensor->dim[0] = NN_CEILIF(layer->in->tensor->dim[0], cl->stride.h);
+		layer->out->tensor->dim[1] = NN_CEILIF(layer->in->tensor->dim[1], cl->stride.w);
+		layer->out->tensor->dim[2] = layer->in->tensor->dim[2]; // channel stays the same
 	}
 	else
 	{
-		out->shape.h = NN_CEILIF((in->shape.h - cl->kernel.h + 1) ,(cl->stride.h));
-		out->shape.w = NN_CEILIF((in->shape.w - cl->kernel.w + 1) ,(cl->stride.w));
-		out->shape.c = in->shape.c;
+		layer->out->tensor->dim[0] = NN_CEILIF(layer->in->tensor->dim[0] - cl->kernel.h + 1, cl->stride.h);
+		layer->out->tensor->dim[1] = NN_CEILIF(layer->in->tensor->dim[1] - cl->kernel.w + 1, cl->stride.w);
+		layer->out->tensor->dim[2] = layer->in->tensor->dim[2];
 	}
 
 	return NN_SUCCESS;
@@ -107,25 +112,25 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 
 #ifdef NNOM_USING_CHW
 	local_maxpool_q7_CHW(layer->in->mem->blk, 				
-			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+			layer->in->tensor->dim[0], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 			cl->kernel.w, cl->kernel.h, 
 			cl->pad.w, cl->pad.h,
 			cl->stride.w, cl->stride.h,
-			layer->out->shape.w, layer->out->shape.h,
+			layer->out->tensor->dim[1], layer->out->tensor->dim[0],
 			NULL,
 			layer->out->mem->blk);
 #else //end of CHW
 	// HWC
 	#ifdef NNOM_USING_CMSIS_NN
 	// 2D, square
-	if (layer->in->shape.w == layer->in->shape.h &&
-		layer->out->shape.w == layer->out->shape.h)
+	if (layer->in->tensor->dim[1] == layer->in->tensor->dim[0] &&
+		layer->out->tensor->dim[1] == layer->out->tensor->dim[0])
 	{
 		arm_maxpool_q7_HWC(
 			layer->in->mem->blk,
-			layer->in->shape.w, layer->in->shape.c,
+			layer->in->tensor->dim[1], layer->in->tensor->dim[2],
 			cl->kernel.w, cl->pad.w, cl->stride.w,
-			layer->out->shape.w,
+			layer->out->tensor->dim[1],
 			NULL,
 			layer->out->mem->blk);
 	}
@@ -135,11 +140,11 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 	{
 		// CMSIS-NN does not support none-square pooling, we have to use local implementation
 		local_maxpool_q7_HWC(layer->in->mem->blk, 				
-				layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 				cl->kernel.w, cl->kernel.h, 
 				cl->pad.w, cl->pad.h,
 				cl->stride.w, cl->stride.h,
-				layer->out->shape.w, layer->out->shape.h,
+				layer->out->tensor->dim[1], layer->out->tensor->dim[0],
 				NULL,
 				layer->out->mem->blk);
 	}

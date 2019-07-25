@@ -269,13 +269,13 @@ nnom_status_t nnom_predict(nnom_model_t *m, uint32_t *label, float *prob)
 	output = m->tail->out->mem->blk;
 
 	// multiple neural output
-	if (shape_size(&m->tail->out->shape) > 1)
+	if (tensor_size(m->tail->out->tensor) > 1)
 	{
 		// Top 1
 		max_val = output[0];
 		max_index = 0;
 		sum = max_val;
-		for (uint32_t i = 1; i < shape_size(&m->tail->out->shape); i++)
+		for (uint32_t i = 1; i < tensor_size(m->tail->out->tensor); i++)
 		{
 			if (output[i] > max_val)
 			{

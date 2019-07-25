@@ -57,12 +57,19 @@ nnom_layer_t *UpSample(nnom_shape_t kernel)
 
 nnom_status_t upsample_build(nnom_layer_t *layer)
 {
-	nnom_upsample_layer_t *cl = (nnom_upsample_layer_t *)layer;
-	layer->in->shape = layer->in->hook.io->shape;
+	nnom_upsample_layer_t* cl = (nnom_upsample_layer_t*)layer;
 
-	layer->out->shape.c = layer->in->shape.c;
-	layer->out->shape.h = layer->in->shape.h * cl->kernel.h;
-	layer->out->shape.w = layer->in->shape.w * cl->kernel.w;
+	// get the last layer's output as input shape
+	layer->in->tensor = layer->in->hook.io->tensor;
+	// output tensor
+	// 1. allocate a new tensor for output
+	// 2. set the same dim, qfmt to the new tensor.
+	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
+	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
+
+	// enlarge w and h, c stay the same.
+	layer->out->tensor->dim[0] = layer->in->tensor->dim[0] * cl->kernel.h;
+	layer->out->tensor->dim[1] = layer->in->tensor->dim[1] * cl->kernel.w;
 
 	return NN_SUCCESS;
 }
@@ -77,11 +84,10 @@ nnom_status_t upsample_run(nnom_layer_t *layer)
 	local_up_sampling_q7_HWC(
 #endif
 			layer->in->mem->blk, 				
-			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+			layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 			cl->kernel.w, cl->kernel.h, 
-			layer->out->shape.w, layer->out->shape.h,
+			layer->out->tensor->dim[1], layer->out->tensor->dim[0],
 			NULL,
 			layer->out->mem->blk);
-
 	return NN_SUCCESS;
 }

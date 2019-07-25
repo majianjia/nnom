@@ -19,43 +19,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 
-// change format from CHW to HWC
-// the shape of the data, input data, output data
-void hwc2chw_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
-{
-	for(int c=0; c<shape.c; c++)
-	{	
-		for(int h=0; h<shape.h; h++)
-		{
-			for(int w=0; w<shape.w; w++)
-			{
-				*p_out = p_in[(h*shape.w + w)*shape.c + c];	
-				p_out++;
-			}
-		}
-	}
-}
 
-// change format from CHW to HWC
-// the shape of the data, input data, output data
-void chw2hwc_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
-{
-	int im_size = shape.w * shape.h;
-	int h_step;
-	
-	for(int h=0; h<shape.h; h++)
-	{
-		h_step = shape.w * h;
-		for(int w=0; w<shape.w; w++)
-		{
-			for(int c=0; c<shape.c; c++)
-			{
-				*p_out = p_in[im_size * c + h_step + w];	
-				p_out++;
-			}
-		}
-	}
-}
 
 
 // modified from CMSIS-NN test_ref

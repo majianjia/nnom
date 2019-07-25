@@ -55,13 +55,15 @@ nnom_layer_t *Flatten(void)
 }
 
 nnom_status_t flatten_build(nnom_layer_t *layer)
-{ // get the last layer's output as input shape
-	layer->in->shape = layer->in->hook.io->shape;
+{ 
+	// get the tensor from last layer's output
+	layer->in->tensor = layer->in->hook.io->tensor;
 
-	// output shape
-	layer->out->shape.h = layer->in->shape.h * layer->in->shape.w * layer->in->shape.c;
-	layer->out->shape.w = 1;
-	layer->out->shape.c = 1;
+	// create new tensor for output
+	layer->out->tensor = new_tensor(NULL, 1);
+	// setup new tensor
+	nnom_shape_data_t dim[1] = {tensor_size(layer->in->tensor)};
+	tensor_set_attribuites(layer->out->tensor, layer->in->tensor->qfmt, 1, dim);
 
 	return NN_SUCCESS;
 }
@@ -70,7 +72,7 @@ nnom_status_t flatten_run(nnom_layer_t *layer)
 {
 	#ifdef NNOM_USING_CHW
 	// CHW format must reorder to HWC for dense layer and all other 1D layer (?)
-	chw2hwc_q7(layer->in->shape, layer->in->mem->blk, layer->out->mem->blk);
+	tensor_chw2hwc_q7(layer->out->tensor, layer->in->tensor);
 	#endif
 	// you must be kidding me
 	return NN_SUCCESS;

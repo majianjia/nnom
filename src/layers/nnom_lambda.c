@@ -47,8 +47,7 @@ nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),
 	// layer type
 	layer->super.type = NNOM_LAMBDA;
 
-	// set run method and user parameters.
-	layer->super.run = run;
+	// user parameters
 	layer->parameters = parameters;
 
 	// free method
@@ -59,5 +58,11 @@ nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),
 		layer->super.build = default_build;
 	else
 		layer->super.build = build;
+	// run method. default_run() will simply copy data from input tensor to output tensor. 
+	if(run == NULL)
+		layer->super.run = default_run;
+	else
+		layer->super.run = run;
+
 	return (nnom_layer_t *)layer;
 }

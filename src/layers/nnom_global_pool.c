@@ -76,19 +76,21 @@ nnom_status_t global_pooling_build(nnom_layer_t *layer)
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)layer;
 	nnom_layer_io_t *in = layer->in;
 	nnom_layer_io_t *out = layer->out;
-	//get the last layer's output as input shape
-	in->shape = in->hook.io->shape;
 
-	// global pooling
-	// output (h = 1, w = 1, same channels)
-	out->shape.h = 1;
-	out->shape.w = 1;
-	out->shape.c = in->shape.c;
+	// get the tensor from last layer's output
+	layer->in->tensor = layer->in->hook.io->tensor;
+
+	// create new tensor for output
+	layer->out->tensor = new_tensor(NULL, 1);
+	// copy then change later. 
+	nnom_qformat_t qfmt = { 0 , 0 }; // fill this later when layer API changed. 
+	nnom_shape_data_t dim[1] = { layer->in->tensor->dim[layer->in->tensor->num_dim-1]};
+	tensor_set_attribuites(layer->out->tensor, qfmt, 1, dim);
 
 	// different from other *_build(), the kernel..padding left by layer API needs to be set in here
 	// due to the *_run() methods of global pooling are using the normall pooling's.
 	// fill in the parameters left by layer APIs (GlobalAvgPool and MaxAvgPool)
-	cl->kernel = in->shape;
+	cl->kernel = shape(layer->in->tensor->dim[0], layer->in->tensor->dim[1], layer->in->tensor->dim[2]);
 	cl->stride = shape(1, 1, 1);
 	cl->pad = shape(0, 0, 0);
 	cl->padding_type = PADDING_VALID;
@@ -97,14 +99,16 @@ nnom_status_t global_pooling_build(nnom_layer_t *layer)
 	if (layer->type == NNOM_AVGPOOL || layer->type == NNOM_GLOBAL_AVGPOOL)
 	{
 		//  bufferA size:  2*dim_im_out*ch_im_in
-		uint32_t size = layer->out->shape.w > layer->out->shape.h ? 
-							layer->out->shape.w : layer->out->shape.h;
-		layer->comp->shape = shape(2 * size * layer->in->shape.c, 1, 1);
+		uint32_t size = layer->out->tensor->dim[0] > layer->out->tensor->dim[1] ?
+							layer->out->tensor->dim[0] : layer->out->tensor->dim[1];
+		layer->comp->shape = shape(2 * size * layer->in->tensor->dim[2], 1, 1);
 	}
 	
 	// additionally sumpool
 	if (layer->type == NNOM_SUMPOOL || layer->type == NNOM_GLOBAL_SUMPOOL)
-		layer->comp->shape = shape(4 * layer->out->shape.h * layer->out->shape.w * layer->out->shape.c, 1, 1);
+		layer->comp->shape = shape(4 * tensor_size(layer->out->tensor), 1, 1);
 
 	return NN_SUCCESS;
 }
+
+

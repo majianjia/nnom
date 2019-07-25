@@ -243,9 +243,7 @@ nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),	// run method, requir
 
 // default
 nnom_status_t default_build(nnom_layer_t* layer);
-
 nnom_status_t input_build(nnom_layer_t* layer);
-nnom_status_t output_build(nnom_layer_t* layer);
 
 nnom_status_t conv2d_build(nnom_layer_t* layer);
 nnom_status_t dw_conv2d_build(nnom_layer_t* layer);
@@ -268,6 +266,7 @@ nnom_status_t concat_build(nnom_layer_t* layer);
 nnom_status_t input_run(nnom_layer_t* layer);
 nnom_status_t output_run(nnom_layer_t* layer);
 nnom_status_t flatten_run(nnom_layer_t* layer);
+nnom_status_t default_run(nnom_layer_t* layer);  // simply copy data from input to output
 
 nnom_status_t dw_conv2d_run(nnom_layer_t* layer);
 nnom_status_t conv2d_run(nnom_layer_t* layer);
@@ -299,6 +298,6 @@ nnom_activation_t* act_sigmoid(int32_t dec_bit);
 nnom_activation_t* act_tanh(int32_t dec_bit);
 
 // direct API
-nnom_status_t act_direct_run(nnom_layer_t* layer, nnom_activation_t* act, void* data, size_t size, nnom_qformat_t fmt);
+nnom_status_t act_direct_run(nnom_activation_t* act, void* data, size_t size, nnom_qformat_t qfmt);
 
 #endif

@@ -105,7 +105,7 @@ nnom_layer_t *TanH(int32_t dec_bit)
 nnom_status_t activation_run(nnom_layer_t *layer)
 {
 	nnom_activation_layer_t *cl = (nnom_activation_layer_t *)layer;
-	return act_direct_run(layer, cl->act, layer->in->mem->blk, shape_size(&layer->out->shape), layer->in->qfmt);
+	return act_tensor_run(cl->act, layer->in->tensor);
 }
 
 
@@ -115,7 +115,7 @@ nnom_status_t activation_run(nnom_layer_t *layer)
 #endif
 
 // porting
-static nnom_status_t relu_run(nnom_layer_t* layer, nnom_activation_t* act)
+static nnom_status_t relu_run(nnom_activation_t* act)
 {
 #ifdef NNOM_USING_CMSIS_NN
 	arm_relu_q7(act->data, act->size);
@@ -125,28 +125,28 @@ static nnom_status_t relu_run(nnom_layer_t* layer, nnom_activation_t* act)
 	return NN_SUCCESS;
 }
 
-static nnom_status_t tanh_run(nnom_layer_t* layer, nnom_activation_t* act)
+static nnom_status_t tanh_run(nnom_activation_t* act)
 {
 	// arm version cannot handle int_bit > 3
 #ifdef NNOM_USING_CMSIS_NN
-	if (act->fmt.m <= 3)
-		arm_nn_activations_direct_q7(act->data, act->size, act->fmt.m, ARM_TANH);
+	if (act->qfmt.m <= 3)
+		arm_nn_activations_direct_q7(act->data, act->size, act->qfmt.m, ARM_TANH);
 	else
 #endif
-		local_tanh_q7(act->data, act->size, act->fmt.m);
+		local_tanh_q7(act->data, act->size, act->qfmt.m);
 
 	return NN_SUCCESS;
 }
 
-static nnom_status_t sigmoid_run(nnom_layer_t* layer, nnom_activation_t* act)
+static nnom_status_t sigmoid_run( nnom_activation_t* act)
 {
 	// arm version cannot handle int_bit > 3
 #ifdef NNOM_USING_CMSIS_NN
-	if (act->fmt.m <= 3)
-		arm_nn_activations_direct_q7(act->data, act->size, act->fmt.m, ARM_SIGMOID);
+	if (act->qfmt.m <= 3)
+		arm_nn_activations_direct_q7(act->data, act->size, act->qfmt.m, ARM_SIGMOID);
 	else
 #endif
-		local_sigmoid_q7(act->data, act->size, act->fmt.m);
+		local_sigmoid_q7(act->data, act->size, act->qfmt.m);
 	return NN_SUCCESS;
 }
 
@@ -164,8 +164,8 @@ nnom_activation_t* act_tanh(int32_t dec_bit)
 	nnom_activation_t* act = nnom_mem(sizeof(nnom_activation_t));
 	act->run = tanh_run;
 	act->type = ACT_TANH;
-	act->fmt.n = dec_bit;
-	act->fmt.m = 7 - dec_bit;
+	act->qfmt.n = dec_bit;
+	act->qfmt.m = 7 - dec_bit;
 	return act;
 }
 
@@ -174,17 +174,27 @@ nnom_activation_t* act_sigmoid(int32_t dec_bit)
 	nnom_activation_t* act = nnom_mem(sizeof(nnom_activation_t));
 	act->run = sigmoid_run;
 	act->type = ACT_SIGMOID;
-	act->fmt.n = dec_bit;
-	act->fmt.m = 7 - dec_bit;
+	act->qfmt.n = dec_bit;
+	act->qfmt.m = 7 - dec_bit;
 	return act;
 }
 
 // a direct api, 
 // to run an activation directly by passing parameters
-nnom_status_t act_direct_run(nnom_layer_t* layer, nnom_activation_t* act, void* data, size_t size, nnom_qformat_t fmt)
+nnom_status_t act_direct_run(nnom_activation_t* act, void* data, size_t size, nnom_qformat_t qfmt)
 {
 	act->data = data;
 	act->size = size;
-	act->fmt = fmt;
-	return act->run(layer, act);
+	act->qfmt = qfmt;
+	return act->run(act);
+}
+
+// a direct api on tensor
+// a activate a tensor
+nnom_status_t act_tensor_run(nnom_activation_t* act, nnom_tensor_t* tensor)
+{
+	act->data = tensor->p_data;
+	act->size = tensor_size(tensor);
+	act->qfmt = tensor->qfmt;
+	return act->run(act);
 }

@@ -46,36 +46,43 @@ nnom_layer_t *Input(nnom_shape_t input_shape, void *p_buf)
 	out->type = LAYER_BUF_NULL;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
-	layer->super.in->shape = input_shape; // it is necessary to set input shape in layer wrapper.
 	layer->super.out = io_init(layer, out);
 
 	// set parameters
 	layer->shape = input_shape;
 	layer->buf = p_buf;
 
+	// experimental: fixed input dim to 3
+	// input normally dont have a tensor, so we create one to store the initial data. 
+	nnom_shape_data_t dim[3] = { input_shape.h, input_shape.w, input_shape.c };
+	layer->super.in->tensor = new_tensor(NULL, 3); 
+	tensor_set_attribuites(layer->super.in->tensor, layer->super.in->tensor->qfmt, 3, dim);
+
 	return (nnom_layer_t *)layer;
 }
 
-
-nnom_status_t input_build(nnom_layer_t *layer)
+nnom_status_t input_build(nnom_layer_t* layer)
 {
-	nnom_io_layer_t *cl = (nnom_io_layer_t *)layer;
+	// the input tensor of inputlayer has assigned previously 
 
-	// output shape
-	layer->in->mem->blk = cl->buf;
-	layer->in->shape = cl->shape;
-	layer->out->shape = cl->shape;
+	// output tensor
+	// 1. allocate a new tensor for output
+	// 2. set the same dim, qfmt to the new tensor.
+	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
+	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
 
+	// now this build has passed the input tensors (shapes, formats) to the new tensors. 
 	return NN_SUCCESS;
 }
+
 
 nnom_status_t input_run(nnom_layer_t *layer)
 {
 	nnom_io_layer_t *cl = (nnom_io_layer_t *)layer;
 #ifdef NNOM_USING_CHW
-	hwc2chw_q7(layer->in->shape, cl->buf, layer->in->mem->blk); // 
+	tensor_hwc2chw_q7(layer->out->tensor, layer->in->tensor);
 #else
-	memcpy(layer->in->mem->blk, cl->buf, shape_size(&layer->in->shape));
+	memcpy(layer->in->tensor->p_data, cl->buf, tensor_size(layer->in->tensor));
 #endif
 	return NN_SUCCESS;
 }

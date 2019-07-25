@@ -70,26 +70,22 @@ nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_
 nnom_status_t dense_build(nnom_layer_t *layer)
 {
 	nnom_dense_layer_t *cl = (nnom_dense_layer_t *)layer;
-	nnom_layer_io_t *in = layer->in;
-	nnom_layer_io_t *out = layer->out;
 
-	//get the last layer's output as input shape
-	in->shape = in->hook.io->shape;
+	// get the tensor from last layer's output
+	layer->in->tensor = layer->in->hook.io->tensor;
 
-	// incase the input hasnt been flattened.
-	in->shape.h = in->shape.h * in->shape.w * in->shape.c;
-	in->shape.w = 1;
-	in->shape.c = 1;
+	// create new tensor for output
+	layer->out->tensor = new_tensor(NULL, 1);
+	// setup new tensor
+	nnom_qformat_t qfmt = {0 , 0}; // fill this later when layer API changed. 
+	nnom_shape_data_t dim[1] = {cl->output_unit};
+	tensor_set_attribuites(layer->out->tensor, qfmt, 1, dim);
 
-	out->shape.h = cl->output_unit;
-	out->shape.w = 1;
-	out->shape.c = 1;
-
-	// vec_buffer size: dim_vec (*2, q7->q15)
-	layer->comp->shape = shape(shape_size(&in->shape)*2, 1, 1);
+	// vec_buffer size: dim_vec (*2, q7->q15) ? I am not sure this is right
+	layer->comp->shape = shape(tensor_size(layer->in->tensor)*2, 1, 1);
 
 	// computational cost: In * out
-	layer->stat.macc = in->shape.h * out->shape.h;
+	layer->stat.macc = tensor_size(layer->in->tensor) * tensor_size(layer->out->tensor);
 	return NN_SUCCESS;
 }
 
@@ -104,25 +100,20 @@ nnom_status_t dense_run(nnom_layer_t *layer)
 	#else
 		local_fully_connected_q7(
 	#endif
-			layer->in->mem->blk,
-			cl->weights->p_value,
-			layer->in->shape.h, layer->out->shape.h,
-			cl->bias_shift, cl->output_shift,
-			cl->bias->p_value,
-			layer->out->mem->blk, (q15_t *)(layer->comp->mem->blk));
 #else
 	#ifdef NNOM_USING_CMSIS_NN
 		result = (nnom_status_t)arm_fully_connected_q7_opt(
 	#else
 		local_fully_connected_q7_opt(
 	#endif
-			layer->in->mem->blk,
+#endif
+			layer->in->tensor->p_data,
 			cl->weights->p_value,
-			layer->in->shape.h, layer->out->shape.h,
+			tensor_size(layer->in->tensor), layer->out->tensor->dim[0],
 			cl->bias_shift, cl->output_shift,
 			cl->bias->p_value,
-			layer->out->mem->blk, (q15_t *)(layer->comp->mem->blk));
-#endif
+			layer->out->tensor->p_data, (q15_t *)(layer->comp->mem->blk));
+
 
 	return result;
 }

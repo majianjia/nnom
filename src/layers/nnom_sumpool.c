@@ -41,7 +41,7 @@ nnom_status_t sumpooling_build(nnom_layer_t *layer)
 	maxpooling_build(layer);
 
 	// however, avg pooling require a computational buffer.
-	layer->comp->shape = shape(4 * layer->out->shape.h * layer->out->shape.w * layer->out->shape.c, 1, 1);
+	layer->comp->shape = shape(4 * tensor_size(layer->out->tensor), 1, 1);
 
 	return NN_SUCCESS;
 }
@@ -58,11 +58,11 @@ nnom_status_t sumpool_run(nnom_layer_t *layer)
 	local_sumpool_q7_HWC(
 #endif
 			layer->in->mem->blk, 				
-			layer->in->shape.w, layer->in->shape.h, layer->in->shape.c,
+			layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 			cl->kernel.w, cl->kernel.h, 
 			cl->pad.w, cl->pad.h,
 			cl->stride.w, cl->stride.h,
-			layer->out->shape.w, layer->out->shape.h,
+			layer->out->tensor->dim[1], layer->out->tensor->dim[0],
 			layer->comp->mem->blk,
 			layer->out->mem->blk);
 

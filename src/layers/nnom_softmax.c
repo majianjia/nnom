@@ -56,11 +56,11 @@ nnom_layer_t *Softmax(void)
 
 nnom_status_t softmax_run(nnom_layer_t *layer)
 {
-#ifdef NNOM_USING_CMSIS_NN
+	#ifdef NNOM_USING_CMSIS_NN
 	// temporary fixed for mutiple dimension input. 
-	arm_softmax_q7(layer->in->mem->blk, shape_size(&layer->out->shape), layer->out->mem->blk);
-#else
-	local_softmax_q7(layer->in->mem->blk, shape_size(&layer->out->shape), layer->out->mem->blk);
-#endif
+	arm_softmax_q7(layer->in->tensor->p_data, tensor_size(layer->out->tensor), layer->out->tensor->p_data);
+	#else
+	local_softmax_q7(layer->in->tensor->p_data, tensor_size(layer->out->tensor), layer->out->tensor->p_data);
+	#endif
 	return NN_SUCCESS;
 }

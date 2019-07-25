@@ -30,30 +30,15 @@ nnom_layer_t *Output(nnom_shape_t output_shape, void *p_buf)
 	{
 		layer->type = NNOM_OUTPUT;
 		layer->run = output_run;
-		layer->build = output_build;
+		layer->build = default_build;
 	}
 	return layer;
 }
 
-nnom_status_t output_build(nnom_layer_t *layer)
-{
-	nnom_io_layer_t *cl = (nnom_io_layer_t *)layer;
-
-	// get the last layer's output as input shape
-	layer->in->shape = layer->in->hook.io->shape;
-
-	// output shape
-	layer->in->mem->blk = cl->buf;
-
-	layer->in->shape = cl->shape;
-	layer->out->shape = cl->shape;
-
-	return NN_SUCCESS;
-}
 
 nnom_status_t output_run(nnom_layer_t *layer)
 {
 	nnom_io_layer_t *cl = (nnom_io_layer_t *)layer;
-	memcpy(cl->buf, layer->in->mem->blk, shape_size(&layer->in->shape)); // in->memory -> user memory
+	memcpy(cl->buf, layer->in->tensor->p_data, tensor_size(layer->out->tensor)); // in->memory -> user memory
 	return NN_SUCCESS;
 }

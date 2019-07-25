@@ -18,14 +18,11 @@
 #include "nnom_local.h"
 #include "nnom_layers.h"
 
-
-// TODO, completely change to local version
+// TODO, completely change this file to local version
 #ifdef NNOM_USING_CMSIS_NN
 #include "arm_math.h"
 #include "arm_nnfunctions.h"
 #endif
-
-
 
 nnom_layer_t* _same_shape_matrix_layer();
 nnom_status_t add_run(nnom_layer_t *layer);
@@ -111,16 +108,16 @@ nnom_status_t add_run(nnom_layer_t *layer)
 {
 	nnom_matrix_layer_t* cl = (nnom_matrix_layer_t*)layer;
 	nnom_layer_io_t *in;
-	size_t size = shape_size(&layer->in->shape);
+	size_t size = tensor_size(layer->in->tensor);
 	int32_t oshift = cl->oshift;
 
 	// adding the first 2 matrix
 	#ifdef NNOM_USING_CMSIS_NN
 	if(oshift == 0)
-		arm_add_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, size);
+		arm_add_q7(layer->in->tensor->p_data, layer->in->aux->tensor->p_data, layer->out->tensor->p_data, size);
 	else
 	#endif
-		local_add_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, oshift, size);
+		local_add_q7(layer->in->tensor->p_data, layer->in->aux->tensor->p_data, layer->out->tensor->p_data, oshift, size);
 
 	// if there is 3rd or more, we should use 
 	if (layer->in->aux->aux != NULL)
@@ -131,10 +128,10 @@ nnom_status_t add_run(nnom_layer_t *layer)
 			// adding the first 2 matrix
 			#ifdef NNOM_USING_CMSIS_NN
 			if(oshift == 0)
-				arm_add_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, size);
+				arm_add_q7(in->tensor->p_data, layer->out->tensor->p_data, layer->out->tensor->p_data, size);
 			else
 			#endif
-				local_add_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, oshift, size);
+				local_add_q7(in->tensor->p_data, layer->out->tensor->p_data, layer->out->tensor->p_data, oshift, size);
 
 			in = in->aux;
 		}
@@ -147,16 +144,16 @@ nnom_status_t sub_run(nnom_layer_t *layer)
 {
 	nnom_matrix_layer_t* cl = (nnom_matrix_layer_t*)layer;
 	nnom_layer_io_t *in;
-	size_t size = shape_size(&layer->in->shape);
+	size_t size = tensor_size(layer->in->tensor);
 	int32_t oshift = cl->oshift;
 
 	// the first 2 matrix
 	#ifdef NNOM_USING_CMSIS_NN
 	if(oshift == 0)
-		arm_sub_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, size);
+		arm_sub_q7(layer->in->tensor->p_data, layer->in->aux->tensor->p_data, layer->out->tensor->p_data, size);
 	else
 	#endif
-		local_sub_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, oshift, size);
+		local_sub_q7(layer->in->tensor->p_data, layer->in->aux->tensor->p_data, layer->out->tensor->p_data, oshift, size);
 
 	// if there is 3rd or more
 	if (layer->in->aux->aux != NULL)
@@ -167,10 +164,10 @@ nnom_status_t sub_run(nnom_layer_t *layer)
 			// adding the first 2 matrix
 			#ifdef NNOM_USING_CMSIS_NN
 			if(oshift == 0)
-				arm_sub_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, size);
+				arm_sub_q7(in->tensor->p_data, layer->out->tensor->p_data, layer->out->tensor->p_data, size);
 			else
 			#endif
-				local_sub_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, oshift, size);
+				local_sub_q7(in->tensor->p_data, layer->out->tensor->p_data, layer->out->tensor->p_data, oshift, size);
 
 			in = in->aux;
 		}
@@ -182,16 +179,16 @@ nnom_status_t mult_run(nnom_layer_t *layer)
 {
 	nnom_matrix_layer_t* cl = (nnom_matrix_layer_t*)layer;
 	nnom_layer_io_t *in;
-	size_t size = shape_size(&layer->in->shape);
+	size_t size = size = tensor_size(layer->in->tensor);
 	int32_t oshift = cl->oshift;
 
 	// the first 2 matrix
 	#ifdef NNOM_USING_CMSIS_NN
 	if(oshift == 0)
-		arm_mult_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, size);
+		arm_mult_q7(layer->in->tensor->p_data, layer->in->aux->tensor->p_data, layer->out->tensor->p_data, size);
 	else
 	#endif
-		local_mult_q7(layer->in->mem->blk, layer->in->aux->mem->blk, layer->out->mem->blk, oshift, size);
+		local_mult_q7(layer->in->tensor->p_data, layer->in->aux->tensor->p_data, layer->out->tensor->p_data, oshift, size);
 	
 	// if there is 3rd or more
 	if (layer->in->aux->aux != NULL)
@@ -202,10 +199,10 @@ nnom_status_t mult_run(nnom_layer_t *layer)
 			// adding the first 2 matrix
 			#ifdef NNOM_USING_CMSIS_NN
 			if(oshift == 0)
-				arm_sub_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, size);
+				arm_sub_q7(in->tensor->p_data, layer->out->tensor->p_data, layer->out->tensor->p_data, size);
 			else
 			#endif
-				local_sub_q7(in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, oshift, size);
+				local_sub_q7(in->tensor->p_data, layer->out->tensor->p_data, layer->out->tensor->p_data, oshift, size);
 
 			in = in->aux;
 		}

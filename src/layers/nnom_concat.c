@@ -71,39 +71,38 @@ nnom_status_t concat_build(nnom_layer_t *layer)
 	nnom_layer_io_t *in;
 	uint32_t in_num = 0;
 	uint32_t offset;
-	int32_t shape_element_num;
+	int32_t num_dim;
 
 	// for each input module, copy the shape from the output of last layer
 	in = layer->in;
 	while (in != NULL)
 	{
 		//get the last layer's output as input shape
-		in->shape = in->hook.io->shape;
+		in->tensor = in->hook.io->tensor;
 		in = in->aux;
 		in_num++;
 	}
-
-	// get how many element in shape
-	shape_element_num = sizeof(nnom_shape_t) / sizeof(nnom_shape_data_t);
-	if (cl->axis >= shape_element_num || cl->axis <= -shape_element_num)
+	num_dim = layer->in->tensor->num_dim;
+	if (cl->axis >= num_dim || cl->axis <= -num_dim)
 		return NN_ARGUMENT_ERROR;
 
-	// find the axis to concat
-	offset = cl->axis;
+	// allocate new tensor for output, keep the same dimension lenght
+	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
+	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
 
 	// do the work
-	for (uint32_t i = 0; i < shape_element_num * sizeof(nnom_shape_data_t); i += sizeof(nnom_shape_data_t))
+	for (uint32_t i = 0; i < num_dim * sizeof(nnom_shape_data_t); i += sizeof(nnom_shape_data_t))
 	{
 		// exclue the concat axies
-		if (i == offset * sizeof(nnom_shape_data_t))
+		if (i == cl->axis * sizeof(nnom_shape_data_t))
 		{
-			nnom_shape_data_t *out_axis = (nnom_shape_data_t *)((uint8_t*)(&layer->out->shape) + i);
-			*out_axis = 0;
+			layer->out->tensor->dim[i] = 0;
 
+			// add the same axis from all input up. 
 			in = layer->in;
 			while (in != NULL)
 			{
-				*out_axis += *(nnom_shape_data_t *)((uint8_t*)(&in->shape) + i);
+				layer->out->tensor->dim[i] += layer->in->tensor->dim[i];
 				in = in->aux;
 			}
 			continue;
@@ -113,15 +112,13 @@ nnom_status_t concat_build(nnom_layer_t *layer)
 		in = layer->in;
 		while (in != NULL && in->aux != NULL)
 		{
-			if (*(nnom_shape_data_t *)((uint8_t*)(&in->shape) + i) !=
-				*(nnom_shape_data_t *)((uint8_t*)(&in->aux->shape) + i))
+			if (in->tensor->dim[i] != in->aux->tensor->dim[i])
 				return NN_ARGUMENT_ERROR;
 			in = in->aux;
 		}
 
 		// now set other axis
-		*(nnom_shape_data_t *)((uint8_t*)(&layer->out->shape) + i) =
-			*(nnom_shape_data_t *)((uint8_t*)(&layer->in->shape) + i);
+		layer->out->tensor->dim[i] = layer->in->tensor->dim[i];
 	}
 
 	return NN_SUCCESS;
@@ -150,13 +147,12 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 {
 	// by default, concat layer has mutiple (>=2) input and 1 output.
 	nnom_concat_layer_t *cl = (nnom_concat_layer_t *)layer;
-	nnom_shape_axis_t *in_shape;
 	nnom_layer_io_t *in;
 
 #ifdef NNOM_USING_CHW
 	// Concatenate for HWC	
 	uint8_t *pin;
-	uint8_t *pout = layer->out->mem->blk;
+	uint8_t *pout = layer->out->tensor->p_data;
 	uint32_t block_size;
 	uint32_t n_block;
 	
@@ -165,7 +161,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	n_block = 1;
 	for(int i= 0; i< chw_i(cl->axis); i++)
 	{
-		n_block *= in_shape->axis[hwc_i(i)];
+		n_block *= layer->in->tensor->dim[hwc_i(i)];
 	}
 	
 	// concat all input layers
@@ -174,13 +170,12 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 		in = layer->in;
 		while (in != NULL)
 		{
-			in_shape = (nnom_shape_axis_t*)(&in->shape);
 			// the block size of concat data in this layer
 			block_size = 1;
 			for(int j= 2; j >= chw_i(cl->axis); j--)
-				block_size *= in_shape->axis[hwc_i(j)];
+				block_size *= layer->in->tensor->dim[hwc_i(j)];
 			// concat		
-			pin = (uint8_t *)in->mem->blk + i * block_size;
+			pin = (uint8_t *)in->tensor->p_data + i * block_size;
 			memcpy(pout, pin, block_size);
 			pout += block_size;
 			in = in->aux;
@@ -188,32 +183,31 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	}
 	
 #else // end of HWC concate
-	
+
+
 	// Concatenate for HWC	
-	uint8_t *pin;
-	uint8_t *pout = layer->out->mem->blk;
+	uint8_t* pin;
+	uint8_t* pout = layer->out->tensor->p_data;
 	uint32_t block_size;
 	uint32_t n_block;
-	
-	// calcualte number of block to concat. the other shapes before the concat axis
-	in_shape = (nnom_shape_axis_t*)(&layer->in->shape);
+
+	// calcualte the number of block to concat. (the other shapes before the concat axis)
 	n_block = 1;
-	for(int i=0; i< cl->axis; i++)
-		n_block *= in_shape->axis[i];
-	
+	for (int i = 0; i < cl->axis; i++)
+		n_block *= layer->in->tensor->dim[i];
+
 	// concat all input layers
-	for(int i=0; i<n_block; i++)
+	for (int i = 0; i < n_block; i++)
 	{
 		in = layer->in;
 		while (in != NULL)
 		{
-			in_shape = (nnom_shape_axis_t*)(&in->shape);
 			// the block size of concat data in this layer
 			block_size = 1;
-			for(int j=cl->axis; j < 3; j++)
-				block_size *= in_shape->axis[j];
+			for (int j = cl->axis; j < 3; j++)
+				block_size *= layer->in->tensor->dim[j];
 			// concat		
-			pin = (uint8_t *)in->mem->blk + i * block_size;
+			pin = (uint8_t*)in->tensor->p_data + i * block_size;
 			memcpy(pout, pin, block_size);
 			pout += block_size;
 			in = in->aux;
