@@ -271,6 +271,17 @@ nnom_model_t *new_model(nnom_model_t *model)
 	return m;
 }
 
+
+// delete the 
+static void io_tensor_delete(nnom_layer_io_t* io)
+{
+	while (io)
+	{
+		nnom_free(io->tensor);
+		io = io->aux;
+	}
+}
+
 // delete all the aux hooks
 // delete aux io only, keep the primary io.
 static void io_list_delete(nnom_layer_io_t *io)
@@ -290,6 +301,7 @@ static void io_list_delete(nnom_layer_io_t *io)
 			nnom_free(hook);
 			hook = next_hook;
 		}
+
 		// now we can release the aux io itself
 		// but if this io is the primary input/out of the layer, it will be freed with they layer's instance since they are allocated together.
 		if (io != io->owner->in && io != io->owner->out)
@@ -317,6 +329,10 @@ static void layer_delete(nnom_layer_t *layer)
 {
 	if (layer == NULL)
 		return;
+	// delete the tensors first. only input layer should delete input 
+	if (layer->type == NNOM_INPUT)
+		io_tensor_delete(layer->in);
+	io_tensor_delete(layer->out);
 
 	// release secondary memory on the layers.
 	// they are io lists and hooks list

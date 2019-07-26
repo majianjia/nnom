@@ -157,7 +157,6 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	uint32_t n_block;
 	
 	// calcualte number of block to concat. the other shapes before the concat axis
-	in_shape = (nnom_shape_axis_t*)(&layer->in->shape);
 	n_block = 1;
 	for(int i= 0; i< chw_i(cl->axis); i++)
 	{
@@ -183,7 +182,6 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	}
 	
 #else // end of HWC concate
-
 
 	// Concatenate for HWC	
 	uint8_t* pin;

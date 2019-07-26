@@ -364,4 +364,6 @@ void model_stat(nnom_model_t *m)
 		NNOM_LOG("Efficiency %d.%02d ops/us\n",
 		   (total_ops / total_time),
 		   (total_ops * 100) / (total_time) % 100);
+
+	NNOM_LOG("Total memory:%d\n", nnom_mem_stat());
 }
