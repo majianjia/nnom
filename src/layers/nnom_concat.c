@@ -91,10 +91,10 @@ nnom_status_t concat_build(nnom_layer_t *layer)
 	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
 
 	// do the work
-	for (uint32_t i = 0; i < num_dim * sizeof(nnom_shape_data_t); i += sizeof(nnom_shape_data_t))
+	for (uint32_t i = 0; i < num_dim; i ++)
 	{
 		// exclue the concat axies
-		if (i == cl->axis * sizeof(nnom_shape_data_t))
+		if (i == cl->axis)
 		{
 			layer->out->tensor->dim[i] = 0;
 

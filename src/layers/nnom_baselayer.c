@@ -52,8 +52,6 @@ nnom_layer_t *BaseLayer()
 	return (nnom_layer_t *)layer;
 }
 
-
-
 // this is call while output shape is not defined.
 // this will set the output shape same as input shape, and it set only the primary IO
 // this cannot be used as first layer, of course...

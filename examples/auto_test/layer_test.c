@@ -5,8 +5,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2019-02-05     Jianjia Ma   The first version
- * 2019-04-18     Jianjia Ma   use callback to save layer's output
+ * 2019-07-25     Jianjia Ma   The first version
  */
  
 #include <stdint.h>
@@ -15,32 +14,34 @@
 #include <assert.h>
 
 #include "nnom.h"
-
 #include "weights.h"
 
-int8_t* load(const char* file)
+int8_t* load(const char* file, size_t * size)
 {
 	size_t sz;
-	int8_t* in;
 	FILE* fp = fopen(file,"rb");
+	int8_t* input;
 	assert(fp);
 	fseek(fp, 0, SEEK_END);
 	sz = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
-	in = malloc(sz);
-	fread(in, 1, sz, fp);
+	input = malloc(sz);
+	fread(input, 1, sz, fp);
 	fclose(fp);
-	return in;
+	*size = sz;
+	return input;
 }
 
 nnom_status_t layer_callback(nnom_model_t *m, nnom_layer_t *layer)
 {
 	static int outputIndex[NNOM_TYPE_MAX] = { 0 , } ;
+	static int layer_index = 0;
 	char name[32];
 	FILE* fp;
 
 	outputIndex[layer->type]++;
-	snprintf(name, sizeof(name),"tmp/%s%d.raw",
+	snprintf(name, sizeof(name),"tmp/nnom_%d_%s%d.raw",
+			(layer_index++),
 			default_layer_names[layer->type],
 			outputIndex[layer->type]);
 	fp = fopen(name,"w");
@@ -56,21 +57,21 @@ nnom_status_t layer_callback(nnom_model_t *m, nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
+
 int main(int argc, char* argv[])
 {
 	nnom_model_t* model;
 	int8_t* input;
+	size_t size = 0;
 
-	model = nnom_model_create();
-	model_set_callback(model, layer_callback); // callback to save output of each layer.
-
-	input = load("tmp/input.raw");
-
+	input = load("tmp/input.raw", &size);
+	model = nnom_model_create();	
+	model_set_callback(model, layer_callback); // callback to save output of each layer.	
+	
 	memcpy(nnom_input_data, input, sizeof(nnom_input_data));
 	model_run(model);
-
 	model_delete(model);
+	
 	free(input);
-
 	return 0;
 }
