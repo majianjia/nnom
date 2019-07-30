@@ -4,7 +4,9 @@ cwd = GetCurrentDir()
 
 objs = []
 
-objs += Glob('src/*.c')
+objs += Glob('src/core/*.c')
+objs += Glob('src/layers/*.c')
+objs += Glob('src/backends/*.c')
 CPPPATH=['%s/inc'%(cwd), '%s/port'%(cwd)]
 
 try:

@@ -27,8 +27,8 @@
 
 /* version */
 #define NNOM_MAJORVERSION     0L              /**< major version number */
-#define NNOM_SUBVERSION       2L              /**< minor version number */
-#define NNOM_REVISION         1L              /**< revise version number */
+#define NNOM_SUBVERSION       3L              /**< minor version number */
+#define NNOM_REVISION         0L              /**< revise version number */
 #define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 										 
 typedef enum
@@ -47,6 +47,7 @@ typedef enum
 typedef enum
 {
 	NNOM_INVALID = 0,
+	NNOM_BASE,
 	NNOM_INPUT,
 	NNOM_OUTPUT,
 	NNOM_CONV_2D,
@@ -81,6 +82,7 @@ typedef enum
 #define DEFUALT_LAYER_NAMES \
 	{                       \
 		"UNKNOWN",          \
+			"Base",			\
 			"Input",        \
 			"Output",       \
 			"Conv2D",       \
@@ -177,6 +179,15 @@ typedef struct _nnom_bias
 	size_t shift;
 } nnom_bias_t;
 
+// experimental
+typedef struct _nnom_tensor_t
+{
+	void* p_data;
+	nnom_shape_data_t *dim;
+	uint8_t num_dim;
+	nnom_qformat_t qfmt;
+} nnom_tensor_t;
+
 // nn wrappers
 typedef struct _nnom_layer_t 	nnom_layer_t;
 typedef struct _nnom_layer_io_t nnom_layer_io_t;
@@ -203,7 +214,7 @@ typedef struct _nnom_mem_block_t
 
 typedef struct _nnom_stat_t
 {
-	size_t macc; //num. of operation
+	size_t macc; //num. of mac operation
 	uint32_t time;
 } nnom_layer_stat_t;
 
@@ -217,45 +228,47 @@ typedef struct _nnom_layer_io_t
 {
 	nnom_layer_hook_t hook;		  // for example: (layer->out)--hook--(layer->in)
 	struct _nnom_layer_io_t *aux; // point to auxilary I/O (multiple I/O layer or RNN)
+
+	nnom_tensor_t *tensor;		  // experimental 
+
 	nnom_mem_block_t *mem;		  // a memory block that use for input/output
 	nnom_layer_t *owner;		  // this io is belong to the owner layer.
-	nnom_shape_t shape;			  // shape of the buf
+	//nnom_shape_t shape;		  // shape of the buf
+	//nnom_qformat_t qfmt;        // the q format of the memory
 	uint8_t type;
-	nnom_qformat_t qfmt;          // the q format of the memory
 } nnom_layer_io_t;
 
 // layers base
 typedef struct _nnom_layer_t
 {
 	nnom_status_t (*run)(nnom_layer_t *layer);				// run method. required
-	nnom_status_t (*comp_out_shape)(nnom_layer_t *layer);	// compute output buffer shape. can be left null, will call default_output_shape()
+	nnom_status_t (*build)(nnom_layer_t *layer);			// compute output buffer shape. can be left null, will call default_build()
 	nnom_status_t (*free)(nnom_layer_t *layer);				// a callback to free private resources (comp buf not included) can be left null
 	nnom_buf_t *comp;		   								// computational buf
-	nnom_activation_t *actail; 								// I have an activation, I have a taill, wooo haaaa, acti-tail!!!
+	nnom_activation_t *actail; 								// I have an activation, I have a tail, wooo haaaa, act-tail!!!
 
 	nnom_layer_type_t type;
 	nnom_layer_io_t *in;	// IO buff, last*layer, states
 	nnom_layer_io_t *out;   // IO buff, next*layer, states
 	nnom_layer_stat_t stat; // stats, timing, ops
-	nnom_layer_t *shortcut; // shortcut for point to the next layer, applied on compiling
+	nnom_layer_t *shortcut; // shortcut points to the next layer, applied on compiling
 } nnom_layer_t;
 
 // add data type later
+// probably change to tensor version. 
 typedef struct _nnom_activation_t
 {
-	nnom_status_t (*run)(nnom_layer_t *layer, struct _nnom_activation_t *act);
+	nnom_status_t (*run)(struct _nnom_activation_t *act);
 	void *data;  // data & type will be given before activation
 	size_t size; //
+	nnom_qformat_t qfmt; // data type
 	nnom_activation_type_t type;
-	nnom_qformat_t fmt; // data type
 } nnom_activation_t;
 
 typedef struct _nnom_model nnom_model_t;
 
-#include "nnom_out_shape.h"
-#include "nnom_run.h"
+#include "nnom_tensor.h"
 #include "nnom_layers.h"
-#include "nnom_activations.h"
 #include "nnom_utils.h"
 
 // models, I dont want to make model class as a child of layer class yet
@@ -289,6 +302,7 @@ typedef struct _nnom_model
 		NNOM_LOG("Error: NULL object.\n"); \
 		return NN_ARGUMENT_ERROR;          \
 	}
+
 
 // utils
 size_t nnom_alignto(size_t value, uint32_t alignment);
