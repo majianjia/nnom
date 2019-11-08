@@ -155,7 +155,7 @@ Relu()
 ## Contacts
 Jianjia Ma
 
-J.Ma2@lboro.ac.uk or majianjia@live.com
+majianjia@live.com
 
 ## Citation Required
 Please contact us using above details. 
