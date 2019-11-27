@@ -66,7 +66,7 @@ def build_model(x_shape):
 def train(model, x_train, y_train, x_test, y_test, batch_size=64, epochs=50):
     # save best
     checkpoint = ModelCheckpoint(filepath=save_dir,
-            monitor='val_acc',
+            monitor='val_accuracy',
             verbose=0,
             save_best_only='True',
             mode='auto',
