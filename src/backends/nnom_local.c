@@ -19,9 +19,6 @@
 #include "nnom.h"
 #include "nnom_local.h"
 
-
-
-
 // modified from CMSIS-NN test_ref
 void local_avepool_q7_HWC(const q7_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W

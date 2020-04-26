@@ -16,9 +16,10 @@
 
 #include "nnom.h"
 
-nnom_tensor_t* new_tensor(nnom_tensor_t* t, uint32_t num_dim);
-nnom_tensor_t* tensor_set_attribuites(nnom_tensor_t* t, nnom_qformat_t qfmt, uint32_t num_dim, nnom_shape_data_t* dim);
+nnom_tensor_t* new_tensor(nnom_tensor_t* t, uint32_t num_dim, nnom_qtype_t type, uint32_t num_channel);
+nnom_tensor_t* tensor_set_attribuites(nnom_tensor_t* t, nnom_qformat_t *qfmt, nnom_shape_data_t* dim, uint32_t num_dim);
 nnom_tensor_t* tensor_cpy_attributes(nnom_tensor_t* des, nnom_tensor_t* src);
+size_t tensor_get_num_channel(nnom_tensor_t* t);
 size_t tensor_size(nnom_tensor_t* t);
 
 

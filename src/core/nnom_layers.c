@@ -53,6 +53,7 @@ nnom_border_t border(size_t top, size_t bottom, size_t left, size_t right)
 nnom_qformat_t qformat(int8_t m, int8_t n)
 {
 	nnom_qformat_t fmt;
+	fmt.offset = 0;
 	fmt.n = n;
 	fmt.m = m;
 	return fmt;

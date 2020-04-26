@@ -253,12 +253,12 @@ nnom_model_t *new_model(nnom_model_t *model)
 	if (m == NULL)
 	{
 		m = nnom_mem(sizeof(nnom_model_t));
-		m->is_alloc = true;
+		m->is_allocated = true;
 	}
 	else
 	{
 		memset(m, 0, sizeof(nnom_model_t));
-		m->is_alloc = false;
+		m->is_allocated = false;
 	}
 
 	// set methods
@@ -329,6 +329,11 @@ static void layer_delete(nnom_layer_t *layer)
 {
 	if (layer == NULL)
 		return;
+
+	// call private free of the layer
+	if (layer->free)
+		layer->free(layer);
+
 	// delete the tensors first. only input layer should delete input 
 	if (layer->type == NNOM_INPUT)
 		io_tensor_delete(layer->in);
@@ -341,10 +346,6 @@ static void layer_delete(nnom_layer_t *layer)
 
 	// release activations (it takes null too)
 	nnom_free(layer->actail);
-
-	// call private free of the layer
-	if (layer->free)
-		layer->free(layer);
 
 	// release primary memory
 	nnom_free(layer);
@@ -375,7 +376,7 @@ void model_delete(nnom_model_t *m)
 	nnom_free(m->blocks->blk);
 
 	// free model instance itself
-	if (m->is_alloc)
+	if (m->is_allocated)
 		nnom_free(m);
 	else
 		nnom_memset(m, 0, sizeof(nnom_model_t));
@@ -867,11 +868,12 @@ nnom_status_t set_tailed_activation(nnom_model_t *m)
 	{
 		if (layer->actail != NULL)
 		{
-			layer->actail->data = layer->out->tensor->p_data;
-			layer->actail->size = tensor_size(layer->out->tensor);
-			// if actail has its own shifting, then leave it as it is. otherwise set it to same as output
-			if(layer->actail->qfmt.m == 0 && layer->actail->qfmt.n == 0)
-				layer->actail->qfmt = layer->out->tensor->qfmt;
+			layer->actail->tensor = layer->out->tensor;
+			// layer->actail->data = layer->out->tensor->p_data;
+			// layer->actail->size = tensor_size(layer->out->tensor);
+			// // if actail has its own shifting, then leave it as it is. otherwise set it to the same as output
+			// if(layer->actail->qfmt.m == 0 && layer->actail->qfmt.n == 0)
+			// 	layer->actail->qfmt = layer->out->tensor->qfmt;
 		}
 		if (layer->shortcut == NULL)
 			break;

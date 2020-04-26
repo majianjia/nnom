@@ -28,6 +28,21 @@
 nnom_status_t conv2d_run(nnom_layer_t *layer);
 nnom_status_t conv2d_build(nnom_layer_t *layer);
 
+// a machine interface for configuration
+typedef struct _nnom_conv2d_config_t
+{
+	int8_t *weights;
+	int8_t *bias;
+	int8_t weights_shift;
+	int8_t bias_shift;
+	int8_t *output_shift;  // 
+	uint32_t filter_size;  
+	nnom_qtype_t qtype; 	//quantisation type(per channel or per layer)
+	int8_t kernel_size[2];
+	int8_t stride_size[2];
+	nnom_padding_t padding;
+} nnom_conv2d_config_t;
+
 // Conv2D
 // multiplier of (output/input channel),
 // shape of kernal, shape of strides, weight struct, bias struct
@@ -93,7 +108,7 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 	// get the tensor from last layer's output
 	layer->in->tensor = layer->in->hook.io->tensor;
 
-	// create new tensor for output
+	// create new tensor for the output
 	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
 	// copy then change later. 
 	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);

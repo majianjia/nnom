@@ -298,7 +298,6 @@ nnom_activation_t* act_sigmoid(int32_t dec_bit);
 nnom_activation_t* act_tanh(int32_t dec_bit);
 
 // direct API
-nnom_status_t act_direct_run(nnom_activation_t* act, void* data, size_t size, nnom_qformat_t qfmt);
 nnom_status_t act_tensor_run(nnom_activation_t* act, nnom_tensor_t* tensor);
 
 #endif

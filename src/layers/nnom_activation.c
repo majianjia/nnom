@@ -118,35 +118,40 @@ nnom_status_t activation_run(nnom_layer_t *layer)
 static nnom_status_t relu_run(nnom_activation_t* act)
 {
 #ifdef NNOM_USING_CMSIS_NN
-	arm_relu_q7(act->data, act->size);
+	arm_relu_q7(act->tensor->p_data, tensor_size(act->tensor));
 #else
-	local_relu_q7(act->data, act->size);
+	local_relu_q7(act->tensor->p_data, tensor_size(act->tensor));
 #endif
 	return NN_SUCCESS;
 }
 
 static nnom_status_t tanh_run(nnom_activation_t* act)
 {
+	nnom_activation_fixed_q_t * a = (nnom_activation_fixed_q_t*)act;
+	uint8_t int_bit = 7 - a->dec_bit;
+
 	// arm version cannot handle int_bit > 3
 #ifdef NNOM_USING_CMSIS_NN
 	if (act->qfmt.m <= 3)
-		arm_nn_activations_direct_q7(act->data, act->size, act->qfmt.m, ARM_TANH);
+		arm_nn_activations_direct_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit, ARM_TANH);
 	else
 #endif
-		local_tanh_q7(act->data, act->size, act->qfmt.m);
-
+		local_tanh_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit);
 	return NN_SUCCESS;
 }
 
 static nnom_status_t sigmoid_run( nnom_activation_t* act)
 {
+	nnom_activation_fixed_q_t * a = (nnom_activation_fixed_q_t*)act;
+	uint8_t int_bit = 7 - a->dec_bit;
+
 	// arm version cannot handle int_bit > 3
 #ifdef NNOM_USING_CMSIS_NN
 	if (act->qfmt.m <= 3)
-		arm_nn_activations_direct_q7(act->data, act->size, act->qfmt.m, ARM_SIGMOID);
+		arm_nn_activations_direct_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit, ARM_SIGMOID);
 	else
 #endif
-		local_sigmoid_q7(act->data, act->size, act->qfmt.m);
+		local_sigmoid_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit);
 	return NN_SUCCESS;
 }
 
@@ -161,40 +166,27 @@ nnom_activation_t* act_relu(void)
 
 nnom_activation_t* act_tanh(int32_t dec_bit)
 {
-	nnom_activation_t* act = nnom_mem(sizeof(nnom_activation_t));
-	act->run = tanh_run;
-	act->type = ACT_TANH;
-	act->qfmt.n = dec_bit;
-	act->qfmt.m = 7 - dec_bit;
-	return act;
+	nnom_activation_fixed_q_t* act = nnom_mem(sizeof(nnom_activation_fixed_q_t));
+	act->super.run = tanh_run;
+	act->super.type = ACT_TANH;
+	act->dec_bit = dec_bit;
+	return (nnom_activation_t*)act;
 }
 
 nnom_activation_t* act_sigmoid(int32_t dec_bit)
 {
-	nnom_activation_t* act = nnom_mem(sizeof(nnom_activation_t));
-	act->run = sigmoid_run;
-	act->type = ACT_SIGMOID;
-	act->qfmt.n = dec_bit;
-	act->qfmt.m = 7 - dec_bit;
-	return act;
-}
+	nnom_activation_fixed_q_t* act = nnom_mem(sizeof(nnom_activation_fixed_q_t));
 
-// a direct api, 
-// to run an activation directly by passing parameters
-nnom_status_t act_direct_run(nnom_activation_t* act, void* data, size_t size, nnom_qformat_t qfmt)
-{
-	act->data = data;
-	act->size = size;
-	act->qfmt = qfmt;
-	return act->run(act);
+	act->super.run = sigmoid_run;
+	act->super.type = ACT_SIGMOID;
+	act->dec_bit = dec_bit;
+	return (nnom_activation_t*)act;
 }
 
 // a direct api on tensor
 // a activate a tensor
 nnom_status_t act_tensor_run(nnom_activation_t* act, nnom_tensor_t* tensor)
 {
-	act->data = tensor->p_data;
-	act->size = tensor_size(tensor);
-	act->qfmt = tensor->qfmt;
+	act->tensor = tensor;
 	return act->run(act);
 }

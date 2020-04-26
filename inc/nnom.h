@@ -27,7 +27,7 @@
 
 /* version */
 #define NNOM_MAJORVERSION     0L              /**< major version number */
-#define NNOM_SUBVERSION       3L              /**< minor version number */
+#define NNOM_SUBVERSION       4L              /**< minor version number */
 #define NNOM_REVISION         0L              /**< revise version number */
 #define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 										 
@@ -148,7 +148,7 @@ typedef enum
 #define nnom_shape_data_t uint16_t
 typedef struct _nnom_shape_t
 {
-	nnom_shape_data_t h, w, c;
+	nnom_shape_data_t  h, w, c;
 } nnom_shape_t;
 
 typedef struct _nnom_border_t
@@ -162,8 +162,16 @@ typedef union {
 	nnom_shape_data_t axis[sizeof(nnom_shape_t) / sizeof(nnom_shape_data_t)];
 } nnom_shape_axis_t;
 
+// tensor quantisation types
+typedef enum
+{
+	NNOM_QTYPE_PER_LAYER = 0,
+	NNOM_QTYPE_PER_CHANNEL = 1
+} nnom_qtype_t;
+
 typedef struct _nnom_qformat
 {
+	int16_t offset;
 	int8_t m, n;
 } nnom_qformat_t;
 
@@ -179,13 +187,15 @@ typedef struct _nnom_bias
 	size_t shift;
 } nnom_bias_t;
 
-// experimental
+// experimental                   
 typedef struct _nnom_tensor_t
 {
 	void* p_data;
 	nnom_shape_data_t *dim;
 	uint8_t num_dim;
-	nnom_qformat_t qfmt;
+	nnom_qformat_t *qfmt;			// public access point. when NNOM_QTYPE_PER_CHANNEL, this will be point to a memory block allocated with this tensor block
+	nnom_qformat_t __qformat;		// when NNOM_QTYPE_PER_LAYER, we use its private qformat to store per layer qformate.
+	nnom_qtype_t qtype;
 } nnom_tensor_t;
 
 // nn wrappers
@@ -204,6 +214,7 @@ typedef struct _nnom_buf
 	uint8_t type;
 } nnom_buf_t;
 
+// a memory block to store pre-assign memories during compiling. then assigned to each tensor after.   
 typedef struct _nnom_mem_block_t
 {
 	void *blk;
@@ -227,14 +238,10 @@ typedef struct _nnom_layer_hook_t
 typedef struct _nnom_layer_io_t
 {
 	nnom_layer_hook_t hook;		  // for example: (layer->out)--hook--(layer->in)
-	struct _nnom_layer_io_t *aux; // point to auxilary I/O (multiple I/O layer or RNN)
-
+	nnom_layer_io_t *aux; 			// point to auxilary I/O (multiple I/O layer)
 	nnom_tensor_t *tensor;		  // experimental 
-
-	nnom_mem_block_t *mem;		  // a memory block that use for input/output
-	nnom_layer_t *owner;		  // this io is belong to the owner layer.
-	//nnom_shape_t shape;		  // shape of the buf
-	//nnom_qformat_t qfmt;        // the q format of the memory
+	nnom_mem_block_t *mem;		  // memory blocks handles for compiling only. The memory are now pass by tensor. trying to remove it. 
+	nnom_layer_t *owner;		  // which layer owns this io.
 	uint8_t type;
 } nnom_layer_io_t;
 
@@ -247,23 +254,31 @@ typedef struct _nnom_layer_t
 	nnom_buf_t *comp;		   								// computational buf
 	nnom_activation_t *actail; 								// I have an activation, I have a tail, wooo haaaa, act-tail!!!
 
-	nnom_layer_type_t type;
+	void * preconfig;		// point to the configuration of the layers. for machine api only. 
+	nnom_layer_type_t type; // layer types
 	nnom_layer_io_t *in;	// IO buff, last*layer, states
 	nnom_layer_io_t *out;   // IO buff, next*layer, states
 	nnom_layer_stat_t stat; // stats, timing, ops
 	nnom_layer_t *shortcut; // shortcut points to the next layer, applied on compiling
 } nnom_layer_t;
 
-// add data type later
-// probably change to tensor version. 
+// activation base
 typedef struct _nnom_activation_t
 {
 	nnom_status_t (*run)(struct _nnom_activation_t *act);
-	void *data;  // data & type will be given before activation
-	size_t size; //
-	nnom_qformat_t qfmt; // data type
+	nnom_tensor_t *tensor;
+	// void *data;  // data & type will be given before activation
+	// size_t size; //
+	// nnom_qformat_t qfmt; // data type
 	nnom_activation_type_t type;
 } nnom_activation_t;
+
+// activation with fixed q format (tanh and sigmoid)
+typedef struct _nnom_activation_fixed_q_t
+{
+	nnom_activation_t super;
+	uint8_t dec_bit;
+} nnom_activation_fixed_q_t;
 
 typedef struct _nnom_model nnom_model_t;
 
@@ -293,7 +308,7 @@ typedef struct _nnom_model
 	size_t total_ops;
 
 	bool is_inited; //	is this structure initialized
-	bool is_alloc;  //	is this structure allocated by nnom (not by user)
+	bool is_allocated;  //	is this structure allocated by nnom (not by user)
 } nnom_model_t;
 
 #define NNOM_NULL_CHECK(p)                 \
