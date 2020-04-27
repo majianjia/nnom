@@ -145,10 +145,12 @@ typedef enum
 #define NNOM_BUF_FILLED  (1)
 
 // basic types
+#define nnom_qformat_param_t int8_t // this should match the backend, need a better way to do it. 
 #define nnom_shape_data_t uint16_t
+
 typedef struct _nnom_shape_t
 {
-	nnom_shape_data_t  h, w, c;
+	nnom_shape_data_t h, w, c;
 } nnom_shape_t;
 
 typedef struct _nnom_border_t
@@ -165,15 +167,15 @@ typedef union {
 // tensor quantisation types
 typedef enum
 {
-	NNOM_QTYPE_PER_LAYER = 0,
-	NNOM_QTYPE_PER_CHANNEL = 1
+	NNOM_QTYPE_PER_TENSOR = 0,
+	NNOM_QTYPE_PER_AXIS = 1
 } nnom_qtype_t;
 
-typedef struct _nnom_qformat
-{
-	int16_t offset;
-	int8_t m, n;
-} nnom_qformat_t;
+// typedef struct _nnom_qformat
+// {
+// 	int16_t offset;
+// 	int8_t m, n;
+// } nnom_qformat_t;
 
 typedef struct _nnom_weights
 {
@@ -190,12 +192,19 @@ typedef struct _nnom_bias
 // experimental                   
 typedef struct _nnom_tensor_t
 {
-	void* p_data;
-	nnom_shape_data_t *dim;
-	uint8_t num_dim;
-	nnom_qformat_t *qfmt;			// public access point. when NNOM_QTYPE_PER_CHANNEL, this will be point to a memory block allocated with this tensor block
-	nnom_qformat_t __qformat;		// when NNOM_QTYPE_PER_LAYER, we use its private qformat to store per layer qformate.
-	nnom_qtype_t qtype;
+	void* p_data;			// value
+	nnom_shape_data_t *dim; // dimension of this tensor
+	nnom_qformat_param_t *q_offset;	// the offset for Q format 
+	nnom_qformat_param_t *q_dec;	// number of decimal bit for Q format
+	nnom_qtype_t qtype;		// 
+	nnom_qformat_param_t __q_offset;// public access point. when NNOM_QTYPE_PER_AXUS, this will be point to a memory block allocated with this tensor block
+	nnom_qformat_param_t __q_dec;	// when NNOM_QTYPE_PER_TENSOR, we use its private qformat to store per layer qformate.
+	uint8_t num_dim;		// the number of dimension
+	uint8_t bitwidth;		// the data bit width, only support 8bit now
+
+	//nnom_qformat_t *qfmt;			// public access point. when NNOM_QTYPE_PER_AXUS, this will be point to a memory block allocated with this tensor block
+	//nnom_qformat_t __qformat;		// when NNOM_QTYPE_PER_TENSOR, we use its private qformat to store per layer qformate.
+	//nnom_qtype_t qtype;
 } nnom_tensor_t;
 
 // nn wrappers

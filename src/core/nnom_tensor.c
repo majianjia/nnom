@@ -48,19 +48,21 @@ nnom_tensor_t* new_tensor(nnom_tensor_t* t, uint32_t num_dim, nnom_qtype_t type,
 {
 	if (t)
 		nnom_free(t);
-	if(type == NNOM_QTYPE_PER_CHANNEL)
+	if(type == NNOM_QTYPE_PER_AXIS)
 	{
 		t = nnom_mem(nnom_alignto(sizeof(nnom_tensor_t), 4) 
 								+ num_dim*sizeof(nnom_shape_data_t) 
-								+ num_channel*sizeof(nnom_qformat_t));
+								+ num_channel*sizeof(nnom_qformat_param_t)*2);
 		t->dim = (nnom_shape_data_t*)((uint8_t*)t + sizeof(nnom_tensor_t));	// should add alignment
-		t->qfmt = (nnom_qformat_t*)((uint8_t*)t->dim + num_dim*sizeof(nnom_shape_data_t));
+		t->q_dec = (nnom_qformat_param_t*)((uint8_t*)t->dim + num_dim*sizeof(nnom_shape_data_t));
+		t->q_offset = (nnom_qformat_param_t*)((uint8_t*)t->q_dec + num_channel*sizeof(nnom_qformat_param_t));
 	}
-	else if (type == NNOM_QTYPE_PER_LAYER)
+	else if (type == NNOM_QTYPE_PER_TENSOR)
 	{
 		t = nnom_mem(nnom_alignto(sizeof(nnom_tensor_t), 4) + num_dim*sizeof(nnom_shape_data_t));
 		t->dim = (nnom_shape_data_t*)((uint8_t*)t + sizeof(nnom_tensor_t));
-		t->qfmt = &(t->__qformat);
+		t->q_dec = &(t->__q_dec);
+		t->q_offset = &(t->__q_offset);
 	}
 	else
 	{
@@ -71,23 +73,26 @@ nnom_tensor_t* new_tensor(nnom_tensor_t* t, uint32_t num_dim, nnom_qtype_t type,
 }
 
 // initial tensor
-nnom_tensor_t* tensor_set_attribuites(nnom_tensor_t* t, nnom_qformat_t *qfmt, nnom_shape_data_t* dim, uint32_t num_dim)
+nnom_tensor_t* tensor_set_attribuites(nnom_tensor_t* t, nnom_qformat_param_t* dec, nnom_qformat_param_t* offset, nnom_shape_data_t* dim, uint32_t num_dim)
 {
-	t->qfmt = qfmt;
+	// copy dim
 	t->num_dim = num_dim;
 	for (int i = 0; i < num_dim; i++)
 		t->dim[i] = dim[i];
+
+	// copy the offset and q format
+	memcpy(t->q_dec, dec, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(t));
+	memcpy(t->q_offset, offset, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(t));
 	return t;
 }
-
 
 // this method copy the attributes of a tensor to a new tensor
 // Note, the tensors must have the same lenght. this method wont cpy the memory pointer data (we will assign memory later after building)
 nnom_tensor_t* tensor_cpy_attributes(nnom_tensor_t* des, nnom_tensor_t* src)
 {
 	// copy number the qtype
-	size_t num_chn = tensor_get_num_channel(src);
-	memcpy(des->qfmt, src->qfmt, num_chn * sizeof(nnom_qformat_t));
+	memcpy(des->q_dec, src->q_dec, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(src));
+	memcpy(des->q_offset, src->q_offset, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(src));
 
 	// copy number of dimension
 	des->num_dim = src->num_dim;
