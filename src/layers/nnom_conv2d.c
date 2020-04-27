@@ -25,6 +25,8 @@
 #include "arm_nnfunctions.h"
 #endif
 
+nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type,
+					 const nnom_weight_t *w, const nnom_bias_t *b);
 nnom_status_t conv2d_run(nnom_layer_t *layer);
 nnom_status_t conv2d_build(nnom_layer_t *layer);
 
@@ -42,6 +44,15 @@ typedef struct _nnom_conv2d_config_t
 	int8_t stride_size[2];
 	nnom_padding_t padding;
 } nnom_conv2d_config_t;
+
+// a machine friendly api
+nnom_layer_t *m_conv2d(nnom_conv2d_config_t *config)
+{
+	nnom_conv2d_layer_t *layer;
+
+	return (nnom_layer_t *)layer;
+}
+
 
 // Conv2D
 // multiplier of (output/input channel),
