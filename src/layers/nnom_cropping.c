@@ -43,7 +43,7 @@ nnom_status_t cropping_build(nnom_layer_t* layer)
 	layer->in->tensor = layer->in->hook.io->tensor;
 
 	// create new tensor for output
-	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
+	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim, NNOM_QTYPE_PER_TENSOR, tensor_get_num_channel(layer->in->tensor));
 	// copy then change later. 
 	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
 	

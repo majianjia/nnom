@@ -75,14 +75,14 @@ nnom_status_t dense_build(nnom_layer_t *layer)
 	layer->in->tensor = layer->in->hook.io->tensor;
 
 	// create new tensor for output
-	layer->out->tensor = new_tensor(NULL, 1);
+	layer->out->tensor = new_tensor(NULL, 1, NNOM_QTYPE_PER_TENSOR, tensor_get_num_channel(layer->in->tensor));
 	// setup new tensor
 	nnom_qformat_t qfmt = {0 , 0}; // fill this later when layer API changed. 
 	nnom_shape_data_t dim[1] = {cl->output_unit};
 	tensor_set_attribuites(layer->out->tensor, qfmt, 1, dim);
 
 	// vec_buffer size: dim_vec (*2, q7->q15) ? I am not sure this is right
-	layer->comp->shape = shape(tensor_size(layer->in->tensor)*2, 1, 1);
+	layer->comp->size = tensor_size(layer->in->tensor)*2;
 
 	// computational cost: In * out
 	layer->stat.macc = tensor_size(layer->in->tensor) * tensor_size(layer->out->tensor);

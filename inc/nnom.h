@@ -219,15 +219,15 @@ typedef struct _nnom_activation_t nnom_activation_t;
 typedef struct _nnom_buf
 {
 	nnom_mem_block_t *mem;
-	nnom_shape_t shape;
+	size_t size;
 	uint8_t type;
 } nnom_buf_t;
 
 // a memory block to store pre-assign memories during compiling. then assigned to each tensor after.   
 typedef struct _nnom_mem_block_t
 {
-	void *blk;
-	size_t size;
+	void *blk;		// data block location
+	size_t size;	// the maximum size for this block
 	uint8_t owners; // how many layers own this block
 	uint8_t state;  // empty? filled? for static nn, currently only used in compiling
 } nnom_mem_block_t;
@@ -254,6 +254,13 @@ typedef struct _nnom_layer_io_t
 	uint8_t type;
 } nnom_layer_io_t;
 
+// config base
+typedef struct _nnom_layer_config_t
+{
+	char* names;
+} nnom_layer_config_t;
+
+
 // layers base
 typedef struct _nnom_layer_t
 {
@@ -263,7 +270,7 @@ typedef struct _nnom_layer_t
 	nnom_buf_t *comp;		   								// computational buf
 	nnom_activation_t *actail; 								// I have an activation, I have a tail, wooo haaaa, act-tail!!!
 
-	void * preconfig;		// point to the configuration of the layers. for machine api only. 
+	void * config;			// point to the configuration of the layers. for machine api only. 
 	nnom_layer_type_t type; // layer types
 	nnom_layer_io_t *in;	// IO buff, last*layer, states
 	nnom_layer_io_t *out;   // IO buff, next*layer, states

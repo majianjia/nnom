@@ -502,7 +502,7 @@ static void print_layer_info(nnom_layer_t *layer, uint32_t layer_count)
 	size_t compsize;
 	size_t mac = layer->stat.macc;
 	if (layer->comp != NULL)
-		compsize = shape_size(&layer->comp->shape);
+		compsize = layer->comp->size;
 	else
 		compsize = 0;
 	// names
@@ -649,7 +649,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 			layer->comp->mem->owners += 1; // add us to buffer users
 			layer->comp->mem->state = NNOM_BUF_FILLED;
 			// record maximum mem size in this block
-			mem_size = nnom_alignto(shape_size(&layer->comp->shape), 4);
+			mem_size = nnom_alignto(layer->comp->size, 4);
 			layer->comp->mem->size =
 				mem_size > layer->comp->mem->size ? mem_size : layer->comp->mem->size;
 		}

@@ -31,6 +31,7 @@ size_t tensor_size(nnom_tensor_t* t)
 	return size;
 }
 
+
 size_t tensor_get_num_channel(nnom_tensor_t* t)
 {
 	//this will need to be changed to support batch. 

@@ -33,6 +33,7 @@ nnom_status_t conv2d_build(nnom_layer_t *layer);
 // a machine interface for configuration
 typedef struct _nnom_conv2d_config_t
 {
+	nnom_layer_config_t super;
 	int8_t *weights;
 	int8_t *bias;
 	int8_t weights_shift;
@@ -43,10 +44,11 @@ typedef struct _nnom_conv2d_config_t
 	int8_t kernel_size[2];
 	int8_t stride_size[2];
 	nnom_padding_t padding;
+	nnom_qtype_t qtype;		// the quantisation type. 
 } nnom_conv2d_config_t;
 
 // a machine friendly api
-nnom_layer_t *m_conv2d(nnom_conv2d_config_t *config)
+nnom_layer_t *s_conv2d(nnom_conv2d_config_t *config)
 {
 	nnom_conv2d_layer_t *layer;
 
@@ -120,7 +122,7 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 	layer->in->tensor = layer->in->hook.io->tensor;
 
 	// create new tensor for the output
-	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
+	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim, NNOM_QTYPE_PER_AXIS, cl->filter_mult);
 	// copy then change later. 
 	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
 
@@ -140,7 +142,7 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 
 	// bufferA size: (1D shape)
 	// 2*ch_im_in*dim_kernel*dim_kernel
-	layer->comp->shape = shape(2 * 2 * layer->in->tensor->dim[2] * cl->kernel.w * cl->kernel.h, 1, 1);
+	layer->comp->size = 2 * 2 * layer->in->tensor->dim[2] * cl->kernel.w * cl->kernel.h;
 	// computational cost: K x K x Cin x Hour x Wout x Cout
 	layer->stat.macc = cl->kernel.w * cl->kernel.h * layer->in->tensor->dim[2] * tensor_size(layer->out->tensor);
 	return NN_SUCCESS;
