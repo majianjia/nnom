@@ -185,13 +185,13 @@ typedef enum
 typedef struct _nnom_weights
 {
 	const void *p_value;
-	size_t shift;
+	nnom_qformat_param_t shift;
 } nnom_weight_t;
 
 typedef struct _nnom_bias
 {
 	const void *p_value;
-	size_t shift;
+	nnom_qformat_param_t shift;
 } nnom_bias_t;
 
 // experimental                   
@@ -199,10 +199,11 @@ typedef struct _nnom_tensor_t
 {
 	void* p_data;			// value
 	nnom_shape_data_t *dim; // dimension of this tensor
-	nnom_qformat_param_t *q_dec;	// number of decimal bit for Q format
+	nnom_qformat_param_t *q_dec;	// number of decimal bit for Q format (scale)
+	nnom_qformat_param_t *q_offset;	// offset for each channel
 	nnom_qformat_param_t __q_dec;	// when NNOM_QTYPE_PER_TENSOR, we use its private qformat to store per layer qformate.
-	nnom_qtype_t qtype;			// the quantisation type
-	int8_t offset;				// the offset for Q format (only one offset per tensor)
+	nnom_qformat_param_t __q_offset; // the offset for Q format (although CMSIS-NN only support one offset for a tensor)
+	nnom_qtype_t qtype;			// the quantisation type	
 	uint8_t num_dim;			// the number of dimension
 	uint8_t bitwidth;			// the data bit width, only support 8bit now
 

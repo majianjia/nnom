@@ -29,6 +29,7 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 					 const nnom_weight_t *w, const nnom_bias_t *b);
 nnom_status_t conv2d_run(nnom_layer_t *layer);
 nnom_status_t conv2d_build(nnom_layer_t *layer);
+nnom_status_t conv2d_free(nnom_layer_t *layer);
 
 // a machine interface for configuration
 typedef struct _nnom_conv2d_config_t
@@ -78,6 +79,7 @@ nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config)
 	// set run method & output shape
 	layer->super.run = conv2d_run;
 	layer->super.build = conv2d_build;
+	layer->super.free = conv2d_free;
 
 	// save the config
 	layer->super.config = config;
@@ -143,11 +145,13 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 	// get the private parameters
 	layer->kernel = k;
 	layer->stride = s;
-	layer->bias = b;
-	layer->weights = w;
-	layer->output_shift = w->shift;
-	layer->bias_shift = b->shift; // bias is quantized to have maximum shift of weights
-	layer->filter_mult = filters; // for convs, this means filter number
+	layer->dilation = stride(1, 1); // default
+	layer->bias = b->p_value;
+	layer->weights = w->p_value;
+
+	layer->output_shift = &(w->shift);	//
+	layer->bias_shift = &(b->shift); 	// bias is quantized to have maximum shift of weights
+	layer->filter_mult = filters; 		// for convs, this means filter number
 	layer->padding_type = pad_type;
 
 	// padding
@@ -194,6 +198,13 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 	layer->comp->size = 2 * 2 * layer->in->tensor->dim[2] * cl->kernel.w * cl->kernel.h;
 	// computational cost: K x K x Cin x Hour x Wout x Cout
 	layer->stat.macc = cl->kernel.w * cl->kernel.h * layer->in->tensor->dim[2] * tensor_size(layer->out->tensor);
+	return NN_SUCCESS;
+}
+
+nnom_status_t conv2d_free(nnom_layer_t *layer)
+{
+	// free the weight and bias tensors?
+
 	return NN_SUCCESS;
 }
 

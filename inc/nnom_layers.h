@@ -40,10 +40,13 @@ typedef struct _nnom_conv2d_layer_t
 	nnom_shape_t dilation;
 	nnom_padding_t padding_type;
 	uint32_t filter_mult; 							// filter size (for conv) or multilplier (for depthwise)
-	int8_t *weights;
-	int8_t *bias;
-	nnom_qformat_param_t *output_shift;
-	int8_t bias_shift;
+	// int8_t *weights;
+	// int8_t *bias;
+	// nnom_qformat_param_t *output_shift;
+	// nnom_qformat_param_t *bias_shift;
+
+	const nnom_tensor_t *weight; // how about using tensor to store weights and bias?
+	const nnom_tensor_t *bias;
 	
 	// const nnom_weight_t *weights;
 	// const nnom_bias_t *bias;
