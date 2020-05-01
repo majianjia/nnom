@@ -14,9 +14,15 @@
 #ifndef __NNOM_TENSOR_H__
 #define __NNOM_TENSOR_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include "nnom.h"
 
-nnom_tensor_t* new_tensor(nnom_tensor_t* t, uint32_t num_dim, nnom_qtype_t type, uint32_t num_channel);
+void free_tensor(nnom_tensor_t* t);
+nnom_tensor_t* new_tensor(nnom_qtype_t type, uint32_t num_dim, uint32_t num_channel);
 nnom_tensor_t* tensor_set_attribuites(nnom_tensor_t* t, nnom_qformat_param_t* dec, nnom_qformat_param_t* offset, nnom_shape_data_t* dim, uint32_t num_dim);
 nnom_tensor_t* tensor_cpy_attributes(nnom_tensor_t* des, nnom_tensor_t* src);
 size_t tensor_get_num_channel(nnom_tensor_t* t);
@@ -36,4 +42,8 @@ void tensor_chw2hwc_q7(nnom_tensor_t* des, nnom_tensor_t* src);
 void hwc2chw_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out);
 void chw2hwc_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif /*__NNOM_TENSOR_H__ */

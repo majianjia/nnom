@@ -18,6 +18,11 @@
 #ifndef __NNOM_LOCAL_H__
 #define __NNOM_LOCAL_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include "stdint.h"
 #include "nnom.h"
 #include "nnom_port.h"
@@ -418,5 +423,8 @@ static const q7_t nnom_tanh_table_q7[256] = {
     0xc5, 0xcb, 0xd2, 0xd9, 0xe1, 0xe8, 0xf0, 0xf8,
 };
 
-
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* __NNOM_LOCAL_H__ */

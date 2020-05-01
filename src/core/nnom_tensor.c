@@ -34,10 +34,11 @@ size_t tensor_size(nnom_tensor_t* t)
 
 size_t tensor_get_num_channel(nnom_tensor_t* t)
 {
-	//this will need to be changed to support batch. 
+	// this will need to be changed to support batch. 
 #ifdef NNOM_USING_CHW
 	// channel first
-	return t->dim[0];
+	//return t->dim[0];
+	return t->dim[t->num_dim -1];		// we are always using hwc to describe even our data is in CHW
 #else
 	// channel last
 	return t->dim[t->num_dim -1];
@@ -45,10 +46,9 @@ size_t tensor_get_num_channel(nnom_tensor_t* t)
 }
 
 // initialise/create new tensor
-nnom_tensor_t* new_tensor(nnom_tensor_t* t, uint32_t num_dim, nnom_qtype_t type, uint32_t num_channel)
+nnom_tensor_t* new_tensor(nnom_qtype_t type, uint32_t num_dim, uint32_t num_channel)
 {
-	if (t)
-		nnom_free(t);
+	nnom_tensor_t* t = NULL;
 	if(type == NNOM_QTYPE_PER_AXIS)
 	{
 		t = nnom_mem(nnom_alignto(sizeof(nnom_tensor_t), 4) 
@@ -56,34 +56,41 @@ nnom_tensor_t* new_tensor(nnom_tensor_t* t, uint32_t num_dim, nnom_qtype_t type,
 								+ num_channel*sizeof(nnom_qformat_param_t)*2);
 		t->dim = (nnom_shape_data_t*)((uint8_t*)t + sizeof(nnom_tensor_t));	// should add alignment
 		t->q_dec = (nnom_qformat_param_t*)((uint8_t*)t->dim + num_dim*sizeof(nnom_shape_data_t));
-		t->q_offset = (nnom_qformat_param_t*)((uint8_t*)t->q_dec + num_channel*sizeof(nnom_qformat_param_t));
+		//t->q_offset = (nnom_qformat_param_t*)((uint8_t*)t->q_dec + num_channel*sizeof(nnom_qformat_param_t));
 	}
 	else if (type == NNOM_QTYPE_PER_TENSOR)
 	{
 		t = nnom_mem(nnom_alignto(sizeof(nnom_tensor_t), 4) + num_dim*sizeof(nnom_shape_data_t));
 		t->dim = (nnom_shape_data_t*)((uint8_t*)t + sizeof(nnom_tensor_t));
 		t->q_dec = &(t->__q_dec);
-		t->q_offset = &(t->__q_offset);
+		//t->q_offset = &(t->__q_offset);
 	}
 	else
 	{
 		NNOM_LOG("ERROR: tensor type not specified\n");
-		return NULL;
 	}
 	return t;
 }
 
+void free_tensor(nnom_tensor_t* t)
+{
+	if (t)
+		nnom_free(t);
+}
+
 // initial tensor
-nnom_tensor_t* tensor_set_attribuites(nnom_tensor_t* t, nnom_qformat_param_t* dec, nnom_qformat_param_t* offset, nnom_shape_data_t* dim, uint32_t num_dim)
+nnom_tensor_t* tensor_set_attribuites(nnom_tensor_t* t, nnom_qformat_param_t* dec_bit, int8_t offset, nnom_shape_data_t* dim, uint32_t num_dim, uint8_t bitwidth)
 {
 	// copy dim
 	t->num_dim = num_dim;
 	for (int i = 0; i < num_dim; i++)
 		t->dim[i] = dim[i];
-
+	// bitwidth
+	t->bitwidth = bitwidth;
 	// copy the offset and q format
-	memcpy(t->q_dec, dec, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(t));
-	memcpy(t->q_offset, offset, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(t));
+	memcpy(t->q_dec, dec_bit, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(t));
+	t->offset = offset;
+	//memcpy(t->q_offset, offset, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(t));
 	return t;
 }
 
@@ -91,9 +98,12 @@ nnom_tensor_t* tensor_set_attribuites(nnom_tensor_t* t, nnom_qformat_param_t* de
 // Note, the tensors must have the same lenght. this method wont cpy the memory pointer data (we will assign memory later after building)
 nnom_tensor_t* tensor_cpy_attributes(nnom_tensor_t* des, nnom_tensor_t* src)
 {
+	des->bitwidth = src->bitwidth;
 	// copy number the qtype
+	des->qtype = src->qtype;
+	des->offset = src->offset;
 	memcpy(des->q_dec, src->q_dec, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(src));
-	memcpy(des->q_offset, src->q_offset, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(src));
+	//memcpy(des->q_offset, src->q_offset, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(src));
 
 	// copy number of dimension
 	des->num_dim = src->num_dim;

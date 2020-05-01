@@ -62,7 +62,7 @@ nnom_status_t default_build(nnom_layer_t *layer)
 	// output tensor
 	// 1. allocate a new tensor for output
 	// 2. set the same dim, qfmt to the new tensor.
-	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR,layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
 	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
 
 	// now this build has passed the input tensors (shapes, formats) to the new tensors. 

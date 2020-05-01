@@ -38,19 +38,68 @@ typedef struct _nnom_conv2d_config_t
 	int8_t *bias;
 	int8_t weights_shift;
 	int8_t bias_shift;
-	int8_t *output_shift;  // 
+	int8_t *output_shift;   
 	uint32_t filter_size;  
 	nnom_qtype_t qtype; 	//quantisation type(per channel or per layer)
 	int8_t kernel_size[2];
 	int8_t stride_size[2];
+	int8_t padding_size[2];
+	int8_t dilation_size[2];
 	nnom_padding_t padding;
 	nnom_qtype_t qtype;		// the quantisation type. 
 } nnom_conv2d_config_t;
 
-// a machine friendly api
-nnom_layer_t *s_conv2d(nnom_conv2d_config_t *config)
+// a machine friendly api, with suffix _s for structured configuration.  
+nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config)
 {
 	nnom_conv2d_layer_t *layer;
+	nnom_buf_t *comp;
+	nnom_layer_io_t *in, *out;
+
+	// apply a block memory for all the sub handles.
+	size_t mem_size = sizeof(nnom_conv2d_layer_t) + sizeof(nnom_layer_io_t) * 2 + sizeof(nnom_buf_t);
+	layer = nnom_mem(mem_size);
+	if (layer == NULL)
+		return NULL;
+	
+	// distribut the memory to sub handles.
+	in = (void *)((uint8_t*)layer + sizeof(nnom_conv2d_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
+	comp = (void *)((uint8_t*)out + sizeof(nnom_layer_io_t));
+
+	// set buf state
+	in->type = LAYER_BUF_TEMP;
+	out->type = LAYER_BUF_TEMP;
+	comp->type = LAYER_BUF_TEMP;
+	// put in & out on the layer.
+	layer->super.in = io_init(layer, in);
+	layer->super.out = io_init(layer, out);
+	layer->super.comp = comp;
+	// set run method & output shape
+	layer->super.run = conv2d_run;
+	layer->super.build = conv2d_build;
+
+	// save the config
+	layer->super.config = config;
+
+	// get the private parameters
+	layer->kernel = kernel(config->kernel_size[0], config->kernel_size[1]);
+	layer->stride = stride(config->stride_size[0], config->stride_size[1]);
+	layer->filter_mult = config->filter_size; // for convs, this means filter number
+	layer->padding_type = config->padding;
+
+	layer->bias = config->bias;
+	layer->bias_shift = config->bias_shift;
+	layer->weights = config->weights;
+	layer->output_shift = config->output_shift;
+
+	// padding
+	if (layer->padding_type == PADDING_SAME)
+	{
+		layer->pad.h = (config->padding_size[0]- 1) / 2;
+		layer->pad.w = (config->padding_size[1] - 1) / 2;
+		layer->pad.c = (1 - 1) / 2;
+	}
 
 	return (nnom_layer_t *)layer;
 }
@@ -122,7 +171,7 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 	layer->in->tensor = layer->in->hook.io->tensor;
 
 	// create new tensor for the output
-	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim, NNOM_QTYPE_PER_AXIS, cl->filter_mult);
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, cl->filter_mult);
 	// copy then change later. 
 	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
 

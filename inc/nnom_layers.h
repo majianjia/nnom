@@ -13,6 +13,11 @@
 #ifndef __NNOM_LAYERS_H__
 #define __NNOM_LAYERS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -31,13 +36,17 @@ typedef struct _nnom_conv2d_layer_t
 	nnom_layer_t super;
 	nnom_shape_t kernel;
 	nnom_shape_t stride;
-	int8_t output_shift;
-	int8_t bias_shift;
 	nnom_shape_t pad;
+	nnom_shape_t dilation;
 	nnom_padding_t padding_type;
 	uint32_t filter_mult; 							// filter size (for conv) or multilplier (for depthwise)
-	const nnom_weight_t *weights;
-	const nnom_bias_t *bias;
+	int8_t *weights;
+	int8_t *bias;
+	nnom_qformat_param_t *output_shift;
+	int8_t bias_shift;
+	
+	// const nnom_weight_t *weights;
+	// const nnom_bias_t *bias;
 } nnom_conv2d_layer_t;
 
 typedef struct _nnom_dense_layer_t
@@ -168,7 +177,7 @@ nnom_shape_t shape(size_t h, size_t w, size_t c);
 nnom_shape_t kernel(size_t h, size_t w);
 nnom_shape_t stride(size_t h, size_t w);
 nnom_border_t border(size_t top, size_t bottom, size_t left, size_t right);
-nnom_qformat_t qformat(int8_t m, int8_t n);
+//nnom_qformat_t qformat(int8_t m, int8_t n);
 size_t shape_size(nnom_shape_t* s);
 
 // this function is to add a new IO to current inited IO
@@ -241,7 +250,7 @@ nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),	// run method, requir
 					 void *parameters);						  // user private parameters for run method, left null if not needed.
 
 
-// default
+// building methods
 nnom_status_t default_build(nnom_layer_t* layer);
 nnom_status_t input_build(nnom_layer_t* layer);
 
@@ -300,4 +309,8 @@ nnom_activation_t* act_tanh(int32_t dec_bit);
 // direct API
 nnom_status_t act_tensor_run(nnom_activation_t* act, nnom_tensor_t* tensor);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* __NNOM_LAYERS_H__ */

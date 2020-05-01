@@ -14,6 +14,11 @@
 #ifndef __NNOM_H__
 #define __NNOM_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -145,7 +150,7 @@ typedef enum
 #define NNOM_BUF_FILLED  (1)
 
 // basic types
-#define nnom_qformat_param_t int8_t // this should match the backend, need a better way to do it. 
+#define nnom_qformat_param_t int32_t // this should match the backend, need a better way to do it. 
 #define nnom_shape_data_t uint16_t
 
 typedef struct _nnom_shape_t
@@ -194,13 +199,12 @@ typedef struct _nnom_tensor_t
 {
 	void* p_data;			// value
 	nnom_shape_data_t *dim; // dimension of this tensor
-	nnom_qformat_param_t *q_offset;	// the offset for Q format 
 	nnom_qformat_param_t *q_dec;	// number of decimal bit for Q format
-	nnom_qtype_t qtype;		// 
-	nnom_qformat_param_t __q_offset;// public access point. when NNOM_QTYPE_PER_AXUS, this will be point to a memory block allocated with this tensor block
 	nnom_qformat_param_t __q_dec;	// when NNOM_QTYPE_PER_TENSOR, we use its private qformat to store per layer qformate.
-	uint8_t num_dim;		// the number of dimension
-	uint8_t bitwidth;		// the data bit width, only support 8bit now
+	nnom_qtype_t qtype;			// the quantisation type
+	int8_t offset;				// the offset for Q format (only one offset per tensor)
+	uint8_t num_dim;			// the number of dimension
+	uint8_t bitwidth;			// the data bit width, only support 8bit now
 
 	//nnom_qformat_t *qfmt;			// public access point. when NNOM_QTYPE_PER_AXUS, this will be point to a memory block allocated with this tensor block
 	//nnom_qformat_t __qformat;		// when NNOM_QTYPE_PER_TENSOR, we use its private qformat to store per layer qformate.
@@ -365,4 +369,8 @@ nnom_status_t model_set_callback(nnom_model_t *m, nnom_status_t (*layer_callback
 // delete callback. 
 void model_delete_callback(nnom_model_t *m);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* __NNOM_H__ */
