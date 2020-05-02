@@ -56,7 +56,7 @@ nnom_layer_t *Input(nnom_shape_t input_shape, void *p_buf)
 	// input normally dont have a tensor, so we create one to store the initial data. 
 	nnom_shape_data_t dim[3] = { input_shape.h, input_shape.w, input_shape.c };
 	layer->super.in->tensor = new_tensor(NULL, 3); 
-	tensor_set_attribuites(layer->super.in->tensor, layer->super.in->tensor->qfmt, 3, dim);
+	tensor_set_attr(layer->super.in->tensor, layer->super.in->tensor->qfmt, 3, dim);
 
 	return (nnom_layer_t *)layer;
 }
@@ -69,7 +69,7 @@ nnom_status_t input_build(nnom_layer_t* layer)
 	// 1. allocate a new tensor for output
 	// 2. set the same dim, qfmt to the new tensor.
 	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
-	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
+	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// now this build has passed the input tensors (shapes, formats) to the new tensors. 
 	return NN_SUCCESS;

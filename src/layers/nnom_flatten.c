@@ -63,7 +63,7 @@ nnom_status_t flatten_build(nnom_layer_t *layer)
 	layer->out->tensor = new_tensor(NULL, 1);
 	// setup new tensor
 	nnom_shape_data_t dim[1] = {tensor_size(layer->in->tensor)};
-	tensor_set_attribuites(layer->out->tensor, layer->in->tensor->qfmt, 1, dim);
+	tensor_set_attr(layer->out->tensor, layer->in->tensor->qfmt, 1, dim);
 
 	return NN_SUCCESS;
 }

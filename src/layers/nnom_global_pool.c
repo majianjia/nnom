@@ -85,7 +85,7 @@ nnom_status_t global_pooling_build(nnom_layer_t *layer)
 	// copy then change later. 
 	nnom_qformat_t qfmt = { 0 , 0 }; // fill this later when layer API changed. 
 	nnom_shape_data_t dim[1] = { layer->in->tensor->dim[layer->in->tensor->num_dim-1]};
-	tensor_set_attribuites(layer->out->tensor, qfmt, 1, dim);
+	tensor_set_attr(layer->out->tensor, qfmt, 1, dim);
 
 	// different from other *_build(), the kernel..padding left by layer API needs to be set in here
 	// due to the *_run() methods of global pooling are using the normall pooling's.

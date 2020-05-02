@@ -45,7 +45,7 @@ nnom_status_t cropping_build(nnom_layer_t* layer)
 	// create new tensor for output
 	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim,tensor_get_num_channel(layer->in->tensor));
 	// copy then change later. 
-	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
+	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 	
 	// output shape
 	if(layer->in->tensor->dim[1] <= (cl->pad.left + cl->pad.right) || 

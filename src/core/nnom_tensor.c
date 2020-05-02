@@ -22,7 +22,7 @@
 size_t tensor_size(nnom_tensor_t* t)
 {
 	size_t size = 0;
-	if (t)
+	if (t != NULL)
 	{
 		size = t->dim[0];
 		for (int i = 1; i < t->num_dim; i++)
@@ -57,6 +57,8 @@ nnom_tensor_t* new_tensor(nnom_qtype_t type, uint32_t num_dim, uint32_t num_chan
 		t->dim = (nnom_shape_data_t*)((uint8_t*)t + sizeof(nnom_tensor_t));	// should add alignment
 		t->q_dec = (nnom_qformat_param_t*)((uint8_t*)t->dim + num_dim*sizeof(nnom_shape_data_t));
 		t->q_offset = (nnom_qformat_param_t*)((uint8_t*)t->q_dec + num_channel*sizeof(nnom_qformat_param_t));
+		t->num_dim = num_dim;
+		t->qtype = type;
 	}
 	else if (type == NNOM_QTYPE_PER_TENSOR)
 	{
@@ -64,6 +66,8 @@ nnom_tensor_t* new_tensor(nnom_qtype_t type, uint32_t num_dim, uint32_t num_chan
 		t->dim = (nnom_shape_data_t*)((uint8_t*)t + sizeof(nnom_tensor_t));
 		t->q_dec = &(t->__q_dec);
 		t->q_offset = &(t->__q_offset);
+		t->num_dim = num_dim;
+		t->qtype = type;
 	}
 	else
 	{
@@ -78,9 +82,27 @@ void delete_tensor(nnom_tensor_t* t)
 		nnom_free(t);
 }
 
+// set tensor by value
+// for tensor with quantized type NNOM_QTYPE_PER_TENSOR
+nnom_tensor_t* tensor_set_attr_v(nnom_tensor_t* t, 
+		nnom_qformat_param_t dec_bit, nnom_qformat_param_t offset, nnom_shape_data_t* dim, uint32_t num_dim, uint8_t bitwidth)
+{
+	// copy dim
+	t->num_dim = num_dim;
+	memcpy(t->dim, dim, sizeof(nnom_shape_data_t) * num_dim);
 
-// initial tensor
-nnom_tensor_t* tensor_set_attribuites(nnom_tensor_t* t, 
+	// bitwidth
+	t->bitwidth = bitwidth;
+	// copy the offset and q format
+	*(t->q_dec) = dec_bit;
+	*(t->q_offset) = offset;
+	return t;
+}
+
+
+// set tensor by pointer
+// for tensor with quantized type NNOM_QTYPE_PER_AXIS
+nnom_tensor_t* tensor_set_attr(nnom_tensor_t* t, 
 		nnom_qformat_param_t*dec_bit, nnom_qformat_param_t *offset, nnom_shape_data_t* dim, uint32_t num_dim, uint8_t bitwidth)
 {
 	// copy dim
@@ -97,7 +119,7 @@ nnom_tensor_t* tensor_set_attribuites(nnom_tensor_t* t,
 
 // this method copy the attributes of a tensor to a new tensor
 // Note, the tensors must have the same lenght. this method wont cpy the memory pointer data (we will assign memory later after building)
-nnom_tensor_t* tensor_cpy_attributes(nnom_tensor_t* des, nnom_tensor_t* src)
+nnom_tensor_t* tensor_cpy_attr(nnom_tensor_t* des, nnom_tensor_t* src)
 {
 	des->bitwidth = src->bitwidth;
 	// copy number the qtype

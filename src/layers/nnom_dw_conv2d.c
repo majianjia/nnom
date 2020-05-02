@@ -50,7 +50,7 @@ nnom_status_t dw_conv2d_build(nnom_layer_t *layer)
 	// create new tensor for output
 	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
 	// copy then change later. 
-	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
+	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// now we set up the tensor shape, always HWC format
 	if (cl->padding_type == PADDING_SAME)

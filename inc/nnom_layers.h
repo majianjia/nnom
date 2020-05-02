@@ -45,8 +45,8 @@ typedef struct _nnom_conv2d_layer_t
 	// nnom_qformat_param_t *output_shift;
 	// nnom_qformat_param_t *bias_shift;
 
-	const nnom_tensor_t *weight; // how about using tensor to store weights and bias?
-	const nnom_tensor_t *bias;
+	nnom_tensor_t *weight; // how about using tensor to store weights and bias?
+	nnom_tensor_t *bias;
 	
 	// const nnom_weight_t *weights;
 	// const nnom_bias_t *bias;
@@ -56,10 +56,12 @@ typedef struct _nnom_dense_layer_t
 {
 	nnom_layer_t super;
 	size_t output_unit;
-	const nnom_weight_t *weights;
-	const nnom_bias_t *bias;
-	int8_t output_shift;
-	int8_t bias_shift;
+	nnom_tensor_t *weight;
+	nnom_tensor_t *bias;
+	// const nnom_weight_t *weights;
+	// const nnom_bias_t *bias;
+	// int8_t output_shift;
+	// int8_t bias_shift;
 
 } nnom_dense_layer_t;
 

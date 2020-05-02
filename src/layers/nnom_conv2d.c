@@ -35,19 +35,16 @@ nnom_status_t conv2d_free(nnom_layer_t *layer);
 typedef struct _nnom_conv2d_config_t
 {
 	nnom_layer_config_t super;
-	int8_t *weights;
-	int8_t *bias;
-	int8_t weights_shift;
-	int8_t bias_shift;
-	int8_t *output_shift;   
-	uint32_t filter_size;  
 	nnom_qtype_t qtype; 	//quantisation type(per channel or per layer)
+	nnom_tensor_t *weight;
+	nnom_tensor_t *bias;
+	int8_t *output_shift;   // not sure if we need that
+	uint32_t filter_size;  
 	int8_t kernel_size[2];
 	int8_t stride_size[2];
 	int8_t padding_size[2];
 	int8_t dilation_size[2];
 	nnom_padding_t padding;
-	nnom_qtype_t qtype;		// the quantisation type. 
 } nnom_conv2d_config_t;
 
 // a machine friendly api, with suffix _s for structured configuration.  
@@ -90,10 +87,9 @@ nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config)
 	layer->filter_mult = config->filter_size; // for convs, this means filter number
 	layer->padding_type = config->padding;
 
+	// get bias and weight tensor, this should be created by script. 
+	layer->weight = config->weight;
 	layer->bias = config->bias;
-	layer->bias_shift = config->bias_shift;
-	layer->weights = config->weights;
-	layer->output_shift = config->output_shift;
 
 	// padding
 	if (layer->padding_type == PADDING_SAME)
@@ -116,7 +112,7 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 	nnom_conv2d_layer_t *layer;
 	nnom_buf_t *comp;
 	nnom_layer_io_t *in, *out;
-
+	
 	// apply a block memory for all the sub handles.
 	size_t mem_size = sizeof(nnom_conv2d_layer_t) + sizeof(nnom_layer_io_t) * 2 + sizeof(nnom_buf_t);
 	layer = nnom_mem(mem_size);
@@ -145,14 +141,36 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 	// get the private parameters
 	layer->kernel = k;
 	layer->stride = s;
-	layer->dilation = stride(1, 1); // default
-	layer->bias = b->p_value;
-	layer->weights = w->p_value;
-
-	layer->output_shift = &(w->shift);	//
-	layer->bias_shift = &(b->shift); 	// bias is quantized to have maximum shift of weights
+	layer->dilation = stride(1, 1); 	//  the old api dosent support it. 
 	layer->filter_mult = filters; 		// for convs, this means filter number
 	layer->padding_type = pad_type;
+	// layer->bias = b->p_value;
+	// layer->weights = w->p_value;
+	// layer->output_shift = &(w->shift);	//
+	// layer->bias_shift = &(b->shift); 	// bias is quantized to have maximum shift of weights
+
+	layer->weight = new_tensor(NNOM_QTYPE_PER_TENSOR, 4, filters);
+	layer->bias = new_tensor(NNOM_QTYPE_PER_TENSOR, 1, filters);
+
+	// configure weight tensor manually to support new tensor based backends. 
+	// needs to be very careful
+	{
+		// config weight 
+		nnom_shape_data_t dim[4] = {k.h, k.w, k.c, filters};
+		*(layer->weight->q_offset) = 0;			// we have no support of offset here
+		*(layer->weight->q_dec) = w->shift;		// this is not even correct
+		layer->weight->p_data = w->p_value;
+		layer->weight->bitwidth = 8;
+		memcpy(layer->weight->dim, dim, layer->weight->num_dim * sizeof(nnom_shape_data_t));
+
+		// config bias 
+		dim[0] = filters;
+		*(layer->bias->q_offset) = 0;			// we have no support of offset here
+		*(layer->bias->q_dec) = b->shift;		// this is not even correct
+		layer->bias->p_data = b->p_value;
+		layer->bias->bitwidth = 8;
+		memcpy(layer->bias->dim, dim, layer->bias->num_dim * sizeof(nnom_shape_data_t));
+	}
 
 	// padding
 	if (layer->padding_type == PADDING_SAME)
@@ -177,7 +195,7 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 	// create new tensor for the output
 	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, cl->filter_mult);
 	// copy then change later. 
-	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
+	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// now we set up the tensor shape, always HWC format
 	if (cl->padding_type == PADDING_SAME)
@@ -203,7 +221,13 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 
 nnom_status_t conv2d_free(nnom_layer_t *layer)
 {
-	// free the weight and bias tensors?
+	// free weight and bias tensor when we are not initialised from structured configuration. 
+	if(layer->config != NULL)
+	{
+		nnom_conv2d_layer_t* cl = (nnom_conv2d_layer_t*)layer;
+		delete_tensor(cl->weight);
+		delete_tensor(cl->bias);
+	}
 
 	return NN_SUCCESS;
 }
@@ -212,15 +236,17 @@ nnom_status_t conv2d_free(nnom_layer_t *layer)
 nnom_status_t conv2d_run(nnom_layer_t *layer)
 {
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
+	int32_t bias_shift = cl->bias->q_dec[0];			// this is not correct but a temporary fix solution for backward compatibility.
+	int32_t output_shift = cl->weight->q_dec[0];
 
 #ifdef NNOM_USING_CHW
 	// CHW format
 	local_convolve_CHW_q7_nonsquare(
 				layer->in->tensor->p_data,
 				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
-				cl->weights->p_value, layer->out->tensor->dim[2],
+				cl->weight->p_data, layer->out->tensor->dim[2],
 				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-				cl->bias->p_value, cl->bias_shift, cl->output_shift,
+				cl->bias->p_data, bias_shift, output_shift,
 				layer->out->tensor->p_data,
 				layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
 	return NN_SUCCESS;
@@ -232,11 +258,11 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 	if (layer->in->tensor->dim[2] == 3 && layer->in->tensor->dim[0] == layer->in->tensor->dim[1])
 		return (nnom_status_t)arm_convolve_HWC_q7_RGB(
 			layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
-			cl->weights->p_value,
+			cl->weight->p_data,
 			layer->out->tensor->dim[2],
 			cl->kernel.w, cl->pad.w, cl->stride.w,
-			cl->bias->p_value, cl->bias_shift,
-			cl->output_shift, layer->out->tensor->p_data, layer->out->tensor->dim[1],
+			cl->bias->p_data, bias_shift,
+			output_shift, layer->out->tensor->p_data, layer->out->tensor->dim[1],
 			(q15_t *)(layer->comp->mem->blk), NULL);
 
 	// check if can use optimized function
@@ -250,29 +276,29 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 			return (nnom_status_t)arm_convolve_1x1_HWC_q7_fast_nonsquare(
 				layer->in->tensor->p_data,
 				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
-				cl->weights->p_value,
+				cl->weight->p_data,
 				layer->out->tensor->dim[2],
 				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-				cl->bias->p_value, cl->bias_shift,
-				cl->output_shift, layer->out->tensor->p_data, layer->out->tensor->dim[1], layer->out->tensor->dim[0],
+				cl->bias->p_data, bias_shift,
+				output_shift, layer->out->tensor->p_data, layer->out->tensor->dim[1], layer->out->tensor->dim[0],
 				(q15_t *)(layer->comp->mem->blk), NULL);
 		// opt square shape
 		if (layer->in->tensor->dim[0] == layer->in->tensor->dim[1])
 			return (nnom_status_t)arm_convolve_HWC_q7_fast(
 				layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
-				cl->weights->p_value,
+				cl->weight->p_data,
 				layer->out->tensor->dim[2], cl->kernel.w, cl->pad.w, cl->stride.w,
-				cl->bias->p_value, cl->bias_shift,
-				cl->output_shift, layer->out->tensor->p_data,
+				cl->bias->p_data, bias_shift,
+				output_shift, layer->out->tensor->p_data,
 				layer->out->tensor->dim[1], (q15_t *)(layer->comp->mem->blk), NULL);
 		// opt none square shape
 		else
 			return (nnom_status_t)arm_convolve_HWC_q7_fast_nonsquare(
 				layer->in->tensor->p_data,
 				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
-				cl->weights->p_value, layer->out->tensor->dim[2],
+				cl->weight->p_data, layer->out->tensor->dim[2],
 				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-				cl->bias->p_value, cl->bias_shift, cl->output_shift,
+				cl->bias->p_data, bias_shift, output_shift,
 				layer->out->tensor->p_data,
 				layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
 	}
@@ -283,19 +309,19 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 		if (layer->in->tensor->dim[0] == layer->in->tensor->dim[1])
 			return (nnom_status_t)arm_convolve_HWC_q7_basic(
 				layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
-				cl->weights->p_value,
+				cl->weight->p_data,
 				layer->out->tensor->dim[2], cl->kernel.w, cl->pad.w, cl->stride.w,
-				cl->bias->p_value, cl->bias_shift,
-				cl->output_shift, layer->out->tensor->p_data,
+				cl->bias->p_data, bias_shift,
+				output_shift, layer->out->tensor->p_data,
 				layer->out->tensor->dim[1], (q15_t *)(layer->comp->mem->blk), NULL);
 		// none opt none square shape
 		else
 			return (nnom_status_t)arm_convolve_HWC_q7_basic_nonsquare(
 				layer->in->tensor->p_data,
 				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
-				cl->weights->p_value, layer->out->tensor->dim[2],
+				cl->weight->p_data, layer->out->tensor->dim[2],
 				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-				cl->bias->p_value, cl->bias_shift, cl->output_shift,
+				cl->bias->p_data, bias_shift, output_shift,
 				layer->out->tensor->p_data,
 				layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
 	}
@@ -305,9 +331,9 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 	local_convolve_HWC_q7_nonsquare(
 				layer->in->tensor->p_data,
 				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
-				cl->weights->p_value, layer->out->tensor->dim[2],
+				cl->weight->p_data, layer->out->tensor->dim[2],
 				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-				cl->bias->p_value, cl->bias_shift, cl->output_shift,
+				cl->bias->p_data, bias_shift, output_shift,
 				layer->out->tensor->p_data,
 				layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
 	return NN_SUCCESS;

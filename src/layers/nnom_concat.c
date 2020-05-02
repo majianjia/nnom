@@ -88,7 +88,7 @@ nnom_status_t concat_build(nnom_layer_t *layer)
 
 	// allocate new tensor for output, keep the same dimension lenght
 	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
-	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
+	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// do the work
 	for (uint32_t i = 0; i < num_dim; i ++)

@@ -65,7 +65,7 @@ nnom_status_t upsample_build(nnom_layer_t *layer)
 	// 1. allocate a new tensor for output
 	// 2. set the same dim, qfmt to the new tensor.
 	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
-	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
+	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// enlarge w and h, c stay the same.
 	layer->out->tensor->dim[0] = layer->in->tensor->dim[0] * cl->kernel.h;
