@@ -167,7 +167,7 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 	return (nnom_layer_t *)layer;
 }
 
-static nnom_status_t conv2d_build(nnom_layer_t *layer)
+nnom_status_t conv2d_build(nnom_layer_t *layer)
 {
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
 
@@ -201,7 +201,7 @@ static nnom_status_t conv2d_build(nnom_layer_t *layer)
 	return NN_SUCCESS;
 }
 
-static nnom_status_t conv2d_free(nnom_layer_t *layer)
+nnom_status_t conv2d_free(nnom_layer_t *layer)
 {
 	// free weight and bias tensor when we are not initialised from structured configuration. 
 	if(layer->config != NULL)
@@ -215,7 +215,7 @@ static nnom_status_t conv2d_free(nnom_layer_t *layer)
 }
 
 
-static nnom_status_t conv2d_run(nnom_layer_t *layer)
+nnom_status_t conv2d_run(nnom_layer_t *layer)
 {
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
 	int32_t bias_shift = cl->bias->q_dec[0];			// this is not correct but a temporary fix solution for backward compatibility.
