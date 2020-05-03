@@ -18,6 +18,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_global_pool.h"
 
 nnom_status_t global_pooling_build(nnom_layer_t *layer);
 

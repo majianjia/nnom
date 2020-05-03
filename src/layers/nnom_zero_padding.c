@@ -17,6 +17,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_zero_padding.h"
 
 nnom_status_t zero_padding_build(nnom_layer_t *layer);
 nnom_status_t zero_padding_run(nnom_layer_t *layer);

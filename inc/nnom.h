@@ -176,11 +176,6 @@ typedef enum
 	NNOM_QTYPE_PER_AXIS = 1
 } nnom_qtype_t;
 
-// typedef struct _nnom_qformat
-// {
-// 	int16_t offset;
-// 	int8_t m, n;
-// } nnom_qformat_t;
 
 typedef struct _nnom_weights
 {
@@ -201,15 +196,9 @@ typedef struct _nnom_tensor_t
 	nnom_shape_data_t *dim; // dimension of this tensor
 	nnom_qformat_param_t *q_dec;	// number of decimal bit for Q format (scale)
 	nnom_qformat_param_t *q_offset;	// offset for each channel
-	nnom_qformat_param_t __q_dec;	// when NNOM_QTYPE_PER_TENSOR, we use its private qformat to store per layer qformate.
-	nnom_qformat_param_t __q_offset; // the offset for Q format (although CMSIS-NN only support one offset for a tensor)
 	nnom_qtype_t qtype;			// the quantisation type	
 	uint8_t num_dim;			// the number of dimension
 	uint8_t bitwidth;			// the data bit width, only support 8bit now
-
-	//nnom_qformat_t *qfmt;			// public access point. when NNOM_QTYPE_PER_AXUS, this will be point to a memory block allocated with this tensor block
-	//nnom_qformat_t __qformat;		// when NNOM_QTYPE_PER_TENSOR, we use its private qformat to store per layer qformate.
-	//nnom_qtype_t qtype;
 } nnom_tensor_t;
 
 // nn wrappers

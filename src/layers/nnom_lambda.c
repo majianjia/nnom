@@ -17,6 +17,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_lambda.h"
 
 // TODO: extended to multiple IO layer
 nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),

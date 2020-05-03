@@ -17,6 +17,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_matrix.h"
 
 // TODO, completely change this file to local version
 #ifdef NNOM_USING_CMSIS_NN

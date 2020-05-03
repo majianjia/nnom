@@ -20,6 +20,7 @@ extern "C" {
 
 #include "nnom.h"
 
+
 void delete_tensor(nnom_tensor_t* t);
 nnom_tensor_t* new_tensor(nnom_qtype_t type, uint32_t num_dim, uint32_t num_channel);
 // set tensor by value

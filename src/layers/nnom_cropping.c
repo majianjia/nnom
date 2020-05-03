@@ -17,6 +17,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_cropping.h"
 
 nnom_status_t cropping_build(nnom_layer_t *layer);
 nnom_status_t cropping_run(nnom_layer_t *layer);

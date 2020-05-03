@@ -17,6 +17,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_sumpool.h"
 
 nnom_status_t sumpooling_build(nnom_layer_t *layer);
 nnom_status_t sumpool_run(nnom_layer_t *layer);

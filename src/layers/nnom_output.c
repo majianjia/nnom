@@ -18,6 +18,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_output.h"
 
 nnom_status_t output_build(nnom_layer_t *layer);
 nnom_status_t output_run(nnom_layer_t *layer);

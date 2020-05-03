@@ -17,6 +17,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_softmax.h"
 
 #ifdef NNOM_USING_CMSIS_NN
 #include "arm_math.h"
