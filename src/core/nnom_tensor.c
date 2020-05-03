@@ -49,36 +49,32 @@ size_t tensor_get_num_channel(nnom_tensor_t* t)
 nnom_tensor_t* new_tensor(nnom_qtype_t type, uint32_t num_dim, uint32_t num_channel)
 {
 	nnom_tensor_t* t = NULL;
+	uint32_t q_len;
 	if(type == NNOM_QTYPE_PER_AXIS)
 	{
-		t = nnom_mem(nnom_alignto(sizeof(nnom_tensor_t), 4) 
-								+ num_dim*sizeof(nnom_shape_data_t) 
-								+ num_channel*sizeof(nnom_qformat_param_t)*2);
-		if(t == NULL)
-			return t;
-		t->dim = (nnom_shape_data_t*)((uint8_t*)t + sizeof(nnom_tensor_t));	// should add alignment
-		t->q_dec = (nnom_qformat_param_t*)((uint8_t*)t->dim + num_dim*sizeof(nnom_shape_data_t));
-		t->q_offset = (nnom_qformat_param_t*)((uint8_t*)t->q_dec + num_channel*sizeof(nnom_qformat_param_t));
-		t->num_dim = num_dim;
-		t->qtype = type;
+		q_len = num_channel;
 	}
 	else if (type == NNOM_QTYPE_PER_TENSOR)
 	{
-		t = nnom_mem(nnom_alignto(sizeof(nnom_tensor_t), 4) 
-								+ num_dim*sizeof(nnom_shape_data_t) 
-								+ 2*sizeof(nnom_qformat_param_t));
-		if(t == NULL)
-			return t;
-		t->dim = (nnom_shape_data_t*)((uint8_t*)t + sizeof(nnom_tensor_t));
-		t->q_dec = (nnom_qformat_param_t*)((uint8_t*)t->dim + num_dim*sizeof(nnom_shape_data_t));
-		t->q_offset = (nnom_qformat_param_t*)((uint8_t*)t->q_dec + sizeof(nnom_qformat_param_t));
-		t->num_dim = num_dim;
-		t->qtype = type;
+		q_len = 1;
 	}
 	else
 	{
 		NNOM_LOG("ERROR: tensor type not specified\n");
+		return NULL;
 	}
+
+	t = nnom_mem(nnom_alignto(sizeof(nnom_tensor_t), 4) 
+							+ num_dim*sizeof(nnom_shape_data_t) 
+							+ q_len*sizeof(nnom_qformat_param_t)*2);
+	if(t == NULL)
+		return t;
+	t->dim = (nnom_shape_data_t*)((uint8_t*)t + sizeof(nnom_tensor_t));	// should add alignment
+	t->q_dec = (nnom_qformat_param_t*)((uint8_t*)t->dim + num_dim*sizeof(nnom_shape_data_t));
+	t->q_offset = (nnom_qformat_param_t*)((uint8_t*)t->q_dec + q_len*sizeof(nnom_qformat_param_t));
+	t->num_dim = num_dim;
+	t->qtype = type;
+
 	return t;
 }
 

@@ -852,6 +852,8 @@ nnom_status_t tensor_mem_set(nnom_model_t *m)
 
 		layer = layer->shortcut;
 	}
+	
+	return NN_SUCCESS;
 }
 
 // this function has to be used after memory is assigned to the layers.

@@ -26,6 +26,11 @@ extern "C" {
 #include "nnom_local.h"
 #include "nnom_tensor.h"
 
+// RNN Options
+#define SEQUENCE_RETURN		true
+#define SEQUENCE_NO			false
+#define STATEFUL			true
+#define UN_STATEFUL			false
 
 // RNN
 typedef struct _nnom_rnn_cell_t
@@ -68,6 +73,14 @@ typedef struct _nnom_rnn_layer_t
 } nnom_rnn_layer_t;
 
 
+// rnn layer based
+nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence);
+
+// RNN cells
+// The shape for RNN input is (batch, timestamp, feature), where batch is always 1. 
+//
+// SimpleRNNCell
+nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t* activation, const nnom_weight_t *w, const nnom_bias_t *b);
 
 #ifdef __cplusplus
 }

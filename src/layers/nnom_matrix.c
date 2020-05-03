@@ -80,7 +80,7 @@ nnom_layer_t *_same_shape_matrix_layer()
 	size_t mem_size;
 
 	// apply a block memory for all the sub handles.
-	mem_size = sizeof(nnom_matrix_layer_t) + sizeof(nnom_layer_io_t) * 2;// + sizeof(nnom_buf_t);
+	mem_size = sizeof(nnom_matrix_layer_t) + sizeof(nnom_layer_io_t) * 2;
 	layer = nnom_mem(mem_size);
 	if (layer == NULL)
 		return NULL;

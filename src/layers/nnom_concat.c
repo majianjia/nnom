@@ -182,7 +182,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 		}
 	}
 	
-#else // end of HWC concate
+#else // end of CHW concate
 
 	// Concatenate for HWC	
 	uint8_t* pin;

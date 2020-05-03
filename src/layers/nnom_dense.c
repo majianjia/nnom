@@ -124,7 +124,7 @@ nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_
 		nnom_shape_data_t dim[2] = {0, output_unit}; // the first dim doesnt matter here. will be file in later. 
 		*(layer->weight->q_offset) = 0;			// we have no support of offset here
 		*(layer->weight->q_dec) = w->shift;		// this is not even correct
-		layer->weight->p_data = w->p_value;
+		layer->weight->p_data = (void*)w->p_value;
 		layer->weight->bitwidth = 8;
 		memcpy(layer->weight->dim, dim, layer->weight->num_dim * sizeof(nnom_shape_data_t));
 
@@ -132,7 +132,7 @@ nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_
 		dim[0] = output_unit;
 		*(layer->bias->q_offset) = 0;			// we have no support of offset here
 		*(layer->bias->q_dec) = b->shift;		// this is not even correct
-		layer->bias->p_data = b->p_value;
+		layer->bias->p_data = (void*)b->p_value;
 		layer->bias->bitwidth = 8;
 		memcpy(layer->bias->dim, dim, layer->bias->num_dim * sizeof(nnom_shape_data_t));
 	}
@@ -148,7 +148,7 @@ nnom_status_t dense_build(nnom_layer_t *layer)
 	layer->in->tensor = layer->in->hook.io->tensor;
 
 	// create new tensor for output
-	layer->out->tensor = new_tensor(NULL, 1, NNOM_QTYPE_PER_TENSOR, tensor_get_num_channel(layer->in->tensor));
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, 1, tensor_get_num_channel(layer->in->tensor));
 	// setup new tensor
 	nnom_shape_data_t dim[1] = {cl->output_unit};
 	tensor_set_attr(layer->out->tensor, cl->weight->q_dec, cl->weight->q_offset, dim, 1, 8); // test, this is not correct
@@ -165,6 +165,9 @@ nnom_status_t dense_run(nnom_layer_t *layer)
 {
 	nnom_status_t result = NN_SUCCESS;
 	nnom_dense_layer_t *cl = (nnom_dense_layer_t *)(layer);
+	nnom_qformat_param_t bias_shift = cl->bias->q_dec[0];				//
+	nnom_qformat_param_t output_shift = cl->weight->q_dec[0];			// need to be change later. 
+
 
 #if !(DENSE_WEIGHT_OPT)
 	#ifdef NNOM_USING_CMSIS_NN
@@ -180,10 +183,10 @@ nnom_status_t dense_run(nnom_layer_t *layer)
 	#endif
 #endif
 			layer->in->tensor->p_data,
-			cl->weights->p_value,
+			cl->weight->p_data,
 			tensor_size(layer->in->tensor), layer->out->tensor->dim[0],
-			cl->bias_shift, cl->output_shift,
-			cl->bias->p_value,
+			bias_shift, output_shift,
+			cl->bias->p_data,
 			layer->out->tensor->p_data, (q15_t *)(layer->comp->mem->blk));
 
 

@@ -26,6 +26,8 @@ extern "C" {
 #include "nnom_local.h"
 #include "nnom_tensor.h"
 
+#include "layers/nnom_input.h"
+
 // lambda layer
 typedef struct _nnom_lambda_layer_t
 {

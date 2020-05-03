@@ -24,15 +24,6 @@ extern "C" {
 
 #include "nnom.h"
 
-// RNN Options
-#define SEQUENCE_RETURN		true
-#define SEQUENCE_NO			false
-#define STATEFUL			true
-#define UN_STATEFUL			false
-
-
-
-
 // properties
 nnom_shape_t shape(size_t h, size_t w, size_t c);
 nnom_shape_t kernel(size_t h, size_t w);
@@ -95,21 +86,12 @@ nnom_layer_t *DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nno
 // fully connected, dense
 nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_t *b);
 
-// rnn layer based
-nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence);
-
-// RNN cells
-// The shape for RNN input is (batch, timestamp, feature), where batch is always 1. 
-//
-// SimpleRNNCell
-nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t* activation, const nnom_weight_t *w, const nnom_bias_t *b);
 
 // Lambda Layers
 nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),	// run method, required
 					 nnom_status_t (*build)(nnom_layer_t *), // optional, call default_build() if left null
 					 nnom_status_t (*free)(nnom_layer_t *),   // not required if no resources needs to be deleted, can be left null.
 					 void *parameters);						  // user private parameters for run method, left null if not needed.
-
 
 // building methods
 nnom_status_t default_build(nnom_layer_t* layer);
@@ -124,10 +106,10 @@ nnom_status_t upsample_build(nnom_layer_t* layer);
 nnom_status_t zero_padding_build(nnom_layer_t* layer);
 nnom_status_t cropping_build(nnom_layer_t* layer);
 
-nnom_status_t maxpooling_build(nnom_layer_t* layer);
-nnom_status_t avgpooling_build(nnom_layer_t* layer);
-nnom_status_t sumpooling_build(nnom_layer_t* layer);
-nnom_status_t global_pooling_build(nnom_layer_t* layer);
+nnom_status_t maxpool_build(nnom_layer_t* layer);
+nnom_status_t avgpool_build(nnom_layer_t* layer);
+nnom_status_t sumpool_build(nnom_layer_t* layer);
+nnom_status_t global_pool_build(nnom_layer_t* layer);
 
 nnom_status_t flatten_build(nnom_layer_t* layer);
 nnom_status_t concat_build(nnom_layer_t* layer);

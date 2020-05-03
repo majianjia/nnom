@@ -38,10 +38,6 @@ typedef struct _nnom_maxpool_layer_t
 	int16_t output_shift;			// reserve
 } nnom_maxpool_layer_t;
 
-
-
-
-
 #ifdef __cplusplus
 }
 #endif

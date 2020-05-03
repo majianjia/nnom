@@ -26,6 +26,8 @@ extern "C" {
 #include "nnom_local.h"
 #include "nnom_tensor.h"
 
+#include "layers/nnom_conv2d.h"
+
 #ifdef __cplusplus
 }
 #endif

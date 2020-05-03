@@ -29,8 +29,7 @@ nnom_layer_t *Input(nnom_shape_t input_shape, void *p_buf)
 	nnom_layer_io_t *in, *out;
 
 	// apply a block memory for all the sub handles.
-	size_t mem_size = sizeof(nnom_io_layer_t) + sizeof(nnom_layer_io_t) * 2;
-	layer = nnom_mem(mem_size);
+	layer = nnom_mem(sizeof(nnom_io_layer_t) + sizeof(nnom_layer_io_t) * 2);
 	if (layer == NULL)
 		return NULL;
 
@@ -56,9 +55,8 @@ nnom_layer_t *Input(nnom_shape_t input_shape, void *p_buf)
 	// experimental: fixed input dim to 3
 	// input normally dont have a tensor, so we create one to store the initial data. 
 	nnom_shape_data_t dim[3] = { input_shape.h, input_shape.w, input_shape.c };
-	layer->super.in->tensor = new_tensor(NULL, 3); 
-	tensor_set_attr(layer->super.in->tensor, layer->super.in->tensor->qfmt, 3, dim);
-
+	layer->super.in->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, 3, input_shape.c);
+	tensor_set_attr_v(layer->super.in->tensor, 7, 0, dim, sizeof(dim)/sizeof(nnom_shape_data_t), 8);
 	return (nnom_layer_t *)layer;
 }
 
@@ -69,7 +67,7 @@ nnom_status_t input_build(nnom_layer_t* layer)
 	// output tensor
 	// 1. allocate a new tensor for output
 	// 2. set the same dim, qfmt to the new tensor.
-	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// now this build has passed the input tensors (shapes, formats) to the new tensors. 

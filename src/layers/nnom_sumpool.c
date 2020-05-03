@@ -19,7 +19,7 @@
 #include "nnom_layers.h"
 #include "layers/nnom_sumpool.h"
 
-nnom_status_t sumpooling_build(nnom_layer_t *layer);
+nnom_status_t sumpool_build(nnom_layer_t *layer);
 nnom_status_t sumpool_run(nnom_layer_t *layer);
 
 nnom_layer_t *SumPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
@@ -30,19 +30,19 @@ nnom_layer_t *SumPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
 	{
 		layer->type = NNOM_SUMPOOL;
 		layer->run = sumpool_run;
-		layer->build = sumpooling_build;
+		layer->build = sumpool_build;
 	}
 	return (nnom_layer_t *)layer;
 }
 
 
-nnom_status_t sumpooling_build(nnom_layer_t *layer)
+nnom_status_t sumpool_build(nnom_layer_t *layer)
 {
 	// avg pooling share the same output shape, stride, padding setting.
-	maxpooling_build(layer);
+	maxpool_build(layer);
 
 	// however, avg pooling require a computational buffer.
-	layer->comp->shape = shape(4 * tensor_size(layer->out->tensor), 1, 1);
+	layer->comp->size = 4 * tensor_size(layer->out->tensor);
 
 	return NN_SUCCESS;
 }

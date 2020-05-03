@@ -49,7 +49,7 @@ nnom_status_t dw_conv2d_build(nnom_layer_t *layer)
 	layer->in->tensor = layer->in->hook.io->tensor;
 
 	// create new tensor for output
-	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor) * cl->filter_mult);
 	// copy then change later. 
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
@@ -68,7 +68,7 @@ nnom_status_t dw_conv2d_build(nnom_layer_t *layer)
 	}
 
 	// bufferA size: (1D shape)
-	layer->comp->shape = shape(2 * 2 * (layer->in->tensor->dim[2] / cl->filter_mult) * cl->kernel.w * cl->kernel.h, 1, 1);
+	layer->comp->size = 2 * 2 * (layer->in->tensor->dim[2] / cl->filter_mult) * cl->kernel.w * cl->kernel.h;
 
 	// computational cost: K x K x Cin x Hout x Wout x Multiplier
 	// or                : K x K x Cout x Hout x Wout
@@ -80,6 +80,9 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 {
 	nnom_status_t result = NN_SUCCESS;
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
+
+	nnom_qformat_param_t bias_shift = cl->bias->q_dec[0];				//
+	nnom_qformat_param_t output_shift = cl->weight->q_dec[0];			// need to be change later. 
 
 #ifdef NNOM_USING_CHW
 	local_depthwise_separable_conv_CHW_q7_nonsquare(
@@ -95,13 +98,13 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 #endif
 		layer->in->tensor->p_data,
 		layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
-		cl->weights->p_value,
+		cl->weight->p_data,
 		layer->in->tensor->dim[2],
 		cl->kernel.w, cl->kernel.h,
 		cl->pad.w, cl->pad.h,
 		cl->stride.w, cl->stride.h,
-		cl->bias->p_value,
-		cl->bias_shift, cl->output_shift,
+		cl->bias->p_data,
+		bias_shift, output_shift,
 		layer->out->tensor->p_data,
 		layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
 

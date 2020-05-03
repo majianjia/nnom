@@ -143,7 +143,7 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 		nnom_shape_data_t dim[4] = {k.h, k.w, k.c, filters};
 		*(layer->weight->q_offset) = 0;			// we have no support of offset here
 		*(layer->weight->q_dec) = w->shift;		// this is not even correct
-		layer->weight->p_data = w->p_value;
+		layer->weight->p_data = (void*)w->p_value;
 		layer->weight->bitwidth = 8;
 		memcpy(layer->weight->dim, dim, layer->weight->num_dim * sizeof(nnom_shape_data_t));
 
@@ -151,7 +151,7 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 		dim[0] = filters;
 		*(layer->bias->q_offset) = 0;			// we have no support of offset here
 		*(layer->bias->q_dec) = b->shift;		// this is not even correct
-		layer->bias->p_data = b->p_value;
+		layer->bias->p_data = (void*) b->p_value;
 		layer->bias->bitwidth = 8;
 		memcpy(layer->bias->dim, dim, layer->bias->num_dim * sizeof(nnom_shape_data_t));
 	}
@@ -166,8 +166,6 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 
 	return (nnom_layer_t *)layer;
 }
-
-
 
 static nnom_status_t conv2d_build(nnom_layer_t *layer)
 {

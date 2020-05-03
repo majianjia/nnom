@@ -35,23 +35,23 @@ nnom_layer_t *AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
 	{
 		layer->type = NNOM_AVGPOOL;
 		layer->run = avgpool_run;
-		layer->build = avgpooling_build;
+		layer->build = avgpool_build;
 	}
 	return (nnom_layer_t *)layer;
 }
 
-nnom_status_t avgpooling_build(nnom_layer_t *layer)
+nnom_status_t avgpool_build(nnom_layer_t *layer)
 {
 	uint32_t size;
 	// avg pooling share the same output shape, stride, padding setting.
-	maxpooling_build(layer);
+	maxpool_build(layer);
 
 	#ifdef NNOM_USING_CMSIS_NN
 	// however, avg pooling require a computational buffer.
 	//  bufferA size:  2*dim_im_out*ch_im_in
 	size = layer->out->tensor->dim[1] > layer->out->tensor->dim[0] ?
 						layer->out->tensor->dim[1] : layer->out->tensor->dim[0];
-	layer->comp->shape = shape(2 * size * layer->in->tensor->dim[2], 1, 1);
+	layer->comp->size = 2 * size * layer->in->tensor->dim[2];
 	#endif
 
 	return NN_SUCCESS;
