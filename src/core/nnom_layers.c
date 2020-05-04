@@ -50,14 +50,6 @@ nnom_border_t border(size_t top, size_t bottom, size_t left, size_t right)
 	b.right = right;
 	return b;
 }
-// nnom_qformat_t qformat(int8_t m, int8_t n)
-// {
-// 	nnom_qformat_t fmt;
-// 	fmt.offset = 0;
-// 	fmt.n = n;
-// 	fmt.m = m;
-// 	return fmt;
-// }
 
 // this function has to be used while assign a io for a layer.
 // because the io needs to know who is its owner.
