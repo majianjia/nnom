@@ -44,8 +44,8 @@ nnom_layer_t *BaseLayer()
 	layer->super.run = default_run;
 	layer->super.build = default_build;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_NULL;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_NULL;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
@@ -73,7 +73,7 @@ nnom_status_t default_build(nnom_layer_t *layer)
 // simply copy input to output
 nnom_status_t default_run(nnom_layer_t *layer)
 {
-	if(layer->out->type != LAYER_BUF_NULL)
+	if(layer->out->type != NNOM_TENSOR_BUF_NULL)
 		memcpy(layer->out->tensor->p_data, layer->in->tensor->p_data, tensor_size(layer->in->tensor)); 
 	return NN_SUCCESS;
 }

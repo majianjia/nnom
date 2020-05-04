@@ -107,27 +107,45 @@ nnom_tensor_t* tensor_set_attr_v(nnom_tensor_t* t,
 nnom_tensor_t* tensor_set_attr(nnom_tensor_t* t, 
 		nnom_qformat_param_t*dec_bit, nnom_qformat_param_t *offset, nnom_shape_data_t* dim, uint32_t num_dim, uint8_t bitwidth)
 {
+	size_t size;
+		
 	// copy dim
 	t->num_dim = num_dim;
 	memcpy(t->dim, dim, sizeof(nnom_shape_data_t) * num_dim);
+	
+	// get the q format data size
+	if(t->qtype == NNOM_QTYPE_PER_AXIS)
+		size = sizeof(nnom_qformat_param_t) * tensor_get_num_channel(t);
+	else
+		size = sizeof(nnom_qformat_param_t);
 
 	// bitwidth
 	t->bitwidth = bitwidth;
 	// copy the offset and q format
-	memcpy(t->q_dec, dec_bit, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(t));
-	memcpy(t->q_offset, offset, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(t));
+	memcpy(t->q_dec, dec_bit, size);
+	memcpy(t->q_offset, offset, size);
 	return t;
 }
 
 // this method copy the attributes of a tensor to a new tensor
+// before that, src and des tensor must already have QTYPE and NUM_OF_DIM set. 
 // Note, the tensors must have the same lenght. this method wont cpy the memory pointer data (we will assign memory later after building)
 nnom_tensor_t* tensor_cpy_attr(nnom_tensor_t* des, nnom_tensor_t* src)
 {
+	size_t size;
+	if(src->qtype != des->qtype || src->num_dim != des->num_dim)
+		return NULL;
+	
+	if(src->qtype == NNOM_QTYPE_PER_AXIS)
+		size = sizeof(nnom_qformat_param_t) * tensor_get_num_channel(src);
+	else
+		size = sizeof(nnom_qformat_param_t);
+		
+	// bit
 	des->bitwidth = src->bitwidth;
-	// copy number the qtype
-	des->qtype = src->qtype;
-	memcpy(des->q_dec, src->q_dec, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(src));
-	memcpy(des->q_offset, src->q_offset, sizeof(nnom_qformat_param_t)*tensor_get_num_channel(src));
+	// copy quantisation parameters
+	memcpy(des->q_dec, src->q_dec, size);
+	memcpy(des->q_offset, src->q_offset, size);
 
 	// copy number of dimension
 	des->num_dim = src->num_dim;
@@ -190,7 +208,7 @@ void tensor_chw2hwc_q7(nnom_tensor_t* des, nnom_tensor_t* src)
 // (deprecated by tensor_hwc2chw version)
 // change format from CHW to HWC
 // the shape of the data, input data, output data
-void hwc2chw_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
+void hwc2chw_q7(nnom_3d_shape_t shape, q7_t* p_in, q7_t* p_out)
 {
 	for (int c = 0; c < shape.c; c++)
 	{
@@ -208,7 +226,7 @@ void hwc2chw_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
 // (deprecated)
 // change format from CHW to HWC
 // the shape of the data, input data, output data
-void chw2hwc_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out)
+void chw2hwc_q7(nnom_3d_shape_t shape, q7_t* p_in, q7_t* p_out)
 {
 	int im_size = shape.w * shape.h;
 	int h_step;

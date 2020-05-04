@@ -22,7 +22,7 @@
 nnom_status_t sumpool_build(nnom_layer_t *layer);
 nnom_status_t sumpool_run(nnom_layer_t *layer);
 
-nnom_layer_t *SumPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
+nnom_layer_t *SumPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad_type)
 {
 	nnom_layer_t *layer = MaxPool(k, s, pad_type);
 

@@ -46,15 +46,15 @@ nnom_layer_t *Concat(int8_t axis)
 	layer->super.run = concat_run;
 	layer->super.build = concat_build;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
 
 	// check the axis
 	{
-		uint32_t shape_element_num = sizeof(nnom_shape_t) / sizeof(nnom_shape_data_t);
+		uint32_t shape_element_num = sizeof(nnom_3d_shape_t) / sizeof(nnom_shape_data_t);
 		if (axis < 0)
 			axis = (shape_element_num + axis);
 		else if (axis >0)

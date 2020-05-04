@@ -115,8 +115,8 @@ Input/output layers are neccessary for a model. They are responsible to copy dat
 ~~~c
 // Layer APIs 
 // input/output
-nnom_layer_t* Input(nnom_shape_t input_shape，void* p_buf);
-nnom_layer_t* Output(nnom_shape_t output_shape, void* p_buf);
+nnom_layer_t* Input(nnom_3d_shape_t input_shape，void* p_buf);
+nnom_layer_t* Output(nnom_3d_shape_t output_shape, void* p_buf);
 ~~~
 
 Pooling as they are:
@@ -126,9 +126,9 @@ Pooling as they are:
 >It is recommened to replace the Global Average Pooling by Global Sum Pooling for better accuracy in MCU side. 
 ~~~c
 // Pooling, kernel, strides, padding
-nnom_layer_t* MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
-nnom_layer_t* AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
-nnom_layer_t* SumPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+nnom_layer_t* MaxPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad);
+nnom_layer_t* AvgPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad);
+nnom_layer_t* SumPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad);
 
 // The Global poolings simplly do better 
 nnom_layer_t *GlobalMaxPool(void);
@@ -136,7 +136,7 @@ nnom_layer_t *GlobalAvgPool(void);
 nnom_layer_t *GlobalSumPool(void);
 
 // Upsampling layer / Unpooling layer
-nnom_layer_t* UpSample(nnom_shape_t kernel);
+nnom_layer_t* UpSample(nnom_3d_shape_t kernel);
 
 ~~~
 
@@ -179,11 +179,11 @@ For more developing layers, please check the source codes.
 
 ~~~c
 // conv1D/2d
-nnom_layer_t* Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad,
+nnom_layer_t* Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad,
 	nnom_weight_t *w, nnom_bias_t *b);
 
 // depthwise_convolution 1D/2D
-nnom_layer_t* DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad, 
+nnom_layer_t* DW_Conv2D(uint32_t multiplier, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad, 
 	nnom_weight_t *w, nnom_bias_t *b);
 
 // fully connected, dense

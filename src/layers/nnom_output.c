@@ -23,7 +23,7 @@
 nnom_status_t output_build(nnom_layer_t *layer);
 nnom_status_t output_run(nnom_layer_t *layer);
 
-nnom_layer_t *Output(nnom_shape_t output_shape, void *p_buf)
+nnom_layer_t *Output(nnom_3d_shape_t output_shape, void *p_buf)
 {
 	// they are acturally the same.. expect the type defined
 	nnom_layer_t *layer = Input(output_shape, p_buf);

@@ -50,9 +50,9 @@ nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config)
 	comp = (void *)((uint8_t*)out + sizeof(nnom_layer_io_t));
 
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
-	comp->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
+	comp->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
@@ -90,7 +90,7 @@ nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config)
 // Conv2D
 // multiplier of (output/input channel),
 // shape of kernal, shape of strides, weight struct, bias struct
-nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type,
+nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad_type,
 					 const nnom_weight_t *w, const nnom_bias_t *b)
 {
 	nnom_conv2d_layer_t *layer;
@@ -111,9 +111,9 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 	// set type in layer parent
 	layer->super.type = NNOM_CONV_2D;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
-	comp->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
+	comp->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
@@ -128,11 +128,8 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padd
 	layer->dilation = stride(1, 1); 	//  the old api dosent support it. 
 	layer->filter_mult = filters; 		// for convs, this means filter number
 	layer->padding_type = pad_type;
-	// layer->bias = b->p_value;
-	// layer->weights = w->p_value;
-	// layer->output_shift = &(w->shift);	//
-	// layer->bias_shift = &(b->shift); 	// bias is quantized to have maximum shift of weights
 
+	// create weight and bias tensor
 	layer->weight = new_tensor(NNOM_QTYPE_PER_TENSOR, 4, filters);
 	layer->bias = new_tensor(NNOM_QTYPE_PER_TENSOR, 1, filters);
 

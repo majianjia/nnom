@@ -10,7 +10,7 @@ Pooling Layers are listed in *nnom_layers.h*
 ## MaxPool()
 
 ~~~c
-nnom_layer_t* MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+nnom_layer_t* MaxPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad);
 ~~~
 
 This funtion is for 1D or 2D, mutiple channels max pooling.  
@@ -30,7 +30,7 @@ This funtion is for 1D or 2D, mutiple channels max pooling.
 ## AvgPool()
 
 ~~~c
-nnom_layer_t* AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+nnom_layer_t* AvgPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad);
 ~~~
 
 This funtion is for 1D or 2D, mutiple channels average pooling.  
@@ -56,7 +56,7 @@ However, if the average pooling is the second last layer right before softmax la
 ## SumPool()
 
 ~~~c
-nnom_layer_t* SumPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad);
+nnom_layer_t* SumPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad);
 ~~~
 
 This funtion is for 1D or 2D, mutiple channels Sum pooling. This is a better alternative to average pooling **WHEN** deploy the trained model into NNoM. The output shift for the sumpool in NNoM is dynamic, means that this pooling can only place before softmax layer.

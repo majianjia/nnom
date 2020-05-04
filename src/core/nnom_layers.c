@@ -18,26 +18,26 @@
 #include "nnom_local.h"
 #include "nnom_layers.h"
 
-size_t shape_size(nnom_shape_t *s)
+size_t shape_size(nnom_3d_shape_t *s)
 {
 	if (s == NULL)
 		return 0;
 	return s->h * s->w * s->c;
 }
 
-nnom_shape_t shape(size_t h, size_t w, size_t c)
+nnom_3d_shape_t shape(size_t h, size_t w, size_t c)
 {
-	nnom_shape_t s;
+	nnom_3d_shape_t s;
 	s.h = h;
 	s.w = w;
 	s.c = c;
 	return s;
 }
-nnom_shape_t kernel(size_t h, size_t w)
+nnom_3d_shape_t kernel(size_t h, size_t w)
 {
 	return shape(h, w, 1);
 }
-nnom_shape_t stride(size_t h, size_t w)
+nnom_3d_shape_t stride(size_t h, size_t w)
 {
 	return shape(h, w, 1);
 }

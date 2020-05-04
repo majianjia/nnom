@@ -31,7 +31,7 @@ extern "C" {
 typedef struct _nnom_io_layer
 {
 	nnom_layer_t super;
-	nnom_shape_t shape;
+	nnom_3d_shape_t shape;
 	void *buf; //input or output
 } nnom_io_layer_t;
 

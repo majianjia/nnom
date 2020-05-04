@@ -30,7 +30,7 @@ extern "C" {
 typedef struct _nnom_upsample_layer_t
 {
 	nnom_layer_t super;
-	nnom_shape_t kernel;
+	nnom_3d_shape_t kernel;
 } nnom_upsample_layer_t;
 
 

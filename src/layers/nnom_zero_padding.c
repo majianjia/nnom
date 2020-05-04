@@ -41,8 +41,8 @@ nnom_layer_t *ZeroPadding(nnom_border_t pad)
 	// set type in layer parent
 	layer->super.type = NNOM_ZERO_PADDING;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);

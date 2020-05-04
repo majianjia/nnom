@@ -57,9 +57,9 @@ nnom_layer_t *dense_s(nnom_dense_config_t *config)
 	// set type in layer parent
 	layer->super.type = NNOM_DENSE;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
-	comp->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
+	comp->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
@@ -67,18 +67,14 @@ nnom_layer_t *dense_s(nnom_dense_config_t *config)
 	// set run and outshape methods
 	layer->super.run = dense_run;
 	layer->super.build = dense_build;
+	layer->super.free = dense_free;
 
 	// set parameters
 	layer->bias = config->bias;
 	layer->weight = config->weight;
-	// layer->output_shift = w->shift;
-	// layer->bias_shift = b->shift; // bias is quantized to have maximum shift of weights
-	// layer->output_unit = output_unit;
 
 	return (nnom_layer_t *)layer;
 }
-
-
 
 nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_t *b)
 {
@@ -100,9 +96,9 @@ nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_
 	// set type in layer parent
 	layer->super.type = NNOM_DENSE;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
-	comp->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
+	comp->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
@@ -160,6 +156,20 @@ nnom_status_t dense_build(nnom_layer_t *layer)
 	layer->stat.macc = tensor_size(layer->in->tensor) * tensor_size(layer->out->tensor);
 	return NN_SUCCESS;
 }
+
+nnom_status_t dense_free(nnom_layer_t *layer)
+{
+	// free weight and bias tensor when we are not initialised from structured configuration. 
+	if(layer->config != NULL)
+	{
+		nnom_dense_layer_t* cl = (nnom_dense_layer_t*)layer;
+		delete_tensor(cl->weight);
+		delete_tensor(cl->bias);
+	}
+
+	return NN_SUCCESS;
+}
+
 
 nnom_status_t dense_run(nnom_layer_t *layer)
 {

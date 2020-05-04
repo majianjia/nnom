@@ -23,7 +23,7 @@ nnom_status_t input_build(nnom_layer_t *layer);
 nnom_status_t input_run(nnom_layer_t *layer);
 
 
-nnom_layer_t *Input(nnom_shape_t input_shape, void *p_buf)
+nnom_layer_t *Input(nnom_3d_shape_t input_shape, void *p_buf)
 {
 	nnom_io_layer_t *layer;
 	nnom_layer_io_t *in, *out;
@@ -42,8 +42,8 @@ nnom_layer_t *Input(nnom_shape_t input_shape, void *p_buf)
 	layer->super.run = input_run;
 	layer->super.build = input_build;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_NULL;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_NULL;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);

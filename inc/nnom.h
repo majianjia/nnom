@@ -141,33 +141,33 @@ typedef enum
 	PADDING_SAME
 } nnom_padding_t;
 
-#define LAYER_BUF_NULL     (0)
-#define LAYER_BUF_TEMP     (1)  // The memory in IO is temporary occupided, can be reused by other layer once the computation is done.
-#define LAYER_BUF_RESERVED (2)  // the mem is reserve for this layer only (not to be reused by other layer.
+#define NNOM_TENSOR_BUF_NULL     (0)	// This buffer is not in used
+#define NNOM_TENSOR_BUF_TEMP     (1)  // The memory in IO is temporary occupided, can be reused by other layer once the computation is done.
+#define NNOM_TENSOR_BUF_RESERVED (2)  // the mem is reserve for this layer only (not to be reused by other layer.
 
 // currently used in compiling.
 #define NNOM_BUF_EMPTY   (0)
 #define NNOM_BUF_FILLED  (1)
 
 // basic types
-#define nnom_qformat_param_t int32_t // this should match the backend, need a better way to do it. 
+#define nnom_qformat_param_t int8_t // this should match the backend, need a better way to do it. 
 #define nnom_shape_data_t uint16_t
 
-typedef struct _nnom_shape_t
+typedef struct _nnom_3d_shape_t
 {
 	nnom_shape_data_t h, w, c;
-} nnom_shape_t;
+} nnom_3d_shape_t;
 
 typedef struct _nnom_border_t
 {
 	nnom_shape_data_t top, bottom, left, right;
 } nnom_border_t;
 
-// nnom_shape_axis_t type provide the axis[] format access to nnom_shape_t
+// nnom_3d_shape_axis_t type provide the axis[] format access to nnom_3d_shape_t
 typedef union {
-	nnom_shape_t s;
-	nnom_shape_data_t axis[sizeof(nnom_shape_t) / sizeof(nnom_shape_data_t)];
-} nnom_shape_axis_t;
+	nnom_3d_shape_t s;
+	nnom_shape_data_t axis[sizeof(nnom_3d_shape_t) / sizeof(nnom_shape_data_t)];
+} nnom_3d_shape_axis_t;
 
 // tensor quantisation types
 typedef enum
@@ -264,7 +264,7 @@ typedef struct _nnom_layer_t
 	nnom_buf_t *comp;		   								// computational buf
 	nnom_activation_t *actail; 								// I have an activation, I have a tail, wooo haaaa, act-tail!!!
 
-	void * config;			// point to the configuration of the layers. for machine api only. 
+	void *config;			// point to the configuration of the layers. for machine api only. 
 	nnom_layer_type_t type; // layer types
 	nnom_layer_io_t *in;	// IO buff, last*layer, states
 	nnom_layer_io_t *out;   // IO buff, next*layer, states
@@ -277,9 +277,6 @@ typedef struct _nnom_activation_t
 {
 	nnom_status_t (*run)(struct _nnom_activation_t *act);
 	nnom_tensor_t *tensor;
-	// void *data;  // data & type will be given before activation
-	// size_t size; //
-	// nnom_qformat_t qfmt; // data type
 	nnom_activation_type_t type;
 } nnom_activation_t;
 
@@ -317,7 +314,7 @@ typedef struct _nnom_model
 
 	size_t total_ops;
 
-	bool is_inited; //	is this structure initialized
+	bool is_inited; 	//	is this structure initialized
 	bool is_allocated;  //	is this structure allocated by nnom (not by user)
 } nnom_model_t;
 

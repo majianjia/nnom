@@ -56,8 +56,8 @@ nnom_layer_t *Activation(nnom_activation_t *act)
 	layer->super.run = activation_run;
 	layer->super.build = default_build;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_NULL; // when a layer's io is set to NULL, both will point to same mem.
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_NULL; // when a layer's io is set to NULL, both will point to same mem.
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);

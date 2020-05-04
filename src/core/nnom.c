@@ -668,7 +668,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 		if (layer->out->aux == NULL && layer->out->hook.next == NULL)
 		{
 			// single buf layer.
-			if (layer->in->type == LAYER_BUF_NULL || layer->out->type == LAYER_BUF_NULL)
+			if (layer->in->type == NNOM_TENSOR_BUF_NULL || layer->out->type == NNOM_TENSOR_BUF_NULL)
 			{
 				// pass to next layer directly, like we never touch the buffer(dont change life-time)
 				layer->out->mem = layer->in->mem;
@@ -706,7 +706,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 		else
 		{
 			// single buf layer will use the input buf for the first output
-			if (layer->in->type == LAYER_BUF_NULL || layer->out->type == LAYER_BUF_NULL)
+			if (layer->in->type == NNOM_TENSOR_BUF_NULL || layer->out->type == NNOM_TENSOR_BUF_NULL)
 			{
 				// we dont allocate new buf, but use the input
 				// the ownership will be set to next layer later

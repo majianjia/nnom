@@ -23,7 +23,7 @@ nnom_status_t upsample_build(nnom_layer_t *layer);
 nnom_status_t upsample_run(nnom_layer_t *layer);
 
 // up sampling layer
-nnom_layer_t *UpSample(nnom_shape_t kernel)
+nnom_layer_t *UpSample(nnom_3d_shape_t kernel)
 {
 	nnom_upsample_layer_t *layer;
 	nnom_layer_io_t *in, *out;
@@ -41,8 +41,8 @@ nnom_layer_t *UpSample(nnom_shape_t kernel)
 	// set type in layer parent
 	layer->super.type = NNOM_UPSAMPLE;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);

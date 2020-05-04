@@ -27,7 +27,7 @@
 nnom_status_t maxpool_build(nnom_layer_t *layer);
 nnom_status_t maxpool_run(nnom_layer_t *layer);
 
-nnom_layer_t *MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
+nnom_layer_t *MaxPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad_type)
 {
 	nnom_maxpool_layer_t *layer;
 	nnom_buf_t *comp;
@@ -49,9 +49,9 @@ nnom_layer_t *MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
 	layer->super.run = maxpool_run;
 	layer->super.build = maxpool_build;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
-	comp->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
+	comp->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
@@ -86,7 +86,7 @@ nnom_status_t maxpool_build(nnom_layer_t *layer)
 	layer->in->tensor = layer->in->hook.io->tensor;
 
 	// create new tensor for output
-	new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
 	// copy then change later. 
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 

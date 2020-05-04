@@ -42,11 +42,11 @@ nnom_layer_t *Flatten(void)
 	layer->run = flatten_run;
 	layer->build = flatten_build;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
 	#ifdef NNOM_USING_CHW
-		out->type = LAYER_BUF_TEMP; // test for CHW format
+		out->type = NNOM_TENSOR_BUF_TEMP; // test for CHW format
 	#else
-		out->type = LAYER_BUF_NULL; 
+		out->type = NNOM_TENSOR_BUF_NULL; 
 	#endif
 	// put in & out on the layer.
 	layer->in = io_init(layer, in);

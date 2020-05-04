@@ -43,8 +43,8 @@ void tensor_hwc2chw_q7(nnom_tensor_t* des, nnom_tensor_t* src);
 void tensor_chw2hwc_q7(nnom_tensor_t* des, nnom_tensor_t* src);
 
 // deprecated. 
-void hwc2chw_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out);
-void chw2hwc_q7(nnom_shape_t shape, q7_t* p_in, q7_t* p_out);
+void hwc2chw_q7(nnom_3d_shape_t shape, q7_t* p_in, q7_t* p_out);
+void chw2hwc_q7(nnom_3d_shape_t shape, q7_t* p_in, q7_t* p_out);
 
 #ifdef __cplusplus
 }

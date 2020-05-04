@@ -27,7 +27,7 @@
 nnom_status_t avgpooling_build(nnom_layer_t *layer);
 nnom_status_t avgpool_run(nnom_layer_t *layer);
 
-nnom_layer_t *AvgPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
+nnom_layer_t *AvgPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad_type)
 {
 	nnom_layer_t *layer = MaxPool(k, s, pad_type);
 
