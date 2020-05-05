@@ -30,7 +30,6 @@ nnom_status_t conv2d_run(nnom_layer_t *layer);
 nnom_status_t conv2d_build(nnom_layer_t *layer);
 nnom_status_t conv2d_free(nnom_layer_t *layer);
 
-
 // a machine friendly api, with suffix _s for structured configuration.  
 nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config)
 {

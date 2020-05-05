@@ -150,7 +150,7 @@ typedef enum
 #define NNOM_BUF_FILLED  (1)
 
 // basic types
-#define nnom_qformat_param_t int8_t // this should match the backend, need a better way to do it. 
+#define nnom_qformat_param_t int32_t // this should match the backend, need a better way to do it. 
 #define nnom_shape_data_t uint16_t
 
 typedef struct _nnom_3d_shape_t
@@ -258,6 +258,8 @@ typedef struct _nnom_layer_config_t
 // layers base
 typedef struct _nnom_layer_t
 {
+	nnom_layer_t *shortcut; // shortcut points to the next layer, applied on compiling
+
 	nnom_status_t (*run)(nnom_layer_t *layer);				// run method. required
 	nnom_status_t (*build)(nnom_layer_t *layer);			// compute output buffer shape. can be left null, will call default_build()
 	nnom_status_t (*free)(nnom_layer_t *layer);				// a callback to free private resources (comp buf not included) can be left null
@@ -269,7 +271,6 @@ typedef struct _nnom_layer_t
 	nnom_layer_io_t *in;	// IO buff, last*layer, states
 	nnom_layer_io_t *out;   // IO buff, next*layer, states
 	nnom_layer_stat_t stat; // stats, timing, ops
-	nnom_layer_t *shortcut; // shortcut points to the next layer, applied on compiling
 } nnom_layer_t;
 
 // activation base
