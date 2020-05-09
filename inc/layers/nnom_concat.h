@@ -34,6 +34,13 @@ typedef struct _nnom_concat_layer
 } nnom_concat_layer_t;
 
 
+typedef struct _nnom_concat_config_t
+{
+	nnom_layer_config_t super;
+	int8_t axis;
+} nnom_concat_config_t;
+
+
 #ifdef __cplusplus
 }
 #endif

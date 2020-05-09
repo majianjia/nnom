@@ -26,6 +26,14 @@ extern "C" {
 #include "nnom_local.h"
 #include "nnom_tensor.h"
 
+// no special parameters but we need it. 
+typedef struct _nnom_flatten_config_t{
+    nnom_layer_config_t super;
+} nnom_flatten_config_t;
+
+nnom_layer_t *Flatten(void);
+nnom_layer_t *flatten_s(nnom_flatten_config_t * config);
+
 #ifdef __cplusplus
 }
 #endif

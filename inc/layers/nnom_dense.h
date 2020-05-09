@@ -35,6 +35,17 @@ typedef struct _nnom_dense_layer_t
 
 } nnom_dense_layer_t;
 
+// a machine interface for configuration
+typedef struct _nnom_dense_config_t
+{
+	nnom_layer_config_t super;
+	nnom_qtype_t qtype; 	//quantisation type(per channel or per layer)
+	nnom_tensor_t *weight;
+	nnom_tensor_t *bias;
+	int8_t output_shift;   // not sure if we need that
+} nnom_dense_config_t;
+
+
 
 nnom_status_t dense_free(nnom_layer_t *layer);
 

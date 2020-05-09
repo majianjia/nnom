@@ -22,6 +22,14 @@
 nnom_status_t flatten_build(nnom_layer_t *layer);
 nnom_status_t flatten_run(nnom_layer_t *layer);
 
+nnom_layer_t *flatten_s(nnom_flatten_config_t *config)
+{
+	nnom_layer_t *layer = Flatten();
+	if(layer)
+		layer->config = config;
+	return layer;
+}
+
 nnom_layer_t *Flatten(void)
 {
 	nnom_layer_t *layer;

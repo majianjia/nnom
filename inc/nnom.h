@@ -248,12 +248,11 @@ typedef struct _nnom_layer_io_t
 	uint8_t type;
 } nnom_layer_io_t;
 
-// config base
+// structured configuration base type
 typedef struct _nnom_layer_config_t
 {
-	char* names;
+	char* name;			// the name of the layer prequantiesd model (the model trained by user before converted to nnom)
 } nnom_layer_config_t;
-
 
 // layers base
 typedef struct _nnom_layer_t

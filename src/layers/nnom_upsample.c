@@ -22,6 +22,14 @@
 nnom_status_t upsample_build(nnom_layer_t *layer);
 nnom_status_t upsample_run(nnom_layer_t *layer);
 
+nnom_layer_t *upsample_s(nnom_upsample_config_t *config)
+{
+	nnom_layer_t *layer = UpSample(config->kernel);
+	if(layer)
+		layer->config = config;
+	return layer;
+}
+
 // up sampling layer
 nnom_layer_t *UpSample(nnom_3d_shape_t kernel)
 {

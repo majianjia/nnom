@@ -206,7 +206,6 @@ nnom_status_t conv2d_free(nnom_layer_t *layer)
 		delete_tensor(cl->weight);
 		delete_tensor(cl->bias);
 	}
-
 	return NN_SUCCESS;
 }
 

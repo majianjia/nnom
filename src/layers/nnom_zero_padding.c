@@ -22,6 +22,20 @@
 nnom_status_t zero_padding_build(nnom_layer_t *layer);
 nnom_status_t zero_padding_run(nnom_layer_t *layer);
 
+
+
+nnom_layer_t * zeropadding_s(nnom_zero_padding_config_t* config)
+{
+	nnom_layer_t *layer;
+
+	layer = ZeroPadding(config->pad);
+
+	if(layer != NULL)
+		layer->config = config;
+	
+	return (nnom_layer_t*)layer;
+}
+
 // Zero padding layer
 nnom_layer_t *ZeroPadding(nnom_border_t pad)
 {

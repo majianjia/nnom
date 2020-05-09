@@ -32,7 +32,8 @@ nnom_status_t activation_run(nnom_layer_t* layer);
 // this is the callback in layer->free
 static nnom_status_t activation_free(nnom_layer_t *layer)
 {
-	nnom_free(((nnom_activation_layer_t *)layer)->act);
+	if(layer)
+		nnom_free(((nnom_activation_layer_t *)layer)->act);
 	return NN_SUCCESS;
 }
 

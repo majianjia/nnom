@@ -22,6 +22,13 @@
 nnom_status_t input_build(nnom_layer_t *layer);
 nnom_status_t input_run(nnom_layer_t *layer);
 
+nnom_layer_t *input_s(nnom_io_config_t* config)
+{
+	nnom_layer_t *layer = Input(config->shape, config->data);
+	if(layer)
+		layer->config = config;
+	return layer;
+}
 
 nnom_layer_t *Input(nnom_3d_shape_t input_shape, void *p_buf)
 {

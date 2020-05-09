@@ -31,6 +31,10 @@ extern "C" {
 // Cropping, same as zeropadding
 typedef nnom_zero_padding_layer_t nnom_cropping_layer_t;
 
+typedef nnom_zero_padding_config_t nnom_cropping_config_t;
+
+nnom_layer_t *Cropping(nnom_border_t pad);
+
 #ifdef __cplusplus
 }
 #endif

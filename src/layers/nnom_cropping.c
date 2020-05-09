@@ -22,6 +22,14 @@
 nnom_status_t cropping_build(nnom_layer_t *layer);
 nnom_status_t cropping_run(nnom_layer_t *layer);
 
+nnom_layer_t * cropping_s(nnom_cropping_config_t *config)
+{
+	nnom_layer_t *layer = Cropping(config->pad);
+	if(layer)
+		layer->config = config;
+	return layer;
+}
+
 // Cropping layer
 nnom_layer_t *Cropping(nnom_border_t pad)
 {

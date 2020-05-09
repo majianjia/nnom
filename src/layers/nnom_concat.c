@@ -22,6 +22,13 @@
 nnom_status_t concat_build(nnom_layer_t *layer);
 nnom_status_t concat_run(nnom_layer_t *layer);
 
+nnom_layer_t *concat_s(nnom_concat_config_t *config)
+{
+	nnom_layer_t* layer = Concat(config->axis);
+	if(layer)
+		layer->config = config->axis;
+	return layer;
+}
 
 // concate method
 // concate requires more than one input module. aux input will be allocated in model.merge()

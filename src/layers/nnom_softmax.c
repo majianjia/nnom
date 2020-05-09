@@ -26,6 +26,7 @@
 
 nnom_status_t softmax_run(nnom_layer_t *layer);
 
+
 nnom_layer_t *Softmax(void)
 {
 	nnom_layer_t *layer;

@@ -28,6 +28,8 @@ extern "C" {
 
 #include "layers/nnom_input.h"
 
+nnom_layer_t *BaseLayer();
+
 #ifdef __cplusplus
 }
 #endif

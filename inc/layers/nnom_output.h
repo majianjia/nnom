@@ -28,6 +28,8 @@ extern "C" {
 
 #include "layers/nnom_input.h"
 
+nnom_layer_t *Output(nnom_3d_shape_t output_shape, void *p_buf);
+
 #ifdef __cplusplus
 }
 #endif

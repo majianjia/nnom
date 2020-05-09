@@ -35,7 +35,15 @@ typedef struct _nnom_io_layer
 	void *buf; //input or output
 } nnom_io_layer_t;
 
+typedef struct _nnom_io_config_t
+{
+	nnom_layer_config_t super;
+	nnom_3d_shape_t shape;
+	void *data;
+}nnom_io_config_t;
 
+nnom_layer_t *Input(nnom_3d_shape_t input_shape, void *p_buf);
+nnom_layer_t *input_s(nnom_io_config_t *config);
 
 #ifdef __cplusplus
 }
