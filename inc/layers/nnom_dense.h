@@ -32,7 +32,6 @@ typedef struct _nnom_dense_layer_t
 	size_t output_unit;
 	nnom_tensor_t *weight;
 	nnom_tensor_t *bias;
-
 } nnom_dense_layer_t;
 
 // a machine interface for configuration
@@ -45,10 +44,7 @@ typedef struct _nnom_dense_config_t
 	int8_t output_shift;   // not sure if we need that
 } nnom_dense_config_t;
 
-
-
 nnom_status_t dense_free(nnom_layer_t *layer);
-
 
 #ifdef __cplusplus
 }

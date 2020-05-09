@@ -201,30 +201,18 @@ static nnom_layer_t *model_hook(nnom_layer_t *curr, nnom_layer_t *last)
 // method = functional layer such as (concat(), mult(), add(), sub())
 static nnom_layer_t *model_mergex(nnom_layer_t *method, int num, ...)
 {
-	nnom_layer_t *in_layer;
-	nnom_layer_io_t *method_in_io;
-	nnom_layer_hook_t *output_io_hook;
-
+	nnom_layer_t *layer_in;
 	va_list valist;
 
 	if (method == NULL)
 		return NULL;
 
 	va_start(valist, num);
-
 	for (int i = 0; i < num; i++)
 	{
 		// get the input layer
-		in_layer = va_arg(valist, nnom_layer_t *);
-
-		// add a new hook to the output io of the input layer
-		output_io_hook = allocate_hook(in_layer->out);
-		// add a new input io to the method layer's input list.
-		method_in_io = allocate_io(method->in);
-
-		// manually hook them togeter.
-		output_io_hook->io = method_in_io;
-		method_in_io->hook.io = in_layer->out;
+		layer_in = va_arg(valist, nnom_layer_t *);
+		model_hook(method, layer_in);
 	}
 	va_end(valist);
 	return method;

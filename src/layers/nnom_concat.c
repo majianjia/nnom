@@ -26,7 +26,7 @@ nnom_layer_t *concat_s(nnom_concat_config_t *config)
 {
 	nnom_layer_t* layer = Concat(config->axis);
 	if(layer)
-		layer->config = config->axis;
+		layer->config = config;
 	return layer;
 }
 
