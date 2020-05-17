@@ -65,7 +65,7 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nno
 
 nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config);
 
-
+uint32_t conv_output_length(uint32_t input_length, uint32_t filter_size, nnom_padding_t padding, uint32_t stride, uint32_t dilation);
 
 
 #ifdef __cplusplus

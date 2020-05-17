@@ -163,6 +163,24 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nno
 	return (nnom_layer_t *)layer;
 }
 
+// keras's implimentation. 
+// source: https://github.com/keras-team/keras/blob/7a39b6c62d43c25472b2c2476bd2a8983ae4f682/keras/utils/conv_utils.py#L85
+uint32_t conv_output_length(uint32_t input_length, uint32_t filter_size, nnom_padding_t padding, uint32_t stride, uint32_t dilation)
+{
+    if (input_length == 0)
+        return 0;
+
+    uint32_t dilated_filter_size = (filter_size - 1) * dilation + 1;
+	uint32_t output_length;
+    if(padding == PADDING_SAME)
+        output_length = input_length;
+    else
+        output_length = input_length - dilated_filter_size + 1;
+    // elif padding == 'full': // not support full padding. 
+    //     output_length = input_length + dilated_filter_size - 1
+    return (output_length + stride - 1) / stride;
+}
+
 nnom_status_t conv2d_build(nnom_layer_t *layer)
 {
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
@@ -176,18 +194,9 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// now we set up the tensor shape, always HWC format
-	if (cl->padding_type == PADDING_SAME)
-	{
-		layer->out->tensor->dim[0] = NN_CEILIF(layer->in->tensor->dim[0], cl->stride.h);
-		layer->out->tensor->dim[1] = NN_CEILIF(layer->in->tensor->dim[1], cl->stride.w);
-		layer->out->tensor->dim[2] = cl->filter_mult; // channel stays the same
-	}
-	else
-	{
-		layer->out->tensor->dim[0] = NN_CEILIF(layer->in->tensor->dim[0] - cl->kernel.h + 1, cl->stride.h);
-		layer->out->tensor->dim[1] = NN_CEILIF(layer->in->tensor->dim[1] - cl->kernel.w + 1, cl->stride.w);
-		layer->out->tensor->dim[2] = cl->filter_mult;
-	}
+	layer->out->tensor->dim[0] = conv_output_length(layer->in->tensor->dim[0], cl->kernel.h, cl->padding_type, cl->stride.h, cl->dilation.h);
+	layer->out->tensor->dim[1] = conv_output_length(layer->in->tensor->dim[1], cl->kernel.w, cl->padding_type, cl->stride.w, cl->dilation.w);
+	layer->out->tensor->dim[2] = cl->filter_mult; // channel stays the same
 
 	// bufferA size: (1D shape)
 	// 2*ch_im_in*dim_kernel*dim_kernel

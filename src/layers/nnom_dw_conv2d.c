@@ -67,18 +67,9 @@ nnom_status_t dw_conv2d_build(nnom_layer_t *layer)
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// now we set up the tensor shape, always HWC format
-	if (cl->padding_type == PADDING_SAME)
-	{
-		layer->out->tensor->dim[0] = NN_CEILIF(layer->in->tensor->dim[0], cl->stride.h);
-		layer->out->tensor->dim[1] = NN_CEILIF(layer->in->tensor->dim[1], cl->stride.w);
-		layer->out->tensor->dim[2] = layer->in->tensor->dim[2] * cl->filter_mult; // channel stays the same
-	}
-	else
-	{
-		layer->out->tensor->dim[0] = NN_CEILIF(layer->in->tensor->dim[0] - cl->kernel.h + 1, cl->stride.h);
-		layer->out->tensor->dim[1] = NN_CEILIF(layer->in->tensor->dim[1] - cl->kernel.w + 1, cl->stride.w);
-		layer->out->tensor->dim[2] = layer->in->tensor->dim[2] * cl->filter_mult;
-	}
+	layer->out->tensor->dim[0] = conv_output_length(layer->in->tensor->dim[0], cl->kernel.h, cl->padding_type, cl->stride.h, cl->dilation.h);
+	layer->out->tensor->dim[1] = conv_output_length(layer->in->tensor->dim[1], cl->kernel.w, cl->padding_type, cl->stride.w, cl->dilation.w);
+	layer->out->tensor->dim[2] = layer->in->tensor->dim[2] * cl->filter_mult; // channel stays the same
 
 	// bufferA size: (1D shape)
 	layer->comp->size = 2 * 2 * (layer->in->tensor->dim[2] / cl->filter_mult) * cl->kernel.w * cl->kernel.h;

@@ -431,6 +431,8 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
 	const uint16_t padding_y,                                          // padding sizes y
 	const uint16_t stride_x,                                           // stride x
 	const uint16_t stride_y,                                           // stride y
+//    const uint16_t dilation_x,                                         // dilation x
+//	const uint16_t dilation_y,                                         // dilation y
 	const q7_t *bias,                                                  // bias
 	const uint16_t bias_shift, const uint16_t out_shift, q7_t *Im_out, // output image
 	const uint16_t dim_im_out_x,                                       // output image dimension x
