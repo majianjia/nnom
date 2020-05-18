@@ -67,6 +67,8 @@ nnom_layer_t *GlobalSumPool(void)
 		layer->type = NNOM_GLOBAL_SUMPOOL;
 		layer->run = sumpool_run; // global and basic pooling share the same runner
 		layer->build = global_pool_build;
+		
+		
 	}
 
 	return (nnom_layer_t *)layer;
@@ -80,15 +82,15 @@ nnom_status_t global_pool_build(nnom_layer_t *layer)
 	layer->in->tensor = layer->in->hook.io->tensor;
 
 	// create new tensor for output
-	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, 1, tensor_get_num_channel(layer->in->tensor));
 
-	nnom_shape_data_t dim[3] = {0, 0, tensor_get_num_channel(layer->in->tensor)}; // fill the first 2 dim later
+	nnom_shape_data_t dim[1] = {tensor_get_num_channel(layer->in->tensor)}; // fill the first 2 dim later
 	tensor_set_attr_v(layer->out->tensor, layer->in->tensor->q_dec[0], 0, dim, sizeof(dim)/sizeof(nnom_shape_data_t), 8); 
 
 	// different from other *_build(), the kernel..padding left by layer API needs to be set in here
 	// due to the *_run() methods of global pooling are using the normall pooling's.
 	// fill in the parameters left by layer APIs (GlobalAvgPool and MaxAvgPool)
-	cl->kernel = shape(layer->in->tensor->dim[0], layer->in->tensor->dim[1], layer->in->tensor->dim[2]);
+	cl->kernel = shape(layer->in->tensor->dim[0], layer->in->tensor->dim[1], 1);
 	cl->stride = shape(1, 1, 1);
 	cl->pad = shape(0, 0, 0);
 	cl->padding_type = PADDING_VALID;
@@ -97,9 +99,7 @@ nnom_status_t global_pool_build(nnom_layer_t *layer)
 	if (layer->type == NNOM_AVGPOOL || layer->type == NNOM_GLOBAL_AVGPOOL)
 	{
 		//  bufferA size:  2*dim_im_out*ch_im_in
-		uint32_t size = layer->out->tensor->dim[0] > layer->out->tensor->dim[1] ?
-							layer->out->tensor->dim[0] : layer->out->tensor->dim[1];
-		layer->comp->size = 2 * size * layer->in->tensor->dim[2];
+		layer->comp->size = 2 * layer->out->tensor->dim[0] * layer->in->tensor->dim[2];
 	}
 	
 	// additional for sumpool

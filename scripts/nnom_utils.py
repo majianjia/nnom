@@ -31,6 +31,7 @@ import time
 import warnings
 
 
+
 """ 
     This lambda layer take the output variables (vectors) from last layer, 
     clip range to clip_range
@@ -87,7 +88,7 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
 
     # get data
     dat = x.astype(dtype="byte")  # test data
-    batch_size = dat.shape[0]     # total pices of data	
+    batch_size = dat.shape[0]     # total pices of data
     dat = dat.flatten()           # flatten to get the total size.
     block_size = int(dat.size / batch_size) # this must be integer but... just to confirm
 
@@ -256,12 +257,12 @@ def generate_weights(model, name='weights.h', format='hwc', shift_list=None):
                     if(shift < 0):
                         bSameAsKernel = True
             if(shift_list is None or bSameAsKernel):
-                # check if bias shift > weight shift, then reduce bias shift to weight shift	
+                # check if bias shift > weight shift, then reduce bias shift to weight shift
                 if ("kernel" in var_name):
-                    weight_dec_shift = dec_bits	
-                else:	
-                    if(dec_bits > weight_dec_shift):	
-                        dec_bits = weight_dec_shift	
+                    weight_dec_shift = dec_bits
+                else:
+                    if(dec_bits > weight_dec_shift):
+                        dec_bits = weight_dec_shift
                 print("  new dec bit", dec_bits)
 
             # convert to [-128,128) or int8
@@ -567,23 +568,23 @@ def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
                 if('depthwise' in layer.name):
-                    fp.write('\tlayer[{0}] = model.hook(DW_Conv2D({1}, kernel(1,{2}), stride(1,{3}), PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
-                        id, 1, cfg['kernel_size'][0], cfg['strides'][0], cfg['padding'].upper(),
+                    fp.write('\tlayer[{0}] = model.hook(DW_Conv2D({1}, kernel(1,{2}), stride(1,{3}), dilation(1,{4}), PADDING_{5}, &{6}_w, &{6}_b), layer[{7}]);\n'.format(
+                        id, 1, cfg['kernel_size'][0], cfg['strides'][0], cfg['dilation_rate'][0], cfg['padding'].upper(),
                         layer.name, LI[inp][0]))
                 else:
-                    fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel(1,{2}), stride(1,{3}), PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
-                        id, cfg['filters'], cfg['kernel_size'][0], cfg['strides'][0], cfg['padding'].upper(),
+                    fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel(1,{2}), stride(1,{3}), dilation(1,{4}), PADDING_{5}, &{6}_w, &{6}_b), layer[{7}]);\n'.format(
+                        id, cfg['filters'], cfg['kernel_size'][0], cfg['strides'][0], cfg['dilation_rate'][0], cfg['padding'].upper(),
                         layer.name, LI[inp][0]))
             elif('conv2d' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
                 if ('depthwise' in layer.name):
-                    fp.write('\tlayer[{0}] = model.hook(DW_Conv2D({1}, kernel{2}, stride{3}, PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
-                        id, 1, cfg['kernel_size'], cfg['strides'], cfg['padding'].upper(),
+                    fp.write('\tlayer[{0}] = model.hook(DW_Conv2D({1}, kernel{2}, stride{3}, dilation{4}, PADDING_{5}, &{6}_w, &{6}_b), layer[{7}]);\n'.format(
+                        id, 1, cfg['kernel_size'], cfg['strides'], cfg['dilation_rate'], cfg['padding'].upper(),
                         layer.name, LI[inp][0]))
                 else:
-                    fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel{2}, stride{3}, PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
-                        id, cfg['filters'], cfg['kernel_size'], cfg['strides'], cfg['padding'].upper(),
+                    fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel{2}, stride{3}, dilation{4}, PADDING_{5}, &{6}_w, &{6}_b), layer[{7}]);\n'.format(
+                        id, cfg['filters'], cfg['kernel_size'], cfg['strides'], cfg['dilation_rate'], cfg['padding'].upper(),
                         layer.name, LI[inp][0]))
             # activations
             elif('activation' in layer.name):
@@ -701,7 +702,7 @@ def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
                 fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n'%(id, LI[inp][0]))
             else:
                 raise Exception('unsupported layer', layer.name, layer)
-			
+
             """
             # temporary fixed for activations attached into layers in construction
             def is_activation_attached(layer):
@@ -723,7 +724,7 @@ def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
                 elif(cfg['activation'] == 'softmax'):
                     fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n'%(id, LI[inp][0]))
             """
-			
+
         # FIXME, test later.
         if('softmax' in layer.name
            or ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')):

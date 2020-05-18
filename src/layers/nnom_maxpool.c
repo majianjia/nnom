@@ -112,14 +112,14 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)(layer);
 
 #ifdef NNOM_USING_CHW
-	local_maxpool_q7_CHW(layer->in->mem->blk, 				
-			layer->in->tensor->dim[0], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+                              	local_maxpool_q7_CHW(layer->in->tensor->p_data, 				
+			layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 			cl->kernel.w, cl->kernel.h, 
 			cl->pad.w, cl->pad.h,
 			cl->stride.w, cl->stride.h,
 			layer->out->tensor->dim[1], layer->out->tensor->dim[0],
 			NULL,
-			layer->out->mem->blk);
+			layer->out->tensor->p_data);
 #else //end of CHW
 	// HWC
 	#ifdef NNOM_USING_CMSIS_NN
@@ -128,26 +128,26 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 		layer->out->tensor->dim[1] == layer->out->tensor->dim[0])
 	{
 		arm_maxpool_q7_HWC(
-			layer->in->mem->blk,
+			layer->in->tensor->p_data,
 			layer->in->tensor->dim[1], layer->in->tensor->dim[2],
 			cl->kernel.w, cl->pad.w, cl->stride.w,
 			layer->out->tensor->dim[1],
 			NULL,
-			layer->out->mem->blk);
+			layer->out->tensor->p_data);
 	}
 	// none square 2D, or 1D
 	else
 	#endif
 	{
 		// CMSIS-NN does not support none-square pooling, we have to use local implementation
-		local_maxpool_q7_HWC(layer->in->mem->blk, 				
+		local_maxpool_q7_HWC(layer->in->tensor->p_data, 				
 				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 				cl->kernel.w, cl->kernel.h, 
 				cl->pad.w, cl->pad.h,
 				cl->stride.w, cl->stride.h,
 				layer->out->tensor->dim[1], layer->out->tensor->dim[0],
 				NULL,
-				layer->out->mem->blk);
+				layer->out->tensor->p_data);
 	}
 #endif // CHW/HWC
 	return NN_SUCCESS;

@@ -95,7 +95,7 @@ nnom_status_t simplecell_build(nnom_layer_t* layer, nnom_rnn_cell_t* cell)
 // TODO
 nnom_status_t rnn_build(nnom_layer_t* layer)
 {
-	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t*)layer;
+	//nnom_rnn_layer_t* cl = (nnom_rnn_layer_t*)layer;
 	/*
 	// get the last layer's output as input shape
 	layer->in->shape = layer->in->hook.io->shape;

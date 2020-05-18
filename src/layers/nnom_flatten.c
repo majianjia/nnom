@@ -83,6 +83,5 @@ nnom_status_t flatten_run(nnom_layer_t *layer)
 	// CHW format must reorder to HWC for dense layer and all other 1D layer (?)
 	tensor_chw2hwc_q7(layer->out->tensor, layer->in->tensor);
 	#endif
-	// you must be kidding me
 	return NN_SUCCESS;
 }

@@ -176,26 +176,21 @@ void tensor_hwc2chw_q7(nnom_tensor_t* des, nnom_tensor_t* src)
 
 // only support 3d tensor
 // change format from CHW to HWC
-// the shape of the data, input data, output data
 void tensor_chw2hwc_q7(nnom_tensor_t* des, nnom_tensor_t* src)
 {
 	q7_t* p_out = des->p_data;
 	q7_t* p_in = src->p_data;
-
-	int im_size = 1;
+	int im_size;
 	int h_step;
-	h_step = src->dim[0];
 
-	for (int i = 1; i < src->num_dim; i++)
-		im_size *= src->dim[i];
+	im_size = src->dim[0] * src->dim[1]; // H*W
 
 	for (int h = 0; h < src->dim[0]; h++)
 	{
 		h_step = src->dim[1] * h;
 		for (int w = 0; w < src->dim[1]; w++)
 		{
-			// for 3d tensor
-			for (int c = 0; c < src->dim[1]; c++)
+			for (int c = 0; c < src->dim[2]; c++)
 			{
 				*p_out = p_in[im_size * c + h_step + w];
 				p_out++;

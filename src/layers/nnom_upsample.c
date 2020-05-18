@@ -73,7 +73,7 @@ nnom_status_t upsample_build(nnom_layer_t *layer)
 	// output tensor
 	// 1. allocate a new tensor for output
 	// 2. set the same dim, qfmt to the new tensor.
-	new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// enlarge w and h, c stay the same.
@@ -92,11 +92,11 @@ nnom_status_t upsample_run(nnom_layer_t *layer)
 #else
 	local_up_sampling_q7_HWC(
 #endif
-			layer->in->mem->blk, 				
+			layer->in->tensor->p_data, 				
 			layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 			cl->kernel.w, cl->kernel.h, 
 			layer->out->tensor->dim[1], layer->out->tensor->dim[0],
 			NULL,
-			layer->out->mem->blk);
+			layer->out->tensor->p_data);
 	return NN_SUCCESS;
 }

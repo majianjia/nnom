@@ -191,6 +191,8 @@ void local_convolve_HWC_q7_nonsquare(const q7_t * Im_in,            // input ima
 	const uint16_t padding_y,    // padding sizes y
 	const uint16_t stride_x,     // stride x
 	const uint16_t stride_y,     // stride y
+	const uint16_t dilation_x,   // dilation x
+	const uint16_t dilation_y,   // dilation y
 	const q7_t * bias,           // bias
 	const uint16_t bias_shift, const uint16_t out_shift, q7_t * Im_out,  // output image
 	const uint16_t dim_im_out_x, // output image dimension x
@@ -210,6 +212,8 @@ void local_convolve_CHW_q7_nonsquare(const q7_t * Im_in,            // input ima
 	const uint16_t padding_y,    // padding sizes y
 	const uint16_t stride_x,     // stride x
 	const uint16_t stride_y,     // stride y
+	const uint16_t dilation_x,   // dilation x
+	const uint16_t dilation_y,   // dilation y
 	const q7_t * bias,           // bias
 	const uint16_t bias_shift, const uint16_t out_shift, q7_t * Im_out,  // output image
 	const uint16_t dim_im_out_x, // output image dimension x
@@ -229,6 +233,8 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t * Im_in,  // inp
 	const uint16_t padding_y,    // padding sizes y
 	const uint16_t stride_x, // stride x
 	const uint16_t stride_y, // stride y
+	const uint16_t dilation_x,   // dilation x
+	const uint16_t dilation_y,   // dilation y
 	const q7_t * bias,   // bias
 	const uint16_t bias_shift,   // amount of left-shift for bias
 	const uint16_t out_shift,    // amount of right-shift for output
@@ -250,6 +256,8 @@ void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,         
 	const uint16_t padding_y,    // padding sizes y
 	const uint16_t stride_x,     // stride x
 	const uint16_t stride_y,     // stride y
+	const uint16_t dilation_x,   // dilation x
+	const uint16_t dilation_y,   // dilation y
 	const q7_t *bias,            // bias
 	const uint16_t bias_shift,   // amount of left-shift for bias
 	const uint16_t out_shift,    // amount of right-shift for output

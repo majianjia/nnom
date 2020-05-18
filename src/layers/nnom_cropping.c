@@ -52,7 +52,7 @@ nnom_status_t cropping_build(nnom_layer_t* layer)
 	layer->in->tensor = layer->in->hook.io->tensor;
 
 	// create new tensor for output
-	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim,tensor_get_num_channel(layer->in->tensor));
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
 	// copy then change later. 
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 	
@@ -61,8 +61,8 @@ nnom_status_t cropping_build(nnom_layer_t* layer)
 		layer->in->tensor->dim[0] <= (cl->pad.top + cl->pad.bottom))
 		return NN_ARGUMENT_ERROR;
 	
-	layer->out->tensor->dim[1] = layer->in->tensor->dim[1] - (cl->pad.left + cl->pad.right);
 	layer->out->tensor->dim[0] = layer->in->tensor->dim[0] - (cl->pad.top + cl->pad.bottom);
+	layer->out->tensor->dim[1] = layer->in->tensor->dim[1] - (cl->pad.left + cl->pad.right);
 	layer->out->tensor->dim[2] = layer->in->tensor->dim[2];
 	return NN_SUCCESS;
 }

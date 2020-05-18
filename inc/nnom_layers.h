@@ -28,6 +28,7 @@ extern "C" {
 nnom_3d_shape_t shape(size_t h, size_t w, size_t c);
 nnom_3d_shape_t kernel(size_t h, size_t w);
 nnom_3d_shape_t stride(size_t h, size_t w);
+nnom_3d_shape_t dilation(size_t h, size_t w);
 nnom_border_t border(size_t top, size_t bottom, size_t left, size_t right);
 //nnom_qformat_t qformat(int8_t m, int8_t n);
 size_t shape_size(nnom_3d_shape_t* s);
@@ -73,14 +74,13 @@ nnom_layer_t *Mult(int32_t oshift);      // output shift
 
 nnom_layer_t *Flatten(void);
 nnom_layer_t *Concat(int8_t axis);
-
 // -- NN Constructers --
 // conv2d
-nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad,
+nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_3d_shape_t d, nnom_padding_t pad,
 					 const nnom_weight_t *w, const nnom_bias_t *b);
 
 // depthwise_convolution
-nnom_layer_t *DW_Conv2D(uint32_t multiplier, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad,
+nnom_layer_t *DW_Conv2D(uint32_t multiplier, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_3d_shape_t d, nnom_padding_t pad,
 						const nnom_weight_t *w, const nnom_bias_t *b);
 
 // fully connected, dense

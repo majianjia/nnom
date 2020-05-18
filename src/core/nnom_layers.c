@@ -41,6 +41,11 @@ nnom_3d_shape_t stride(size_t h, size_t w)
 {
 	return shape(h, w, 1);
 }
+nnom_3d_shape_t dilation(size_t h, size_t w)
+{
+	return shape(h, w, 1);
+}
+
 nnom_border_t border(size_t top, size_t bottom, size_t left, size_t right)
 {
 	nnom_border_t b;

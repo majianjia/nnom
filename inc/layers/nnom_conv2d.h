@@ -60,7 +60,7 @@ typedef struct _nnom_conv2d_config_t
 } nnom_conv2d_config_t;
 
 
-nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad_type,
+nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_3d_shape_t d, nnom_padding_t pad_type,
 					 const nnom_weight_t *w, const nnom_bias_t *b);
 
 nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config);

@@ -98,13 +98,13 @@ nnom_status_t zero_padding_run(nnom_layer_t * layer)
 #else
 	local_zero_padding_HWC_q7(
 #endif
-						layer->in->mem->blk, 
+						layer->in->tensor->p_data, 
 						layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 						cl->pad.top,
 						cl->pad.bottom,
 						cl->pad.left,
 						cl->pad.right,
-						layer->out->mem->blk,
+						layer->out->tensor->p_data,
 						layer->out->tensor->dim[1], layer->out->tensor->dim[0]);
 
 	return NN_SUCCESS;
