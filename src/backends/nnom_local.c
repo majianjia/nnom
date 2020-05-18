@@ -378,7 +378,7 @@ void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
             for(int i = 0; i<dim_kernel_x; i++)
                 memcpy(pout + i * ch_im_in, p_in, ch_im_in);
             // duplicate the copied x data into y axis. 
-            for(int i = 1; i<dim_kernel_y-1; i++)
+            for(int i = 1; i<dim_kernel_y; i++)
                 memcpy(pout + i * ch_im_in * dim_im_in_x * dim_kernel_x, pout, ch_im_in * dim_kernel_x);
         }
     }
