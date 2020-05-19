@@ -52,6 +52,18 @@ nnom_status_t sumpool_build(nnom_layer_t *layer)
 nnom_status_t sumpool_run(nnom_layer_t *layer)
 {
 	nnom_sumpool_layer_t *cl = (nnom_sumpool_layer_t *)(layer);
+	uint16_t out_x, out_y;
+
+	// if global pooling
+	if(layer->out->tensor->num_dim == 1)
+	{
+		out_x = 1; out_y = 1;
+	}
+	else // normal pooling. 
+	{
+		out_x = layer->out->tensor->dim[1]; //W
+		out_y = layer->out->tensor->dim[0]; //h
+	}
 	
 #ifdef NNOM_USING_CHW
 	local_sumpool_q7_CHW(				
@@ -63,7 +75,7 @@ nnom_status_t sumpool_run(nnom_layer_t *layer)
 			cl->kernel.w, cl->kernel.h, 
 			cl->pad.w, cl->pad.h,
 			cl->stride.w, cl->stride.h,
-			layer->out->tensor->dim[1], layer->out->tensor->dim[0],
+			out_x, out_y,
 			layer->comp->mem->blk,
 			layer->out->tensor->p_data);
 

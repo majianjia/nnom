@@ -86,7 +86,9 @@ nnom_status_t input_run(nnom_layer_t *layer)
 {
 	nnom_io_layer_t *cl = (nnom_io_layer_t *)layer;
 #ifdef NNOM_USING_CHW
-	tensor_hwc2chw_q7(layer->out->tensor, layer->in->tensor);
+	//tensor_hwc2chw_q7(layer->out->tensor, layer->in->tensor); 	// this is not correct. both in and out tensor is the same tensor. 
+	nnom_3d_shape_t shape = {layer->in->tensor->dim[0], layer->in->tensor->dim[1], layer->in->tensor->dim[2]};
+	hwc2chw_q7(shape, cl->buf, layer->in->tensor->p_data);
 #else
 	memcpy(layer->in->tensor->p_data, cl->buf, tensor_size(layer->in->tensor));
 #endif

@@ -87,6 +87,7 @@ nnom_status_t upsample_build(nnom_layer_t *layer)
 nnom_status_t upsample_run(nnom_layer_t *layer)
 {
 	nnom_upsample_layer_t *cl = (nnom_upsample_layer_t *)(layer);
+
 #ifdef NNOM_USING_CHW
 	local_up_sampling_q7_CHW(				
 #else
