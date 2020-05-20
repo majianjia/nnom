@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -374,7 +374,7 @@ void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
             const q7_t *p_in = Im_in + (i_y * dim_im_in_x + i_x ) * ch_im_in;
             q7_t *pout = Im_out + (i_y * dim_im_in_x * dim_kernel_x * dim_kernel_y + i_x * dim_kernel_y) * ch_im_in;
 
-            // cpy along x axis
+            // copy along x axis
             for(int i = 0; i<dim_kernel_x; i++)
                 memcpy(pout + i * ch_im_in, p_in, ch_im_in);
             // duplicate the copied x data into y axis. 
