@@ -17,9 +17,24 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_zero_padding.h"
 
 nnom_status_t zero_padding_build(nnom_layer_t *layer);
 nnom_status_t zero_padding_run(nnom_layer_t *layer);
+
+
+
+nnom_layer_t * zeropadding_s(nnom_zero_padding_config_t* config)
+{
+	nnom_layer_t *layer;
+
+	layer = ZeroPadding(config->pad);
+
+	if(layer != NULL)
+		layer->config = config;
+	
+	return (nnom_layer_t*)layer;
+}
 
 // Zero padding layer
 nnom_layer_t *ZeroPadding(nnom_border_t pad)
@@ -40,8 +55,8 @@ nnom_layer_t *ZeroPadding(nnom_border_t pad)
 	// set type in layer parent
 	layer->super.type = NNOM_ZERO_PADDING;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
@@ -63,9 +78,9 @@ nnom_status_t zero_padding_build(nnom_layer_t* layer)
 	layer->in->tensor = layer->in->hook.io->tensor;
 
 	// create new tensor for output
-	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
 	// copy then change later. 
-	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
+	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// output shape
 	layer->out->tensor->dim[1] = layer->in->tensor->dim[1] + cl->pad.left + cl->pad.right;
@@ -83,13 +98,13 @@ nnom_status_t zero_padding_run(nnom_layer_t * layer)
 #else
 	local_zero_padding_HWC_q7(
 #endif
-						layer->in->mem->blk, 
+						layer->in->tensor->p_data, 
 						layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 						cl->pad.top,
 						cl->pad.bottom,
 						cl->pad.left,
 						cl->pad.right,
-						layer->out->mem->blk,
+						layer->out->tensor->p_data,
 						layer->out->tensor->dim[1], layer->out->tensor->dim[0]);
 
 	return NN_SUCCESS;

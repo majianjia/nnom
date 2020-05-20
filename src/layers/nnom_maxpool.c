@@ -17,16 +17,17 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_maxpool.h"
 
 #ifdef NNOM_USING_CMSIS_NN
 #include "arm_math.h"
 #include "arm_nnfunctions.h"
 #endif
 
-nnom_status_t maxpooling_build(nnom_layer_t *layer);
+nnom_status_t maxpool_build(nnom_layer_t *layer);
 nnom_status_t maxpool_run(nnom_layer_t *layer);
 
-nnom_layer_t *MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
+nnom_layer_t *MaxPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad_type)
 {
 	nnom_maxpool_layer_t *layer;
 	nnom_buf_t *comp;
@@ -46,11 +47,11 @@ nnom_layer_t *MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
 	// set type in layer parent
 	layer->super.type = NNOM_MAXPOOL;
 	layer->super.run = maxpool_run;
-	layer->super.build = maxpooling_build;
+	layer->super.build = maxpool_build;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
-	comp->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
+	comp->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
@@ -77,7 +78,7 @@ nnom_layer_t *MaxPool(nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad_type)
 	return (nnom_layer_t *)layer;
 }
 
-nnom_status_t maxpooling_build(nnom_layer_t *layer)
+nnom_status_t maxpool_build(nnom_layer_t *layer)
 {
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)layer;
 
@@ -85,9 +86,9 @@ nnom_status_t maxpooling_build(nnom_layer_t *layer)
 	layer->in->tensor = layer->in->hook.io->tensor;
 
 	// create new tensor for output
-	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
 	// copy then change later. 
-	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
+	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// now we set up the tensor shape, always HWC format
 	if (cl->padding_type == PADDING_SAME)
@@ -110,15 +111,28 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 {
 	nnom_maxpool_layer_t *cl = (nnom_maxpool_layer_t *)(layer);
 
+	uint16_t out_x, out_y;
+
+	// if global pooling
+	if(layer->out->tensor->num_dim == 1)
+	{
+		out_x = 1; out_y = 1;
+	}
+	else // normal pooling. 
+	{
+		out_x = layer->out->tensor->dim[1]; //W
+		out_y = layer->out->tensor->dim[0]; //h
+	}
+	
 #ifdef NNOM_USING_CHW
-	local_maxpool_q7_CHW(layer->in->mem->blk, 				
-			layer->in->tensor->dim[0], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+    local_maxpool_q7_CHW(layer->in->tensor->p_data, 				
+			layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 			cl->kernel.w, cl->kernel.h, 
 			cl->pad.w, cl->pad.h,
 			cl->stride.w, cl->stride.h,
-			layer->out->tensor->dim[1], layer->out->tensor->dim[0],
+			out_x, out_y,
 			NULL,
-			layer->out->mem->blk);
+			layer->out->tensor->p_data);
 #else //end of CHW
 	// HWC
 	#ifdef NNOM_USING_CMSIS_NN
@@ -127,26 +141,26 @@ nnom_status_t maxpool_run(nnom_layer_t *layer)
 		layer->out->tensor->dim[1] == layer->out->tensor->dim[0])
 	{
 		arm_maxpool_q7_HWC(
-			layer->in->mem->blk,
+			layer->in->tensor->p_data,
 			layer->in->tensor->dim[1], layer->in->tensor->dim[2],
 			cl->kernel.w, cl->pad.w, cl->stride.w,
 			layer->out->tensor->dim[1],
 			NULL,
-			layer->out->mem->blk);
+			layer->out->tensor->p_data);
 	}
 	// none square 2D, or 1D
 	else
 	#endif
 	{
 		// CMSIS-NN does not support none-square pooling, we have to use local implementation
-		local_maxpool_q7_HWC(layer->in->mem->blk, 				
+		local_maxpool_q7_HWC(layer->in->tensor->p_data, 				
 				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 				cl->kernel.w, cl->kernel.h, 
 				cl->pad.w, cl->pad.h,
 				cl->stride.w, cl->stride.h,
-				layer->out->tensor->dim[1], layer->out->tensor->dim[0],
+				out_x, out_y,
 				NULL,
-				layer->out->mem->blk);
+				layer->out->tensor->p_data);
 	}
 #endif // CHW/HWC
 	return NN_SUCCESS;

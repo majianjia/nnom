@@ -18,6 +18,11 @@
 #ifndef __NNOM_LOCAL_H__
 #define __NNOM_LOCAL_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include "stdint.h"
 #include "nnom.h"
 #include "nnom_port.h"
@@ -186,6 +191,8 @@ void local_convolve_HWC_q7_nonsquare(const q7_t * Im_in,            // input ima
 	const uint16_t padding_y,    // padding sizes y
 	const uint16_t stride_x,     // stride x
 	const uint16_t stride_y,     // stride y
+	const uint16_t dilation_x,   // dilation x
+	const uint16_t dilation_y,   // dilation y
 	const q7_t * bias,           // bias
 	const uint16_t bias_shift, const uint16_t out_shift, q7_t * Im_out,  // output image
 	const uint16_t dim_im_out_x, // output image dimension x
@@ -205,6 +212,8 @@ void local_convolve_CHW_q7_nonsquare(const q7_t * Im_in,            // input ima
 	const uint16_t padding_y,    // padding sizes y
 	const uint16_t stride_x,     // stride x
 	const uint16_t stride_y,     // stride y
+	const uint16_t dilation_x,   // dilation x
+	const uint16_t dilation_y,   // dilation y
 	const q7_t * bias,           // bias
 	const uint16_t bias_shift, const uint16_t out_shift, q7_t * Im_out,  // output image
 	const uint16_t dim_im_out_x, // output image dimension x
@@ -224,6 +233,8 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t * Im_in,  // inp
 	const uint16_t padding_y,    // padding sizes y
 	const uint16_t stride_x, // stride x
 	const uint16_t stride_y, // stride y
+	const uint16_t dilation_x,   // dilation x
+	const uint16_t dilation_y,   // dilation y
 	const q7_t * bias,   // bias
 	const uint16_t bias_shift,   // amount of left-shift for bias
 	const uint16_t out_shift,    // amount of right-shift for output
@@ -245,6 +256,8 @@ void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,         
 	const uint16_t padding_y,    // padding sizes y
 	const uint16_t stride_x,     // stride x
 	const uint16_t stride_y,     // stride y
+	const uint16_t dilation_x,   // dilation x
+	const uint16_t dilation_y,   // dilation y
 	const q7_t *bias,            // bias
 	const uint16_t bias_shift,   // amount of left-shift for bias
 	const uint16_t out_shift,    // amount of right-shift for output
@@ -418,5 +431,8 @@ static const q7_t nnom_tanh_table_q7[256] = {
     0xc5, 0xcb, 0xd2, 0xd9, 0xe1, 0xe8, 0xf0, 0xf8,
 };
 
-
+#ifdef __cplusplus
+}
 #endif
+
+#endif  /* __NNOM_LOCAL_H__ */

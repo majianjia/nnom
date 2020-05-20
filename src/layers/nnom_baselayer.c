@@ -17,11 +17,22 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_baselayer.h"
 
 // this layer copys the input to the output
 
 nnom_status_t default_build(nnom_layer_t *layer);
 nnom_status_t default_run(nnom_layer_t *layer);
+
+nnom_layer_t *baselayer_s(nnom_layer_config_t * config)
+{
+	nnom_layer_t *layer = BaseLayer();
+	if(layer)
+	{
+		layer->config = config;
+	}
+	return layer;
+}
 
 nnom_layer_t *BaseLayer()
 {
@@ -43,8 +54,8 @@ nnom_layer_t *BaseLayer()
 	layer->super.run = default_run;
 	layer->super.build = default_build;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_NULL;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_NULL;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
@@ -62,8 +73,8 @@ nnom_status_t default_build(nnom_layer_t *layer)
 	// output tensor
 	// 1. allocate a new tensor for output
 	// 2. set the same dim, qfmt to the new tensor.
-	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
-	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR,layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
+	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// now this build has passed the input tensors (shapes, formats) to the new tensors. 
 	return NN_SUCCESS;
@@ -72,7 +83,7 @@ nnom_status_t default_build(nnom_layer_t *layer)
 // simply copy input to output
 nnom_status_t default_run(nnom_layer_t *layer)
 {
-	if(layer->out->type != LAYER_BUF_NULL)
+	if(layer->out->type != NNOM_TENSOR_BUF_NULL)
 		memcpy(layer->out->tensor->p_data, layer->in->tensor->p_data, tensor_size(layer->in->tensor)); 
 	return NN_SUCCESS;
 }

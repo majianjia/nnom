@@ -17,10 +17,18 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_concat.h"
 
 nnom_status_t concat_build(nnom_layer_t *layer);
 nnom_status_t concat_run(nnom_layer_t *layer);
 
+nnom_layer_t *concat_s(nnom_concat_config_t *config)
+{
+	nnom_layer_t* layer = Concat(config->axis);
+	if(layer)
+		layer->config = config;
+	return layer;
+}
 
 // concate method
 // concate requires more than one input module. aux input will be allocated in model.merge()
@@ -45,15 +53,15 @@ nnom_layer_t *Concat(int8_t axis)
 	layer->super.run = concat_run;
 	layer->super.build = concat_build;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
 
 	// check the axis
 	{
-		uint32_t shape_element_num = sizeof(nnom_shape_t) / sizeof(nnom_shape_data_t);
+		uint32_t shape_element_num = sizeof(nnom_3d_shape_t) / sizeof(nnom_shape_data_t);
 		if (axis < 0)
 			axis = (shape_element_num + axis);
 		else if (axis >0)
@@ -87,8 +95,8 @@ nnom_status_t concat_build(nnom_layer_t *layer)
 		return NN_ARGUMENT_ERROR;
 
 	// allocate new tensor for output, keep the same dimension lenght
-	layer->out->tensor = new_tensor(NULL, layer->in->tensor->num_dim);
-	tensor_cpy_attributes(layer->out->tensor, layer->in->tensor);
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
+	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
 	// do the work
 	for (uint32_t i = 0; i < num_dim; i ++)
@@ -181,7 +189,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 		}
 	}
 	
-#else // end of HWC concate
+#else // end of CHW concate
 
 	// Concatenate for HWC	
 	uint8_t* pin;

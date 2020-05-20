@@ -14,6 +14,11 @@
 #ifndef __NNOM_H__
 #define __NNOM_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -27,7 +32,7 @@
 
 /* version */
 #define NNOM_MAJORVERSION     0L              /**< major version number */
-#define NNOM_SUBVERSION       3L              /**< minor version number */
+#define NNOM_SUBVERSION       4L              /**< minor version number */
 #define NNOM_REVISION         0L              /**< revise version number */
 #define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 										 
@@ -136,56 +141,64 @@ typedef enum
 	PADDING_SAME
 } nnom_padding_t;
 
-#define LAYER_BUF_NULL     (0)
-#define LAYER_BUF_TEMP     (1)  // The memory in IO is temporary occupided, can be reused by other layer once the computation is done.
-#define LAYER_BUF_RESERVED (2)  // the mem is reserve for this layer only (not to be reused by other layer.
+#define NNOM_TENSOR_BUF_NULL     (0)	// This buffer is not in used
+#define NNOM_TENSOR_BUF_TEMP     (1)  // The memory in IO is temporary occupided, can be reused by other layer once the computation is done.
+#define NNOM_TENSOR_BUF_RESERVED (2)  // the mem is reserve for this layer only (not to be reused by other layer.
 
 // currently used in compiling.
 #define NNOM_BUF_EMPTY   (0)
 #define NNOM_BUF_FILLED  (1)
 
 // basic types
+#define nnom_qformat_param_t int32_t // this should match the backend, need a better way to do it. 
 #define nnom_shape_data_t uint16_t
-typedef struct _nnom_shape_t
+
+typedef struct _nnom_3d_shape_t
 {
 	nnom_shape_data_t h, w, c;
-} nnom_shape_t;
+} nnom_3d_shape_t;
 
 typedef struct _nnom_border_t
 {
 	nnom_shape_data_t top, bottom, left, right;
 } nnom_border_t;
 
-// nnom_shape_axis_t type provide the axis[] format access to nnom_shape_t
+// nnom_3d_shape_axis_t type provide the axis[] format access to nnom_3d_shape_t
 typedef union {
-	nnom_shape_t s;
-	nnom_shape_data_t axis[sizeof(nnom_shape_t) / sizeof(nnom_shape_data_t)];
-} nnom_shape_axis_t;
+	nnom_3d_shape_t s;
+	nnom_shape_data_t axis[sizeof(nnom_3d_shape_t) / sizeof(nnom_shape_data_t)];
+} nnom_3d_shape_axis_t;
 
-typedef struct _nnom_qformat
+// tensor quantisation types
+typedef enum
 {
-	int8_t m, n;
-} nnom_qformat_t;
+	NNOM_QTYPE_PER_TENSOR = 0,
+	NNOM_QTYPE_PER_AXIS = 1
+} nnom_qtype_t;
+
 
 typedef struct _nnom_weights
 {
 	const void *p_value;
-	size_t shift;
+	nnom_qformat_param_t shift;
 } nnom_weight_t;
 
 typedef struct _nnom_bias
 {
 	const void *p_value;
-	size_t shift;
+	nnom_qformat_param_t shift;
 } nnom_bias_t;
 
-// experimental
+// experimental                   
 typedef struct _nnom_tensor_t
 {
-	void* p_data;
-	nnom_shape_data_t *dim;
-	uint8_t num_dim;
-	nnom_qformat_t qfmt;
+	void* p_data;			// value
+	nnom_shape_data_t *dim; // dimension of this tensor
+	nnom_qformat_param_t *q_dec;	// number of decimal bit for Q format (scale)
+	nnom_qformat_param_t *q_offset;	// offset for each channel
+	nnom_qtype_t qtype;			// the quantisation type	
+	uint8_t num_dim;			// the number of dimension
+	uint8_t bitwidth;			// the data bit width, only support 8bit now
 } nnom_tensor_t;
 
 // nn wrappers
@@ -200,14 +213,15 @@ typedef struct _nnom_activation_t nnom_activation_t;
 typedef struct _nnom_buf
 {
 	nnom_mem_block_t *mem;
-	nnom_shape_t shape;
+	size_t size;
 	uint8_t type;
 } nnom_buf_t;
 
+// a memory block to store pre-assign memories during compiling. then assigned to each tensor after.   
 typedef struct _nnom_mem_block_t
 {
-	void *blk;
-	size_t size;
+	void *blk;		// data block location
+	size_t size;	// the maximum size for this block
 	uint8_t owners; // how many layers own this block
 	uint8_t state;  // empty? filled? for static nn, currently only used in compiling
 } nnom_mem_block_t;
@@ -227,43 +241,51 @@ typedef struct _nnom_layer_hook_t
 typedef struct _nnom_layer_io_t
 {
 	nnom_layer_hook_t hook;		  // for example: (layer->out)--hook--(layer->in)
-	struct _nnom_layer_io_t *aux; // point to auxilary I/O (multiple I/O layer or RNN)
-
+	nnom_layer_io_t *aux; 			// point to auxilary I/O (multiple I/O layer)
 	nnom_tensor_t *tensor;		  // experimental 
-
-	nnom_mem_block_t *mem;		  // a memory block that use for input/output
-	nnom_layer_t *owner;		  // this io is belong to the owner layer.
-	//nnom_shape_t shape;		  // shape of the buf
-	//nnom_qformat_t qfmt;        // the q format of the memory
+	nnom_mem_block_t *mem;		  // memory blocks handles for compiling only. The memory are now pass by tensor. trying to remove it. 
+	nnom_layer_t *owner;		  // which layer owns this io.
 	uint8_t type;
 } nnom_layer_io_t;
+
+// structured configuration base type
+typedef struct _nnom_layer_config_t
+{
+	char* name;			// the name of the layer prequantiesd model (the model trained by user before converted to nnom)
+} nnom_layer_config_t;
 
 // layers base
 typedef struct _nnom_layer_t
 {
+	nnom_layer_t *shortcut; // shortcut points to the next layer, applied on compiling
+
 	nnom_status_t (*run)(nnom_layer_t *layer);				// run method. required
 	nnom_status_t (*build)(nnom_layer_t *layer);			// compute output buffer shape. can be left null, will call default_build()
 	nnom_status_t (*free)(nnom_layer_t *layer);				// a callback to free private resources (comp buf not included) can be left null
 	nnom_buf_t *comp;		   								// computational buf
 	nnom_activation_t *actail; 								// I have an activation, I have a tail, wooo haaaa, act-tail!!!
 
-	nnom_layer_type_t type;
+	void *config;			// point to the configuration of the layers. for machine api only. 
+	nnom_layer_type_t type; // layer types
 	nnom_layer_io_t *in;	// IO buff, last*layer, states
 	nnom_layer_io_t *out;   // IO buff, next*layer, states
 	nnom_layer_stat_t stat; // stats, timing, ops
-	nnom_layer_t *shortcut; // shortcut points to the next layer, applied on compiling
 } nnom_layer_t;
 
-// add data type later
-// probably change to tensor version. 
+// activation base
 typedef struct _nnom_activation_t
 {
 	nnom_status_t (*run)(struct _nnom_activation_t *act);
-	void *data;  // data & type will be given before activation
-	size_t size; //
-	nnom_qformat_t qfmt; // data type
+	nnom_tensor_t *tensor;
 	nnom_activation_type_t type;
 } nnom_activation_t;
+
+// activation with fixed q format (tanh and sigmoid)
+typedef struct _nnom_activation_fixed_q_t
+{
+	nnom_activation_t super;
+	uint8_t dec_bit;
+} nnom_activation_fixed_q_t;
 
 typedef struct _nnom_model nnom_model_t;
 
@@ -292,8 +314,8 @@ typedef struct _nnom_model
 
 	size_t total_ops;
 
-	bool is_inited; //	is this structure initialized
-	bool is_alloc;  //	is this structure allocated by nnom (not by user)
+	bool is_inited; 	//	is this structure initialized
+	bool is_allocated;  //	is this structure allocated by nnom (not by user)
 } nnom_model_t;
 
 #define NNOM_NULL_CHECK(p)                 \
@@ -334,4 +356,8 @@ nnom_status_t model_set_callback(nnom_model_t *m, nnom_status_t (*layer_callback
 // delete callback. 
 void model_delete_callback(nnom_model_t *m);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* __NNOM_H__ */

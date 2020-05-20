@@ -19,9 +19,6 @@
 #include "nnom.h"
 #include "nnom_local.h"
 
-
-
-
 // modified from CMSIS-NN test_ref
 void local_avepool_q7_HWC(const q7_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
@@ -381,7 +378,7 @@ void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
             for(int i = 0; i<dim_kernel_x; i++)
                 memcpy(pout + i * ch_im_in, p_in, ch_im_in);
             // duplicate the copied x data into y axis. 
-            for(int i = 1; i<dim_kernel_y-1; i++)
+            for(int i = 1; i<dim_kernel_y; i++)
                 memcpy(pout + i * ch_im_in * dim_im_in_x * dim_kernel_x, pout, ch_im_in * dim_kernel_x);
         }
     }
@@ -414,7 +411,7 @@ void local_up_sampling_q7_CHW(const q7_t *Im_in,       // input image
 				for(int i = 0; i<dim_kernel_x; i++)
 					*(pout + i) =  *p_in;
 				// duplicate the copied x data into y axis. 
-				for(int i = 1; i<dim_kernel_y-1; i++)
+				for(int i = 1; i<dim_kernel_y; i++)
 					memcpy(pout + i * dim_im_in_x * dim_kernel_x, pout, dim_kernel_x);
 			}
 		}
@@ -434,6 +431,8 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
 	const uint16_t padding_y,                                          // padding sizes y
 	const uint16_t stride_x,                                           // stride x
 	const uint16_t stride_y,                                           // stride y
+    const uint16_t dilation_x,                                         // dilation x
+	const uint16_t dilation_y,                                         // dilation y
 	const q7_t *bias,                                                  // bias
 	const uint16_t bias_shift, const uint16_t out_shift, q7_t *Im_out, // output image
 	const uint16_t dim_im_out_x,                                       // output image dimension x
@@ -445,6 +444,7 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
     int i, j, k, l, m, n;
     int conv_out;
     int in_row, in_col;
+    int in_pix_loc, wt_loc;
 
     for (i = 0; i < ch_im_out; i++)
     {
@@ -462,15 +462,17 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
                     for (n = 0; n < dim_kernel_x; n++)
                     {
                         // if-for implementation
-                        in_row = stride_y * j + m - padding_y;
-                        in_col = stride_x * k + n - padding_x;
+                        in_row = stride_y * j + m * dilation_x - padding_y;
+                        in_col = stride_x * k + n * dilation_x - padding_x;
                         if (in_row >= 0 && in_col >= 0 && in_row < dim_im_in_y && in_col < dim_im_in_x)
                         {
+                            // pre-calculate the pixel location and weight location to improve the performance.
+                            in_pix_loc = (in_row * dim_im_in_x + in_col) * ch_im_in;
+                            wt_loc = i * ch_im_in * dim_kernel_y * dim_kernel_x + (m * dim_kernel_x + n) * ch_im_in;
+
                             for (l = 0; l < ch_im_in; l++)
-                            {
-                                conv_out += Im_in[(in_row * dim_im_in_x + in_col) * ch_im_in + l] *
-                                            wt[i * ch_im_in * dim_kernel_y * dim_kernel_x + (m * dim_kernel_x + n) * ch_im_in +
-                                               l];
+                            {    
+                                conv_out += Im_in[in_pix_loc + l] * wt[wt_loc + l];
                             }
                         }
                     }
@@ -494,6 +496,8 @@ void local_convolve_CHW_q7_nonsquare(const q7_t *Im_in,                // input 
 	const uint16_t padding_y,                                          // padding sizes y
 	const uint16_t stride_x,                                           // stride x
 	const uint16_t stride_y,                                           // stride y
+    const uint16_t dilation_x,                                         // dilation x
+	const uint16_t dilation_y,                                         // dilation y
 	const q7_t *bias,                                                  // bias
 	const uint16_t bias_shift, const uint16_t out_shift, q7_t *Im_out, // output image
 	const uint16_t dim_im_out_x,                                       // output image dimension x
@@ -522,8 +526,8 @@ void local_convolve_CHW_q7_nonsquare(const q7_t *Im_in,                // input 
 					for (n = 0; n < dim_kernel_x; n++)
 					{
 						// if-for implementation
-						in_row = stride_y * j + m - padding_y;
-						in_col = stride_x * k + n - padding_x;
+						in_row = stride_y * j + m * dilation_y  - padding_y;
+						in_col = stride_x * k + n * dilation_x - padding_x;
 						if (in_row >= 0 && in_col >= 0 && in_row < dim_im_in_y && in_col < dim_im_in_x)
 						{
 							for (l = 0; l < ch_im_in; l++)
@@ -553,6 +557,8 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,         
 	const uint16_t padding_y,    // padding sizes y
 	const uint16_t stride_x,     // stride x
 	const uint16_t stride_y,     // stride y
+    const uint16_t dilation_x,   // dilation x
+	const uint16_t dilation_y,   // dilation y
 	const q7_t *bias,            // bias
 	const uint16_t bias_shift,   // amount of left-shift for bias
 	const uint16_t out_shift,    // amount of right-shift for output
@@ -581,8 +587,8 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,         
                 {
                     for (i_ker_x = 0; i_ker_x < dim_kernel_x; i_ker_x++)
                     {
-                        int in_row = stride_y * i_out_y + i_ker_y - padding_y;
-                        int in_col = stride_x * i_out_x + i_ker_x - padding_x;
+                        int in_row = stride_y * i_out_y + i_ker_y * dilation_y - padding_y;
+                        int in_col = stride_x * i_out_x + i_ker_x * dilation_x - padding_x;
                         if (in_row >= 0 && in_col >= 0 && in_row < dim_im_in_y && in_col < dim_im_in_x)
                         {
                             conv_out += Im_in[(in_row * dim_im_in_x + in_col) * ch_im_in + i_ch_out] *
@@ -609,6 +615,8 @@ void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,         
 	const uint16_t padding_y,    // padding sizes y
 	const uint16_t stride_x,     // stride x
 	const uint16_t stride_y,     // stride y
+    const uint16_t dilation_x,   // dilation x
+	const uint16_t dilation_y,   // dilation y
 	const q7_t *bias,            // bias
 	const uint16_t bias_shift,   // amount of left-shift for bias
 	const uint16_t out_shift,    // amount of right-shift for output
@@ -638,8 +646,8 @@ void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,         
 					for (i_ker_x = 0; i_ker_x < dim_kernel_x; i_ker_x++)
 					{
 						// if-for implementation
-						int in_row = stride_y * i_out_y + i_ker_y - padding_y;
-						int in_col = stride_x * i_out_x + i_ker_x - padding_x;
+						int in_row = stride_y * i_out_y + i_ker_y * dilation_y  - padding_y;
+						int in_col = stride_x * i_out_x + i_ker_x * dilation_x  - padding_x;
 						if (in_row >= 0 && in_col >= 0 && in_row < dim_im_in_y && in_col < dim_im_in_x)
 						{
 							conv_out += Im_in[(in_row * dim_im_in_x + in_col) + i_ch_out * dim_im_in_x * dim_im_in_y] *

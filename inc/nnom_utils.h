@@ -13,6 +13,11 @@
 #ifndef __NNOM_UTILS_H__
 #define __NNOM_UTILS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -77,4 +82,8 @@ nnom_status_t nnom_predict(nnom_model_t *m, uint32_t *label, float *prob);
 
 void model_stat(nnom_model_t *m);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif /*__NNOM_UTILS_H__ */

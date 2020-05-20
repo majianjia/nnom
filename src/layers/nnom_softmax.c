@@ -17,6 +17,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_softmax.h"
 
 #ifdef NNOM_USING_CMSIS_NN
 #include "arm_math.h"
@@ -24,6 +25,7 @@
 #endif
 
 nnom_status_t softmax_run(nnom_layer_t *layer);
+
 
 nnom_layer_t *Softmax(void)
 {
@@ -45,8 +47,8 @@ nnom_layer_t *Softmax(void)
 	layer->run = softmax_run;
 	layer->build = default_build;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->in = io_init(layer, in);
 	layer->out = io_init(layer, out);

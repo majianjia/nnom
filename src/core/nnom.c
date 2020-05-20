@@ -201,30 +201,18 @@ static nnom_layer_t *model_hook(nnom_layer_t *curr, nnom_layer_t *last)
 // method = functional layer such as (concat(), mult(), add(), sub())
 static nnom_layer_t *model_mergex(nnom_layer_t *method, int num, ...)
 {
-	nnom_layer_t *in_layer;
-	nnom_layer_io_t *method_in_io;
-	nnom_layer_hook_t *output_io_hook;
-
+	nnom_layer_t *layer_in;
 	va_list valist;
 
 	if (method == NULL)
 		return NULL;
 
 	va_start(valist, num);
-
 	for (int i = 0; i < num; i++)
 	{
 		// get the input layer
-		in_layer = va_arg(valist, nnom_layer_t *);
-
-		// add a new hook to the output io of the input layer
-		output_io_hook = allocate_hook(in_layer->out);
-		// add a new input io to the method layer's input list.
-		method_in_io = allocate_io(method->in);
-
-		// manually hook them togeter.
-		output_io_hook->io = method_in_io;
-		method_in_io->hook.io = in_layer->out;
+		layer_in = va_arg(valist, nnom_layer_t *);
+		model_hook(method, layer_in);
 	}
 	va_end(valist);
 	return method;
@@ -253,12 +241,12 @@ nnom_model_t *new_model(nnom_model_t *model)
 	if (m == NULL)
 	{
 		m = nnom_mem(sizeof(nnom_model_t));
-		m->is_alloc = true;
+		m->is_allocated = true;
 	}
 	else
 	{
 		memset(m, 0, sizeof(nnom_model_t));
-		m->is_alloc = false;
+		m->is_allocated = false;
 	}
 
 	// set methods
@@ -329,6 +317,11 @@ static void layer_delete(nnom_layer_t *layer)
 {
 	if (layer == NULL)
 		return;
+
+	// call private free of the layer
+	if (layer->free)
+		layer->free(layer);
+
 	// delete the tensors first. only input layer should delete input 
 	if (layer->type == NNOM_INPUT)
 		io_tensor_delete(layer->in);
@@ -341,10 +334,6 @@ static void layer_delete(nnom_layer_t *layer)
 
 	// release activations (it takes null too)
 	nnom_free(layer->actail);
-
-	// call private free of the layer
-	if (layer->free)
-		layer->free(layer);
 
 	// release primary memory
 	nnom_free(layer);
@@ -375,7 +364,7 @@ void model_delete(nnom_model_t *m)
 	nnom_free(m->blocks->blk);
 
 	// free model instance itself
-	if (m->is_alloc)
+	if (m->is_allocated)
 		nnom_free(m);
 	else
 		nnom_memset(m, 0, sizeof(nnom_model_t));
@@ -501,7 +490,7 @@ static void print_layer_info(nnom_layer_t *layer, uint32_t layer_count)
 	size_t compsize;
 	size_t mac = layer->stat.macc;
 	if (layer->comp != NULL)
-		compsize = shape_size(&layer->comp->shape);
+		compsize = layer->comp->size;
 	else
 		compsize = 0;
 	// names
@@ -648,7 +637,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 			layer->comp->mem->owners += 1; // add us to buffer users
 			layer->comp->mem->state = NNOM_BUF_FILLED;
 			// record maximum mem size in this block
-			mem_size = nnom_alignto(shape_size(&layer->comp->shape), 4);
+			mem_size = nnom_alignto(layer->comp->size, 4);
 			layer->comp->mem->size =
 				mem_size > layer->comp->mem->size ? mem_size : layer->comp->mem->size;
 		}
@@ -667,7 +656,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 		if (layer->out->aux == NULL && layer->out->hook.next == NULL)
 		{
 			// single buf layer.
-			if (layer->in->type == LAYER_BUF_NULL || layer->out->type == LAYER_BUF_NULL)
+			if (layer->in->type == NNOM_TENSOR_BUF_NULL || layer->out->type == NNOM_TENSOR_BUF_NULL)
 			{
 				// pass to next layer directly, like we never touch the buffer(dont change life-time)
 				layer->out->mem = layer->in->mem;
@@ -705,7 +694,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 		else
 		{
 			// single buf layer will use the input buf for the first output
-			if (layer->in->type == LAYER_BUF_NULL || layer->out->type == LAYER_BUF_NULL)
+			if (layer->in->type == NNOM_TENSOR_BUF_NULL || layer->out->type == NNOM_TENSOR_BUF_NULL)
 			{
 				// we dont allocate new buf, but use the input
 				// the ownership will be set to next layer later
@@ -851,6 +840,8 @@ nnom_status_t tensor_mem_set(nnom_model_t *m)
 
 		layer = layer->shortcut;
 	}
+	
+	return NN_SUCCESS;
 }
 
 // this function has to be used after memory is assigned to the layers.
@@ -867,11 +858,12 @@ nnom_status_t set_tailed_activation(nnom_model_t *m)
 	{
 		if (layer->actail != NULL)
 		{
-			layer->actail->data = layer->out->tensor->p_data;
-			layer->actail->size = tensor_size(layer->out->tensor);
-			// if actail has its own shifting, then leave it as it is. otherwise set it to same as output
-			if(layer->actail->qfmt.m == 0 && layer->actail->qfmt.n == 0)
-				layer->actail->qfmt = layer->out->tensor->qfmt;
+			layer->actail->tensor = layer->out->tensor;
+			// layer->actail->data = layer->out->tensor->p_data;
+			// layer->actail->size = tensor_size(layer->out->tensor);
+			// // if actail has its own shifting, then leave it as it is. otherwise set it to the same as output
+			// if(layer->actail->qfmt.m == 0 && layer->actail->qfmt.n == 0)
+			// 	layer->actail->qfmt = layer->out->tensor->qfmt;
 		}
 		if (layer->shortcut == NULL)
 			break;

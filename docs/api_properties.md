@@ -13,7 +13,7 @@ Properties include some basic properties such as shape of the data buffer, Q-for
 typedef struct _nnom_shape
 {
 	nnom_shape_data_t h, w, c;
-} nnom_shape_t;
+} nnom_3d_shape_t;
 
 typedef struct _nnom_weights
 {
@@ -48,7 +48,7 @@ typedef struct _nnom_border_t
 ## shape() 
 
 ~~~C
-nnom_shape_t shape(size_t h, size_t w, size_t c);
+nnom_3d_shape_t shape(size_t h, size_t w, size_t c);
 ~~~
 
 **Arguments**
@@ -66,7 +66,7 @@ nnom_shape_t shape(size_t h, size_t w, size_t c);
 ## kernel()
 
 ~~~C
-nnom_shape_t kernel(size_t h, size_t w);
+nnom_3d_shape_t kernel(size_t h, size_t w);
 ~~~
 
 Use in pooling or convolutional layer to specified the kernel size. 
@@ -85,7 +85,7 @@ Use in pooling or convolutional layer to specified the kernel size.
 ## stride() 
 
 ~~~C
-nnom_shape_t stride(size_t h, size_t w);
+nnom_3d_shape_t stride(size_t h, size_t w);
 ~~~
 
 Use in pooling or convolutional layer to specified the stride size. 
@@ -147,7 +147,7 @@ The Q-format within model is currently handled by Python script `nnom_utils.py`.
 ## shape_size()
 
 ~~~C
-size_t shape_size(nnom_shape_t *s);
+size_t shape_size(nnom_3d_shape_t *s);
 ~~~
 
 Calculate the size from a shape. 

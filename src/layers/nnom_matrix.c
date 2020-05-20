@@ -17,6 +17,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_matrix.h"
 
 // TODO, completely change this file to local version
 #ifdef NNOM_USING_CMSIS_NN
@@ -79,7 +80,7 @@ nnom_layer_t *_same_shape_matrix_layer()
 	size_t mem_size;
 
 	// apply a block memory for all the sub handles.
-	mem_size = sizeof(nnom_matrix_layer_t) + sizeof(nnom_layer_io_t) * 2;// + sizeof(nnom_buf_t);
+	mem_size = sizeof(nnom_matrix_layer_t) + sizeof(nnom_layer_io_t) * 2;
 	layer = nnom_mem(mem_size);
 	if (layer == NULL)
 		return NULL;
@@ -92,9 +93,9 @@ nnom_layer_t *_same_shape_matrix_layer()
 	// set type in layer parent
 	layer->super.build = default_build;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
-	//comp->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
+	//comp->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);

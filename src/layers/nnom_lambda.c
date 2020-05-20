@@ -17,6 +17,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_lambda.h"
 
 // TODO: extended to multiple IO layer
 nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),
@@ -38,8 +39,8 @@ nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),
 	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
 
 	// set buf type.
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
 
 	// set io modules to the layer
 	layer->super.in = io_init(layer, in);

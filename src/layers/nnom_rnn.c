@@ -17,6 +17,7 @@
 #include "nnom.h"
 #include "nnom_local.h"
 #include "nnom_layers.h"
+#include "layers/nnom_rnn.h"
 
 nnom_status_t rnn_build(nnom_layer_t *layer);
 nnom_status_t rnn_run(nnom_layer_t *layer);
@@ -65,9 +66,9 @@ nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence)
 	// set type in layer parent
 	layer->super.type = NNOM_RNN;
 	// set buf state
-	in->type = LAYER_BUF_TEMP;
-	out->type = LAYER_BUF_TEMP;
-	comp->type = LAYER_BUF_RESERVED; // reserve buf for RNN state (statfulness)
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_TEMP;
+	comp->type = NNOM_TENSOR_BUF_RESERVED; // reserve buf for RNN state (statfulness)
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
@@ -94,7 +95,7 @@ nnom_status_t simplecell_build(nnom_layer_t* layer, nnom_rnn_cell_t* cell)
 // TODO
 nnom_status_t rnn_build(nnom_layer_t* layer)
 {
-	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t*)layer;
+	//nnom_rnn_layer_t* cl = (nnom_rnn_layer_t*)layer;
 	/*
 	// get the last layer's output as input shape
 	layer->in->shape = layer->in->hook.io->shape;

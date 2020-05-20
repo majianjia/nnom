@@ -14,7 +14,7 @@ Layers APIs are listed in *nnom_layers.h*
 ## Input()
 
 ~~~c
-nnom_layer_t* Input(nnom_shape_t input_shape, * p_buf);
+nnom_layer_t* Input(nnom_3d_shape_t input_shape, * p_buf);
 ~~~
 
 **A model must start with a Input layer** to copy input data from user memory space to NNoM memory space. 
@@ -34,7 +34,7 @@ If NNoM is set to CHW format, the Input layer will also change the input format 
 ## Output()
 
 ~~~c
-nnom_layer_t* Output(nnom_shape_t output_shape* p_buf);
+nnom_layer_t* Output(nnom_3d_shape_t output_shape* p_buf);
 ~~~
 
 Output layer is to copy the result from NNoM memory space to user memory space. 
@@ -53,7 +53,7 @@ Output layer is to copy the result from NNoM memory space to user memory space.
 ## Conv2D()
 
 ~~~c
-nnom_layer_t* Conv2D(uint32_t filters, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad,
+nnom_layer_t* Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad,
 	nnom_weight_t *w, nnom_bias_t *b);
 ~~~
 
@@ -82,7 +82,7 @@ When it is used for 1D convolution, the H should be set to 1 constantly in kerne
 ## DW_Conv2D()
 
 ~~~C
-nnom_layer_t* DW_Conv2D(uint32_t multiplier, nnom_shape_t k, nnom_shape_t s, nnom_padding_t pad, 
+nnom_layer_t* DW_Conv2D(uint32_t multiplier, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad, 
 	nnom_weight_t *w, nnom_bias_t *b);
 ~~~
 
@@ -129,7 +129,7 @@ A fully connected layer. It will flatten the data if the last output is mutiple-
 ## UpSample()
 
 ~~~C
-nnom_layer_t *UpSample(nnom_shape_t kernel);
+nnom_layer_t *UpSample(nnom_3d_shape_t kernel);
 ~~~
 
 A basic up sampling, using nearest interpolation
