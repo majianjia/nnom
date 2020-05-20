@@ -24,8 +24,19 @@
 #include "arm_nnfunctions.h"
 #endif
 
-nnom_status_t avgpooling_build(nnom_layer_t *layer);
-nnom_status_t avgpool_run(nnom_layer_t *layer);
+nnom_layer_t *avgpool_s(nnom_pool_config_t * config)
+{
+	nnom_avgpool_layer_t *cl;
+	cl = (nnom_avgpool_layer_t *)AvgPool(kernel(config->kernel_size[0], config->kernel_size[1]), 
+					stride(config->stride_size[0], config->stride_size[1]),
+					config->padding_type);
+	if(cl)
+	{
+		cl->super.config = config;
+		cl->output_shift = config->output_shift; // no idea if we need it
+	}
+	return (nnom_layer_t *)cl;
+}
 
 nnom_layer_t *AvgPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad_type)
 {

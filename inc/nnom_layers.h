@@ -42,6 +42,7 @@ nnom_layer_io_t *io_init(void *owner_layer, nnom_layer_io_t *io);
 #define NN_CEILIF(x,y) ((x+y-1)/y)
 
 // Layer APIs ******
+// (a summary for each individual layer's files)
 
 // input/output
 nnom_layer_t *Input(nnom_3d_shape_t input_shape, void *p_buf);
@@ -68,9 +69,9 @@ nnom_layer_t *Sigmoid(int32_t dec_bit);  // input dec bit
 nnom_layer_t *TanH(int32_t dec_bit);     // input dec bit 
 
 // Matrix
-nnom_layer_t *Add(int32_t oshift);       // output shift
-nnom_layer_t *Sub(int32_t oshift);       // output shift			
-nnom_layer_t *Mult(int32_t oshift);      // output shift
+nnom_layer_t *Add(int16_t oshift);       // output shift
+nnom_layer_t *Sub(int16_t oshift);       // output shift			
+nnom_layer_t *Mult(int16_t oshift);      // output shift
 
 nnom_layer_t *Flatten(void);
 nnom_layer_t *Concat(int8_t axis);

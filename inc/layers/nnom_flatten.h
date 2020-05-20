@@ -31,8 +31,13 @@ typedef struct _nnom_flatten_config_t{
     nnom_layer_config_t super;
 } nnom_flatten_config_t;
 
+// method
+nnom_status_t flatten_build(nnom_layer_t *layer);
+nnom_status_t flatten_run(nnom_layer_t *layer);
+
+// API
+nnom_layer_t *flatten_s(nnom_flatten_config_t *config);
 nnom_layer_t *Flatten(void);
-nnom_layer_t *flatten_s(nnom_flatten_config_t * config);
 
 #ifdef __cplusplus
 }

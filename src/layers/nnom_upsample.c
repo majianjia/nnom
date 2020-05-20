@@ -19,9 +19,6 @@
 #include "nnom_layers.h"
 #include "layers/nnom_upsample.h"
 
-nnom_status_t upsample_build(nnom_layer_t *layer);
-nnom_status_t upsample_run(nnom_layer_t *layer);
-
 nnom_layer_t *upsample_s(nnom_upsample_config_t *config)
 {
 	nnom_layer_t *layer = UpSample(config->kernel);

@@ -26,7 +26,6 @@ extern "C" {
 #include "nnom_local.h"
 #include "nnom_tensor.h"
 
-
 // Max Pooling
 typedef struct _nnom_maxpool_layer_t
 {
@@ -37,6 +36,24 @@ typedef struct _nnom_maxpool_layer_t
 	nnom_padding_t padding_type;
 	int16_t output_shift;			// reserve
 } nnom_maxpool_layer_t;
+
+// a machine interface for configuration
+typedef struct _nnom_pool_config_t
+{
+	nnom_layer_config_t super;
+	nnom_padding_t padding_type;
+	int16_t output_shift;
+	int8_t kernel_size[2];
+	int8_t stride_size[2];
+} nnom_pool_config_t;
+
+// method
+nnom_status_t maxpool_build(nnom_layer_t *layer);
+nnom_status_t maxpool_run(nnom_layer_t *layer);
+
+// API
+nnom_layer_t *maxpool_s(nnom_pool_config_t * config);
+nnom_layer_t *MaxPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad_type);
 
 #ifdef __cplusplus
 }

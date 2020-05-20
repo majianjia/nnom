@@ -19,9 +19,6 @@
 #include "nnom_layers.h"
 #include "layers/nnom_concat.h"
 
-nnom_status_t concat_build(nnom_layer_t *layer);
-nnom_status_t concat_run(nnom_layer_t *layer);
-
 nnom_layer_t *concat_s(nnom_concat_config_t *config)
 {
 	nnom_layer_t* layer = Concat(config->axis);

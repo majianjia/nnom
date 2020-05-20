@@ -26,6 +26,19 @@ extern "C" {
 #include "nnom_local.h"
 #include "nnom_tensor.h"
 
+typedef struct _nnom_softmax_config_t
+{
+    nnom_layer_config_t super;
+} nnom_softmax_config_t;
+
+
+// method
+nnom_status_t softmax_run(nnom_layer_t *layer);
+
+// API
+nnom_layer_t *softmax_s(nnom_softmax_config_t * config);
+nnom_layer_t *Softmax(void);
+
 #ifdef __cplusplus
 }
 #endif

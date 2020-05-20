@@ -34,6 +34,9 @@ typedef struct _nnom_activation_layer_t
 	nnom_activation_t *act; 
 } nnom_activation_layer_t;
 
+// method
+nnom_status_t activation_run(nnom_layer_t* layer);
+nnom_status_t activation_free(nnom_layer_t *layer);
 
 #ifdef __cplusplus
 }

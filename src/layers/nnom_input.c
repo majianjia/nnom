@@ -19,9 +19,6 @@
 #include "nnom_layers.h"
 #include "layers/nnom_input.h"
 
-nnom_status_t input_build(nnom_layer_t *layer);
-nnom_status_t input_run(nnom_layer_t *layer);
-
 nnom_layer_t *input_s(nnom_io_config_t* config)
 {
 	nnom_layer_t *layer = Input(config->shape, config->data);

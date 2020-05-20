@@ -20,15 +20,10 @@
 #include "nnom_layers.h"
 #include "layers/nnom_conv2d.h"
 
-
 #ifdef NNOM_USING_CMSIS_NN
 #include "arm_math.h"
 #include "arm_nnfunctions.h"
 #endif
-
-nnom_status_t conv2d_run(nnom_layer_t *layer);
-nnom_status_t conv2d_build(nnom_layer_t *layer);
-nnom_status_t conv2d_free(nnom_layer_t *layer);
 
 // a machine friendly api, with suffix _s for structured configuration.  
 nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config)

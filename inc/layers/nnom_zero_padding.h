@@ -26,13 +26,11 @@ extern "C" {
 #include "nnom_local.h"
 #include "nnom_tensor.h"
 
-
 typedef struct _nnom_zero_padding_config_t
 {
 	nnom_layer_config_t super;
 	nnom_border_t pad;
 } nnom_zero_padding_config_t;
-
 
 // zero padding
 typedef struct _nnom_zero_padding_layer_t
@@ -41,9 +39,13 @@ typedef struct _nnom_zero_padding_layer_t
 	nnom_border_t pad;
 } nnom_zero_padding_layer_t;
 
-
-
+// API
+nnom_layer_t *zeropadding_s(nnom_zero_padding_config_t* config);
 nnom_layer_t *ZeroPadding(nnom_border_t pad);
+
+// method
+nnom_status_t zero_padding_build(nnom_layer_t *layer);
+nnom_status_t zero_padding_run(nnom_layer_t *layer);
 
 #ifdef __cplusplus
 }

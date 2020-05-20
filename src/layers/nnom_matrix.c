@@ -25,50 +25,65 @@
 #include "arm_nnfunctions.h"
 #endif
 
-nnom_layer_t* _same_shape_matrix_layer();
-nnom_status_t add_run(nnom_layer_t *layer);
-nnom_status_t sub_run(nnom_layer_t *layer);
-nnom_status_t mult_run(nnom_layer_t *layer);
-
-nnom_layer_t *Add(int32_t oshift)
+nnom_layer_t *add_s( nnom_matrix_config_t * config)
 {
-	nnom_layer_t *layer = _same_shape_matrix_layer();
-	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t*) layer;
-	if (layer == NULL)
-		return NULL;
-	// set type in layer parent
-	layer->type = NNOM_ADD;
-	layer->run = add_run;
-	cl->oshift = oshift;
-	return layer;
+	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t *) Add(config->output_shift);
+	if(cl)
+		cl->super.config = config;
+	return (nnom_layer_t *)cl;
 }
 
-nnom_layer_t *Sub(int32_t oshift)
+nnom_layer_t *sub_s( nnom_matrix_config_t * config)
 {
-	nnom_layer_t *layer = _same_shape_matrix_layer();
-	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t*) layer;
-	if (layer == NULL)
-		return NULL;
-	// set type in layer parent
-	layer->type = NNOM_SUB;
-	layer->run = sub_run;
-	cl->oshift = oshift;
-	return layer;
+	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t *) Sub(config->output_shift);
+	if(cl)
+		cl->super.config = config;
+	return (nnom_layer_t *)cl;
 }
 
-nnom_layer_t *Mult(int32_t oshift)
+nnom_layer_t *mult_s( nnom_matrix_config_t * config)
 {
-	nnom_layer_t *layer = _same_shape_matrix_layer();
-	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t*) layer;
-	if (layer == NULL)
-		return NULL;
-	// set type in layer parent
-	layer->type = NNOM_MULT;
-	layer->run = mult_run;
-	cl->oshift = oshift;
-	return layer;
+	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t *) Mult(config->output_shift);
+	if(cl)
+		cl->super.config = config;
+	return (nnom_layer_t *)cl;
 }
 
+nnom_layer_t *Add(int16_t oshift)
+{
+	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t *)_same_shape_matrix_layer();
+	if (cl == NULL)
+		return NULL;
+	// set type in layer parent
+	cl->super.type = NNOM_ADD;
+	cl->super.run = add_run;
+	cl->oshift = oshift;
+	return (nnom_layer_t *)cl;
+}
+
+nnom_layer_t *Sub(int16_t oshift)
+{
+	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t *)_same_shape_matrix_layer();
+	if (cl == NULL)
+		return NULL;
+	// set type in layer parent
+	cl->super.type = NNOM_SUB;
+	cl->super.run = sub_run;
+	cl->oshift = oshift;
+	return (nnom_layer_t *)cl;
+}
+
+nnom_layer_t *Mult(int16_t oshift)
+{
+	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t *)_same_shape_matrix_layer();
+	if (cl == NULL)
+		return NULL;
+	// set type in layer parent
+	cl->super.type = NNOM_MULT;
+	cl->super.run = mult_run;
+	cl->oshift = oshift;
+	return (nnom_layer_t *)cl;
+}
 
 // init a base layer instance with same shape 1 in 1 out. More IO can be added later
 // mainly used by matrix calculation (add, mult, sub)
@@ -102,8 +117,6 @@ nnom_layer_t *_same_shape_matrix_layer()
 	//layer->super.comp = comp;
 	return (nnom_layer_t*)layer;
 }
-
-
 
 nnom_status_t add_run(nnom_layer_t *layer)
 {

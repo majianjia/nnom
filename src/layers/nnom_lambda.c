@@ -19,6 +19,18 @@
 #include "nnom_layers.h"
 #include "layers/nnom_lambda.h"
 
+nnom_layer_t *lambda_s(nnom_lambda_config_t * config)
+{
+	nnom_lambda_layer_t *cl = (nnom_lambda_layer_t *)Lambda(
+		config->run_func_name, 
+		config->build_func_name,
+		config->free_func_name,
+		config->parameters);
+	if(cl)
+		cl->super.config = config;
+	return (nnom_layer_t *)cl;
+}
+
 // TODO: extended to multiple IO layer
 nnom_layer_t *Lambda(nnom_status_t (*run)(nnom_layer_t *),
 					 nnom_status_t (*build)(nnom_layer_t *),

@@ -26,17 +26,6 @@
 #include "arm_nnfunctions.h"
 #endif
 
-nnom_status_t activation_run(nnom_layer_t* layer);
-
-// activation takes act instance which is created. therefore, it must be free when activation is deleted.
-// this is the callback in layer->free
-static nnom_status_t activation_free(nnom_layer_t *layer)
-{
-	if(layer)
-		nnom_free(((nnom_activation_layer_t *)layer)->act);
-	return NN_SUCCESS;
-}
-
 nnom_layer_t *Activation(nnom_activation_t *act)
 {
 	nnom_activation_layer_t *layer;
@@ -104,17 +93,20 @@ nnom_layer_t *TanH(int32_t dec_bit)
 	return layer;
 }
 
+// activation takes act instance which is created. therefore, it must be free when activation is deleted.
+// this is the callback in layer->free
+nnom_status_t activation_free(nnom_layer_t *layer)
+{
+	if(layer)
+		nnom_free(((nnom_activation_layer_t *)layer)->act);
+	return NN_SUCCESS;
+}
+
 nnom_status_t activation_run(nnom_layer_t *layer)
 {
 	nnom_activation_layer_t *cl = (nnom_activation_layer_t *)layer;
 	return act_tensor_run(cl->act, layer->in->tensor);
 }
-
-
-#ifdef NNOM_USING_CMSIS_NN
-#include "arm_math.h"
-#include "arm_nnfunctions.h"
-#endif
 
 // porting
 static nnom_status_t relu_run(nnom_activation_t* act)

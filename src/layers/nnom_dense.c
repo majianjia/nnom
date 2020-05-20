@@ -24,9 +24,6 @@
 #include "arm_nnfunctions.h"
 #endif
 
-nnom_status_t dense_build(nnom_layer_t *layer);
-nnom_status_t dense_run(nnom_layer_t *layer);
-
 nnom_layer_t *dense_s(nnom_dense_config_t *config)
 {
 	nnom_dense_layer_t *layer;
@@ -62,6 +59,7 @@ nnom_layer_t *dense_s(nnom_dense_config_t *config)
 	// set parameters
 	layer->bias = config->bias;
 	layer->weight = config->weight;
+	layer->super.config = config;
 
 	return (nnom_layer_t *)layer;
 }
@@ -159,7 +157,6 @@ nnom_status_t dense_free(nnom_layer_t *layer)
 
 	return NN_SUCCESS;
 }
-
 
 nnom_status_t dense_run(nnom_layer_t *layer)
 {

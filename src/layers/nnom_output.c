@@ -20,9 +20,6 @@
 #include "nnom_layers.h"
 #include "layers/nnom_output.h"
 
-nnom_status_t output_build(nnom_layer_t *layer);
-nnom_status_t output_run(nnom_layer_t *layer);
-
 nnom_layer_t *output_s(nnom_io_config_t* config)
 {
 	nnom_layer_t *layer = Output(config->shape, config->data);
@@ -30,7 +27,6 @@ nnom_layer_t *output_s(nnom_io_config_t* config)
 		layer->config = config;
 	return layer;
 }
-
 
 nnom_layer_t *Output(nnom_3d_shape_t output_shape, void *p_buf)
 {
@@ -44,7 +40,6 @@ nnom_layer_t *Output(nnom_3d_shape_t output_shape, void *p_buf)
 	}
 	return layer;
 }
-
 
 nnom_status_t output_run(nnom_layer_t *layer)
 {
