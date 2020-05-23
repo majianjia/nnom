@@ -27,7 +27,6 @@ extern "C" {
 #include "nnom_local.h"
 #include "nnom_tensor.h"
 
-
 // child layers parameters
 typedef struct _nnom_conv2d_layer_t
 {
@@ -56,7 +55,7 @@ typedef struct _nnom_conv2d_config_t
 	int8_t stride_size[2];
 	int8_t padding_size[2];
 	int8_t dilation_size[2];
-	nnom_padding_t padding;
+	nnom_padding_t padding_type;
 } nnom_conv2d_config_t;
 
 // method

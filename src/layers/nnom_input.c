@@ -21,7 +21,7 @@
 
 nnom_layer_t *input_s(nnom_io_config_t* config)
 {
-	nnom_layer_t *layer = Input(config->shape, config->data);
+	nnom_layer_t *layer = Input(shape(config->shape[0], config->shape[1], config->shape[2]), config->data);
 	if(layer)
 		layer->config = config;
 	return layer;

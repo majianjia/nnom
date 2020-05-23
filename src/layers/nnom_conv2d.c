@@ -64,7 +64,7 @@ nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config)
 	layer->stride = stride(config->stride_size[0], config->stride_size[1]);
 	layer->dilation = dilation(config->dilation_size[0], config->dilation_size[1]);
 	layer->filter_mult = config->filter_size; // for convs, this means filter number
-	layer->padding_type = config->padding;
+	layer->padding_type = config->padding_type;
 
 	// get bias and weight tensor, this should be created by script. 
 	layer->weight = config->weight;
@@ -91,7 +91,6 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nno
 	nnom_conv2d_layer_t *layer;
 	nnom_buf_t *comp;
 	nnom_layer_io_t *in, *out;
-	
 	// apply a block memory for all the sub handles.
 	size_t mem_size = sizeof(nnom_conv2d_layer_t) + sizeof(nnom_layer_io_t) * 2 + sizeof(nnom_buf_t);
 	layer = nnom_mem(mem_size);
