@@ -21,8 +21,8 @@
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from tensorflow_core.python.keras.engine.input_layer import InputLayer
-from tensorflow_core.python.keras.models import Model
+from tensorflow.keras.layers import InputLayer
+from tensorflow.keras.models import Model
 
 from sklearn import metrics
 from .fully_connected_opt_weight_generation import *
@@ -184,9 +184,9 @@ def generate_weights(model, name='weights.h', format='hwc', shift_list=None):
 
         # before merging bn layer, check if the bn is "legally" after Conv
         if('batch_normalization' in layer.name) and \
-            ('conv' not in layer.inbound_nodes[0].inbound_layers.name):
+            ('conv' not in layer.inbound_nodes[0].inbound_layer.name):
             raise  Exception('Currently only support batch_normalization after conv', layer.name,
-                            layer._inbound_nodes[0].inbound_layers[0].name)
+                            layer.inbound_nodes[0].inbound_layer.name)
 
         # try to fuse BN layer to convolutional
         if ('conv' in layer.name) and \

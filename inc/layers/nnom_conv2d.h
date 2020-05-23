@@ -59,7 +59,6 @@ typedef struct _nnom_conv2d_config_t
 	nnom_padding_t padding;
 } nnom_conv2d_config_t;
 
-
 // method
 nnom_status_t conv2d_run(nnom_layer_t *layer);
 nnom_status_t conv2d_build(nnom_layer_t *layer);

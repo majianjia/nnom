@@ -176,7 +176,6 @@ typedef enum
 	NNOM_QTYPE_PER_AXIS = 1
 } nnom_qtype_t;
 
-
 typedef struct _nnom_weights
 {
 	const void *p_value;
