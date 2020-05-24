@@ -22,9 +22,14 @@
 
 nnom_layer_t *output_s(nnom_io_config_t* config)
 {
-	nnom_layer_t *layer = Output(shape(config->shape[0], config->shape[1], config->shape[2]), config->data);
+	nnom_layer_t *layer = input_s(config);
 	if(layer)
+	{
 		layer->config = config;
+		layer->type = NNOM_OUTPUT;
+		layer->run = output_run;
+		layer->build = default_build;
+	}
 	return layer;
 }
 

@@ -31,14 +31,16 @@ typedef struct _nnom_io_layer
 {
 	nnom_layer_t super;
 	nnom_3d_shape_t shape;
+	nnom_qformat_param_t dec_bit;
 	void *buf; //input or output
 } nnom_io_layer_t;
 
 typedef struct _nnom_io_config_t
 {
 	nnom_layer_config_t super;
-	nnom_shape_data_t shape[3];
-	void *data;
+	// nnom_shape_data_t shape[3];
+	// void *data;
+	nnom_tensor_t *tensor; 
 }nnom_io_config_t;
 
 // method

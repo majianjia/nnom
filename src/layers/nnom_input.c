@@ -21,10 +21,39 @@
 
 nnom_layer_t *input_s(nnom_io_config_t* config)
 {
-	nnom_layer_t *layer = Input(shape(config->shape[0], config->shape[1], config->shape[2]), config->data);
-	if(layer)
-		layer->config = config;
-	return layer;
+	nnom_io_layer_t *layer;
+	nnom_layer_io_t *in, *out;
+	// apply a block memory for all the sub handles.
+	layer = nnom_mem(sizeof(nnom_io_layer_t) + sizeof(nnom_layer_io_t) * 2);
+	if (layer == NULL)
+		return NULL;
+
+	// distribut the memory to sub handles.
+	in = (void *)((uint8_t*)layer + sizeof(nnom_io_layer_t));
+	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
+
+	// set type in layer parent
+	layer->super.type = NNOM_INPUT;
+	layer->super.run = input_run;
+	layer->super.build = input_build;
+	// set buf state
+	in->type = NNOM_TENSOR_BUF_TEMP;
+	out->type = NNOM_TENSOR_BUF_NULL;
+	// put in & out on the layer.
+	layer->super.in = io_init(layer, in);
+	layer->super.out = io_init(layer, out);
+
+	// set parameters
+	layer->shape = shape(config->tensor->dim[0], config->tensor->dim[1], config->tensor->dim[2]);
+	layer->buf = config->tensor->p_data;
+	layer->dec_bit = config->tensor->q_dec[0];
+
+	// experimental: fixed input dim to 3
+	// input normally dont have a tensor, so we create one to store the initial data. 
+	nnom_shape_data_t dim[3] = {config->tensor->dim[0], config->tensor->dim[1], config->tensor->dim[2]};
+	layer->super.in->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, 3, tensor_get_num_channel(config->tensor));
+	tensor_set_attr_v(layer->super.in->tensor, layer->dec_bit, 0, dim, sizeof(dim)/sizeof(nnom_shape_data_t), 8);
+	return (nnom_layer_t *)layer;
 }
 
 nnom_layer_t *Input(nnom_3d_shape_t input_shape, void *p_buf)
@@ -55,12 +84,13 @@ nnom_layer_t *Input(nnom_3d_shape_t input_shape, void *p_buf)
 	// set parameters
 	layer->shape = input_shape;
 	layer->buf = p_buf;
+	layer->dec_bit = 7;
 
 	// experimental: fixed input dim to 3
 	// input normally dont have a tensor, so we create one to store the initial data. 
 	nnom_shape_data_t dim[3] = { input_shape.h, input_shape.w, input_shape.c };
 	layer->super.in->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, 3, input_shape.c);
-	tensor_set_attr_v(layer->super.in->tensor, 7, 0, dim, sizeof(dim)/sizeof(nnom_shape_data_t), 8);
+	tensor_set_attr_v(layer->super.in->tensor, layer->dec_bit, 0, dim, sizeof(dim)/sizeof(nnom_shape_data_t), 8);
 	return (nnom_layer_t *)layer;
 }
 
