@@ -36,7 +36,7 @@ typedef struct _nnom_upsample_layer_t
 typedef struct _nnom_upsample_config_t
 {
 	nnom_layer_config_t super;
-	nnom_3d_shape_t kernel;
+	nnom_shape_data_t kernel[];
 } nnom_upsample_config_t;
 
 // API

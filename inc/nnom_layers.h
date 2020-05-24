@@ -41,6 +41,24 @@ nnom_layer_io_t *io_init(void *owner_layer, nnom_layer_io_t *io);
 
 #define NN_CEILIF(x,y) ((x+y-1)/y)
 
+#include "layers/nnom_concat.h"
+#include "layers/nnom_conv2d.h"
+#include "layers/nnom_cropping.h"
+#include "layers/nnom_dense.h"
+#include "layers/nnom_dw_conv2d.h"
+#include "layers/nnom_flatten.h"
+#include "layers/nnom_global_pool.h"
+#include "layers/nnom_input.h"
+#include "layers/nnom_lambda.h"
+#include "layers/nnom_matrix.h"
+#include "layers/nnom_maxpool.h"
+#include "layers/nnom_output.h"
+#include "layers/nnom_rnn.h"
+#include "layers/nnom_softmax.h"
+#include "layers/nnom_sumpool.h"
+#include "layers/nnom_upsample.h"
+#include "layers/nnom_zero_padding.h"
+
 // Layer APIs ******
 // (a summary for each individual layer's files)
 
@@ -142,7 +160,6 @@ nnom_status_t concat_run(nnom_layer_t* layer);
 nnom_status_t add_run(nnom_layer_t* layer);
 nnom_status_t sub_run(nnom_layer_t* layer);
 nnom_status_t mult_run(nnom_layer_t* layer);
-
 
 // Activation APIs
 // Softmax is not considered as activation in NNoM, Softmax is in layer API.
