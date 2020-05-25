@@ -50,7 +50,7 @@ nnom_status_t dense_build(nnom_layer_t *layer);
 nnom_status_t dense_run(nnom_layer_t *layer);
 
 // API
-nnom_layer_t *dense_s(nnom_dense_config_t *config);
+nnom_layer_t *dense_s(const nnom_dense_config_t *config);
 nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_t *b);
 
 #ifdef __cplusplus

@@ -36,7 +36,7 @@ nnom_status_t flatten_build(nnom_layer_t *layer);
 nnom_status_t flatten_run(nnom_layer_t *layer);
 
 // API
-nnom_layer_t *flatten_s(nnom_flatten_config_t *config);
+nnom_layer_t *flatten_s(const nnom_flatten_config_t *config);
 nnom_layer_t *Flatten(void);
 
 #ifdef __cplusplus

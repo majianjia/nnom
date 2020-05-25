@@ -36,7 +36,7 @@ nnom_status_t avgpooling_build(nnom_layer_t *layer);
 nnom_status_t avgpool_run(nnom_layer_t *layer);
 
 // API
-nnom_layer_t *avgpool_s(nnom_pool_config_t * config);
+nnom_layer_t *avgpool_s(const nnom_pool_config_t * config);
 nnom_layer_t *AvgPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad_type);
 
 

@@ -24,11 +24,11 @@
 #include "arm_nnfunctions.h"
 #endif
 
-nnom_layer_t *softmax_s(nnom_softmax_config_t * config)
+nnom_layer_t *softmax_s(const nnom_softmax_config_t * config)
 {
 	nnom_layer_t * layer = Softmax();
 	if(layer)
-		layer->config = config;
+		layer->config = (void*) config;
 	return layer;
 }
 

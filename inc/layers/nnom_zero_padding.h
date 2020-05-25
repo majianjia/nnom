@@ -40,7 +40,7 @@ typedef struct _nnom_zero_padding_layer_t
 } nnom_zero_padding_layer_t;
 
 // API
-nnom_layer_t *zeropadding_s(nnom_zero_padding_config_t* config);
+nnom_layer_t *zeropadding_s(const nnom_zero_padding_config_t* config);
 nnom_layer_t *ZeroPadding(nnom_border_t pad);
 
 // method

@@ -44,7 +44,7 @@ nnom_status_t concat_build(nnom_layer_t *layer);
 nnom_status_t concat_run(nnom_layer_t *layer);
 
 // API
-nnom_layer_t *concat_s(nnom_concat_config_t *config);
+nnom_layer_t *concat_s(const nnom_concat_config_t *config);
 nnom_layer_t *Concat(int8_t axis);
 
 

@@ -19,11 +19,11 @@
 #include "nnom_layers.h"
 #include "layers/nnom_zero_padding.h"
 
-nnom_layer_t * zeropadding_s(nnom_zero_padding_config_t* config)
+nnom_layer_t * zeropadding_s(const nnom_zero_padding_config_t* config)
 {
 	nnom_layer_t *layer = ZeroPadding(config->pad);
 	if(layer)
-		layer->config = config;
+		layer->config = (void*) config;
 	return (nnom_layer_t*)layer;
 }
 

@@ -25,27 +25,27 @@
 #include "arm_nnfunctions.h"
 #endif
 
-nnom_layer_t *add_s( nnom_matrix_config_t * config)
+nnom_layer_t *add_s(const nnom_matrix_config_t * config)
 {
 	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t *) Add(config->output_shift);
 	if(cl)
-		cl->super.config = config;
+		cl->super.config = (void*) config;
 	return (nnom_layer_t *)cl;
 }
 
-nnom_layer_t *sub_s( nnom_matrix_config_t * config)
+nnom_layer_t *sub_s(const nnom_matrix_config_t * config)
 {
 	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t *) Sub(config->output_shift);
 	if(cl)
-		cl->super.config = config;
+		cl->super.config = (void*) config;
 	return (nnom_layer_t *)cl;
 }
 
-nnom_layer_t *mult_s( nnom_matrix_config_t * config)
+nnom_layer_t *mult_s(const nnom_matrix_config_t * config)
 {
 	nnom_matrix_layer_t *cl = (nnom_matrix_layer_t *) Mult(config->output_shift);
 	if(cl)
-		cl->super.config = config;
+		cl->super.config = (void*) config;
 	return (nnom_layer_t *)cl;
 }
 

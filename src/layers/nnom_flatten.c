@@ -19,11 +19,11 @@
 #include "nnom_layers.h"
 #include "layers/nnom_flatten.h"
 
-nnom_layer_t *flatten_s(nnom_flatten_config_t *config)
+nnom_layer_t *flatten_s(const nnom_flatten_config_t *config)
 {
 	nnom_layer_t *layer = Flatten();
 	if(layer)
-		layer->config = config;
+		layer->config = (void*) config;
 	return layer;
 }
 

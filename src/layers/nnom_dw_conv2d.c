@@ -24,7 +24,7 @@
 #include "arm_nnfunctions.h"
 #endif
 
-nnom_layer_t *dw_conv2d_s(nnom_conv2d_config_t *config)
+nnom_layer_t *dw_conv2d_s(const nnom_conv2d_config_t *config)
 {
 	nnom_layer_t *layer;
 	layer = conv2d_s(config);

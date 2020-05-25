@@ -52,7 +52,7 @@ nnom_status_t maxpool_build(nnom_layer_t *layer);
 nnom_status_t maxpool_run(nnom_layer_t *layer);
 
 // API
-nnom_layer_t *maxpool_s(nnom_pool_config_t * config);
+nnom_layer_t *maxpool_s(const nnom_pool_config_t * config);
 nnom_layer_t *MaxPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad_type);
 
 #ifdef __cplusplus

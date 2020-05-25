@@ -19,11 +19,11 @@
 #include "nnom_layers.h"
 #include "layers/nnom_concat.h"
 
-nnom_layer_t *concat_s(nnom_concat_config_t *config)
+nnom_layer_t *concat_s(const nnom_concat_config_t *config)
 {
 	nnom_layer_t* layer = Concat(config->axis);
 	if(layer)
-		layer->config = config;
+		layer->config = (void*) config;
 	return layer;
 }
 

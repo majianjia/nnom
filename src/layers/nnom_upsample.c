@@ -19,11 +19,11 @@
 #include "nnom_layers.h"
 #include "layers/nnom_upsample.h"
 
-nnom_layer_t *upsample_s(nnom_upsample_config_t *config)
+nnom_layer_t *upsample_s(const nnom_upsample_config_t *config)
 {
 	nnom_layer_t *layer = UpSample(kernel(config->kernel[0], config->kernel[1]));
 	if(layer)
-		layer->config = config;
+		layer->config = (void*) config;
 	return layer;
 }
 

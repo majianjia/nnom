@@ -38,7 +38,7 @@ nnom_status_t cropping_build(nnom_layer_t *layer);
 nnom_status_t cropping_run(nnom_layer_t *layer);
 
 // API
-nnom_layer_t * cropping_s(nnom_cropping_config_t *config);
+nnom_layer_t * cropping_s(const nnom_cropping_config_t *config);
 nnom_layer_t *Cropping(nnom_border_t pad);
 
 #ifdef __cplusplus

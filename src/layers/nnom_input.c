@@ -19,7 +19,7 @@
 #include "nnom_layers.h"
 #include "layers/nnom_input.h"
 
-nnom_layer_t *input_s(nnom_io_config_t* config)
+nnom_layer_t *input_s(const nnom_io_config_t* config)
 {
 	nnom_io_layer_t *layer;
 	nnom_layer_io_t *in, *out;

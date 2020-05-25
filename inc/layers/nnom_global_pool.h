@@ -38,9 +38,9 @@ typedef struct _nnom_global_pool_config_t
 nnom_status_t global_pool_build(nnom_layer_t *layer);
 
 // API
-nnom_layer_t * global_maxpool_s(nnom_global_pool_config_t *config);
-nnom_layer_t * global_avgpool_s(nnom_global_pool_config_t *config);
-nnom_layer_t * global_sumpool_s(nnom_global_pool_config_t *config);
+nnom_layer_t * global_maxpool_s(const nnom_global_pool_config_t *config);
+nnom_layer_t * global_avgpool_s(const nnom_global_pool_config_t *config);
+nnom_layer_t * global_sumpool_s(const nnom_global_pool_config_t *config);
 
 nnom_layer_t *GlobalMaxPool(void);
 nnom_layer_t *GlobalAvgPool(void);

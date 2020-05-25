@@ -46,9 +46,9 @@ nnom_status_t sub_run(nnom_layer_t *layer);
 nnom_status_t mult_run(nnom_layer_t *layer);
 
 // API
-nnom_layer_t *add_s( nnom_matrix_config_t * config);
-nnom_layer_t *sub_s( nnom_matrix_config_t * config);
-nnom_layer_t *mult_s( nnom_matrix_config_t * config);
+nnom_layer_t *add_s(const nnom_matrix_config_t * config);
+nnom_layer_t *sub_s(const nnom_matrix_config_t * config);
+nnom_layer_t *mult_s(const nnom_matrix_config_t * config);
 nnom_layer_t *Add(int16_t oshift);
 nnom_layer_t *Sub(int16_t oshift);
 nnom_layer_t *Mult(int16_t oshift);

@@ -40,7 +40,7 @@ typedef struct _nnom_upsample_config_t
 } nnom_upsample_config_t;
 
 // API
-nnom_layer_t *upsample_s(nnom_upsample_config_t *config);
+nnom_layer_t *upsample_s(const nnom_upsample_config_t *config);
 nnom_layer_t *UpSample(nnom_3d_shape_t kernel);
 
 // Methods

@@ -21,11 +21,11 @@
 
 // this layer copys the input to the output
 
-nnom_layer_t *baselayer_s(nnom_layer_config_t * config)
+nnom_layer_t *baselayer_s(const nnom_layer_config_t * config)
 {
 	nnom_layer_t *layer = BaseLayer();
 	if(layer)
-		layer->config = config;
+		layer->config = (void*) config;
 	return layer;
 }
 

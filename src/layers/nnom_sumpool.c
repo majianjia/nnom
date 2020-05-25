@@ -19,7 +19,7 @@
 #include "nnom_layers.h"
 #include "layers/nnom_sumpool.h"
 
-nnom_layer_t *sumpool_s(nnom_pool_config_t * config)
+nnom_layer_t *sumpool_s(const nnom_pool_config_t * config)
 {
 	nnom_sumpool_layer_t *cl;
 	cl = (nnom_sumpool_layer_t *)SumPool(kernel(config->kernel_size[0], config->kernel_size[1]), 
@@ -27,7 +27,7 @@ nnom_layer_t *sumpool_s(nnom_pool_config_t * config)
 								config->padding_type);
 	if(cl)
 	{
-		cl->super.config = config;
+		cl->super.config = (void*) config;
 		cl->output_shift = config->output_shift; // no idea if we need it
 	}
 	return (nnom_layer_t *)cl;

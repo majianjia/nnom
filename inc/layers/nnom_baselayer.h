@@ -33,8 +33,8 @@ nnom_status_t default_build(nnom_layer_t *layer);
 nnom_status_t default_run(nnom_layer_t *layer);
 
 // API
-nnom_layer_t *baselayer_s(nnom_layer_config_t * config);
-nnom_layer_t *BaseLayer();
+nnom_layer_t *baselayer_s(const nnom_layer_config_t * config);
+nnom_layer_t *BaseLayer(void);
 
 #ifdef __cplusplus
 }

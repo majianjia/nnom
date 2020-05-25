@@ -19,11 +19,11 @@
 #include "nnom_layers.h"
 #include "layers/nnom_cropping.h"
 
-nnom_layer_t * cropping_s(nnom_cropping_config_t *config)
+nnom_layer_t * cropping_s(const nnom_cropping_config_t *config)
 {
 	nnom_layer_t *layer = Cropping(config->pad);
 	if(layer)
-		layer->config = config;
+		layer->config = (void*) config;
 	return layer;
 }
 

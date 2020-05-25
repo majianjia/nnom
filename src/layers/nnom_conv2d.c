@@ -26,7 +26,7 @@
 #endif
 
 // a machine friendly api, with suffix _s for structured configuration.  
-nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config)
+nnom_layer_t *conv2d_s(const nnom_conv2d_config_t *config)
 {
 	nnom_conv2d_layer_t *layer;
 	nnom_buf_t *comp;
@@ -43,6 +43,8 @@ nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config)
 	out = (void *)((uint8_t*)in + sizeof(nnom_layer_io_t));
 	comp = (void *)((uint8_t*)out + sizeof(nnom_layer_io_t));
 
+	// set type in layer parent
+	layer->super.type = NNOM_CONV_2D;
 	// set buf state
 	in->type = NNOM_TENSOR_BUF_TEMP;
 	out->type = NNOM_TENSOR_BUF_TEMP;
@@ -57,7 +59,7 @@ nnom_layer_t *conv2d_s(nnom_conv2d_config_t *config)
 	layer->super.free = conv2d_free;
 
 	// save the config
-	layer->super.config = config;
+	layer->super.config = (void*) config;
 
 	// get the private parameters
 	layer->kernel = kernel(config->kernel_size[0], config->kernel_size[1]);

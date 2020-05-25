@@ -19,7 +19,7 @@
 #include "nnom_layers.h"
 #include "layers/nnom_lambda.h"
 
-nnom_layer_t *lambda_s(nnom_lambda_config_t * config)
+nnom_layer_t *lambda_s(const nnom_lambda_config_t * config)
 {
 	nnom_lambda_layer_t *cl = (nnom_lambda_layer_t *)Lambda(
 		config->run_func_name, 
@@ -27,7 +27,7 @@ nnom_layer_t *lambda_s(nnom_lambda_config_t * config)
 		config->free_func_name,
 		config->parameters);
 	if(cl)
-		cl->super.config = config;
+		cl->super.config = (void*) config;
 	return (nnom_layer_t *)cl;
 }
 

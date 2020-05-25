@@ -24,7 +24,7 @@
 #include "arm_nnfunctions.h"
 #endif
 
-nnom_layer_t *avgpool_s(nnom_pool_config_t * config)
+nnom_layer_t *avgpool_s(const nnom_pool_config_t * config)
 {
 	nnom_avgpool_layer_t *cl;
 	cl = (nnom_avgpool_layer_t *)AvgPool(kernel(config->kernel_size[0], config->kernel_size[1]), 
@@ -32,7 +32,7 @@ nnom_layer_t *avgpool_s(nnom_pool_config_t * config)
 					config->padding_type);
 	if(cl)
 	{
-		cl->super.config = config;
+		cl->super.config = (void*) config;
 		cl->output_shift = config->output_shift; // no idea if we need it
 	}
 	return (nnom_layer_t *)cl;
