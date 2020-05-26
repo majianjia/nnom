@@ -40,6 +40,10 @@ typedef struct _nnom_conv2d_layer_t
 
 	nnom_tensor_t *weight; 
 	nnom_tensor_t *bias;
+
+	// test
+	nnom_qformat_param_t * output_rshift;			
+	nnom_qformat_param_t * bias_lshift;
 } nnom_conv2d_layer_t;
 
 // a machine interface for configuration
@@ -49,7 +53,8 @@ typedef struct _nnom_conv2d_config_t
 	nnom_qtype_t qtype; 	//quantisation type(per channel or per layer)
 	nnom_tensor_t *weight;
 	nnom_tensor_t *bias;
-	nnom_qformat_param_t *output_shift;   // not sure if we need that
+	nnom_qformat_param_t *output_shift;   
+	nnom_qformat_param_t *bias_shift;   
 	uint32_t filter_size;  
 	int8_t kernel_size[2];
 	int8_t stride_size[2];

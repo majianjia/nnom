@@ -62,6 +62,10 @@ nnom_layer_t *dense_s(const nnom_dense_config_t *config)
 	layer->weight = config->weight;
 	layer->super.config = (void*) config;
 
+	// set shifts
+	layer->output_rshift = (nnom_qformat_param_t *)config->output_shift;
+	layer->bias_lshift =  (nnom_qformat_param_t *)config->bias_shift;
+
 	return (nnom_layer_t *)layer;
 }
 
@@ -108,19 +112,25 @@ nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_
 		// config weight 
 		nnom_shape_data_t dim[2] = {0, output_unit}; // the first dim doesnt matter here. will be file in later. 
 		*(layer->weight->q_offset) = 0;			// we have no support of offset here
-		*(layer->weight->q_dec) = w->shift;		// this is not even correct
+		*(layer->weight->q_dec) = 0;		// this is not even correct
 		layer->weight->p_data = (void*)w->p_value;
 		layer->weight->bitwidth = 8;
+		layer->weight->qtype = NNOM_QTYPE_PER_TENSOR;
 		memcpy(layer->weight->dim, dim, layer->weight->num_dim * sizeof(nnom_shape_data_t));
 
 		// config bias 
 		dim[0] = output_unit;
 		*(layer->bias->q_offset) = 0;			// we have no support of offset here
-		*(layer->bias->q_dec) = b->shift;		// this is not even correct
+		*(layer->bias->q_dec) = 0;		// this is not even correct
 		layer->bias->p_data = (void*)b->p_value;
 		layer->bias->bitwidth = 8;
+		layer->weight->qtype = NNOM_QTYPE_PER_TENSOR;
 		memcpy(layer->bias->dim, dim, layer->bias->num_dim * sizeof(nnom_shape_data_t));
 	}
+
+	// set output shifts
+	layer->output_rshift = (nnom_qformat_param_t *)&w->shift;
+	layer->bias_lshift = (nnom_qformat_param_t *)&b->shift;
 
 	return (nnom_layer_t *)layer;
 }
@@ -163,8 +173,8 @@ nnom_status_t dense_run(nnom_layer_t *layer)
 {
 	nnom_status_t result = NN_SUCCESS;
 	nnom_dense_layer_t *cl = (nnom_dense_layer_t *)(layer);
-	nnom_qformat_param_t bias_shift = cl->bias->q_dec[0];				//
-	nnom_qformat_param_t output_shift = cl->weight->q_dec[0];			// need to be change later. 
+	nnom_qformat_param_t bias_shift = cl->bias_lshift[0];			// this is not correct but a temporary fix solution for backward compatibility.
+	nnom_qformat_param_t output_shift = cl->output_rshift[0];
 
 
 #if !(DENSE_WEIGHT_OPT)

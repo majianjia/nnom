@@ -81,8 +81,8 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 	nnom_status_t result = NN_SUCCESS;
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
 
-	nnom_qformat_param_t bias_shift = cl->bias->q_dec[0];				//
-	nnom_qformat_param_t output_shift = cl->weight->q_dec[0];			// need to be changed later. 
+	nnom_qformat_param_t bias_shift = cl->bias_lshift[0];			// this is not correct but a temporary fix solution for backward compatibility.
+	nnom_qformat_param_t output_shift = cl->output_rshift[0];
 
 #ifdef NNOM_USING_CHW
 	local_depthwise_separable_conv_CHW_q7_nonsquare(

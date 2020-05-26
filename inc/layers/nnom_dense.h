@@ -32,6 +32,8 @@ typedef struct _nnom_dense_layer_t
 	size_t output_unit;
 	nnom_tensor_t *weight;
 	nnom_tensor_t *bias;
+	nnom_qformat_param_t *output_rshift;			
+	nnom_qformat_param_t *bias_lshift;
 } nnom_dense_layer_t;
 
 // a machine interface for configuration
@@ -41,7 +43,8 @@ typedef struct _nnom_dense_config_t
 	nnom_qtype_t qtype; 	//quantisation type(per channel or per layer)
 	nnom_tensor_t *weight;
 	nnom_tensor_t *bias;
-	int8_t output_shift;   // not sure if we need that
+	nnom_qformat_param_t *output_shift;			
+	nnom_qformat_param_t *bias_shift;
 } nnom_dense_config_t;
 
 // method

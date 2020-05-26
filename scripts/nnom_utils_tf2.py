@@ -184,9 +184,9 @@ def generate_weights(model, name='weights.h', format='hwc', shift_list=None):
 
         # before merging bn layer, check if the bn is "legally" after Conv
         if('batch_normalization' in layer.name) and \
-            ('conv' not in layer.inbound_nodes[0].inbound_layer.name):
+            ('conv' not in layer.inbound_nodes[0].inbound_layers.name):
             raise  Exception('Currently only support batch_normalization after conv', layer.name,
-                            layer.inbound_nodes[0].inbound_layer.name)
+                            layer._inbound_nodes[0].inbound_layers[0].name)
 
         # try to fuse BN layer to convolutional
         if ('conv' in layer.name) and \
@@ -284,7 +284,7 @@ def generate_weights(model, name='weights.h', format='hwc', shift_list=None):
                   ' min: (' + str(np.min(var_values)) + ',' + str(min_value) + ')')
             """
 
-def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
+def layers_output_ranges(model, x_test, quantize_method='max_min', calibrate_size=1000):
     # limit the test data size
     np.random.shuffle(x_test)
     if(x_test.shape[0] > calibrate_size):
@@ -320,7 +320,7 @@ def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
 
         # saturation shift, using KLD method
         # Ref: http://on-demand.gputechconf.com/gtc/2017/presentation/s7310-8-bit-inference-with-tensorrt.pdf
-        if(kld and not is_shift_fixed(layer) and "input" not in layer.name and "dense" not in layer.name): # test, also do not use kld in input layer
+        if('kld' in quantize_method and not is_shift_fixed(layer) and "input" not in layer.name and "dense" not in layer.name): # test, also do not use kld in input layer
             import scipy.stats
             abs_max = max(abs(max_val), abs(min_val))
             small_var = 1e-5
@@ -414,8 +414,8 @@ def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
     print("shift list", shift_list)
     return shift_list
 
-def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
-    shift_list = layers_output_ranges(model, x_test, kld)
+def generate_model(model, x_test, name='weights.h', format='hwc', quantize_method='max_min'):
+    shift_list = layers_output_ranges(model, x_test, quantize_method=quantize_method)
     generate_weights(model, name=name, format=format, shift_list=shift_list)
     if(type(model.layers[0]) != InputLayer):
         L = [model.input] + model.layers
@@ -521,7 +521,7 @@ def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
 
             if('input' in layer.name):
                 try:
-                    inshape = layer.input_shape[1:]
+                    inshape = layer.input_shape[0][1:] # new changes in tf2?
                 except:
                     inshape = layer.shape[1:]
                 if (len(inshape) == 1):  # 1-D input
@@ -536,23 +536,23 @@ def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
                 if('depthwise' in layer.name):
-                    fp.write('\tlayer[{0}] = model.hook(DW_Conv2D({1}, kernel(1,{2}), stride(1,{3}), PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
-                        id, 1, cfg['kernel_size'][0], cfg['strides'][0], cfg['padding'].upper(),
+                    fp.write('\tlayer[{0}] = model.hook(DW_Conv2D({1}, kernel(1,{2}), stride(1,{3}), dilation(1,{4}), PADDING_{5}, &{6}_w, &{6}_b), layer[{7}]);\n'.format(
+                        id, 1, cfg['kernel_size'][0], cfg['strides'][0], cfg['dilation_rate'][0], cfg['padding'].upper(),
                         layer.name, LI[inp][0]))
                 else:
-                    fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel(1,{2}), stride(1,{3}), PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
-                        id, cfg['filters'], cfg['kernel_size'][0], cfg['strides'][0], cfg['padding'].upper(),
+                    fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel(1,{2}), stride(1,{3}), dilation(1,{4}), PADDING_{5}, &{6}_w, &{6}_b), layer[{7}]);\n'.format(
+                        id, cfg['filters'], cfg['kernel_size'][0], cfg['strides'][0], cfg['dilation_rate'][0], cfg['padding'].upper(),
                         layer.name, LI[inp][0]))
             elif('conv2d' in layer.name):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 cfg = layer.get_config()
                 if ('depthwise' in layer.name):
-                    fp.write('\tlayer[{0}] = model.hook(DW_Conv2D({1}, kernel{2}, stride{3}, PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
-                        id, 1, cfg['kernel_size'], cfg['strides'], cfg['padding'].upper(),
+                    fp.write('\tlayer[{0}] = model.hook(DW_Conv2D({1}, kernel{2}, stride{3}, dilation{4}, PADDING_{5}, &{6}_w, &{6}_b), layer[{7}]);\n'.format(
+                        id, 1, cfg['kernel_size'], cfg['strides'], cfg['dilation_rate'], cfg['padding'].upper(),
                         layer.name, LI[inp][0]))
                 else:
-                    fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel{2}, stride{3}, PADDING_{4}, &{5}_w, &{5}_b), layer[{6}]);\n'.format(
-                        id, cfg['filters'], cfg['kernel_size'], cfg['strides'], cfg['padding'].upper(),
+                    fp.write('\tlayer[{0}] = model.hook(Conv2D({1}, kernel{2}, stride{3}, dilation{4}, PADDING_{5}, &{6}_w, &{6}_b), layer[{7}]);\n'.format(
+                        id, cfg['filters'], cfg['kernel_size'], cfg['strides'], cfg['dilation_rate'], cfg['padding'].upper(),
                         layer.name, LI[inp][0]))
             # activations
             elif('activation' in layer.name):

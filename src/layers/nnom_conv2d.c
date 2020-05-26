@@ -31,9 +31,10 @@ nnom_layer_t *conv2d_s(const nnom_conv2d_config_t *config)
 	nnom_conv2d_layer_t *layer;
 	nnom_buf_t *comp;
 	nnom_layer_io_t *in, *out;
+	size_t mem_size;
 
-	// apply a block memory for all the sub handles.
-	size_t mem_size = sizeof(nnom_conv2d_layer_t) + sizeof(nnom_layer_io_t) * 2 + sizeof(nnom_buf_t);
+	// allocate a block memory for all the sub handles and shifts.
+	mem_size = sizeof(nnom_conv2d_layer_t) + sizeof(nnom_layer_io_t) * 2 + sizeof(nnom_buf_t);
 	layer = nnom_mem(mem_size);
 	if (layer == NULL)
 		return NULL;
@@ -71,6 +72,10 @@ nnom_layer_t *conv2d_s(const nnom_conv2d_config_t *config)
 	// get bias and weight tensor, this should be created by script. 
 	layer->weight = config->weight;
 	layer->bias = config->bias;
+	
+	// get shifts
+	layer->output_rshift = (nnom_qformat_param_t *)config->output_shift;
+	layer->bias_lshift = (nnom_qformat_param_t *)config->bias_shift;
 
 	// padding
 	if (layer->padding_type == PADDING_SAME)
@@ -135,18 +140,24 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nno
 		// config weight 
 		nnom_shape_data_t dim[4] = {k.h, k.w, k.c, filters};
 		*(layer->weight->q_offset) = 0;			// we have no support of offset here
-		*(layer->weight->q_dec) = w->shift;		// this is not even correct
+		*(layer->weight->q_dec) = 0;		// not using it
 		layer->weight->p_data = (void*)w->p_value;
 		layer->weight->bitwidth = 8;
+		layer->weight->qtype = NNOM_QTYPE_PER_TENSOR;
 		memcpy(layer->weight->dim, dim, layer->weight->num_dim * sizeof(nnom_shape_data_t));
 
 		// config bias 
 		dim[0] = filters;
 		*(layer->bias->q_offset) = 0;			// we have no support of offset here
-		*(layer->bias->q_dec) = b->shift;		// this is not even correct
+		*(layer->bias->q_dec) = 0;		// not using it
 		layer->bias->p_data = (void*) b->p_value;
 		layer->bias->bitwidth = 8;
+		layer->weight->qtype = NNOM_QTYPE_PER_TENSOR;
 		memcpy(layer->bias->dim, dim, layer->bias->num_dim * sizeof(nnom_shape_data_t));
+		
+		// output shift and bias shift
+		layer->output_rshift = (nnom_qformat_param_t *)&w->shift;
+		layer->bias_lshift = (nnom_qformat_param_t *)&b->shift;
 	}
 
 	// padding
@@ -219,8 +230,8 @@ nnom_status_t conv2d_free(nnom_layer_t *layer)
 nnom_status_t conv2d_run(nnom_layer_t *layer)
 {
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
-	int32_t bias_shift = cl->bias->q_dec[0];			// this is not correct but a temporary fix solution for backward compatibility.
-	int32_t output_shift = cl->weight->q_dec[0];
+	nnom_qformat_param_t bias_shift = cl->bias_lshift[0];			// this is not correct but a temporary fix solution for backward compatibility.
+	nnom_qformat_param_t output_shift = cl->output_rshift[0];
 
 #ifdef NNOM_USING_CHW
 	// CHW format
