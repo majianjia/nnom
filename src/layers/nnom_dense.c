@@ -57,14 +57,14 @@ nnom_layer_t *dense_s(const nnom_dense_config_t *config)
 	layer->super.free = dense_free;
 
 	// set parameters
-	layer->output_unit = config->weight->dim[config->weight->num_dim - 1]; // 
+	layer->output_unit = tensor_get_num_channel(config->weight); 
 	layer->bias = config->bias;
 	layer->weight = config->weight;
-	layer->super.config = (void*) config;
-
 	// set shifts
 	layer->output_rshift = (nnom_qformat_param_t *)config->output_shift;
-	layer->bias_lshift =  (nnom_qformat_param_t *)config->bias_shift;
+	layer->bias_lshift = (nnom_qformat_param_t *)config->bias_shift;
+	// set config
+	layer->super.config = (void*) config;
 
 	return (nnom_layer_t *)layer;
 }
