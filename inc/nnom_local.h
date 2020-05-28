@@ -356,6 +356,25 @@ void local_add_q7(q7_t * pSrcA, q7_t * pSrcB, q7_t * pDst, const uint16_t out_sh
 // sub 
 void local_sub_q7(q7_t * pSrcA, q7_t * pSrcB, q7_t * pDst, const uint16_t out_shift, uint32_t blockSize);
 
+// 
+void local_multiple_add_q7( q7_t *p_dst,
+                  const int16_t out_shift,
+                  uint32_t block_size,
+                  uint32_t num_block,
+                  q7_t **p_src);
+
+void local_multiple_mult_q7( q7_t *p_dst,
+                  const int16_t out_shift,
+                  uint32_t block_size,
+                  uint32_t num_block,
+                  q7_t **p_src);
+
+void local_multiple_sub_q7( q7_t *p_dst,
+                  const int16_t out_shift,
+                  uint32_t block_size,
+                  uint32_t num_block,
+                  q7_t **p_src);
+
 
 
 // For more info. check CMSIS-NN lib

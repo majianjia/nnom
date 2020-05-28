@@ -29,12 +29,23 @@ extern "C" {
 #define q7_t 	int8_t
 #define q15_t 	int16_t
 #define q31_t 	int32_t
+#define q63_t 	int64_t
 
 /* version */
 #define NNOM_MAJORVERSION     0L              /**< major version number */
 #define NNOM_SUBVERSION       4L              /**< minor version number */
 #define NNOM_REVISION         0L              /**< revise version number */
 #define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
+
+#ifdef ARM_NN_TRUNCATE
+#define NNOM_TRUNCATE
+#endif
+
+#ifndef NNOM_TRUNCATE 
+    #define NNOM_ROUND(out_shift) ( (0x1u << out_shift) >> 1 )
+#else
+    #define NNOM_ROUND(out_shift) 0
+#endif
 										 
 typedef enum
 {

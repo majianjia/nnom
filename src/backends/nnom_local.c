@@ -452,11 +452,7 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
         {
             for (k = 0; k < dim_im_out_x; k++)
             {
-#ifndef NNOM_TRUNCATE
-                conv_out = ((q31_t)(bias[i]) << bias_shift) + (0x1 << (out_shift - 1));
-#else
-                conv_out = bias[i] << bias_shift;
-#endif
+                conv_out = ((q31_t)(bias[i]) << bias_shift) + NNOM_ROUND(out_shift);
                 for (m = 0; m < dim_kernel_y; m++)
                 {
                     for (n = 0; n < dim_kernel_x; n++)
@@ -516,11 +512,7 @@ void local_convolve_CHW_q7_nonsquare(const q7_t *Im_in,                // input 
         {
             for (k = 0; k < dim_im_out_x; k++)
             {
-#ifndef NNOM_TRUNCATE
-                conv_out = ((q31_t)(bias[i]) << bias_shift) + (0x1 << (out_shift - 1));
-#else
-                conv_out = bias[i] << bias_shift;
-#endif
+                conv_out = ((q31_t)(bias[i]) << bias_shift) + NNOM_ROUND(out_shift);
 				for (m = 0; m < dim_kernel_y; m++)
 				{
 					for (n = 0; n < dim_kernel_x; n++)
@@ -577,12 +569,7 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,         
         {
             for (i_ch_out = 0; i_ch_out < ch_im_out; i_ch_out++)
             {
-                // for each output
-#ifndef NNOM_TRUNCATE
-                int conv_out = (bias[i_ch_out] << bias_shift) + (0x1 << (out_shift - 1));
-#else
-                int conv_out = bias[i_ch_out] << bias_shift;
-#endif
+                q31_t conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift) + NNOM_ROUND(out_shift);
                 for (i_ker_y = 0; i_ker_y < dim_kernel_y; i_ker_y++)
                 {
                     for (i_ker_x = 0; i_ker_x < dim_kernel_x; i_ker_x++)
@@ -636,11 +623,7 @@ void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,         
 		{
 			for (i_out_x = 0; i_out_x < dim_im_out_x; i_out_x++)
 			{
-#ifndef NNOM_TRUNCATE
-                conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift) + (0x1 << (out_shift - 1));
-#else
-                conv_out = bias[i_ch_out] << bias_shift;
-#endif
+                conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift) + NNOM_ROUND(out_shift);
 				for (i_ker_y = 0; i_ker_y < dim_kernel_y; i_ker_y++)
 				{
 					for (i_ker_x = 0; i_ker_x < dim_kernel_x; i_ker_x++)
@@ -828,17 +811,10 @@ void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to ve
     while (rowCnt)
     {
         pA = pV;
-#ifndef NNOM_TRUNCATE
-        q31_t sum = (*pBias++ << bias_shift) + (0x1 << (out_shift - 1));
-        q31_t sum2 = (*pBias++ << bias_shift) + (0x1 << (out_shift - 1));
-        q31_t sum3 = (*pBias++ << bias_shift) + (0x1 << (out_shift - 1));
-        q31_t sum4 = (*pBias++ << bias_shift) + (0x1 << (out_shift - 1));
-#else
-        q31_t sum = *pBias++ << bias_shift;
-        q31_t sum2 = *pBias++ << bias_shift;
-        q31_t sum3 = *pBias++ << bias_shift;
-        q31_t sum4 = *pBias++ << bias_shift;
-#endif
+        q31_t     sum =  ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+        q31_t     sum2 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+        q31_t     sum3 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+        q31_t     sum4 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
 
         uint16_t colCnt = dim_vec >> 2;
 
@@ -939,11 +915,7 @@ void local_fully_connected_q7(const q7_t *pV,               // pointer to vector
 {
     for (int i = 0; i < num_of_rows; i++)
     {
-#ifndef NNOM_TRUNCATE
-        int ip_out = (bias[i] << bias_shift) + (0x1 << (out_shift - 1));
-#else
-        int ip_out = bias[i] << bias_shift;
-#endif
+        int ip_out = ((q31_t)(*bias++) << bias_shift) + NNOM_ROUND(out_shift);
         for (int j = 0; j < dim_vec; j++)
         {
             ip_out += pV[j] * pM[i * dim_vec + j];
@@ -1091,9 +1063,6 @@ void local_relu_q7(q7_t *data, uint32_t size)
     }
 }
 
-
-
-
 // matrix ops
 void local_mult_q7(q7_t *pSrcA,
                    q7_t *pSrcB,
@@ -1106,11 +1075,7 @@ void local_mult_q7(q7_t *pSrcA,
     for (i = 0; i < blockSize; i++)
     {
         q31_t product = pSrcA[i] * pSrcB[i];
-#ifndef NNOM_TRUNCATE
-        pDst[i] = (q7_t)__NNOM_SSAT((product + (0x1 << (out_shift - 1))) >> out_shift, 8);
-#else
-        pDst[i] = (q7_t)__NNOM_SSAT(product >> out_shift, 8);
-#endif
+        pDst[i] = (q7_t) __NNOM_SSAT(((product + NNOM_ROUND(out_shift)) >> out_shift), 8);
     }
 }
 
@@ -1125,11 +1090,7 @@ void local_add_q7(q7_t *pSrcA,
     for (i = 0; i < blockSize; i++)
     {
         q31_t sum = pSrcA[i] + pSrcB[i];
-#ifndef NNOM_TRUNCATE
-        pDst[i] = (q7_t)__NNOM_SSAT((sum + (0x1 << (out_shift - 1))) >> out_shift, 8);
-#else
-        pDst[i] = (q7_t)__NNOM_SSAT(sum >> out_shift, 8);
-#endif
+        pDst[i] = (q7_t) __NNOM_SSAT(((sum + NNOM_ROUND(out_shift)) >> out_shift), 8);
     }
 }
 
@@ -1144,10 +1105,64 @@ void local_sub_q7(q7_t *pSrcA,
     for (i = 0; i < blockSize; i++)
     {
         q31_t sub = pSrcA[i] - pSrcB[i];
-#ifndef NNOM_TRUNCATE
-        pDst[i] = (q7_t)__NNOM_SSAT((sub + (0x1 << (out_shift - 1))) >> out_shift, 8);
-#else
-        pDst[i] = (q7_t)__NNOM_SSAT(sub >> out_shift, 8);
-#endif
+        pDst[i] = (q7_t) __NNOM_SSAT(((sub + NNOM_ROUND(out_shift)) >> out_shift), 8);
     }
 }
+
+
+void local_multiple_add_q7( q7_t *p_dst,
+                  const int16_t out_shift,
+                  uint32_t block_size,
+                  uint32_t num_block,
+                  q7_t **p_src)
+{
+    uint32_t i, blk;
+    q31_t sum; 
+
+    for (i = 0; i < block_size; i++)
+    {
+        sum = 0;
+        for(blk=0; blk < num_block; blk++)
+            sum += p_src[blk][i];
+        p_dst[i] = (q7_t) __NNOM_SSAT(((sum + NNOM_ROUND(out_shift)) >> out_shift), 8);
+    }
+}
+
+void local_multiple_mult_q7( q7_t *p_dst,
+                  const int16_t out_shift,
+                  uint32_t block_size,
+                  uint32_t num_block,
+                  q7_t **p_src)
+{
+    uint32_t i, blk;
+    q31_t product; 
+
+    for (i = 0; i < block_size; i++)
+    {
+        product = 1;
+        for(blk=0; blk < num_block; blk++)
+            product *= p_src[blk][i];
+        p_dst[i] = (q7_t) __NNOM_SSAT(((product + NNOM_ROUND(out_shift)) >> out_shift), 8);
+    }
+}
+
+void local_multiple_sub_q7( q7_t *p_dst,
+                  const int16_t out_shift,
+                  uint32_t block_size,
+                  uint32_t num_block,
+                  q7_t **p_src)
+{
+    uint32_t i, blk;
+    q31_t sub; 
+
+    for (i = 0; i < block_size; i++)
+    {
+        sub = p_src[0][i];
+        for(blk=1; blk < num_block; blk++)
+            sub -= p_src[blk][i];
+        p_dst[i] = (q7_t) __NNOM_SSAT(((sub + NNOM_ROUND(out_shift)) >> out_shift), 8);
+    }
+}
+
+
+

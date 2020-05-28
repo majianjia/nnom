@@ -53,7 +53,9 @@ nnom_layer_t *conv2d_s(const nnom_conv2d_config_t *config)
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
+	#ifdef NNOM_USING_CMSIS_NN
 	layer->super.comp = comp;
+	#endif
 	// set run method & output shape
 	layer->super.run = conv2d_run;
 	layer->super.build = conv2d_build;
@@ -118,7 +120,9 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nno
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
+	#ifdef NNOM_USING_CMSIS_NN
 	layer->super.comp = comp;
+	#endif
 	// set run method & output shape
 	layer->super.run = conv2d_run;
 	layer->super.build = conv2d_build;
@@ -206,9 +210,11 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 	layer->out->tensor->dim[1] = conv_output_length(layer->in->tensor->dim[1], cl->kernel.w, cl->padding_type, cl->stride.w, cl->dilation.w);
 	layer->out->tensor->dim[2] = cl->filter_mult; // channel stays the same
 
+	#ifdef NNOM_USING_CMSIS_NN
 	// bufferA size: (1D shape)
 	// 2*ch_im_in*dim_kernel*dim_kernel
 	layer->comp->size = 2 * 2 * layer->in->tensor->dim[2] * cl->kernel.w * cl->kernel.h;
+	#endif
 	// computational cost: K x K x Cin x Hour x Wout x Cout
 	layer->stat.macc = cl->kernel.w * cl->kernel.h * layer->in->tensor->dim[2] * tensor_size(layer->out->tensor);
 	return NN_SUCCESS;
@@ -334,7 +340,7 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h, cl->dilation.w, cl->dilation.h,
 				cl->bias->p_data, bias_shift, output_shift,
 				layer->out->tensor->p_data,
-				layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
+				layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
 	return NN_SUCCESS;
 #endif // end of CHW/HWC
 }

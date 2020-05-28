@@ -33,6 +33,8 @@
 #define NNOM_BLOCK_NUM  	(8)		// maximum number of memory block  
 #define DENSE_WEIGHT_OPT 	(1)		// if used fully connected layer optimized weights. 
 
+#define NNOM_TRUNCATE               // uncomment: use floor to the nearest int. (comment: use rounded nearest int)
+
 // Backend format configuration
 //#define NNOM_USING_CHW            // uncomment if using CHW format. otherwise using default HWC format.
                                     // Notes, CHW is incompatible with CMSIS-NN. 

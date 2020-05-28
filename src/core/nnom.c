@@ -416,7 +416,7 @@ static void release_comp_mem(nnom_layer_t *layer)
 	}
 }
 
-// return the length of the hook lists
+// return the length of the io lists
 size_t nnom_io_length(nnom_layer_io_t *io)
 {
 	size_t num = 0;

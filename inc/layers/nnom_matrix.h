@@ -26,6 +26,9 @@ extern "C" {
 #include "nnom_local.h"
 #include "nnom_tensor.h"
 
+// the maximum input layer hooked to this layer
+#define MAX_INPUT_LAYER 8
+
 // matrix layer
 typedef struct _nnom_matrix_layer_t
 {

@@ -67,8 +67,10 @@ nnom_status_t dw_conv2d_build(nnom_layer_t *layer)
 	layer->out->tensor->dim[1] = conv_output_length(layer->in->tensor->dim[1], cl->kernel.w, cl->padding_type, cl->stride.w, cl->dilation.w);
 	layer->out->tensor->dim[2] = layer->in->tensor->dim[2] * cl->filter_mult; // channel stays the same
 
-	// bufferA size: (1D shape)
+	// bufferA size: 
+	#ifdef NNOM_USING_CMSIS_NN
 	layer->comp->size = 2 * 2 * (layer->in->tensor->dim[2] / cl->filter_mult) * cl->kernel.w * cl->kernel.h;
+	#endif
 
 	// computational cost: K x K x Cin x Hout x Wout x Multiplier
 	// or                : K x K x Cout x Hout x Wout
@@ -122,7 +124,7 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 		cl->bias->p_data,
 		bias_shift, output_shift,
 		layer->out->tensor->p_data,
-		layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
+		layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
 
 	return result;
 }
