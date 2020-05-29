@@ -44,7 +44,10 @@ nnom_layer_t *input_s(const nnom_io_config_t* config)
 	layer->super.out = io_init(layer, out);
 
 	// set parameters
-	layer->shape = shape(config->tensor->dim[0], config->tensor->dim[1], config->tensor->dim[2]);
+	if(config->tensor->num_dim == 2) // test for 1d input, expend h = 1
+		layer->shape = shape(config->tensor->dim[0], config->tensor->dim[1], config->tensor->dim[2]);
+	else
+		layer->shape = shape(1, config->tensor->dim[0], config->tensor->dim[1]);
 	layer->buf = config->tensor->p_data;
 	layer->dec_bit = config->tensor->q_dec[0];
 

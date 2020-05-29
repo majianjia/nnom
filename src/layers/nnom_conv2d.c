@@ -65,9 +65,20 @@ nnom_layer_t *conv2d_s(const nnom_conv2d_config_t *config)
 	layer->super.config = (void*) config;
 
 	// get the private parameters
-	layer->kernel = kernel(config->kernel_size[0], config->kernel_size[1]);
-	layer->stride = stride(config->stride_size[0], config->stride_size[1]);
-	layer->dilation = dilation(config->dilation_size[0], config->dilation_size[1]);
+	// test for 1d input, expend h = 1
+	if(config->weight->num_dim == 3)
+	{
+		layer->kernel = kernel(1, config->kernel_size[0]);
+		layer->stride = stride(1, config->stride_size[0]);
+		layer->dilation = dilation(1, config->dilation_size[0]);
+	}
+	else
+	{
+		layer->kernel = kernel(config->kernel_size[0], config->kernel_size[1]);
+		layer->stride = stride(config->stride_size[0], config->stride_size[1]);
+		layer->dilation = dilation(config->dilation_size[0], config->dilation_size[1]);
+	}
+
 	layer->filter_mult = config->filter_size; // for convs, this means filter number
 	layer->padding_type = config->padding_type;
 
@@ -286,7 +297,8 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 					output_shift, layer->out->tensor->p_data, layer->out->tensor->dim[1], layer->out->tensor->dim[0],
 					(q15_t *)(layer->comp->mem->blk), NULL);
 			// opt square shape
-			if (layer->in->tensor->dim[0] == layer->in->tensor->dim[1])
+			if (layer->in->tensor->dim[0] == layer->in->tensor->dim[1]
+				&& layer->out->tensor->dim[0] == layer->out->tensor->dim[1])
 				return (nnom_status_t)arm_convolve_HWC_q7_fast(
 					layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
 					cl->weight->p_data,
