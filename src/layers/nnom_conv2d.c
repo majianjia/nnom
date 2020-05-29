@@ -270,42 +270,48 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 		//RGB
 		// ch_im_in = 3, w = h
 		if (layer->in->tensor->dim[2] == 3 && layer->in->tensor->dim[0] == layer->in->tensor->dim[1])
-			return (nnom_status_t)arm_convolve_HWC_q7_RGB(
-				layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
-				cl->weight->p_data,
-				layer->out->tensor->dim[2],
-				cl->kernel.w, cl->pad.w, cl->stride.w,
-				cl->bias->p_data, bias_shift,
-				output_shift, layer->out->tensor->p_data, layer->out->tensor->dim[1],
-				(q15_t *)(layer->comp->mem->blk), NULL);
+			// squared
+			if((cl->kernel.w == cl->kernel.h) && (cl->pad.w == cl->pad.h) && (cl->stride.w == cl->stride.h))
+				return (nnom_status_t)arm_convolve_HWC_q7_RGB(
+					layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
+					cl->weight->p_data,
+					layer->out->tensor->dim[2],
+					cl->kernel.w, cl->pad.w, cl->stride.w,
+					cl->bias->p_data, bias_shift,
+					output_shift, layer->out->tensor->p_data, layer->out->tensor->dim[1],
+					(q15_t *)(layer->comp->mem->blk), NULL);
 
 		// check if can use optimized function
 		//	ch_im_in is multiple of 4
 		//	ch_im_out is multiple of 2
-		if (layer->in->tensor->dim[2] % 4 == 0 &&
-			layer->out->tensor->dim[2] % 2 == 0)
+		if ((layer->in->tensor->dim[2] % 4 == 0) && (layer->out->tensor->dim[2] % 2 == 0))
 		{
-			// 1x1 fast
-			if (cl->kernel.w == 1 && cl->kernel.h == 1)
-				return (nnom_status_t)arm_convolve_1x1_HWC_q7_fast_nonsquare(
-					layer->in->tensor->p_data,
-					layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
-					cl->weight->p_data,
-					layer->out->tensor->dim[2],
-					cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-					cl->bias->p_data, bias_shift,
-					output_shift, layer->out->tensor->p_data, layer->out->tensor->dim[1], layer->out->tensor->dim[0],
-					(q15_t *)(layer->comp->mem->blk), NULL);
-			// opt square shape
-			if (layer->in->tensor->dim[0] == layer->in->tensor->dim[1]
-				&& layer->out->tensor->dim[0] == layer->out->tensor->dim[1])
-				return (nnom_status_t)arm_convolve_HWC_q7_fast(
-					layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
-					cl->weight->p_data,
-					layer->out->tensor->dim[2], cl->kernel.w, cl->pad.w, cl->stride.w,
-					cl->bias->p_data, bias_shift,
-					output_shift, layer->out->tensor->p_data,
-					layer->out->tensor->dim[1], (q15_t *)(layer->comp->mem->blk), NULL);
+			// squared
+			if((layer->in->tensor->dim[0] == layer->in->tensor->dim[1])
+			&& (layer->out->tensor->dim[0] == layer->out->tensor->dim[1])
+			&& (cl->kernel.w == cl->kernel.h) && (cl->pad.w == cl->pad.h) && (cl->stride.w == cl->stride.h))
+			{
+				// 1x1 fast
+				if (cl->kernel.w == 1 && cl->kernel.h == 1)
+					return (nnom_status_t)arm_convolve_1x1_HWC_q7_fast_nonsquare(
+						layer->in->tensor->p_data,
+						layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+						cl->weight->p_data,
+						layer->out->tensor->dim[2],
+						cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
+						cl->bias->p_data, bias_shift,
+						output_shift, layer->out->tensor->p_data, layer->out->tensor->dim[1], layer->out->tensor->dim[0],
+						(q15_t *)(layer->comp->mem->blk), NULL);
+				// opt square shape
+				else
+					return (nnom_status_t)arm_convolve_HWC_q7_fast(
+						layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
+						cl->weight->p_data,
+						layer->out->tensor->dim[2], cl->kernel.w, cl->pad.w, cl->stride.w,
+						cl->bias->p_data, bias_shift,
+						output_shift, layer->out->tensor->p_data,
+						layer->out->tensor->dim[1], (q15_t *)(layer->comp->mem->blk), NULL);
+			}
 			// opt none square shape
 			else
 				return (nnom_status_t)arm_convolve_HWC_q7_fast_nonsquare(
@@ -321,7 +327,9 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 		else
 		{
 			// none opt square shape
-			if (layer->in->tensor->dim[0] == layer->in->tensor->dim[1])
+			if ((layer->in->tensor->dim[0] == layer->in->tensor->dim[1] && 
+				layer->out->tensor->dim[0] == layer->out->tensor->dim[1]) &&
+				(cl->kernel.w == cl->kernel.h) && (cl->pad.w == cl->pad.h) && (cl->stride.w == cl->stride.h))
 				return (nnom_status_t)arm_convolve_HWC_q7_basic(
 					layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
 					cl->weight->p_data,
