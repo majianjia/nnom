@@ -458,7 +458,7 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
                     for (n = 0; n < dim_kernel_x; n++)
                     {
                         // if-for implementation
-                        in_row = stride_y * j + m * dilation_x - padding_y;
+                        in_row = stride_y * j + m * dilation_y - padding_y;
                         in_col = stride_x * k + n * dilation_x - padding_x;
                         if (in_row >= 0 && in_col >= 0 && in_row < dim_im_in_y && in_col < dim_im_in_x)
                         {
@@ -518,7 +518,7 @@ void local_convolve_CHW_q7_nonsquare(const q7_t *Im_in,                // input 
 					for (n = 0; n < dim_kernel_x; n++)
 					{
 						// if-for implementation
-						in_row = stride_y * j + m * dilation_y  - padding_y;
+						in_row = stride_y * j + m * dilation_y - padding_y;
 						in_col = stride_x * k + n * dilation_x - padding_x;
 						if (in_row >= 0 && in_col >= 0 && in_row < dim_im_in_y && in_col < dim_im_in_x)
 						{
@@ -886,12 +886,8 @@ void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to ve
 
     while (rowCnt)
     {
+		int ip_out = ((q31_t)(*bias++) << bias_shift) + NNOM_ROUND(out_shift);
         pA = pV;
-#ifndef NNOM_TRUNCATE
-        int ip_out = (*pBias++ << bias_shift) + (0x1 << (out_shift - 1));
-#else
-        int ip_out = *pBias++ << bias_shift;
-#endif
         for (int j = 0; j < dim_vec; j++)
         {
             q7_t inA = *pA++;
