@@ -351,17 +351,18 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 	} // end of dilation == 1
 	else
 	#endif // NNOM_USING_CMSIS_NN
-	
-	// local implementation
-	local_convolve_HWC_q7_nonsquare(
-				layer->in->tensor->p_data,
-				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
-				cl->weight->p_data, layer->out->tensor->dim[2],
-				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h, cl->dilation.w, cl->dilation.h,
-				cl->bias->p_data, bias_shift, output_shift,
-				layer->out->tensor->p_data,
-				layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
-	return NN_SUCCESS;
+	{
+		// local implementation
+		local_convolve_HWC_q7_nonsquare(
+					layer->in->tensor->p_data,
+					layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+					cl->weight->p_data, layer->out->tensor->dim[2],
+					cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h, cl->dilation.w, cl->dilation.h,
+					cl->bias->p_data, bias_shift, output_shift,
+					layer->out->tensor->p_data,
+					layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
+		return NN_SUCCESS;
+	}
 #endif // end of CHW/HWC
 }
 

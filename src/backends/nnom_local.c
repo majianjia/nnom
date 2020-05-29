@@ -465,7 +465,7 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
                             // pre-calculate the pixel location and weight location to improve the performance.
                             in_pix_loc = (in_row * dim_im_in_x + in_col) * ch_im_in;
                             wt_loc = i * ch_im_in * dim_kernel_y * dim_kernel_x + (m * dim_kernel_x + n) * ch_im_in;
-
+							
                             for (l = 0; l < ch_im_in; l++)
                             {    
                                 conv_out += Im_in[in_pix_loc + l] * wt[wt_loc + l];
@@ -478,7 +478,6 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
         }
     }
 }
-
 
 void local_convolve_CHW_q7_nonsquare(const q7_t *Im_in,                // input image
 	const uint16_t dim_im_in_x,                                        // input image dimention x

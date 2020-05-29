@@ -199,7 +199,7 @@ void local_convolve_HWC_q7_nonsquare(const q7_t * Im_in,            // input ima
 	const uint16_t dim_im_out_y, // output image dimension y
 	q15_t * bufferA,             //buffer space for input
 	q7_t * bufferB);             //buffer space for output
-									   
+					   
 void local_convolve_CHW_q7_nonsquare(const q7_t * Im_in,            // input image
 	const uint16_t dim_im_in_x,  // input image dimention x
 	const uint16_t dim_im_in_y,  // input image dimention y
