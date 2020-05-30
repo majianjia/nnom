@@ -93,8 +93,8 @@ nnom_layer_t *conv2d_s(const nnom_conv2d_config_t *config)
 	// padding
 	if (layer->padding_type == PADDING_SAME)
 	{
-		layer->pad.h = (config->kernel_size[0] - 1) / 2;
-		layer->pad.w = (config->kernel_size[1] - 1) / 2;
+		layer->pad.h = config->dilation_size[0] * (config->kernel_size[0] - 1) / 2;
+		layer->pad.w = config->dilation_size[1] * (config->kernel_size[1] - 1) / 2;
 		layer->pad.c = (1 - 1) / 2;
 	}
 

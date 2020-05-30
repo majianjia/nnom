@@ -452,28 +452,56 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
         {
             for (k = 0; k < dim_im_out_x; k++)
             {
+				int32_t base_idx_y = stride_y * j - padding_y;
+				int32_t base_idx_x = stride_x * k - padding_x;
+				int32_t ker_y_start = MAX(0, -base_idx_y);
+				int32_t ker_x_start = MAX(0, -base_idx_x);
+				int32_t ker_y_end = MIN(dim_kernel_y, dim_im_in_y - base_idx_y);
+				int32_t ker_x_end = MIN(dim_kernel_x, dim_im_in_x - base_idx_x);
+
                 conv_out = ((q31_t)(bias[i]) << bias_shift) + NNOM_ROUND(out_shift);
-                for (m = 0; m < dim_kernel_y; m++)
+                for (m = ker_y_start; m < ker_y_end; m++)
                 {
-                    for (n = 0; n < dim_kernel_x; n++)
+                    for (n = ker_x_start; n < ker_x_end; n++)
                     {
                         // if-for implementation
                         in_row = stride_y * j + m * dilation_y - padding_y;
                         in_col = stride_x * k + n * dilation_x - padding_x;
-                        if (in_row >= 0 && in_col >= 0 && in_row < dim_im_in_y && in_col < dim_im_in_x)
-                        {
-                            // pre-calculate the pixel location and weight location to improve the performance.
-                            in_pix_loc = (in_row * dim_im_in_x + in_col) * ch_im_in;
-                            wt_loc = i * ch_im_in * dim_kernel_y * dim_kernel_x + (m * dim_kernel_x + n) * ch_im_in;
-							
-                            for (l = 0; l < ch_im_in; l++)
-                            {    
-                                conv_out += Im_in[in_pix_loc + l] * wt[wt_loc + l];
-                            }
-                        }
+
+                        // pre-calculate the pixel location and weight location to improve the performance.
+                        in_pix_loc = (in_row * dim_im_in_x + in_col) * ch_im_in;
+                        wt_loc = i * ch_im_in * dim_kernel_y * dim_kernel_x + (m * dim_kernel_x + n) * ch_im_in;
+                        
+                        for (l = 0; l < ch_im_in; l++)
+                        {    
+                            conv_out += Im_in[in_pix_loc + l] * wt[wt_loc + l];
+                        } 
                     }
                 }
                 Im_out[i + (j * dim_im_out_x + k) * ch_im_out] = (q7_t)__NNOM_SSAT((conv_out >> out_shift), 8);
+
+                // conv_out = ((q31_t)(bias[i]) << bias_shift) + NNOM_ROUND(out_shift);
+                // for (m = 0; m < dim_kernel_y; m++)
+                // {
+                //     for (n = 0; n < dim_kernel_x; n++)
+                //     {
+                //         // if-for implementation
+                //         in_row = stride_y * j + m * dilation_y - padding_y;
+                //         in_col = stride_x * k + n * dilation_x - padding_x;
+                //         if (in_row >= 0 && in_col >= 0 && in_row < dim_im_in_y && in_col < dim_im_in_x)
+                //         {
+                //             // pre-calculate the pixel location and weight location to improve the performance.
+                //             in_pix_loc = (in_row * dim_im_in_x + in_col) * ch_im_in;
+                //             wt_loc = i * ch_im_in * dim_kernel_y * dim_kernel_x + (m * dim_kernel_x + n) * ch_im_in;
+							
+                //             for (l = 0; l < ch_im_in; l++)
+                //             {    
+                //                 conv_out += Im_in[in_pix_loc + l] * wt[wt_loc + l];
+                //             }
+                //         }
+                //     }
+                // }
+                // Im_out[i + (j * dim_im_out_x + k) * ch_im_out] = (q7_t)__NNOM_SSAT((conv_out >> out_shift), 8);
             }
         }
     }

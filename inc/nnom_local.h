@@ -27,7 +27,6 @@ extern "C" {
 #include "nnom.h"
 #include "nnom_port.h"
 
-// no idea what is it 
 #ifdef ARM_NN_TRUNCATE
 #define NNOM_TRUNCATE
 #endif
@@ -58,6 +57,9 @@ static inline int __NNOM_USAT(int32_t value, int32_t bit) {
         return value;
 }
 #endif
+
+#define MAX(A, B) ((A) > (B) ? (A) : (B))
+#define MIN(A, B) ((A) < (B) ? (A) : (B))
 
 
 // Those functions/tables below are partially modifed from CMSIS-NN lib
