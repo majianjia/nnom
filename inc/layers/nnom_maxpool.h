@@ -45,6 +45,7 @@ typedef struct _nnom_pool_config_t
 	int16_t output_shift;
 	int8_t kernel_size[2];
 	int8_t stride_size[2];
+	int8_t num_dim;
 } nnom_pool_config_t;
 
 // method

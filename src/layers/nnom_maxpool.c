@@ -27,9 +27,21 @@
 nnom_layer_t *maxpool_s(const nnom_pool_config_t * config)
 {
 	nnom_layer_t *layer;
-	layer = MaxPool(kernel(config->kernel_size[0], config->kernel_size[1]), 
-					stride(config->stride_size[0], config->stride_size[1]),
-					config->padding_type);
+	
+	// test, to accomodate 1d and 2d input
+	if(config->num_dim == 1)
+	{
+		layer = MaxPool(kernel(1, config->kernel_size[0]), 
+						stride(1, config->stride_size[0]), 
+						config->padding_type);
+	}
+	else
+	{
+		layer = MaxPool(kernel(config->kernel_size[0], config->kernel_size[1]), 
+						stride(config->stride_size[0], config->stride_size[1]),
+						config->padding_type);
+	}
+	
 	if(layer)
 		layer->config = (void*) config;
 	return layer;

@@ -22,9 +22,18 @@
 nnom_layer_t *sumpool_s(const nnom_pool_config_t * config)
 {
 	nnom_sumpool_layer_t *cl;
-	cl = (nnom_sumpool_layer_t *)SumPool(kernel(config->kernel_size[0], config->kernel_size[1]), 
-								stride(config->stride_size[0], config->stride_size[1]),
-								config->padding_type);
+	if(config->num_dim == 1)
+	{
+		cl = (nnom_sumpool_layer_t *)SumPool(kernel(1, config->kernel_size[0]), 
+						stride(1, config->stride_size[0]),
+						config->padding_type);
+	}
+	else
+	{
+		cl = (nnom_sumpool_layer_t *)SumPool(kernel(config->kernel_size[0], config->kernel_size[1]), 
+						stride(config->stride_size[0], config->stride_size[1]),
+						config->padding_type);
+	}
 	if(cl)
 	{
 		cl->super.config = (void*) config;

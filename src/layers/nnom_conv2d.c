@@ -65,7 +65,7 @@ nnom_layer_t *conv2d_s(const nnom_conv2d_config_t *config)
 	layer->super.config = (void*) config;
 
 	// get the private parameters
-	// test for 1d input, expend h = 1
+	// test: for 1d input, expend h = 1
 	if(config->weight->num_dim == 3)
 	{
 		layer->kernel = kernel(1, config->kernel_size[0]);
@@ -93,8 +93,8 @@ nnom_layer_t *conv2d_s(const nnom_conv2d_config_t *config)
 	// padding
 	if (layer->padding_type == PADDING_SAME)
 	{
-		layer->pad.h = config->dilation_size[0] * (config->kernel_size[0] - 1) / 2;
-		layer->pad.w = config->dilation_size[1] * (config->kernel_size[1] - 1) / 2;
+		layer->pad.h = layer->dilation.h * (layer->kernel.h - 1) / 2;
+		layer->pad.w = layer->dilation.w * (layer->kernel.w - 1) / 2;
 		layer->pad.c = (1 - 1) / 2;
 	}
 
