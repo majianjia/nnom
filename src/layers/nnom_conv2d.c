@@ -192,15 +192,12 @@ uint32_t conv_output_length(uint32_t input_length, uint32_t filter_size, nnom_pa
 {
     if (input_length == 0)
         return 0;
-
     uint32_t dilated_filter_size = (filter_size - 1) * dilation + 1;
 	uint32_t output_length;
     if(padding == PADDING_SAME)
         output_length = input_length;
     else
         output_length = input_length - dilated_filter_size + 1;
-    // elif padding == 'full': // not support full padding. 
-    //     output_length = input_length + dilated_filter_size - 1
     return (output_length + stride - 1) / stride;
 }
 

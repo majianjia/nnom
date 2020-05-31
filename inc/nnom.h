@@ -68,6 +68,7 @@ typedef enum
 	NNOM_OUTPUT,
 	NNOM_CONV_2D,
 	NNOM_DW_CONV_2D,
+	NNOM_DECONV_2D,
 	NNOM_BATCHNORM,
 	NNOM_DENSE,
 	NNOM_ZERO_PADDING,
@@ -103,6 +104,7 @@ typedef enum
 			"Output",       \
 			"Conv2D",       \
 			"DW_Conv2D",    \
+			"DeConv2D",    \
 			"BatchNorm",	\
 			"Dense",        \
 			"ZeroPad",	    \

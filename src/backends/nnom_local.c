@@ -564,6 +564,74 @@ void local_convolve_CHW_q7_nonsquare(const q7_t *Im_in,                // input 
 }
 
 
+void local_conv_trans_HWC_q7_nonsquare(const int8_t * Im_in,
+	const uint16_t dim_im_in_x,                                        // input image dimention x
+	const uint16_t dim_im_in_y,                                        // input image dimention y
+	const uint16_t ch_im_in,                                           // number of input image channels
+	const q7_t *wt,                                                    // kernel weights
+	const uint16_t ch_im_out,                                          // number of filters, i.e., output image channels
+	const uint16_t dim_kernel_x,                                       // filter kernel size x
+	const uint16_t dim_kernel_y,                                       // filter kernel size y
+	const uint16_t padding_x,                                          // padding sizes x
+	const uint16_t padding_y,                                          // padding sizes y
+	const uint16_t stride_x,                                           // stride x
+	const uint16_t stride_y,                                           // stride y
+    const uint16_t dilation_x,                                         // dilation x
+	const uint16_t dilation_y,                                         // dilation y
+	const q7_t *bias,                                                  // bias
+	const uint16_t bias_shift, const uint16_t out_shift, q7_t *Im_out, // output image
+	const uint16_t dim_im_out_x,                                       // output image dimension x
+	const uint16_t dim_im_out_y,                                       // output image dimension y
+	q15_t *bufferA,                                                    //buffer space for input
+	q7_t *bufferB                                                      //buffer space for output
+)
+{
+	int i, j, k, l, m, n;
+	int conv_out;
+	int in_row, in_col;
+	int in_pix_loc, wt_loc;
+
+ 	for (i = 0; i < ch_im_out; i++) {
+ 		for (j = 0; j < dim_im_out_y; j++) {
+ 			for (k = 0; k < dim_im_out_x; k++) {
+ 				conv_out = ((q31_t)(bias[i]) << bias_shift) + NNOM_ROUND(out_shift);
+
+ 				int32_t base_idx_y = stride_y * j - padding_y;
+ 				int32_t base_idx_x = stride_x * k - padding_x;
+ 				int32_t ker_y_start = MAX(0, -base_idx_y);
+ 				int32_t ker_x_start = MAX(0, -base_idx_x);
+ 				int32_t ker_y_end = MIN(dim_kernel_y, dim_im_in_y - base_idx_y);
+ 				int32_t ker_x_end = MIN(dim_kernel_x, dim_im_in_x - base_idx_x);
+
+                 conv_out = ((q31_t)(bias[i]) << bias_shift) + NNOM_ROUND(out_shift);
+                 for (m = ker_y_start; m < ker_y_end; m++)
+                 {
+                     for (n = ker_x_start; n < ker_x_end; n++)
+                     {
+                         // if-for implementation
+                         in_row = stride_y * j + m * dilation_y - padding_y;
+                         in_col = stride_x * k + n * dilation_x - padding_x;
+
+                         // pre-calculate the pixel location and weight location to improve the performance.
+                         in_pix_loc = (in_row * dim_im_in_x + in_col) * ch_im_in;
+                         wt_loc = i * ch_im_in * dim_kernel_y * dim_kernel_x + (m * dim_kernel_x + n) * ch_im_in;
+                        
+                         for (l = 0; l < ch_im_in; l++)
+                         {    
+                             conv_out += Im_in[in_pix_loc + l] * wt[wt_loc + l];
+                         } 
+                     }
+                 }
+
+ 				Im_out[i + (j * dim_im_out_x + k) * ch_im_out] = (q7_t) __NNOM_SSAT((conv_out >> out_shift), 8);
+ 			}
+ 		}
+ 	}
+ }
+
+
+
+
 void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimention x
 	const uint16_t dim_im_in_y,  // input image dimention y

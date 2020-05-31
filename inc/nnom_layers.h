@@ -44,6 +44,7 @@ nnom_layer_io_t *io_init(void *owner_layer, nnom_layer_io_t *io);
 #include "layers/nnom_concat.h"
 #include "layers/nnom_conv2d.h"
 #include "layers/nnom_cropping.h"
+#include "layers/nnom_conv2d_trans.h"
 #include "layers/nnom_dense.h"
 #include "layers/nnom_dw_conv2d.h"
 #include "layers/nnom_flatten.h"
@@ -98,6 +99,10 @@ nnom_layer_t *Concat(int8_t axis);
 nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_3d_shape_t d, nnom_padding_t pad,
 					 const nnom_weight_t *w, const nnom_bias_t *b);
 
+// deconv2d
+nnom_layer_t *Conv2DTrans(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_3d_shape_t d, nnom_padding_t pad,
+					 const nnom_weight_t *w, const nnom_bias_t *b);
+
 // depthwise_convolution
 nnom_layer_t *DW_Conv2D(uint32_t multiplier, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_3d_shape_t d, nnom_padding_t pad,
 						const nnom_weight_t *w, const nnom_bias_t *b);
@@ -118,6 +123,7 @@ nnom_status_t input_build(nnom_layer_t* layer);
 
 nnom_status_t conv2d_build(nnom_layer_t* layer);
 nnom_status_t dw_conv2d_build(nnom_layer_t* layer);
+nnom_status_t conv2d_trans_build(nnom_layer_t* layer);
 nnom_status_t dense_build(nnom_layer_t* layer);
 nnom_status_t rnn_build(nnom_layer_t* layer);
 
@@ -141,6 +147,7 @@ nnom_status_t default_run(nnom_layer_t* layer);  // simply copy data from input 
 
 nnom_status_t dw_conv2d_run(nnom_layer_t* layer);
 nnom_status_t conv2d_run(nnom_layer_t* layer);
+nnom_status_t conv2d_trans_run(nnom_layer_t* layer);
 nnom_status_t dense_run(nnom_layer_t* layer);
 nnom_status_t rnn_run(nnom_layer_t* layer);
 nnom_status_t cell_simple_rnn_run(nnom_layer_t* layer);
