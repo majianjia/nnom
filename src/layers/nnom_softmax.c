@@ -50,7 +50,7 @@ nnom_layer_t *Softmax(void)
 	// set type in layer parent
 	layer->type = NNOM_SOFTMAX;
 	layer->run = softmax_run;
-	layer->build = default_build;
+	layer->build = softmax_build;
 	// set buf state
 	in->type = NNOM_TENSOR_BUF_TEMP;
 	out->type = NNOM_TENSOR_BUF_TEMP;
@@ -61,13 +61,26 @@ nnom_layer_t *Softmax(void)
 	return layer;
 }
 
+nnom_status_t softmax_build(nnom_layer_t *layer)
+{
+	// get the last layer's output as input shape
+	layer->in->tensor = layer->in->hook.io->tensor;
+	// output tensor
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
+	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
+	// softmax has fixed output dec bit
+	layer->out->tensor->q_dec[0] = 7;
+	return NN_SUCCESS;
+}
+
 nnom_status_t softmax_run(nnom_layer_t *layer)
 {
-	#ifdef NNOM_USING_CMSIS_NN
-	// temporary fixed for mutiple dimension input. 
-	arm_softmax_q7(layer->in->tensor->p_data, tensor_size(layer->out->tensor), layer->out->tensor->p_data);
-	#else
+	// looks like the new version cause accuracy drop quite a lot. 
+//	#ifdef NNOM_USING_CMSIS_NN
+//	// temporary fixed for mutiple dimension input. 
+//	arm_softmax_q7(layer->in->tensor->p_data, tensor_size(layer->out->tensor), layer->out->tensor->p_data);
+//	#else
 	local_softmax_q7(layer->in->tensor->p_data, tensor_size(layer->out->tensor), layer->out->tensor->p_data);
-	#endif
+	//#endif
 	return NN_SUCCESS;
 }

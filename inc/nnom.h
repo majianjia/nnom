@@ -68,7 +68,7 @@ typedef enum
 	NNOM_OUTPUT,
 	NNOM_CONV_2D,
 	NNOM_DW_CONV_2D,
-	NNOM_DECONV_2D,
+	NNOM_CONV2D_TRANS,
 	NNOM_BATCHNORM,
 	NNOM_DENSE,
 	NNOM_ZERO_PADDING,
@@ -104,7 +104,7 @@ typedef enum
 			"Output",       \
 			"Conv2D",       \
 			"DW_Conv2D",    \
-			"DeConv2D",    \
+			"Conv2DTrsp",    \
 			"BatchNorm",	\
 			"Dense",        \
 			"ZeroPad",	    \
@@ -277,7 +277,7 @@ typedef struct _nnom_layer_t
 	nnom_buf_t *comp;		   								// computational buf
 	nnom_activation_t *actail; 								// I have an activation, I have a tail, wooo haaaa, act-tail!!!
 
-	void *config;			// point to the configuration of the layers. for machine api only. 
+	nnom_layer_config_t *config;			// point to the configuration of the layers. for machine api only. 
 	nnom_layer_type_t type; // layer types
 	nnom_layer_io_t *in;	// IO buff, last*layer, states
 	nnom_layer_io_t *out;   // IO buff, next*layer, states

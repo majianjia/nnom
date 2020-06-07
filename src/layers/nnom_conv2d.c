@@ -175,14 +175,6 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nno
 		layer->bias_lshift = (nnom_qformat_param_t *)&b->shift;
 	}
 
-	// padding
-	if (layer->padding_type == PADDING_SAME)
-	{
-		layer->pad.w = (k.w - 1) / 2;
-		layer->pad.h = (k.h - 1) / 2;
-		layer->pad.c = (k.c - 1) / 2;
-	}
-
 	return (nnom_layer_t *)layer;
 }
 
@@ -212,11 +204,19 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, cl->filter_mult);
 	// copy then change later. 
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
-
+	
 	// now we set up the tensor shape, always HWC format
 	layer->out->tensor->dim[0] = conv_output_length(layer->in->tensor->dim[0], cl->kernel.h, cl->padding_type, cl->stride.h, cl->dilation.h);
 	layer->out->tensor->dim[1] = conv_output_length(layer->in->tensor->dim[1], cl->kernel.w, cl->padding_type, cl->stride.w, cl->dilation.w);
 	layer->out->tensor->dim[2] = cl->filter_mult; // channel stays the same
+	
+	// fill padding
+	if (cl->padding_type == PADDING_SAME)
+	{
+		cl->pad.w = (cl->kernel.w * cl->dilation.w - 1) / 2;
+		cl->pad.h = (cl->kernel.h * cl->dilation.h - 1) / 2;
+		cl->pad.c = 0;
+	}
 
 	#ifdef NNOM_USING_CMSIS_NN
 	// bufferA size: (1D shape)
@@ -244,8 +244,6 @@ nnom_status_t conv2d_free(nnom_layer_t *layer)
 nnom_status_t conv2d_run(nnom_layer_t *layer)
 {
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
-	nnom_qformat_param_t bias_shift = cl->bias_lshift[0];			// this is not correct but a temporary fix solution for backward compatibility.
-	nnom_qformat_param_t output_shift = cl->output_rshift[0];
 
 #ifdef NNOM_USING_CHW
 	// CHW format
@@ -254,15 +252,15 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 				cl->weight->p_data, layer->out->tensor->dim[2],
 				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h, cl->dilation.w, cl->dilation.h,
-				cl->bias->p_data, bias_shift, output_shift,
+				cl->bias->p_data, cl->bias_lshift, cl->output_rshift, cl->weight->qtype,
 				layer->out->tensor->p_data,
-				layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
+				layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
 	return NN_SUCCESS;
 #else
 	// HWC format
 	#ifdef NNOM_USING_CMSIS_NN
 	// current cmsis nn does not support dilation
-	if(cl->dilation.w == 1 && cl->dilation.h == 1)
+	if(cl->dilation.w == 1 && cl->dilation.h == 1 && cl->weight->qtype == NNOM_QTYPE_PER_TENSOR)
 	{
 		//RGB
 		// ch_im_in = 3, w = h
@@ -274,8 +272,8 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 					cl->weight->p_data,
 					layer->out->tensor->dim[2],
 					cl->kernel.w, cl->pad.w, cl->stride.w,
-					cl->bias->p_data, bias_shift,
-					output_shift, layer->out->tensor->p_data, layer->out->tensor->dim[1],
+					cl->bias->p_data, cl->bias_lshift[0],
+					cl->output_rshift[0], layer->out->tensor->p_data, layer->out->tensor->dim[1],
 					(q15_t *)(layer->comp->mem->blk), NULL);
 
 		// check if can use optimized function
@@ -296,8 +294,8 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 						cl->weight->p_data,
 						layer->out->tensor->dim[2],
 						cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-						cl->bias->p_data, bias_shift,
-						output_shift, layer->out->tensor->p_data, layer->out->tensor->dim[1], layer->out->tensor->dim[0],
+						cl->bias->p_data, cl->bias_lshift[0],
+						cl->output_rshift[0], layer->out->tensor->p_data, layer->out->tensor->dim[1], layer->out->tensor->dim[0],
 						(q15_t *)(layer->comp->mem->blk), NULL);
 				// opt square shape
 				else
@@ -305,8 +303,8 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 						layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
 						cl->weight->p_data,
 						layer->out->tensor->dim[2], cl->kernel.w, cl->pad.w, cl->stride.w,
-						cl->bias->p_data, bias_shift,
-						output_shift, layer->out->tensor->p_data,
+						cl->bias->p_data, cl->bias_lshift[0],
+						cl->output_rshift[0], layer->out->tensor->p_data,
 						layer->out->tensor->dim[1], (q15_t *)(layer->comp->mem->blk), NULL);
 			}
 			// opt none square shape
@@ -316,7 +314,7 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 					layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 					cl->weight->p_data, layer->out->tensor->dim[2],
 					cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-					cl->bias->p_data, bias_shift, output_shift,
+					cl->bias->p_data, cl->bias_lshift[0], cl->output_rshift[0],
 					layer->out->tensor->p_data,
 					layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
 		}
@@ -331,8 +329,8 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 					layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
 					cl->weight->p_data,
 					layer->out->tensor->dim[2], cl->kernel.w, cl->pad.w, cl->stride.w,
-					cl->bias->p_data, bias_shift,
-					output_shift, layer->out->tensor->p_data,
+					cl->bias->p_data, cl->bias_lshift[0],
+					cl->output_rshift[0], layer->out->tensor->p_data,
 					layer->out->tensor->dim[1], (q15_t *)(layer->comp->mem->blk), NULL);
 			// none opt none square shape
 			else
@@ -341,7 +339,7 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 					layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 					cl->weight->p_data, layer->out->tensor->dim[2],
 					cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-					cl->bias->p_data, bias_shift, output_shift,
+					cl->bias->p_data, cl->bias_lshift[0], cl->output_rshift[0],
 					layer->out->tensor->p_data,
 					layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
 		} //end of cmsis-nn none-opt
@@ -355,7 +353,7 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 					layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 					cl->weight->p_data, layer->out->tensor->dim[2],
 					cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h, cl->dilation.w, cl->dilation.h,
-					cl->bias->p_data, bias_shift, output_shift,
+					cl->bias->p_data, cl->bias_lshift, cl->output_rshift, cl->weight->qtype,
 					layer->out->tensor->p_data,
 					layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
 		return NN_SUCCESS;

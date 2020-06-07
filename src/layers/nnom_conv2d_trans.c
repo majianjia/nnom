@@ -26,7 +26,7 @@ nnom_layer_t *conv2d_trans_s(const nnom_conv2d_config_t *config)
 	layer = conv2d_s(config);
 	if (layer)
 	{
-		layer->type = NNOM_DECONV_2D;
+		layer->type = NNOM_CONV2D_TRANS;
 		layer->run = conv2d_trans_run;
 		layer->build = conv2d_trans_build;
 	}
@@ -36,10 +36,10 @@ nnom_layer_t *conv2d_trans_s(const nnom_conv2d_config_t *config)
 nnom_layer_t *Conv2DTrans(uint32_t multiplier, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_3d_shape_t d, nnom_padding_t pad_type,
 						const nnom_weight_t *w, const nnom_bias_t *b)
 {
-	nnom_layer_t *layer = Conv2D(multiplier, k, s, d, pad_type, w, b); // passing multiplier in .
+	nnom_layer_t *layer = Conv2D(multiplier, k, s, d, pad_type, w, b); 
 	if (layer != NULL)
 	{
-		layer->type = NNOM_DECONV_2D;
+		layer->type = NNOM_CONV2D_TRANS;
 		layer->run = conv2d_trans_run;
 		layer->build = conv2d_trans_build;
 	}
@@ -48,16 +48,14 @@ nnom_layer_t *Conv2DTrans(uint32_t multiplier, nnom_3d_shape_t k, nnom_3d_shape_
 
 // utils, keras method
 // https://github.com/keras-team/keras/blob/7a39b6c62d43c25472b2c2476bd2a8983ae4f682/keras/utils/conv_utils.py#L114
+// https://github.com/tensorflow/tensorflow/blob/2b96f3662bd776e277f86997659e61046b56c315/tensorflow/python/layers/utils.py#L156
 uint32_t conv_trans_output_length(uint32_t input_length, uint32_t kernel_size, nnom_padding_t padding, uint32_t stride_size, uint32_t dilation)
 {
-    uint32_t dim_size = input_length; 
-    uint32_t pad;
-    #define max(a,b) (a > b ? a : b)
-    if (padding == PADDING_VALID)
-        dim_size = dim_size * stride_size + max(kernel_size - stride_size, 0);
-    else
-        dim_size = dim_size * stride_size;
-    return dim_size;
+    #define max(a,b) ((a) > (b) ? (a) : (b))
+	input_length *= stride_size;
+	if (padding == PADDING_VALID)
+		input_length += max(kernel_size - stride_size, 0);
+	return input_length;
 }
 
 nnom_status_t conv2d_trans_build(nnom_layer_t *layer)
@@ -79,11 +77,11 @@ nnom_status_t conv2d_trans_build(nnom_layer_t *layer)
 	
 	// fill the correct padding
 	if(cl->padding_type == PADDING_SAME)
-	{	
-		cl->pad.h =  cl->kernel.h/2;
-		cl->pad.w =  cl->kernel.w/2;
-//		cl->pad.h = ((cl->stride.h - 1)*layer->in->tensor->dim[0] - cl->stride.h + cl->kernel.h)/2;
-//		cl->pad.w = ((cl->stride.w - 1)*layer->in->tensor->dim[1] - cl->stride.w + cl->kernel.w)/2;
+	{			
+		cl->pad.h = (cl->kernel.h - cl->stride.h) / 2; // the padding to the output. 
+		cl->pad.w = (cl->kernel.w - cl->stride.w) / 2;
+//		cl->pad.h = (cl->kernel.h - 1)/2; // the padding to the output. 
+//		cl->pad.w = (cl->kernel.w - 1)/2;
 		cl->pad.c = 0;
 	}
 	else
@@ -105,17 +103,24 @@ nnom_status_t conv2d_trans_build(nnom_layer_t *layer)
 nnom_status_t conv2d_trans_run(nnom_layer_t *layer)
 {
     nnom_conv2d_trans_layer_t *cl = (nnom_conv2d_trans_layer_t *)layer;
-	nnom_qformat_param_t bias_shift = cl->bias_lshift[0];			// this is not correct but a temporary fix solution for backward compatibility.
-	nnom_qformat_param_t output_shift = cl->output_rshift[0];
+
+#ifdef NNOM_USING_CHW
+	// no support for CHW yet
+	return NN_ARGUMENT_ERROR;
+#else	
+
+	//return conv2d_run(layer);
+	
 	local_conv_trans_HWC_q7_nonsquare(
 				layer->in->tensor->p_data,
 				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 				cl->weight->p_data, layer->out->tensor->dim[2],
 				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h, cl->dilation.w, cl->dilation.h,
-				cl->bias->p_data, bias_shift, output_shift,
+				cl->bias->p_data, cl->bias_lshift[0], cl->output_rshift[0],
 				layer->out->tensor->p_data,
 				layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
 	return NN_SUCCESS;
+#endif
 }
 
 

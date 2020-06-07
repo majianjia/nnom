@@ -909,6 +909,11 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 		m->tail = find_last(input);
 
 	NNOM_LOG("\nNNoM version %d.%d.%d\n", NNOM_MAJORVERSION, NNOM_SUBVERSION, NNOM_REVISION);
+	#ifdef NNOM_USING_CHW
+	NNOM_LOG("Data format: Channel first (CHW)\n");
+	#else
+	NNOM_LOG("Data format: Channel last (HWC)\n");
+	#endif
 	NNOM_LOG("Start compiling model...\n");
 	NNOM_LOG("Layer(#)         Activation    output shape    ops(MAC)   mem(in, out, buf)      mem blk lifetime\n");
 	NNOM_LOG("-------------------------------------------------------------------------------------------------\n");

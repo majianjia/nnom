@@ -34,6 +34,7 @@ typedef struct _nnom_softmax_config_t
 
 // method
 nnom_status_t softmax_run(nnom_layer_t *layer);
+nnom_status_t softmax_build(nnom_layer_t *layer);
 
 // API
 nnom_layer_t *softmax_s(const nnom_softmax_config_t * config);
