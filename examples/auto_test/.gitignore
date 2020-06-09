@@ -1,6 +1,6 @@
 .vscode
 .idea
-.shift_list
+.layer_q_list
 tmp
 *.exe
 CMSIS_5

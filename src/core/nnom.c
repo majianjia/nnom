@@ -908,7 +908,7 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	if (output == NULL)
 		m->tail = find_last(input);
 
-	NNOM_LOG("\nNNoM version %d.%d.%d\n", NNOM_MAJORVERSION, NNOM_SUBVERSION, NNOM_REVISION);
+	NNOM_LOG("NNoM version %d.%d.%d\n", NNOM_MAJORVERSION, NNOM_SUBVERSION, NNOM_REVISION);
 	#ifdef NNOM_USING_CHW
 	NNOM_LOG("Data format: Channel first (CHW)\n");
 	#else

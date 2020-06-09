@@ -10,19 +10,17 @@
 
 import sys
 import os
-os.sys.path.append(os.path.abspath("../../scripts"))
-print(os.sys.path)
+sys.path.append(os.path.abspath("../../scripts"))
+print(sys.path)
 
-import keras
-from keras.datasets import mnist, cifar10
-from keras.models import Sequential, load_model
-from keras.models import Model
-from keras.layers import *
-from keras.callbacks import ModelCheckpoint
+from tensorflow.keras import *
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import *
+from tensorflow.keras.activations import *
+from tensorflow.keras.models import load_model, save_model
 import tensorflow as tf
-from nnom_utils import *
-
-#os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+import numpy as np
+from nnom import *
 
 save_dir = 'keras_mnist_trained_model.h5'
 
@@ -64,35 +62,24 @@ def build_model(x_shape):
     return model
 
 def train(model, x_train, y_train, x_test, y_test, batch_size=64, epochs=50):
-    # save best
-    checkpoint = ModelCheckpoint(filepath=save_dir,
-            monitor='val_accuracy',
-            verbose=0,
-            save_best_only='True',
-            mode='auto',
-            period=1)
-    callback_lists = [checkpoint]
+    model.compile(loss='categorical_crossentropy',
+                  optimizer='adam',
+                  metrics=['accuracy'])
+    model.summary()
 
     history = model.fit(x_train, y_train,
               batch_size=batch_size,
               epochs=epochs,
               verbose=2,
               validation_data=(x_test, y_test),
-              shuffle=True, callbacks=callback_lists)
+              shuffle=False)
 
+    save_model(model, save_dir)
     del model
-    K.clear_session()
-
+    tf.keras.backend.clear_session()
     return history
 
 def main():
-    """
-    # fixed the gpu error
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    session = tf.Session(config=config)
-    """
-
     epochs = 1
     num_classes = 10
 
@@ -105,8 +92,8 @@ def main():
     print(x_test.shape[0], 'test samples')
 
     # Convert class vectors to binary class matrices.
-    y_train = keras.utils.to_categorical(y_train, num_classes)
-    y_test = keras.utils.to_categorical(y_test, num_classes)
+    y_train = tf.keras.utils.to_categorical(y_train, num_classes)
+    y_test = tf.keras.utils.to_categorical(y_test, num_classes)
 
     # reshape to 4 d becaue we build for 4d?
     x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], x_train.shape[2], 1)
@@ -128,6 +115,9 @@ def main():
     # get the best model
     model = load_model(save_dir)
 
+    # only use 1000 for test
+    x_test = x_test[:1000]
+    y_test = y_test[:1000]
     # generate binary dataset for NNoM validation, 0~1 -> 0~127, q7
     generate_test_bin(x_test*127, y_test, name='test_data.bin')
 
@@ -143,11 +133,12 @@ def main():
 
     # do inference using NNoM
     cmd = ".\mnist.exe" if 'win' in sys.platform else "./mnist"
-    if(0 == os.system(cmd)):
+    os.system(cmd)
+    try:
         # get NNoM results
-        result = np.genfromtxt('result.csv', delimiter=',', skip_header=1)
+        result = np.genfromtxt('result.csv', delimiter=',', dtype=np.int, skip_header=1)
         result = result[:,0]        # the first column is the label, the second is the probability
-        label = y_test_original.flatten()     # use the original numerical label
+        label = y_test_original[:len(y_test)].flatten()     # use the original numerical label
         acc = np.sum(result == label).astype('float32')/len(result)
         if (acc > 0.5):
             print("Top 1 Accuracy on Keras %.2f%%" %(scores[1]*100))
@@ -155,6 +146,8 @@ def main():
             return 0
         else:
             raise Exception('test failed, accuracy is %.1f%% < 80%%' % (acc * 100.0))
+    except:
+        raise Exception('could not perform the test with NNoM')
 
 if __name__ == "__main__":
     main()
