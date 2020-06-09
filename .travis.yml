@@ -12,7 +12,7 @@ before_script:
   - python2 --version
   - "sudo apt-get install -qq python-tk scons git || true"
   - "sudo pip install tensorflow>=2.0.0 || true"
-  - "sudo pip install scikit-learn || true"
+  - "sudo pip install scikit-learn matplotlib || true"
   - "pip list"
 
 script:
