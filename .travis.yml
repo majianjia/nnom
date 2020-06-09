@@ -15,8 +15,9 @@ before_script:
   - python --version
   - python3 --version
   - python2 --version
-  - "sudo apt-get install -qq python-tk scons git python-pip || true"
-  - "pip install tensorflow scikit-learn matplotlib || true"
+  - "sudo apt-get install -qq python-tk scons git || true"
+  - "sudo apt-get build-dep python-sklearn"
+  - "pip install tensorflow matplotlib || true"
   - "pip list"
 
 script:
