@@ -15,9 +15,10 @@ before_script:
   - python --version
   - python3 --version
   - python2 --version
+  - sudo apt-get install python3-sklearn python3-sklearn-lib python3-sklearn-doc
   - "sudo apt-get install -qq python-tk scons git || true"
-  - "pip install -U scikit-learn || true"
-  - "pip install matplotlib tensorflow==2.2.0 || true"
+  #- "pip install -U scikit-learn || true"
+  - "pip install numpy matplotlib tensorflow || true"
   - "pip list"
 
 script:
