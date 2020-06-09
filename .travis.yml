@@ -11,9 +11,9 @@ before_script:
   - python3 --version
   - python2 --version
   - "sudo apt-get install -qq python-tk scons git || true"
-  - "pip install tensorflow || true"
-  - "pip install scikit-learn matplotlib || true"
-  - "pip list"
+  - "pip3 install tensorflow || true"
+  - "pip3 install scikit-learn matplotlib || true"
+  - "pip3 list"
 
 script:
   - export PYTHONPATH=`pwd`/scripts
