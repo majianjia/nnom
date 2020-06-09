@@ -12,7 +12,7 @@ before_script:
   - python --version
   - python3 --version
   - python2 --version
-  - "sudo apt-get install -qq python-tk scons git pip3 || true"
+  - "sudo apt-get install -qq python-tk scons git python-pip3 || true"
   - "pip3 install tensorflow scikit-learn matplotlib || true"
   - "pip3 list"
 
