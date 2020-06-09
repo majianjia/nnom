@@ -10,14 +10,14 @@ notifications:
   email: false
   
 before_script:
+  - sudo apt-get upgrade
   - sudo apt-get update
   - python -m pip install --upgrade pip
   - python --version
   - python3 --version
   - python2 --version
-  - sudo apt-get install python3-sklearn python3-sklearn-lib python3-sklearn-doc
   - "sudo apt-get install -qq python-tk scons git || true"
-  #- "pip install -U scikit-learn || true"
+  - "pip install -U scikit-learn || true"
   - "pip install numpy matplotlib tensorflow || true"
   - "pip list"
 
