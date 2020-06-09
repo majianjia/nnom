@@ -8,12 +8,12 @@ notifications:
 
 before_script:
   - sudo apt-get update
+  - python --version
   - python3 --version
   - python2 --version
   - "sudo apt-get install -qq python-tk scons git || true"
-  - "pip3 install tensorflow || true"
-  - "pip3 install scikit-learn matplotlib || true"
-  - "pip3 list"
+  - "pip install tensorflow scikit-learn matplotlib || true"
+  - "pip list"
 
 script:
   - export PYTHONPATH=`pwd`/scripts
