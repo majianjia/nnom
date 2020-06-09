@@ -80,6 +80,10 @@ def train(model, x_train, y_train, x_test, y_test, batch_size=64, epochs=50):
     return history
 
 def main():
+    physical_devices = tf.config.experimental.list_physical_devices("GPU")
+    if(physical_devices is not None):
+        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
     epochs = 1
     num_classes = 10
 

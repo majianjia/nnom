@@ -49,10 +49,9 @@ const nnom_tensor_t <tensor_name> = {
     .bitwidth = <bitwidth>
 };
 '''
-    if(tensor.shape[0] == None):
-        shape = tensor.shape[1:]
-    else:
-        shape = tensor.shape
+    shape = tensor.get_shape().as_list()
+    if(shape[0] == None):
+        shape = shape[1:]
     config = config.replace('<tensor_name>', convert_tensor_name(tensor))#.name.replace('/','_').split(':')[0]) #conv2d/kernel:0
     config = config.replace('<bitwidth>', '8')
     config = config.replace('<value>', tensor_value)
@@ -192,10 +191,9 @@ const nnom_io_config_t <layer_name>_config = {
     .tensor = (nnom_tensor_t*)&<tensor_name>
 };
 '''
-    if(previous_layer.output.shape[0] == None):
-        shape = previous_layer.output.shape[1:]
-    else:
-        shape = previous_layer.output.shape
+    shape = previous_layer.output.get_shape().as_list()
+    if(shape[0] == None):
+        shape = shape[1:]
     c = c.replace('<tensor_name>', 'tensor_output')
     c = c.replace('<layer_name>', 'output')
     c = c.replace('<base_config>', '{.name = "output"}') # cheating at the moment.
