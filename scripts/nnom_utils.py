@@ -21,50 +21,19 @@
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from keras.engine.input_layer import InputLayer
-from keras.layers import Lambda, BatchNormalization
-from keras.models import Model
-from keras import backend as K
+from tensorflow.keras.layers import InputLayer
+from tensorflow.keras.models import Model
+
 from sklearn import metrics
-from fully_connected_opt_weight_generation import *
+from .fully_connected_opt_weight_generation import *
 import time
 import warnings
-
-
-
-""" 
-    This lambda layer take the output variables (vectors) from last layer, 
-    clip range to clip_range
-    quantize to the bits.
-"""
-def quant_layer(x, clip_range, bits):
-    import tensorflow as tf
-    return tf.fake_quant_with_min_max_vars(x, min=clip_range[0], max=clip_range[1], num_bits=bits)
-
-
-def quant_shape(input_shape):
-    return input_shape
-
-
-def fake_clip(frac_bit=0, bit=8):
-    '''
-    :param frac_bit:  fractional bit number. Q3.4 = shift 4
-    :param bit: width
-    :return:
-    '''
-    max = 2**(bit - frac_bit) / 2 - (1/(2**frac_bit))
-    min = -2**(bit - frac_bit) / 2
-    return Lambda(quant_layer, output_shape=quant_shape, arguments={'clip_range': [min, max], 'bits': bit})
-
-def fake_clip_min_max(min=0, max =1, bit=8):
-    return Lambda(quant_layer, output_shape=quant_shape, arguments={'clip_range': [min, max], 'bits': bit})
 
 """ 
 this is the generate the test set data to a bin file
 bin file can be used to validate the implementation in MCU
 
 """
-
 def generate_test_bin(x, y, name='test_data_with_label.bin'):
     '''
     this method generate the
@@ -88,7 +57,7 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
 
     # get data
     dat = x.astype(dtype="byte")  # test data
-    batch_size = dat.shape[0]     # total pices of data
+    batch_size = dat.shape[0]     # total pices of data	
     dat = dat.flatten()           # flatten to get the total size.
     block_size = int(dat.size / batch_size) # this must be integer but... just to confirm
 
@@ -215,13 +184,13 @@ def generate_weights(model, name='weights.h', format='hwc', shift_list=None):
 
         # before merging bn layer, check if the bn is "legally" after Conv
         if('batch_normalization' in layer.name) and \
-            ('conv' not in layer._inbound_nodes[0].inbound_layers[0].name):
+            ('conv' not in layer.inbound_nodes[0].inbound_layers.name):
             raise  Exception('Currently only support batch_normalization after conv', layer.name,
                             layer._inbound_nodes[0].inbound_layers[0].name)
 
         # try to fuse BN layer to convolutional
         if ('conv' in layer.name) and \
-            ('batch_normalization' in layer._outbound_nodes[0].outbound_layer.name):
+            ('batch_normalization' in layer.outbound_nodes[0].outbound_layer.name):
             fuse_bn_to_conv(layer)
 
         # generate weights and bias now
@@ -257,12 +226,12 @@ def generate_weights(model, name='weights.h', format='hwc', shift_list=None):
                     if(shift < 0):
                         bSameAsKernel = True
             if(shift_list is None or bSameAsKernel):
-                # check if bias shift > weight shift, then reduce bias shift to weight shift
+                # check if bias shift > weight shift, then reduce bias shift to weight shift	
                 if ("kernel" in var_name):
-                    weight_dec_shift = dec_bits
-                else:
-                    if(dec_bits > weight_dec_shift):
-                        dec_bits = weight_dec_shift
+                    weight_dec_shift = dec_bits	
+                else:	
+                    if(dec_bits > weight_dec_shift):	
+                        dec_bits = weight_dec_shift	
                 print("  new dec bit", dec_bits)
 
             # convert to [-128,128) or int8
@@ -315,7 +284,7 @@ def generate_weights(model, name='weights.h', format='hwc', shift_list=None):
                   ' min: (' + str(np.min(var_values)) + ',' + str(min_value) + ')')
             """
 
-def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
+def layers_output_ranges(model, x_test, quantize_method='max_min', calibrate_size=1000):
     # limit the test data size
     np.random.shuffle(x_test)
     if(x_test.shape[0] > calibrate_size):
@@ -351,7 +320,7 @@ def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
 
         # saturation shift, using KLD method
         # Ref: http://on-demand.gputechconf.com/gtc/2017/presentation/s7310-8-bit-inference-with-tensorrt.pdf
-        if(kld and not is_shift_fixed(layer) and "input" not in layer.name and "dense" not in layer.name): # test, also do not use kld in input layer
+        if('kld' in quantize_method and not is_shift_fixed(layer) and "input" not in layer.name and "dense" not in layer.name): # test, also do not use kld in input layer
             import scipy.stats
             abs_max = max(abs(max_val), abs(min_val))
             small_var = 1e-5
@@ -394,7 +363,7 @@ def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
 
         print( layer.name, "max value:", max_val, "min value:", min_val,"dec bit", dec_bits)
         # record the shift
-        if(model.input == layer and type(model.layers[0]) != InputLayer):
+        if(type(model.input) == tf.Tensor and type(model.layers[0]) != InputLayer):
             shift_list[layer.name.split(':')[0]] = dec_bits
         else:
             shift_list[layer.name] = dec_bits
@@ -445,8 +414,8 @@ def layers_output_ranges(model, x_test, kld=True, calibrate_size=1000):
     print("shift list", shift_list)
     return shift_list
 
-def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
-    shift_list = layers_output_ranges(model, x_test, kld)
+def generate_model(model, x_test, name='weights.h', format='hwc', quantize_method='max_min'):
+    shift_list = layers_output_ranges(model, x_test, quantize_method=quantize_method)
     generate_weights(model, name=name, format=format, shift_list=shift_list)
     if(type(model.layers[0]) != InputLayer):
         L = [model.input] + model.layers
@@ -455,7 +424,7 @@ def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
     with open(name,'a') as fp:
         fp.write('\n/* output enconding for each layer */\n')
         for layer in L:
-            if(model.input == layer and type(model.layers[0]) != InputLayer):
+            if(type(model.input) == tf.Tensor and type(model.layers[0]) != InputLayer):
                 iname = layer.name.split(':')[0]
             else:
                 iname = layer.name
@@ -491,7 +460,6 @@ def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
                             iname, inp))
                     fp.write('#if {0}_OUTPUT_RSHIFT < 0\n#error {0}_OUTPUT_RSHIFT must be bigger than 0\n#endif\n'.format(iname))
 
-
         fp.write('\n/* weights for each layer */\n')
         LI = {}
         ID = 0
@@ -508,7 +476,7 @@ def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 LI[layer.name] = (LI[inp][0], layer)
             else:
-                if(model.input == layer and type(model.layers[0]) != InputLayer):
+                if(type(model.input) == tf.Tensor and type(model.layers[0]) != InputLayer):
                     LI[layer.name.split(':')[0]] = (ID, layer)
                 else:
                     LI[layer.name] = (ID, layer)
@@ -546,14 +514,14 @@ def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
             if(is_skipable_layer(layer)):
                 continue
             #FIXME: need a better solution to seperate the input 'tensor' from other layers
-            if (model.input == layer and type(model.layers[0]) != InputLayer):
+            if (type(model.input) == tf.Tensor and type(model.layers[0]) != InputLayer):
                 id,_ = LI[layer.name.split(':')[0]]
             else:
                 id,_ = LI[layer.name]
 
             if('input' in layer.name):
                 try:
-                    inshape = layer.input_shape[1:]
+                    inshape = layer.input_shape[0][1:] # new changes in tf2?
                 except:
                     inshape = layer.shape[1:]
                 if (len(inshape) == 1):  # 1-D input
@@ -702,7 +670,7 @@ def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
                 fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n'%(id, LI[inp][0]))
             else:
                 raise Exception('unsupported layer', layer.name, layer)
-
+			
             """
             # temporary fixed for activations attached into layers in construction
             def is_activation_attached(layer):
@@ -724,7 +692,7 @@ def generate_model(model, x_test, name='weights.h', format='hwc', kld=True):
                 elif(cfg['activation'] == 'softmax'):
                     fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n'%(id, LI[inp][0]))
             """
-
+			
         # FIXME, test later.
         if('softmax' in layer.name
            or ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')):
@@ -751,11 +719,12 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
     print('Top 1:', scores[1])
 
     if(len(y_test.shape)>1):
-        predictions = model.predict(x_test)
-        output = tf.keras.metrics.top_k_categorical_accuracy(y_test, predictions, k=2)
-        with tf.Session() as sess:
-            result = sess.run(output)
-        print("Top 2:",result)
+        # predictions = model.predict(x_test)
+        # output = tf.keras.metrics.top_k_categorical_accuracy(y_test, predictions, k=2)
+        # # with tf.Session() as sess:
+        # #     result = sess.run(output)
+        # result =
+        # print("Top 2:",result)
 
         predictions = model.predict(x_test)
         matrix = metrics.confusion_matrix(y_test.argmax(axis=1), predictions.argmax(axis=1))
@@ -776,7 +745,7 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
         f.write('Test loss:'+ str(scores[0]) + "\n")
         f.write('Top 1:'+ str(scores[1])+ "\n")
         if (len(y_test.shape) > 1):
-            f.write("Top 2:"+ str(result)+ "\n")
+            #f.write("Top 2:"+ str(result)+ "\n")
             #f.write(str(matrix))
             for row in matrix:
                 row.tofile(f, sep=',')
@@ -798,36 +767,6 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
             dec = 7 - intt
             print(var_name, "Dec num:", dec)
     return scores
-
-
-class nnom:
-    def __init__(self):
-        self.shift_dict = {}
-        return
-
-    def __enter__(self):
-        self.shift_dict = {}
-        return
-
-    def __exit__(self, type, value, traceback):
-        print("output shift",dict)
-        np.save('output_shifts.npy', self.shift_dict)
-
-    # to record the shift range for interested layers (outputs)
-    shift_dict = {}
-
-    def fake_clip(self, x, frac_bit=0, bit=8):
-        name = str(x.name)
-        self.shift_dict[name] = frac_bit
-        return fake_clip(frac_bit, bit)
-
-    def fake_clip_min_max(self, output_layer_name, min=0, max=1,  bit=8):
-        self.shift_dict[output_layer_name] = bit - 1 - np.int(np.ceil(np.log2(np.max(abs(min), abs(max)))))
-        return fake_clip_min_max(min=min, max=max, bit=bit)
-
-    def save_shift(self, file='output_shifts.npy'):
-        print("output shift", self.shift_dict)
-        np.save(file, self.shift_dict)
 
 def f2q(d, Q):
     '''To convert a number from floating point to Qm.n format:

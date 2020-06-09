@@ -35,7 +35,7 @@ extern "C" {
 #define NNOM_MAJORVERSION     0L              /**< major version number */
 #define NNOM_SUBVERSION       4L              /**< minor version number */
 #define NNOM_REVISION         0L              /**< revise version number */
-#define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
+#define NNOM_VERSION          ((NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 
 #ifdef ARM_NN_TRUNCATE
 #define NNOM_TRUNCATE
@@ -360,6 +360,8 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 nnom_status_t model_run(nnom_model_t *m);
 // delete model. 
 void model_delete(nnom_model_t *m);
+// check version
+nnom_status_t check_model_version(unsigned long model_version);
 
 // callback, called after each layer has finished the calculation. 
 // this callback must return NN_SUCCESS for continually run the model. otherwise, model will be returned with the ERROR code. 

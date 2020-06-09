@@ -70,8 +70,8 @@ nnom_status_t dw_conv2d_build(nnom_layer_t *layer)
 	// fill padding
 	if (cl->padding_type == PADDING_SAME)
 	{
-		cl->pad.w = (cl->kernel.w * cl->dilation.w - 1) / 2;
-		cl->pad.h = (cl->kernel.h * cl->dilation.h - 1) / 2;
+		cl->pad.w = cl->dilation.w * (cl->kernel.w - 1) / 2;
+		cl->pad.h = cl->dilation.h * (cl->kernel.h - 1) / 2;
 		cl->pad.c = 0;
 	}
 	

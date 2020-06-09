@@ -1052,4 +1052,23 @@ void model_delete_callback(nnom_model_t *m)
 	m->layer_callback = NULL;
 }
 
+nnom_status_t check_model_version(unsigned long model_version)
+{
+	nnom_status_t result = NN_SUCCESS;
+	int32_t major, sub, rev;
+	major = model_version/10000;
+	sub = (model_version/100)%100;
+	rev = model_version % 100;
+	if(model_version != NNOM_VERSION)
+	{
+		NNOM_LOG("WARNING: model version %d.%d.%d dosen't match nnom version!\n", major, sub, rev);
+		result = -NN_ARGUMENT_ERROR;
+	}
+	else
+	{
+		NNOM_LOG("Model version: %d.%d.%d\n", major, sub, rev);
+	}
+	return result;
+}
+
 
