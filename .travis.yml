@@ -11,6 +11,7 @@ notifications:
   
 before_script:
   - sudo apt-get update
+  - python -m pip install --upgrade pip
   - python --version
   - python3 --version
   - python2 --version
