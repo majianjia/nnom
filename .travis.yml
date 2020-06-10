@@ -1,6 +1,7 @@
 language: python
 python:
   - "3.6"
+  - "2.7"
 
 sudo: required
 dist: trusty
@@ -40,7 +41,6 @@ before_script:
   - python --version
   - python3 --version
   - python2 --version
-
 
 script:
   - export PYTHONPATH=`pwd`/scripts
