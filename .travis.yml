@@ -7,8 +7,10 @@ dist: trusty
 
 notifications:
   email: false
-   
- 
+
+before_install:   
+  - "sudo apt-get update || true"
+  
 install:
   - sudo apt update
   # We do this conditionally because it saves us some downloading if the
@@ -30,16 +32,17 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION 
   - conda activate test-environment
   - python setup.py install
-
+  
+  # dependencies
+  - "sudo apt-get install -qq python-tk scons git || true"
+  - "conda install numpy matplotlib tensorflow scikit-learn || true"
+  - "conda list"
 
 before_script:
-  - "sudo apt-get update || true"
   - python --version
   - python3 --version
   - python2 --version
-  - "sudo apt-get install -qq python-tk scons git || true"
-  - "conda install numpy matplotlib tensorflow scikit-learn || true"
-  - "pip list"
+
 
 script:
   - export PYTHONPATH=`pwd`/scripts
