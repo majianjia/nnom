@@ -1,8 +1,15 @@
 language: python
 python:
   # We don't actually use the Travis Python, but this keeps it organized.
-  - "2.7"
   - "3.6"
+
+sudo: required
+dist: trusty
+
+notifications:
+  email: false
+   
+ 
 install:
   - sudo apt update
   # We do this conditionally because it saves us some downloading if the
@@ -26,14 +33,8 @@ install:
   - python setup.py install
 
 
-sudo: required
-dist: trusty
-
-notifications:
-  email: false
-  
 before_script:
-  - sudo apt-get update
+  - "sudo apt-get update"
   - python --version
   - python3 --version
   - python2 --version
