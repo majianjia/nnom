@@ -1,6 +1,5 @@
 language: python
 python:
-  # We don't actually use the Travis Python, but this keeps it organized.
   - "3.6"
 
 sudo: required
@@ -34,7 +33,7 @@ install:
 
 
 before_script:
-  - "sudo apt-get update"
+  - "sudo apt-get update || true"
   - python --version
   - python3 --version
   - python2 --version
