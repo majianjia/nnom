@@ -34,7 +34,7 @@ install:
   
   # dependencies
   - "sudo apt-get install -qq python-tk scons git || true"
-  - "conda install numpy matplotlib tensorflow scikit-learn || true"
+  - "conda install numpy matplotlib tensorflow scikit-learn pyqt5|| true" # pyqt5 for matplotlib in python2
   - "conda list"
 
 before_script:
