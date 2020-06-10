@@ -1,7 +1,6 @@
 language: python
 python:
   - "3.6"
-  - "2.7"
 
 sudo: required
 dist: trusty
@@ -34,7 +33,7 @@ install:
   
   # dependencies
   - "sudo apt-get install -qq python-tk scons git || true"
-  - "conda install numpy matplotlib tensorflow scikit-learn pyqt5|| true" # pyqt5 for matplotlib in python2
+  - "conda install numpy matplotlib tensorflow scikit-learn || true" 
   - "conda list"
 
 before_script:
