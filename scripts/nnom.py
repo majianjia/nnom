@@ -10,7 +10,7 @@
     2019-02-05     Jianjia Ma   The first version
 '''
 
-from sklearn import metrics
+import sklearn.metrics as skmetrics
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras import *
@@ -789,7 +789,7 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
 
     if(len(y_test.shape)>1):
         predictions = model.predict(x_test)
-        matrix = metrics.confusion_matrix(y_test.argmax(axis=1), predictions.argmax(axis=1))
+        matrix = skmetrics.confusion_matrix(y_test.argmax(axis=1), predictions.argmax(axis=1))
         print(matrix)
 
     run_time = 0
