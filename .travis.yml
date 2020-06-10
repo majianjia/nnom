@@ -19,6 +19,7 @@ before_script:
   - "sudo apt-get install -qq python-tk scons git || true"
   - pip install setuptools --upgrade
   - "pip install -U numpy matplotlib tensorflow scikit-learn || true"
+  - python setup.py install
   - "pip list"
 
 script:
