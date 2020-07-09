@@ -135,6 +135,7 @@ extern const char default_layer_names[][12];
 typedef enum
 {
 	ACT_RELU = 0,
+	ACT_LEAKY_RELU,
 	ACT_TANH,
 	ACT_SIGMOID,
 } nnom_activation_type_t;
@@ -142,8 +143,9 @@ typedef enum
 #define ACTIVATION_NAMES \
 	{                    \
 		"ReLU",          \
-			"TanH",      \
-			"Sigmoid",   \
+		"LkyReLu",		 \
+		"TanH",      \
+		"Sigmoid",   \
 	}
 extern const char default_activation_names[][8];
 
@@ -298,6 +300,13 @@ typedef struct _nnom_activation_fixed_q_t
 	nnom_activation_t super;
 	uint8_t dec_bit;
 } nnom_activation_fixed_q_t;
+
+// leaky relu
+typedef struct _nnom_activation_leaky_re_lu_t
+{
+	nnom_activation_t super;
+	q7_t alpha;					// alpha is present by q0.7 format. (-128 = -1) 
+} nnom_activation_leaky_re_lu_t;
 
 typedef struct _nnom_model nnom_model_t;
 

@@ -383,6 +383,9 @@ void local_tanh_q7(q7_t * data, uint32_t size, int16_t int_width);
 // relu
 void local_relu_q7(q7_t * data, uint32_t size);
 
+// leaky relu
+void local_leaky_relu_q7(q7_t *data, q7_t alpha, uint32_t size);
+
 // matrix ops
 void local_mult_q7(q7_t * pSrcA, q7_t * pSrcB, q7_t * pDst, const uint16_t out_shift, uint32_t blockSize);
 

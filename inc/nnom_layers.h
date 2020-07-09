@@ -171,6 +171,7 @@ nnom_status_t mult_run(nnom_layer_t* layer);
 // Activation APIs
 // Softmax is not considered as activation in NNoM, Softmax is in layer API.
 nnom_activation_t* act_relu(void);
+nnom_activation_t* act_leaky_relu(float alpha);
 nnom_activation_t* act_sigmoid(int32_t dec_bit);
 nnom_activation_t* act_tanh(int32_t dec_bit);
 

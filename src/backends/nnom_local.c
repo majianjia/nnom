@@ -1237,6 +1237,7 @@ void local_tanh_q7(q7_t *data, uint32_t size, int16_t int_width)
 		}
 	}
 }
+
 void local_relu_q7(q7_t *data, uint32_t size)
 {
     uint32_t i;
@@ -1245,6 +1246,20 @@ void local_relu_q7(q7_t *data, uint32_t size)
     {
         if (data[i] < 0)
             data[i] = 0;
+    }
+}
+
+// alpha in q7 format with dec_bit=7
+void local_leaky_relu_q7(q7_t *data, q7_t alpha, uint32_t size)
+{
+    uint32_t i;
+    
+    for (i = 0; i < size; i++)
+    {
+        if (data[i] < 0)
+        {
+            data[i] = data[i] * alpha / 128;
+        }
     }
 }
 

@@ -119,6 +119,14 @@ static nnom_status_t relu_run(nnom_activation_t* act)
 	return NN_SUCCESS;
 }
 
+// leaky relu 
+static nnom_status_t leaky_relu_run(nnom_activation_t* act)
+{
+	nnom_activation_leaky_re_lu_t* a = (nnom_activation_leaky_re_lu_t*) act;
+	local_leaky_relu_q7(act->tensor->p_data, a->alpha, tensor_size(act->tensor));
+	return NN_SUCCESS;
+}
+
 static nnom_status_t tanh_run(nnom_activation_t* act)
 {
 	nnom_activation_fixed_q_t * a = (nnom_activation_fixed_q_t*)act;
@@ -156,6 +164,15 @@ nnom_activation_t* act_relu(void)
 	act->run = relu_run;
 	act->type = ACT_RELU;
 	return act;
+}
+
+nnom_activation_t* act_leaky_relu(float alpha)
+{
+	nnom_activation_leaky_re_lu_t* act = nnom_mem(sizeof(nnom_activation_leaky_re_lu_t));
+	act->super.run = leaky_relu_run;
+	act->super.type = ACT_LEAKY_RELU;
+	act->alpha = alpha*128;
+	return (nnom_activation_t* )act;
 }
 
 nnom_activation_t* act_tanh(int32_t dec_bit)
