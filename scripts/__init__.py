@@ -1,4 +1,2 @@
 # package
-from .fully_connected_opt_weight_generation import *
-from .gen_config import *
-from .nnom import *
+import os, sys; sys.path.append(os.path.dirname(os.path.realpath(__file__)))
