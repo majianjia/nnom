@@ -10,13 +10,13 @@
     2019-02-05     Jianjia Ma   The first version
 '''
 
-import sklearn.metrics as skmetrics
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras import *
 from tensorflow.keras.layers import *
-from fully_connected_opt_weight_generation import *
-from gen_config import *
+from sklearn import metrics
+from .fully_connected_opt_weight_generation import *
+from .gen_config import *
 import scipy.stats
 import time
 import warnings
@@ -24,6 +24,10 @@ import warnings
 model_major_version = 0
 model_sub_version = 4
 model_reversion = 0
+
+#define NNOM_MAJORVERSION     0L              /**< major version number */
+#define NNOM_SUBVERSION       4L              /**< minor version number */
+#define NNOM_REVISION         0L              /**< revise version number */
 #define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 
 def fuse_bn_to_conv(layer):
@@ -682,6 +686,10 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                     id, inp.upper(), LI[inp][0]))
                 elif (cfg['activation'] == 'softmax'):
                     fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n' % (id, LI[inp][0]))
+            elif ('leaky_re_lu' in layer.name):
+                inp = layer_name_from_tensor(layer.input)
+                cfg = layer.get_config()
+                fp.write('\tlayer[%s] = model.active(act_leaky_relu(%ff), layer[%s]);\n' % (id, cfg["alpha"],LI[inp][0]))
             elif ('re_lu' in layer.name):
                 inp = layer_name_from_tensor(layer.input)
                 fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n' % (id, LI[inp][0]))
@@ -789,7 +797,7 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
 
     if(len(y_test.shape)>1):
         predictions = model.predict(x_test)
-        matrix = skmetrics.confusion_matrix(y_test.argmax(axis=1), predictions.argmax(axis=1))
+        matrix = metrics.confusion_matrix(y_test.argmax(axis=1), predictions.argmax(axis=1))
         print(matrix)
 
     run_time = 0
