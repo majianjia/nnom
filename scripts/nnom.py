@@ -10,11 +10,11 @@
     2019-02-05     Jianjia Ma   The first version
 '''
 
+import sklearn.metrics as skmetrics
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras import *
 from tensorflow.keras.layers import *
-import sklearn.metrics as skmetrics
 from .fully_connected_opt_weight_generation import *
 from .gen_config import *
 import scipy.stats
