@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras import *
 from tensorflow.keras.layers import *
-from .fully_connected_opt_weight_generation import *
-from .gen_config import *
+from fully_connected_opt_weight_generation import *
+from gen_config import *
 import scipy.stats
 import time
 import warnings

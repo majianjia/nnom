@@ -83,6 +83,7 @@ nnom_layer_t *Cropping(nnom_border_t pad);
 // Activation
 nnom_layer_t *Activation(nnom_activation_t *act);
 nnom_layer_t *ReLU(void);
+nnom_layer_t *LeakyReLU(float alpha);
 nnom_layer_t *Softmax(void);
 nnom_layer_t *Sigmoid(int32_t dec_bit);  // input dec bit
 nnom_layer_t *TanH(int32_t dec_bit);     // input dec bit 
