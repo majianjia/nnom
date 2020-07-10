@@ -1,29 +1,32 @@
-from __future__ import print_function
+'''
+    Copyright (c) 2018-2020
+    Jianjia Ma
+    majianjia@live.com
+    SPDX-License-Identifier: Apache-2.0
+    Change Logs:
+    Date           Author       Notes
+    2019-02-12     Jianjia Ma   The first version
+'''
 
-import keras
-from keras.datasets import mnist
-from keras.layers import *
-from keras.models import Sequential, load_model
-from keras.layers import Dense, Dropout, Activation, Flatten
-from keras.layers import Conv2D, MaxPooling2D
-from keras.callbacks import ModelCheckpoint
 
-import numpy as np
+import matplotlib.pyplot as plt
 import os
-import sys
 nnscript = os.path.abspath('../../scripts')
-sys.path.append(nnscript)
+os.sys.path.append(nnscript)
 
-from nnom_utils import *
+from tensorflow.keras import *
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import *
+from tensorflow.keras.models import load_model, save_model
+import tensorflow as tf
+import numpy as np
+from nnom import *
 
+model_name = 'model.h5'
 
-model_name = 'mnist_simple_trained_model.h5'
-save_dir = os.path.join(os.getcwd(), 'saved_models')
-
-def image_to_cfile(data, label, size, file='image.h'):
+def image_to_cfile(data, label, num_of_image, file='image.h'):
     # test
     with open(file, 'w') as f:
-        num_of_image = size
         for i in range(num_of_image):
             selected = np.random.randint(0, 1000) # select 10 out of 1000.
             f.write('#define IMG%d {'% (i))
@@ -109,45 +112,25 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     model = Model(inputs=inputs, outputs=predictions)
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer='adadelta',
+                  optimizer='adam',
                   metrics=['accuracy'])
 
     model.summary()
-
-    # Save model and weights
-    if not os.path.isdir(save_dir):
-        os.makedirs(save_dir)
-    model_path = os.path.join(save_dir, model_name)
-
-    # save best
-    checkpoint = ModelCheckpoint(filepath=model_path,
-            monitor='val_acc',
-            verbose=0,
-            save_best_only='True',
-            mode='auto',
-            period=1)
-    callback_lists = [checkpoint]
-
     history =  model.fit(x_train, y_train,
               batch_size=batch_size,
               epochs=epochs,
               verbose=2,
               validation_data=(x_test, y_test),
-              shuffle=True, callbacks=callback_lists)
+              shuffle=True)
 
+    # free the session to avoid nesting naming while we load the best model after.
+    save_model(model, model_name)
     del model
-    K.clear_session()
-
+    tf.keras.backend.clear_session()
     return history
 
 
 if __name__ == "__main__":
-
-    # fixed the gpu error
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    session = tf.Session(config=config)
-
     epochs = 5
     num_classes = 10
 
@@ -158,8 +141,8 @@ if __name__ == "__main__":
     print(x_test.shape[0], 'test samples')
 
     # Convert class vectors to binary class matrices.
-    y_train = keras.utils.to_categorical(y_train_num, num_classes)
-    y_test = keras.utils.to_categorical(y_test_num, num_classes)
+    y_train = tf.keras.utils.to_categorical(y_train_num, num_classes)
+    y_test = tf.keras.utils.to_categorical(y_test_num, num_classes)
 
     # reshape to 4 d becaue we build for 4d?
     x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], x_train.shape[2], 1)
@@ -178,8 +161,7 @@ if __name__ == "__main__":
     history = train(x_train, y_train, x_test, y_test, batch_size=64, epochs=epochs)
 
     # reload best model
-    model_path = os.path.join(save_dir, model_name)
-    model = load_model(model_path)
+    model = load_model(model_name)
 
     # evaluate
     evaluate_model(model, x_test, y_test)
@@ -188,8 +170,8 @@ if __name__ == "__main__":
     generate_model(model, np.vstack((x_train, x_test)), name="weights.h")
 
     # plot
-    acc = history.history['acc']
-    val_acc = history.history['val_acc']
+    acc = history.history['accuracy']           # please change to "acc" in tf1
+    val_acc = history.history['val_accuracy']   # please change to "val_acc" in tf1
 
     plt.plot(range(0, epochs), acc, color='red', label='Training acc')
     plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')
