@@ -24,9 +24,9 @@ Create a tensor instance.
 
 **Arguments**
 
-- ** type:** tensor data quantisation type, select between `NNOM_QTYPE_PER_AXIS` and `NNOM_QTYPE_PER_TENSOR`.
-- ** num_dim:** number of tensor dimension
-- ** num_channel:** when `NNOM_QTYPE_PER_AXIS` passed as type, this is the number of the selected axis(channels). 
+- **type:** tensor data quantisation type, select between `NNOM_QTYPE_PER_AXIS` and `NNOM_QTYPE_PER_TENSOR`.
+- **num_dim:** number of tensor dimension
+- **num_channel:** when `NNOM_QTYPE_PER_AXIS` passed as type, this is the number of the selected axis(channels). 
 
 **Return**
 
@@ -48,7 +48,7 @@ Create a tensor instance.
 
 **Arguments**
 
-- ** t:** tensor willing to delete
+- **t:** tensor willing to delete
 
 
 **Notes**
@@ -68,12 +68,12 @@ set the attributes of the tensors.
 
 **Arguments**
 
-- ** t:** tensor
-- ** dec_bit:** the num of bit for the fractional part in q format. An array for each channel if the tensor is per-axis quantised.
-- ** offset:** the zero-point offset for each channels. 
-- ** dim:** the dimension array of the tensor.
-- ** num_dim:** number of dimemsions
-- ** bitwidth:** bitwidth of the tensor data. -- only support 8 currently. 
+- **t:** tensor
+- **dec_bit:** the num of bit for the fractional part in q format. An array for each channel if the tensor is per-axis quantised.
+- **offset:** the zero-point offset for each channels. 
+- **dim:** the dimension array of the tensor.
+- **num_dim:** number of dimemsions
+- **bitwidth:** bitwidth of the tensor data. -- only support 8 currently. 
 
 **Return**
 
@@ -93,12 +93,12 @@ set the attributes of the tensors by value. This interface only support per-tens
 
 **Arguments**
 
-- ** t:** tensor
-- ** dec_bit:** the num of bit for the fractional part in q format. 
-- ** offset:** the zero-point offset for each channels. 
-- ** dim:** the dimension array of the tensor.
-- ** num_dim:** number of dimemsions
-- ** bitwidth:** bitwidth of the tensor data. -- only support 8 currently. 
+- **t:** tensor
+- **dec_bit:** the num of bit for the fractional part in q format. 
+- **offset:** the zero-point offset for each channels. 
+- **dim:** the dimension array of the tensor.
+- **num_dim:** number of dimemsions
+- **bitwidth:** bitwidth of the tensor data. -- only support 8 currently. 
 
 **Return**
 
@@ -116,7 +116,7 @@ Return the data size of the tensor.
 
 **Arguments**
 
-- ** t:** tensor
+- **t:** tensor
 
 **Return**
 
@@ -134,8 +134,8 @@ Copy tensor attributes.
 
 **Arguments**
 
-- ** des:** destination tensor
-- ** src:** source tensor
+- **des:** destination tensor
+- **src:** source tensor
 
 **Return**
 
@@ -153,8 +153,8 @@ Reorder and copy tensor data.
 
 **Arguments**
 
-- ** des:** destination tensor
-- ** src:** source tensor
+- **des:** destination tensor
+- **src:** source tensor
 
 ---
 
@@ -168,8 +168,8 @@ Reorder and copy tensor data.
 
 **Arguments**
 
-- ** des:** destination tensor
-- ** src:** source tensor
+- **des:** destination tensor
+- **src:** source tensor
 
 ---
 
