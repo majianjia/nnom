@@ -11,3 +11,4 @@ __pycache__
 *.obj
 *.sconsign.dblite
 .ipynb_checkpoints
+examples/uci-inception/.layer_q_list
