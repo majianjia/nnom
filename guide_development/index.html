@@ -7,13 +7,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   
+  
   <link rel="shortcut icon" href="../img/favicon.ico">
   <title>Development Guide - NNoM Documentation</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
 
-  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
   
   <script>
     // Current page data
@@ -24,7 +25,7 @@
   
   <script src="../js/jquery-2.1.1.min.js" defer></script>
   <script src="../js/modernizr-2.8.3.min.js" defer></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
   <script>hljs.initHighlightingOnLoad();</script> 
   
   <script>
@@ -45,6 +46,7 @@
 
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
         <a href=".." class="icon icon-home"> NNoM Documentation</a>
         <div role="search">
@@ -55,133 +57,92 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="..">Overview</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Guides</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../guide_5_min_to_nnom/">5 min to NNoM</a>
-                </li>
-                <li class=" current">
-                    
-    <a class="current" href="./">Development Guide</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l3"><a href="#development-guide">Development Guide</a></li>
-    
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Guides</span></p>
+                <ul class="current">
+                    <li class="toctree-l1"><a class="reference internal" href="../guide_5_min_to_nnom/">5 min to NNoM</a>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Development Guide</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#frequent-questions-and-answers-qa">Frequent Questions and Answers (Q&A)</a>
         <ul>
-        
-            <li><a class="toctree-l4" href="#frequent-questions-and-answers-qa">Frequent Questions and Answers (Q&amp;A)</a></li>
-        
-            <li><a class="toctree-l4" href="#nnom-structure">NNoM Structure</a></li>
-        
-            <li><a class="toctree-l4" href="#quantisation">Quantisation</a></li>
-        
-            <li><a class="toctree-l4" href="#optimization">Optimization</a></li>
-        
-            <li><a class="toctree-l4" href="#performance">Performance</a></li>
-        
-            <li><a class="toctree-l4" href="#evaluations">Evaluations</a></li>
-        
-            <li><a class="toctree-l4" href="#others">Others</a></li>
-        
+    <li class="toctree-l3"><a class="reference internal" href="#what-is-nnom-different-from-others">What is NNoM different from others?</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#should-i-develop-an-ad-hoc-model-or-use-a-pre-trained-model">Should I develop an ad-hoc model or use a pre-trained model?</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#what-can-nnom-provide-to-embedded-engineers">What can NNoM provide to embedded engineers?</a>
+    </li>
         </ul>
-    
-
-    </ul>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../Porting_and_Optimisation_Guide/">Porting and Optimisation Guide</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">APIs</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../api_nnom_utils/">Utils (Python)</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../api_model/">Model</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../api_construction/">Construction Methods</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../api_properties/">Properties</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../api_layers/">Core Layers</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../api_pooling/">Pooling Layers</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../api_activations/">Activations</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../api_merge/">Merges Layers</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../api_evaluation/">Evaluation Methods</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Legacy Guide</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../A_Temporary_Guide_to_NNoM/">A Temporary Guide</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../legacy_README/">Old Readme</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Chinese (中文)</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../rt-thread_guide/">RT-Thread</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../example_mnist_simple_cn/">MNIST-Simple</a>
-                </li>
-    </ul>
-	    </li>
-          
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#nnom-structure">NNoM Structure</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#quantisation">Quantisation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#optimization">Optimization</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#evaluations">Evaluations</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#an-nnom-model">An NNoM model</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#model-info-memory">Model info, memory</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#runtime-statistices">Runtime statistices</a>
+    </li>
         </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#others">Others</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#memeory-management-in-nnom">Memeory management in NNoM</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../Porting_and_Optimisation_Guide/">Porting and Optimisation Guide</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">APIs</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_nnom_utils/">Utils (Python)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_model/">Model</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_construction/">Construction Methods</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_properties/">Properties</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_layers/">Core Layers</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_pooling/">Pooling Layers</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_activations/">Activations</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_merge/">Merges Layers</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_evaluation/">Evaluation Methods</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Legacy Guide</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../A_Temporary_Guide_to_NNoM/">A Temporary Guide</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../legacy_README/">Old Readme</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Chinese (中文)</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../rt-thread_guide/">RT-Thread</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../example_mnist_simple_cn/">MNIST-Simple</a>
+                    </li>
+                </ul>
       </div>
-      &nbsp;
+    </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
@@ -213,6 +174,7 @@
       
     </li>
   </ul>
+  
   <hr/>
 </div>
           <div role="main">
@@ -541,7 +503,7 @@ For example, convolution layers normally apply one block for input data, one blo
     
   </div>
 
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
       
         </div>
@@ -551,7 +513,7 @@ For example, convolution layers normally apply one block for input data, one blo
 
   </div>
 
-  <div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
           <a href="https://github.com/majianjia/nnom/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
@@ -567,6 +529,11 @@ For example, convolution layers normally apply one block for input data, one blo
     <script>var base_url = '..';</script>
     <script src="../js/theme.js" defer></script>
       <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
 
 </body>
 </html>
