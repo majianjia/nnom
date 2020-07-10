@@ -54,11 +54,6 @@ def build_model(x_shape):
     predictions = Softmax()(x)
 
     model = Model(inputs=inputs, outputs=predictions)
-
-    model.compile(loss='categorical_crossentropy',
-                  optimizer='adam',
-                  metrics=['accuracy'])
-    model.summary()
     return model
 
 def train(model, x_train, y_train, x_test, y_test, batch_size=64, epochs=50):
