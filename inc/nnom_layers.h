@@ -41,6 +41,7 @@ nnom_layer_io_t *io_init(void *owner_layer, nnom_layer_io_t *io);
 
 #define NN_CEILIF(x,y) ((x+y-1)/y)
 
+#include "layers/nnom_activation.h"
 #include "layers/nnom_concat.h"
 #include "layers/nnom_conv2d.h"
 #include "layers/nnom_cropping.h"

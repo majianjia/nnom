@@ -206,8 +206,7 @@ nnom_activation_t* act_sigmoid(int32_t dec_bit)
 	return (nnom_activation_t*)act;
 }
 
-// a direct api on tensor
-// a activate a tensor
+// a direct api to run activate a tensor
 nnom_status_t act_tensor_run(nnom_activation_t* act, nnom_tensor_t* tensor)
 {
 	act->tensor = tensor;
