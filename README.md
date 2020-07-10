@@ -95,7 +95,7 @@ Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) 
 **Core Layers**
 
 | Layers | Struct API |Layer API|Comments|
-| ------ |----|---- |------|------|
+| ------ |-------- |------|------|
 | Convolution  |conv2d_s()|Conv2D()|Support 1/2D, support dilations (New!)|
 | ConvTransposed  |conv2d_trans_s()|Conv2DTrans()|Under Dev. (New!)|
 | Depthwise Conv |dwconv2d_s()|DW_Conv2D()|Support 1/2D|
@@ -134,7 +134,7 @@ There is no structred API for activation currently, since activation are not usu
 **Pooling Layers**
 
 | Pooling | Struct API|Layer API|Comments|
-| ------ |----|----|----|----|
+| ------ |--------|----|----|
 | Max Pooling |maxpool_s()|MaxPool()||
 | Average Pooling |avgpool_s()|AvgPool()||
 | Sum Pooling |sumpool_s()|SumPool()||
