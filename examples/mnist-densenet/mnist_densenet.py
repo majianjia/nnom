@@ -11,19 +11,17 @@
 
 import matplotlib.pyplot as plt
 import os
-import sys
 nnscript = os.path.abspath('../../scripts')
-sys.path.append(nnscript)
+os.sys.path.append(nnscript)
 
-from keras.models import Sequential, load_model
-from keras.models import Model
-from keras.datasets import mnist
-from keras.datasets import cifar10 #test
-from keras.layers import *
-from keras.utils import to_categorical
-from keras.callbacks import ModelCheckpoint
-
-from nnom_utils import *
+from tensorflow.keras import *
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import *
+from tensorflow.keras.activations import *
+from tensorflow.keras.models import load_model, save_model
+import tensorflow as tf
+import numpy as np
+from nnom import *
 
 
 model_name = 'mnist_model.h5'
@@ -88,28 +86,21 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     model.summary()
 
     # save best
-    checkpoint = ModelCheckpoint(filepath=save_dir,
-            monitor='val_acc',
-            verbose=0,
-            save_best_only='True',
-            mode='auto',
-            period=1)
-    callback_lists = [checkpoint]
-
     history = model.fit(x_train, y_train,
               batch_size=batch_size,
               epochs=epochs,
               verbose=2,
               validation_data=(x_test, y_test),
-              shuffle=True, callbacks=callback_lists)
+              shuffle=True)
 
     # free the session to avoid nesting naming while we load the best model after.
+    save_model(model, save_dir)
     del model
-    K.clear_session()
+    tf.keras.backend.clear_session()
     return history
 
 def main(weights='weights.h'):
-    epochs = 1 # reduced for CI
+    epochs = 3 # reduced for CI
     num_classes = 10
 
     # select different dataset as you wish
@@ -121,61 +112,23 @@ def main(weights='weights.h'):
         x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], x_train.shape[2], 1)
         x_test = x_test.reshape(x_test.shape[0], x_test.shape[1], x_test.shape[2], 1)
     else:
-        (x_train, y_train), (x_test, y_test) = cifar10.load_data()
+        (x_train, y_train), (x_test, y_test) = tf.keras.cifar10.load_data()
 
     print(x_train.shape[0], 'train samples')
     print(x_test.shape[0], 'test samples')
 
     # Convert class vectors to binary class matrices.
-    y_train = to_categorical(y_train, num_classes)
-    y_test = to_categorical(y_test, num_classes)
+    y_train = tf.keras.utils.to_categorical(y_train, num_classes)
+    y_test = tf.keras.utils.to_categorical(y_test, num_classes)
 
     # quantize the range to 0~1
     x_test = x_test.astype('float32')/255
     x_train = x_train.astype('float32')/255
     print("data range", x_test.min(), x_test.max())
 
-    if(os.getenv('NNOM_TEST_ON_CI') == 'YES'):
-        shift_list = eval(open('.shift_list').read())
-        rP = 0.0
-        for i,im in enumerate(x_test):
-            X = im.reshape(1,28,28,1)
-            f2q(X, shift_list['input_1']).astype(np.int8).tofile('tmp/input.raw')
-            if(0 == os.system('./mnist > /dev/null')):
-                out = q2f(np.fromfile('tmp/Softmax1.raw',dtype=np.int8),7)
-                out = np.asarray(out)
-                num, prop = out.argmax(), out[out.argmax()]
-                rnum = y_test[i].argmax()
-                if(rnum == num):
-                    #print('test image %d is %d, predict correctly with prop %s'%(i, rnum, prop))
-                    rP += 1.0
-                if((i>0) and ((i%1000)==0)):
-                    print('%.1f%%(%s) out of %s is correct predicted'%(rP*100.0/i, rP, i))
-        print('%.1f%%(%s) out of %s is correct predicted'%(rP*100.0/i, rP, i))
-        if(rP/i > 0.8):
-            return
-        else:
-            raise Exception('test failed, accuracy is %.1f%% < 80%%'%(rP*100.0/i))
+    # train
+    history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
 
-    # generate binary
-    if(not os.path.exists(dataset+'_test_data.bin')):
-        # recover the range to 0~127 for MCU
-        generate_test_bin(x_test*127, y_test, name=dataset+'_test_data.bin')
-
-    # train model
-    if(not os.path.exists(save_dir)):
-        history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
-        acc = history.history['acc']
-        val_acc = history.history['val_acc']
-        if(os.getenv('NNOM_ON_CI') == None):
-            plt.plot(range(0, epochs), acc, color='red', label='Training acc')
-            plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')
-            plt.title('Training and validation accuracy')
-            plt.xlabel('Epochs')
-            plt.ylabel('Loss')
-            plt.legend()
-            plt.show()
-  
     # get best model
     model = load_model(save_dir)
 
