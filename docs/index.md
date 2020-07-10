@@ -5,15 +5,15 @@
 
 NNoM is a high-level inference Neural Network library specifically for microcontrollers. 
 
-Document version 0.2.1
+Document version 0.4.0
 
 [[Chinese Intro]](rt-thread_guide.md)
 
 **Highlights**
 
 - Deploy Keras model to NNoM model with one line of code.
+- Support complex structures; Inception, ResNet, DenseNet, Octave Convolution...
 - User-friendly interfaces.
-- Support complex structures; Inception, ResNet, DenseNet...
 - High-performance backend selections.
 - Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
 
@@ -21,6 +21,21 @@ The structure of NNoM is shown below:
 ![](figures/nnom_structure.png)
 
 More detail avaialble in [Development Guide](guide_development.md)
+
+## Latest Updates - v0.4.x
+
+**New Structured Interface**
+
+NNoM has provided a new layer interface called **Structured Interface**, all marked with `_s` suffix. which aims to use one C-structure to provided all the configuration for a layer. Different from the Layer API which is human friendly, this structured API are more machine friendly. 
+
+**Per-Channel Quantisation**
+
+The new structred API supports per-channel quantisation (per-axis) and dilations for Convolutional layers. 
+
+
+**New Scripts**
+
+From 0.4.0, NNoM will switch to structured interface as default to generate the model header `weights.h`. The scripts corresponding to structured interfaces are `nnom.py` while the Layer Interface corresponding to `nnom_utils.py`.
 
 ## Licenses
 
@@ -104,22 +119,24 @@ Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for deta
 
 > *Notes: NNoM now supports both HWC and CHW formats. Some operation might not support both format currently. Please check the tables for the current status. *
 
+
 **Core Layers**
 
-| Layers |HWC|CHW |Layer API|Comments|
-| ------ |----|---- |------|------|
-| Convolution  |✓|✓|Conv2D()|Support 1/2D|
-| Depthwise Conv |✓|✓|DW_Conv2D()|Support 1/2D|
-| Fully-connected |✓|✓| Dense()| |
-| Lambda |✓|✓| Lambda() |single input / single output anonymous operation| 
-| Batch Normalization |✓| ✓| N/A| This layer is merged to the last Conv by the script|
-| Flatten|✓|✓| Flatten()| |
-| SoftMax|✓|✓| SoftMax()| Softmax only has layer API| 
-| Activation|✓|✓| Activation()|A layer instance for activation|
-| Input/Output |✓|✓| Input()/Output()| |
-| Up Sampling |✓| ✓|UpSample()||
-| Zero Padding | ✓| ✓|ZeroPadding()||
-| Cropping |✓ |✓ |Cropping()||
+| Layers | Struct API |Layer API|Comments|
+| ------ |-------- |------|------|
+| Convolution  |conv2d_s()|Conv2D()|Support 1/2D, support dilations (New!)|
+| ConvTransposed  |conv2d_trans_s()|Conv2DTrans()|Under Dev. (New!)|
+| Depthwise Conv |dwconv2d_s()|DW_Conv2D()|Support 1/2D|
+| Fully-connected |dense_s()| Dense()| |
+| Lambda |lambda_s()| Lambda() |single input / single output anonymous operation| 
+| Batch Normalization |N/A| N/A| This layer is merged to the last Conv by the script|
+| Flatten|flatten_s()| Flatten()| |
+| SoftMax|softmax_s()| SoftMax()| Softmax only has layer API| 
+| Activation|N/A| Activation()|A layer instance for activation|
+| Input/Output |input_s()/output_s()| Input()/Output()| |
+| Up Sampling |upsample_s()|UpSample()||
+| Zero Padding | zeropadding_s()|ZeroPadding()||
+| Cropping |cropping_s() |Cropping()||
 
 **RNN Layers**
 
@@ -133,28 +150,37 @@ Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for deta
 
 Activation can be used by itself as layer, or can be attached to the previous layer as ["actail"](docs/A_Temporary_Guide_to_NNoM.md#addictionlly-activation-apis) to reduce memory cost.
 
-| Actrivation | HWC| CHW|Layer API|Activation API|Comments|
-| ------ |-- |--|--|--|--|
-| ReLU  | ✓|✓|ReLU()|act_relu()||
-| TanH | ✓|✓|TanH()|act_tanh()||
-|Sigmoid|✓|✓| Sigmoid()|act_sigmoid()||
+There is no structred API for activation currently, since activation are not usually used as a layer.
+
+| Actrivation | Struct API |Layer API|Activation API|Comments|
+| ------ |--|--|--|--|
+| ReLU  | N/A |ReLU()|act_relu()||
+| Leaky ReLU (New!) | N/A |ReLU()|act_relu()||
+| TanH | N/A |TanH()|act_tanh()||
+|Sigmoid|N/A| Sigmoid()|act_sigmoid()||
 
 **Pooling Layers**
 
-| Pooling | HWC|CHW |Layer API|Comments|
-| ------ |-- |--|--|--|
-| Max Pooling  |✓|✓|MaxPool()||
-| Average Pooling | ✓|✓|AvgPool()||
-| Sum Pooling | ✓|✓|SumPool()| |
-| Global Max Pooling |✓|✓|GlobalMaxPool()||
-| Global Average Pooling |✓|✓|GlobalAvgPool()||
-| Global Sum Pooling |✓|✓|GlobalSumPool()|A better alternative to Global average pooling in MCU before Softmax|
+| Pooling | Struct API|Layer API|Comments|
+| ------ |--------|----|----|
+| Max Pooling |maxpool_s()|MaxPool()||
+| Average Pooling |avgpool_s()|AvgPool()||
+| Sum Pooling |sumpool_s()|SumPool()||
+| Global Max Pooling|global_maxpool_s()|GlobalMaxPool()||
+| Global Average Pooling |global_avgpool_s()|GlobalAvgPool()||
+| Global Sum Pooling |global_sumpool_s()|GlobalSumPool()|A better alternative to Global average pooling in MCU before Softmax|
 
 **Matrix Operations Layers**
 
-| Matrix |HWC|CHW|Layer API|Comments|
-| ------ |-- |--|--|--|
-| Concatenate |✓|✓| Concat()| Concatenate through any axis|
-| Multiple  |✓|✓|Mult()||
-| Addition  |✓|✓|Add()||
-| Substraction  |✓|✓|Sub()||
+| Matrix |Struct API |Layer API|Comments|
+| ------ |--|--|--|
+| Concatenate |concat_s()| Concat()| Concatenate through any axis|
+| Multiple  |mult_s()|Mult()||
+| Addition  |add_s()|Add()||
+| Substraction  |sub_s()|Sub()||
+
+## Dependencies
+
+NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. 
+
+To use Log functions, you will need to enable libc in your projects. 

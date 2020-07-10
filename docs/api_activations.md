@@ -64,6 +64,27 @@ nnom_layer_t* ReLU(void);
 
 Using `layer = ReLU();` is no difference to `layer = Activation(act_relu());`
 
+
+---
+
+## Leaky ReLU() 
+
+~~~C
+nnom_layer_t* LeakyReLU(float alpha);
+~~~
+
+**Arguments**
+
+- **alpha:** The slope of the nagative parts. 
+
+**Return**
+
+- The LeakyReLU layer instance
+
+**Notes**
+
+Internally, the alpha will be converted to Q0.7 format. 
+
 ---
 
 ## Sigmoid() 
@@ -117,12 +138,11 @@ This function is affacted by an issue that we are currently working on. Check [i
 
 ---
 
-
 # Activation APIs
-
 
 ~~~C
 nnom_activation_t* act_relu(void);
+nnom_activation_t* act_leaky_relu(float alpha);
 nnom_activation_t* act_sigmoid(int32_t dec_bit);
 nnom_activation_t* act_tanh(int32_t dec_bit);
 ~~~
