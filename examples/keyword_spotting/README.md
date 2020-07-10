@@ -22,9 +22,9 @@ The target application of KWS could be: low-power wakeup, speech control toys ..
 
 A few one second MFCC result are shown below:
 
-![](kws_mfcc_example1.png)
-![](kws_mfcc_example2.png)
-![](kws_mfcc_example3.png)
+![](docs/kws_mfcc_example1.png)
+![](docs/kws_mfcc_example2.png)
+![](docs/kws_mfcc_example3.png)
 
 The size of the image is `(63, 12, 1)`. 
 There is no difference for the Neural Network to do image classification or speech commands recognition. What's more in KWS are the mic driver and MFCC. 

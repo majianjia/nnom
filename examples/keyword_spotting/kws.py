@@ -1,17 +1,25 @@
-import numpy as np
+'''
+    Copyright (c) 2018-2020
+    Jianjia Ma
+    majianjia@live.com
+    SPDX-License-Identifier: Apache-2.0
+    Change Logs:
+    Date           Author       Notes
+    2019-02-12     Jianjia Ma   The first version
+'''
+
 
 import matplotlib.pyplot as plt
-from matplotlib import cm
 import os
+nnscript = os.path.abspath('../../scripts')
+os.sys.path.append(nnscript)
 
-import keras
-from keras.models import Sequential, load_model
-from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Model
-from keras.layers import *
-from keras.callbacks import ModelCheckpoint
-from nnom_utils import *
-
+from tensorflow.keras import *
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import *
+from tensorflow.keras.models import load_model, save_model
+import tensorflow as tf
+from nnom import *
 from mfcc import *
 
 model_path = 'model.h5'
@@ -19,7 +27,7 @@ model_path = 'model.h5'
 def mfcc_plot(x, label= None):
     mfcc_feat = np.swapaxes(x, 0, 1)
     ig, ax = plt.subplots()
-    cax = ax.imshow(mfcc_feat, interpolation='nearest', origin='lower', aspect=1)#, cmap=cm.coolwarm)
+    cax = ax.imshow(mfcc_feat, interpolation='nearest', origin='lower', aspect=1)
     if label is not None:
         ax.set_title(label)
     else:
@@ -66,39 +74,30 @@ def train(x_train, y_train, x_test, y_test, type, batch_size=64, epochs=100):
     model = Model(inputs=inputs, outputs=predictions)
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer='adadelta',
+                  optimizer='adam',
                   metrics=['accuracy'])
 
     model.summary()
-
-    # save best
-    checkpoint = ModelCheckpoint(filepath=model_path,
-            monitor='val_acc',
-            verbose=0,
-            save_best_only='True',
-            mode='auto',
-            period=1)
-    callback_lists = [checkpoint]
-
     history =  model.fit(x_train, y_train,
               batch_size=batch_size,
               epochs=epochs,
               verbose=2,
               validation_data=(x_test, y_test),
-              shuffle=True, callbacks=callback_lists)
+              shuffle=True)
 
+    # free the session to avoid nesting naming while we load the best model after.
+    save_model(model, model_path)
     del model
-    K.clear_session()
-
+    tf.keras.backend.clear_session()
     return history
 
 def main():
+    # fix cudnn gpu memory error
+    physical_devices = tf.config.experimental.list_physical_devices("GPU")
+    if(physical_devices is not None):
+       tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-    # fixed the gpu error
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    session = tf.Session(config=config)
-
+    # load data
     try:
         x_train = np.load('train_data.npy')
         y_train = np.load('train_label.npy')
@@ -106,11 +105,8 @@ def main():
         y_test = np.load('test_label.npy')
         x_val = np.load('val_data.npy')
         y_val = np.load('val_label.npy')
-
     except:
-        # test
         (x_train, y_train), (x_test, y_test), (x_val, y_val) = merge_mfcc_file()
-
         np.save('train_data.npy', x_train)
         np.save('train_label.npy', y_train)
         np.save('test_data.npy', x_test)
@@ -122,7 +118,6 @@ def main():
     # label: the selected label will be recognised, while the others will be classified to "unknow". 
     #selected_lable = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go']
     #selected_lable = ['marvin', 'sheila', 'yes', 'no', 'left', 'right', 'forward', 'backward', 'stop', 'go']
-
     selected_lable = ['backward', 'bed', 'bird', 'cat', 'dog', 'down', 'eight','five', 'follow', 'forward',
                       'four','go','happy','house','learn','left','marvin','nine','no','off','on','one','right',
                       'seven','sheila','six','stop','three','tree','two','up','visual','yes','zero']
@@ -145,9 +140,8 @@ def main():
 
     # fake quantised
     # instead of using maximum value for quantised, we allows some saturation to save more details in small values.
-    quantise_factor = pow(2, 4)
+    quantise_factor = pow(2, 3)
     print("quantised by", quantise_factor)
-
     x_train = (x_train / quantise_factor)
     x_test = (x_test / quantise_factor)
     x_val = (x_val / quantise_factor)
@@ -183,9 +177,9 @@ def main():
     y_val = label_to_category(y_val, selected_lable)
 
     # number label to onehot
-    y_train = keras.utils.to_categorical(y_train, num_type)
-    y_test = keras.utils.to_categorical(y_test, num_type)
-    y_val = keras.utils.to_categorical(y_val, num_type)
+    y_train = tf.keras.utils.to_categorical(y_train, num_type)
+    y_test = tf.keras.utils.to_categorical(y_test, num_type)
+    y_val = tf.keras.utils.to_categorical(y_val, num_type)
 
     # shuffle test data
     permutation = np.random.permutation(x_test.shape[0])
@@ -209,8 +203,8 @@ def main():
 
     generate_model(model, np.vstack((x_test, x_val)), name="weights.h")
 
-    acc = history.history['acc']
-    val_acc = history.history['val_acc']
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
 
     plt.plot(range(0, epochs), acc, color='red', label='Training acc')
     plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')
