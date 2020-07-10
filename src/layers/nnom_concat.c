@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -19,14 +19,11 @@
 #include "nnom_layers.h"
 #include "layers/nnom_concat.h"
 
-nnom_status_t concat_build(nnom_layer_t *layer);
-nnom_status_t concat_run(nnom_layer_t *layer);
-
-nnom_layer_t *concat_s(nnom_concat_config_t *config)
+nnom_layer_t *concat_s(const nnom_concat_config_t *config)
 {
 	nnom_layer_t* layer = Concat(config->axis);
 	if(layer)
-		layer->config = config;
+		layer->config = (void*) config;
 	return layer;
 }
 
@@ -98,7 +95,7 @@ nnom_status_t concat_build(nnom_layer_t *layer)
 	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
-	// do the work
+	// find out the concated axis
 	for (uint32_t i = 0; i < num_dim; i ++)
 	{
 		// exclue the concat axies

@@ -1,7 +1,7 @@
 
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -20,17 +20,18 @@
 #include "nnom_layers.h"
 #include "layers/nnom_output.h"
 
-nnom_status_t output_build(nnom_layer_t *layer);
-nnom_status_t output_run(nnom_layer_t *layer);
-
-nnom_layer_t *output_s(nnom_io_config_t* config)
+nnom_layer_t *output_s(const nnom_io_config_t* config)
 {
-	nnom_layer_t *layer = Output(config->shape, config->data);
+	nnom_layer_t *layer = input_s(config);
 	if(layer)
-		layer->config = config;
+	{
+		layer->config = (void*) config;
+		layer->type = NNOM_OUTPUT;
+		layer->run = output_run;
+		layer->build = default_build;
+	}
 	return layer;
 }
-
 
 nnom_layer_t *Output(nnom_3d_shape_t output_shape, void *p_buf)
 {
@@ -44,7 +45,6 @@ nnom_layer_t *Output(nnom_3d_shape_t output_shape, void *p_buf)
 	}
 	return layer;
 }
-
 
 nnom_status_t output_run(nnom_layer_t *layer)
 {

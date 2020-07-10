@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -29,12 +29,23 @@ extern "C" {
 #define q7_t 	int8_t
 #define q15_t 	int16_t
 #define q31_t 	int32_t
+#define q63_t 	int64_t
 
 /* version */
 #define NNOM_MAJORVERSION     0L              /**< major version number */
 #define NNOM_SUBVERSION       4L              /**< minor version number */
 #define NNOM_REVISION         0L              /**< revise version number */
-#define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
+#define NNOM_VERSION          ((NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
+
+#ifdef ARM_NN_TRUNCATE
+#define NNOM_TRUNCATE
+#endif
+
+#ifndef NNOM_TRUNCATE 
+    #define NNOM_ROUND(out_shift) ( (0x1u << out_shift) >> 1 )
+#else
+    #define NNOM_ROUND(out_shift) 0
+#endif
 										 
 typedef enum
 {
@@ -57,6 +68,7 @@ typedef enum
 	NNOM_OUTPUT,
 	NNOM_CONV_2D,
 	NNOM_DW_CONV_2D,
+	NNOM_CONV2D_TRANS,
 	NNOM_BATCHNORM,
 	NNOM_DENSE,
 	NNOM_ZERO_PADDING,
@@ -64,6 +76,7 @@ typedef enum
 	NNOM_RNN,
 	NNOM_ACTIVATION,
 	NNOM_RELU,
+	NNOM_LEAKY_RELU,
 	NNOM_SIGMOID,
 	NNOM_TANH,
 	NNOM_SOFTMAX,
@@ -92,6 +105,7 @@ typedef enum
 			"Output",       \
 			"Conv2D",       \
 			"DW_Conv2D",    \
+			"Conv2DTrsp",    \
 			"BatchNorm",	\
 			"Dense",        \
 			"ZeroPad",	    \
@@ -99,6 +113,7 @@ typedef enum
 			"RNN",          \
 			"Activation",   \
 			"ReLU",         \
+			"Leaky_ReLU",				\
 			"Sigmoid",      \
 			"Tanh",         \
 			"Softmax",      \
@@ -122,6 +137,7 @@ extern const char default_layer_names[][12];
 typedef enum
 {
 	ACT_RELU = 0,
+	ACT_LEAKY_RELU,
 	ACT_TANH,
 	ACT_SIGMOID,
 } nnom_activation_type_t;
@@ -129,8 +145,9 @@ typedef enum
 #define ACTIVATION_NAMES \
 	{                    \
 		"ReLU",          \
-			"TanH",      \
-			"Sigmoid",   \
+		"LkyReLU",		 \
+		"TanH",      \
+		"Sigmoid",   \
 	}
 extern const char default_activation_names[][8];
 
@@ -175,7 +192,6 @@ typedef enum
 	NNOM_QTYPE_PER_TENSOR = 0,
 	NNOM_QTYPE_PER_AXIS = 1
 } nnom_qtype_t;
-
 
 typedef struct _nnom_weights
 {
@@ -265,7 +281,7 @@ typedef struct _nnom_layer_t
 	nnom_buf_t *comp;		   								// computational buf
 	nnom_activation_t *actail; 								// I have an activation, I have a tail, wooo haaaa, act-tail!!!
 
-	void *config;			// point to the configuration of the layers. for machine api only. 
+	nnom_layer_config_t *config;			// point to the configuration of the layers. for machine api only. 
 	nnom_layer_type_t type; // layer types
 	nnom_layer_io_t *in;	// IO buff, last*layer, states
 	nnom_layer_io_t *out;   // IO buff, next*layer, states
@@ -286,6 +302,13 @@ typedef struct _nnom_activation_fixed_q_t
 	nnom_activation_t super;
 	uint8_t dec_bit;
 } nnom_activation_fixed_q_t;
+
+// leaky relu
+typedef struct _nnom_activation_leaky_re_lu_t
+{
+	nnom_activation_t super;
+	q7_t alpha;					// alpha is present by q0.7 format. (-128 = -1) 
+} nnom_activation_leaky_re_lu_t;
 
 typedef struct _nnom_model nnom_model_t;
 
@@ -348,6 +371,8 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 nnom_status_t model_run(nnom_model_t *m);
 // delete model. 
 void model_delete(nnom_model_t *m);
+// check version
+nnom_status_t check_model_version(unsigned long model_version);
 
 // callback, called after each layer has finished the calculation. 
 // this callback must return NN_SUCCESS for continually run the model. otherwise, model will be returned with the ERROR code. 

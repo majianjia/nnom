@@ -18,13 +18,10 @@
 #include "ymodem.h"
 
 
-#define INPUT_CH			1	 
-#define INPUT_WIDTH			28
-#define INPUT_HIGHT			28
-#define NUM_CLASS 			(10)		
+#define NUM_CLASS 	sizeof(nnom_output_data)		
 
 nnom_model_t *model = 0; // to use finsh to print
-int8_t input_data[INPUT_HIGHT * INPUT_WIDTH * INPUT_CH];
+int8_t input_data[sizeof(nnom_input_data)];
 int8_t output_data[NUM_CLASS];
 
 
@@ -34,7 +31,7 @@ static TIM_HandleTypeDef s_TimerInstance = {
 void us_timer_enable()
 {
     __TIM2_CLK_ENABLE();
-    s_TimerInstance.Init.Prescaler = 150;
+    s_TimerInstance.Init.Prescaler = 120;
     s_TimerInstance.Init.CounterMode = TIM_COUNTERMODE_UP;
     s_TimerInstance.Init.Period = 0xffffffff;
     s_TimerInstance.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -52,7 +49,6 @@ uint32_t us_timer_get()
 
 int main(void)
 {
-	
 	rt_thread_delay(10);
 	
 	// for runtime stat
@@ -85,7 +81,7 @@ FINSH_FUNCTION_EXPORT(nn_stat, nn_stat() to print data);
 #ifdef RT_USING_FINSH
 #include <finsh.h>
 
-#define DATA_SIZE (INPUT_CH * INPUT_WIDTH * INPUT_HIGHT)
+#define DATA_SIZE  sizeof(nnom_input_data)
 #define LABEL_SIZE 128
 
 static size_t file_total_size, file_cur_size;
@@ -217,6 +213,8 @@ void reboot()
 	rt_thread_delay(RT_TICK_PER_SECOND);
 	NVIC_SystemReset();
 }
+FINSH_FUNCTION_EXPORT(reboot, reboot() );
+MSH_CMD_EXPORT(reboot, reboot);
 
 #endif
 

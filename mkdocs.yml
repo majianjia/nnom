@@ -18,6 +18,7 @@ nav:
   - Model: 'api_model.md'
   - Construction Methods: 'api_construction.md'
   - Properties: 'api_properties.md'
+  - Tensors: 'api_tensor.md'
   - Core Layers: 'api_layers.md'
   - Pooling Layers: 'api_pooling.md'
   - Activations: 'api_activations.md'

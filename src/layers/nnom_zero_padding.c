@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -19,20 +19,11 @@
 #include "nnom_layers.h"
 #include "layers/nnom_zero_padding.h"
 
-nnom_status_t zero_padding_build(nnom_layer_t *layer);
-nnom_status_t zero_padding_run(nnom_layer_t *layer);
-
-
-
-nnom_layer_t * zeropadding_s(nnom_zero_padding_config_t* config)
+nnom_layer_t * zeropadding_s(const nnom_zero_padding_config_t* config)
 {
-	nnom_layer_t *layer;
-
-	layer = ZeroPadding(config->pad);
-
-	if(layer != NULL)
-		layer->config = config;
-	
+	nnom_layer_t *layer = ZeroPadding(config->pad);
+	if(layer)
+		layer->config = (void*) config;
 	return (nnom_layer_t*)layer;
 }
 

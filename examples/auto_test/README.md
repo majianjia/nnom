@@ -100,18 +100,27 @@ Data format in a testing binary file
 3. Build NNoM with deployed model
 
 ~~~
-# --------- for test in CI ----------
-# build nnom
-os.system("scons")
+    # --------- for test in CI ----------
+    # build NNoM
+    os.system("scons")
 
-# do inference
-cmd = ".\mnist.exe" if 'win' in sys.platform else "./mnist"
-if(0 == os.system(cmd)):
-    result = np.genfromtxt('result.csv', delimiter=',', skip_header=1)
-    result = result[:,0] # the first column is the label
-    label = y_test_original
-    acc = np.sum(result == label)/len(result)
-    print("Top 1 Accuracy using NNoM  %.2f%%" %(acc *100))
+    # do inference using NNoM
+    cmd = ".\mnist.exe" if 'win' in sys.platform else "./mnist"
+    os.system(cmd)
+    try:
+        # get NNoM results
+        result = np.genfromtxt('result.csv', delimiter=',', dtype=np.int, skip_header=1)
+        result = result[:,0]        # the first column is the label, the second is the probability
+        label = y_test_original[:len(y_test)].flatten()     # use the original numerical label
+        acc = np.sum(result == label).astype('float32')/len(result)
+        if (acc > 0.5):
+            print("Top 1 Accuracy on Keras %.2f%%" %(scores[1]*100))
+            print("Top 1 Accuracy on NNoM  %.2f%%" %(acc *100))
+            return 0
+        else:
+            raise Exception('test failed, accuracy is %.1f%% < 80%%' % (acc * 100.0))
+    except:
+        raise Exception('could not perform the test with NNoM')
 ~~~
 It simply calls `scons` to compile NNoM with the model file, `weights.h`. Once the compiling completed, it runs the NNoM and uses the exported dataset by the last step to do the inference. The code is shown in `example/auto_test/main.c`. The results of each inference will be stored in a `result.csv` file. The first row is the predict labels, the second row is the probabilities of this label.
 
@@ -135,24 +144,27 @@ model = nnom_model_create();
 ~~~
 
 ~~~
+NNoM version 0.4.0
+Data format: Channel last (HWC)
 Start compiling model...
 Layer(#)         Activation    output shape    ops(MAC)   mem(in, out, buf)      mem blk lifetime
 -------------------------------------------------------------------------------------------------
-#1   Input      -          - (  28,  28,   1)          (   784,   784,     0)    1 - - -  - - - - 
-#2   Conv2D     -          - (  26,  26,  16)      97k (   784, 10816,    36)    1 1 1 -  - - - - 
-#3   Conv2D     - ReLU     - (  24,  24,  32)    2.65M ( 10816, 18432,   576)    1 1 1 -  - - - - 
-#4   MaxPool    -          - (  12,  12,  32)          ( 18432,  4608,     0)    1 1 1 -  - - - - 
-#5   Conv2D     - ReLU     - (  10,  10,  64)    1.84M (  4608,  6400,  1152)    1 1 1 -  - - - - 
-#6   Conv2D     - ReLU     - (   8,   8,  64)    2.35M (  6400,  4096,  2304)    1 1 1 -  - - - - 
-#7   MaxPool    -          - (   4,   4,  64)          (  4096,  1024,     0)    1 1 1 -  - - - - 
-#8   Dense      - ReLU     - (  64,   1,   1)      65k (  1024,    64,  2048)    1 1 1 -  - - - - 
-#9   Dense      -          - (  10,   1,   1)      640 (    64,    10,   128)    1 1 1 -  - - - - 
-#10  Softmax    -          - (  10,   1,   1)          (    10,    10,     0)    1 1 - -  - - - - 
-#11  Output     -          - (  10,   1,   1)          (    10,    10,     0)    1 - - -  - - - - 
+#1   Input      -          - (  28,  28,   1,)          (   784,   784,     0)    1 - - -  - - - -
+#2   Conv2D     -          - (  26,  26,  16,)      97k (   784, 10816,     0)    1 1 - -  - - - -
+#3   Conv2D     - LkyReLU  - (  24,  24,  32,)    2.65M ( 10816, 18432,     0)    1 1 - -  - - - -
+#4   MaxPool    -          - (  12,  12,  32,)          ( 18432,  4608,     0)    1 1 1 -  - - - -
+#5   Conv2D     - ReLU     - (  10,  10,  64,)    1.84M (  4608,  6400,     0)    1 - 1 -  - - - -
+#6   Conv2D     - ReLU     - (   8,   8,  64,)    2.35M (  6400,  4096,     0)    1 1 - -  - - - -
+#7   MaxPool    -          - (   4,   4,  64,)          (  4096,  1024,     0)    1 1 1 -  - - - -
+#8   Flatten    -          - (1024,          )          (  1024,  1024,     0)    - - 1 -  - - - -
+#9   Dense      - ReLU     - (  64,          )      65k (  1024,    64,  2048)    1 1 1 -  - - - -
+#10  Dense      -          - (  10,          )      640 (    64,    10,   128)    1 1 1 -  - - - -
+#11  Softmax    -          - (  10,          )          (    10,    10,     0)    1 - 1 -  - - - -
+#12  Output     -          - (  10,          )          (    10,    10,     0)    1 - - -  - - - -
 -------------------------------------------------------------------------------------------------
 Memory cost by each block:
- blk_0:2304  blk_1:18432  blk_2:10816  blk_3:0  blk_4:0  blk_5:0  blk_6:0  blk_7:0  
- Total memory cost by network buffers: 31552 bytes
+ blk_0:18432  blk_1:10816  blk_2:4608  blk_3:0  blk_4:0  blk_5:0  blk_6:0  blk_7:0
+ Total memory cost by network buffers: 33856 bytes
 ~~~
 
 ### How is the accuracy of the fixed-point model?
@@ -172,27 +184,29 @@ prediction_summary(pre);
 Log return by `prediction_summary()`
 ~~~
 Prediction summary:
-Test frames: 10000
+Test frames: 1000
 Test running time: 0 sec
 Model running time: 0 ms
 Average prediction time: 0 us
-Top 1 Accuracy: 98.53% 
-Top 2 Accuracy: 98.83% 
-Top 3 Accuracy: 98.97% 
-Top 4 Accuracy: 99.07% 
+Top 1 Accuracy: 97.90%
+Top 2 Accuracy: 99.40%
+Top 3 Accuracy: 99.50%
+Top 4 Accuracy: 99.50%
+
 Confusion matrix:
 predict     0     1     2     3     4     5     6     7     8     9
 actual
-   0 |    975     0     2     0     0     0     0     2     1     0   |  99%
-   1 |      0  1123     1     3     0     0     1     6     1     0   |  98%
-   2 |      1     0  1024     0     0     0     0     7     0     0   |  99%
-   3 |      0     0     3  1000     0     1     0     5     1     0   |  99%
-   4 |      0     0     2     0   955     0     1     2     0    22   |  97%
-   5 |      1     0     0     9     0   880     1     1     0     0   |  98%
-   6 |     11     4     1     1     1     6   932     0     2     0   |  97%
-   7 |      0     1     5     0     0     0     0  1020     0     2   |  99%
-   8 |      1     0     3     2     0     1     0     4   954     9   |  97%
-   9 |      3     2     0     2     2     4     0     6     0   990   |  98%
+   0 |     84     0     0     0     0     1     0     0     0     0   |  98%
+   1 |      0   125     0     0     0     1     0     0     0     0   |  99%
+   2 |      1     1   113     0     0     0     0     0     1     0   |  97%
+   3 |      0     0     0   104     0     3     0     0     0     0   |  97%
+   4 |      0     0     0     0   110     0     0     0     0     0   | 100%
+   5 |      0     0     0     0     0    86     0     0     1     0   |  98%
+   6 |      3     0     0     0     0     1    83     0     0     0   |  95%
+   7 |      0     0     1     1     1     0     0    96     0     0   |  96%
+   8 |      0     0     1     0     0     0     0     0    87     1   |  97%
+   9 |      0     0     0     0     2     1     0     0     0    91   |  96%
+
 ~~~
 
 ### How long does it takes for an inference?
@@ -204,23 +218,28 @@ model_stat(model);
 Log from `model_stat()`
 ~~~
 Print running stat..
-Layer(#)        -   Time(us)     ops(MACs)   ops/us 
+Layer(#)        -   Time(us)     ops(MACs)   ops/us
 --------------------------------------------------------
-#1        Input -         0                  
-#2       Conv2D -         0          97k     
-#3       Conv2D -         0        2.65M     
-#4      MaxPool -         0                  
-#5       Conv2D -         0        1.84M     
-#6       Conv2D -         0        2.35M     
-#7      MaxPool -         0                  
-#8        Dense -         0          65k     
-#9        Dense -         0          640     
-#10     Softmax -         0                  
-#11      Output -         0                  
+#1        Input -         0
+#2       Conv2D -         0          97k
+#3       Conv2D -         0        2.65M
+#4      MaxPool -         0
+#5       Conv2D -         0        1.84M
+#6       Conv2D -         0        2.35M
+#7      MaxPool -         0
+#8      Flatten -         0
+#9        Dense -         0          65k
+#10       Dense -         0          640
+#11     Softmax -         0
+#12      Output -         0
+
 Summary:
 Total ops (MAC): 7020224(7.02M)
 Prediction time :0us
+Total memory:37864
+Top 1 Accuracy on Keras 97.60%
+Top 1 Accuracy on NNoM  97.90%
 ~~~
 
 
-To evaluate the runtime statistics, you have to provide a microsecond timestamp porting to “nnom_port.h”. An example with these timing info showing is in the documentation(evaluation example), which shows how does it perform with timestamp provided in an MCU .
+To evaluate the runtime statistics, you have to provide a microsecond timestamp porting to `nnom_port.h`. An example with these timing info showing is in the documentation(evaluation example), which shows how does it perform with timestamp provided in an MCU .

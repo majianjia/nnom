@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -416,7 +416,7 @@ static void release_comp_mem(nnom_layer_t *layer)
 	}
 }
 
-// return the length of the hook lists
+// return the length of the io lists
 size_t nnom_io_length(nnom_layer_io_t *io)
 {
 	size_t num = 0;
@@ -908,7 +908,12 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	if (output == NULL)
 		m->tail = find_last(input);
 
-	NNOM_LOG("\nNNoM version %d.%d.%d\n", NNOM_MAJORVERSION, NNOM_SUBVERSION, NNOM_REVISION);
+	NNOM_LOG("NNoM version %d.%d.%d\n", NNOM_MAJORVERSION, NNOM_SUBVERSION, NNOM_REVISION);
+	#ifdef NNOM_USING_CHW
+	NNOM_LOG("Data format: Channel first (CHW)\n");
+	#else
+	NNOM_LOG("Data format: Channel last (HWC)\n");
+	#endif
 	NNOM_LOG("Start compiling model...\n");
 	NNOM_LOG("Layer(#)         Activation    output shape    ops(MAC)   mem(in, out, buf)      mem blk lifetime\n");
 	NNOM_LOG("-------------------------------------------------------------------------------------------------\n");
@@ -1045,6 +1050,25 @@ nnom_status_t model_set_callback(nnom_model_t *m, nnom_status_t (*layer_callback
 void model_delete_callback(nnom_model_t *m)
 {
 	m->layer_callback = NULL;
+}
+
+nnom_status_t check_model_version(unsigned long model_version)
+{
+	nnom_status_t result = NN_SUCCESS;
+	int32_t major, sub, rev;
+	major = model_version/10000;
+	sub = (model_version/100)%100;
+	rev = model_version % 100;
+	if(model_version != NNOM_VERSION)
+	{
+		NNOM_LOG("WARNING: model version %d.%d.%d dosen't match nnom version!\n", major, sub, rev);
+		result = -NN_ARGUMENT_ERROR;
+	}
+	else
+	{
+		NNOM_LOG("Model version: %d.%d.%d\n", major, sub, rev);
+	}
+	return result;
 }
 
 

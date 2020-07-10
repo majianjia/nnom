@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -21,16 +21,11 @@
 
 // this layer copys the input to the output
 
-nnom_status_t default_build(nnom_layer_t *layer);
-nnom_status_t default_run(nnom_layer_t *layer);
-
-nnom_layer_t *baselayer_s(nnom_layer_config_t * config)
+nnom_layer_t *baselayer_s(const nnom_layer_config_t * config)
 {
 	nnom_layer_t *layer = BaseLayer();
 	if(layer)
-	{
-		layer->config = config;
-	}
+		layer->config = (void*) config;
 	return layer;
 }
 

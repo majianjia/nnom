@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, Jianjia Ma
+ * Copyright (c) 2018-2020, Jianjia Ma
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -73,6 +73,9 @@ int main(int argc, char* argv[])
 		}
 		printf("Processing %d%%\n", seek * 100 / size);
 	}
+	
+	// save result
+	fclose(fp);
 
 	// print prediction result
 	prediction_end(pre);
@@ -83,7 +86,6 @@ int main(int argc, char* argv[])
 	model_stat(model);
 	model_delete(model);
 
-	fclose(fp);
 	free(input);
 	return 0;
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -24,14 +24,11 @@
 #include "arm_nnfunctions.h"
 #endif
 
-nnom_status_t dw_conv2d_build(nnom_layer_t *layer);
-nnom_status_t dw_conv2d_run(nnom_layer_t *layer);
-
-nnom_layer_t *dw_conv2d_s(nnom_conv2d_config_t *config)
+nnom_layer_t *dw_conv2d_s(const nnom_conv2d_config_t *config)
 {
 	nnom_layer_t *layer;
 	layer = conv2d_s(config);
-	if (layer != NULL)
+	if (layer)
 	{
 		layer->type = NNOM_DW_CONV_2D;
 		layer->run = dw_conv2d_run;
@@ -39,7 +36,6 @@ nnom_layer_t *dw_conv2d_s(nnom_conv2d_config_t *config)
 	}
 	return layer;
 }
-
 
 nnom_layer_t *DW_Conv2D(uint32_t multiplier, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_3d_shape_t d, nnom_padding_t pad_type,
 						const nnom_weight_t *w, const nnom_bias_t *b)
@@ -71,8 +67,18 @@ nnom_status_t dw_conv2d_build(nnom_layer_t *layer)
 	layer->out->tensor->dim[1] = conv_output_length(layer->in->tensor->dim[1], cl->kernel.w, cl->padding_type, cl->stride.w, cl->dilation.w);
 	layer->out->tensor->dim[2] = layer->in->tensor->dim[2] * cl->filter_mult; // channel stays the same
 
-	// bufferA size: (1D shape)
+	// fill padding
+	if (cl->padding_type == PADDING_SAME)
+	{
+		cl->pad.w = cl->dilation.w * (cl->kernel.w - 1) / 2;
+		cl->pad.h = cl->dilation.h * (cl->kernel.h - 1) / 2;
+		cl->pad.c = 0;
+	}
+	
+	// bufferA size: 
+	#ifdef NNOM_USING_CMSIS_NN
 	layer->comp->size = 2 * 2 * (layer->in->tensor->dim[2] / cl->filter_mult) * cl->kernel.w * cl->kernel.h;
+	#endif
 
 	// computational cost: K x K x Cin x Hout x Wout x Multiplier
 	// or                : K x K x Cout x Hout x Wout
@@ -85,15 +91,10 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 	nnom_status_t result = NN_SUCCESS;
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
 
-	nnom_qformat_param_t bias_shift = cl->bias->q_dec[0];				//
-	nnom_qformat_param_t output_shift = cl->weight->q_dec[0];			// need to be changed later. 
-
-#ifdef NNOM_USING_CHW
-	local_depthwise_separable_conv_CHW_q7_nonsquare(
-#else	
+#ifndef NNOM_USING_CHW	
 	#ifdef NNOM_USING_CMSIS_NN
 	// Current CMSIS-NN does not support dilation
-	if(cl->dilation.w ==1 && cl->dilation.h == 1)
+	if(cl->dilation.w ==1 && cl->dilation.h == 1 && cl->weight->qtype == NNOM_QTYPE_PER_TENSOR)
 	{
 		// CMSIS-NN only support 1 mulplipier in depthwise conv
 		if (cl->filter_mult != 1 || layer->in->tensor->dim[2] % 2 != 0 || layer->out->tensor->dim[2] % 2)
@@ -107,13 +108,15 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 				cl->pad.w, cl->pad.h,
 				cl->stride.w, cl->stride.h,
 				cl->bias->p_data,
-				bias_shift, output_shift,
+				cl->bias_lshift[0], cl->output_rshift[0],
 				layer->out->tensor->p_data,
 				layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
 	}
 	else
-	#endif // NNOM_USING_CMSIS_NN
+	#endif
 	local_depthwise_separable_conv_HWC_q7_nonsquare(
+#else	
+	local_depthwise_separable_conv_CHW_q7_nonsquare(
 #endif
 		layer->in->tensor->p_data,
 		layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
@@ -124,9 +127,9 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 		cl->stride.w, cl->stride.h,
 		cl->dilation.w, cl->dilation.h,
 		cl->bias->p_data,
-		bias_shift, output_shift,
+		cl->bias_lshift, cl->output_rshift, cl->weight->qtype,
 		layer->out->tensor->p_data,
-		layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
+		layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
 
 	return result;
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2020
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -32,6 +32,8 @@ typedef struct _nnom_dense_layer_t
 	size_t output_unit;
 	nnom_tensor_t *weight;
 	nnom_tensor_t *bias;
+	nnom_qformat_param_t *output_rshift;			
+	nnom_qformat_param_t *bias_lshift;
 } nnom_dense_layer_t;
 
 // a machine interface for configuration
@@ -41,10 +43,18 @@ typedef struct _nnom_dense_config_t
 	nnom_qtype_t qtype; 	//quantisation type(per channel or per layer)
 	nnom_tensor_t *weight;
 	nnom_tensor_t *bias;
-	int8_t output_shift;   // not sure if we need that
+	nnom_qformat_param_t *output_shift;			
+	nnom_qformat_param_t *bias_shift;
 } nnom_dense_config_t;
 
+// method
 nnom_status_t dense_free(nnom_layer_t *layer);
+nnom_status_t dense_build(nnom_layer_t *layer);
+nnom_status_t dense_run(nnom_layer_t *layer);
+
+// API
+nnom_layer_t *dense_s(const nnom_dense_config_t *config);
+nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_t *b);
 
 #ifdef __cplusplus
 }

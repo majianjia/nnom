@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2020
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -32,10 +32,19 @@ extern "C" {
 typedef struct _nnom_lambda_layer_t
 {
 	nnom_layer_t super;
-	nnom_status_t (*run)(nnom_layer_t *layer);	  //
-	nnom_status_t (*build)(nnom_layer_t *layer);  // equal to other layer's xxx_build() method, which is to calculate the output shape.
 	void *parameters;							  // parameters for lambda
 } nnom_lambda_layer_t;
+
+// lambda layer
+typedef struct _nnom_lambda_config_t
+{
+	nnom_layer_config_t super;
+	nnom_status_t (*run_func_name)(nnom_layer_t *layer);	// run method. required
+	nnom_status_t (*build_func_name)(nnom_layer_t *layer);// compute output buffer shape. can be left null, will call default_build()
+	nnom_status_t (*free_func_name)(nnom_layer_t *layer);	// a callback to free private resources (comp buf not included) can be left null
+	void *parameters;							// parameters for lambda
+} nnom_lambda_config_t;
+
 
 
 #ifdef __cplusplus

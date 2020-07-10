@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -19,8 +19,29 @@
 #include "nnom_layers.h"
 #include "layers/nnom_sumpool.h"
 
-nnom_status_t sumpool_build(nnom_layer_t *layer);
-nnom_status_t sumpool_run(nnom_layer_t *layer);
+nnom_layer_t *sumpool_s(const nnom_pool_config_t * config)
+{
+	nnom_sumpool_layer_t *cl;
+	if(config->num_dim == 1)
+	{
+		cl = (nnom_sumpool_layer_t *)SumPool(kernel(1, config->kernel_size[0]), 
+						stride(1, config->stride_size[0]),
+						config->padding_type);
+	}
+	else
+	{
+		cl = (nnom_sumpool_layer_t *)SumPool(kernel(config->kernel_size[0], config->kernel_size[1]), 
+						stride(config->stride_size[0], config->stride_size[1]),
+						config->padding_type);
+	}
+	if(cl)
+	{
+		cl->super.config = (void*) config;
+		cl->output_shift = config->output_shift; // no idea if we need it
+	}
+	return (nnom_layer_t *)cl;
+}
+
 
 nnom_layer_t *SumPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad_type)
 {

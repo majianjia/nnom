@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2020
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -33,12 +33,19 @@ typedef struct _nnom_concat_layer
 	int8_t axis;
 } nnom_concat_layer_t;
 
-
 typedef struct _nnom_concat_config_t
 {
 	nnom_layer_config_t super;
 	int8_t axis;
 } nnom_concat_config_t;
+
+// method
+nnom_status_t concat_build(nnom_layer_t *layer);
+nnom_status_t concat_run(nnom_layer_t *layer);
+
+// API
+nnom_layer_t *concat_s(const nnom_concat_config_t *config);
+nnom_layer_t *Concat(int8_t axis);
 
 
 #ifdef __cplusplus

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -19,14 +19,11 @@
 #include "nnom_layers.h"
 #include "layers/nnom_upsample.h"
 
-nnom_status_t upsample_build(nnom_layer_t *layer);
-nnom_status_t upsample_run(nnom_layer_t *layer);
-
-nnom_layer_t *upsample_s(nnom_upsample_config_t *config)
+nnom_layer_t *upsample_s(const nnom_upsample_config_t *config)
 {
-	nnom_layer_t *layer = UpSample(config->kernel);
+	nnom_layer_t *layer = UpSample(kernel(config->kernel[0], config->kernel[1]));
 	if(layer)
-		layer->config = config;
+		layer->config = (void*) config;
 	return layer;
 }
 

@@ -107,6 +107,34 @@ When it is used for 1D convolution, the H should be set to 1 constantly in kerne
 
 ---
 
+## Conv2DTrans()
+
+~~~c
+nnom_layer_t* Conv2DTrans(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad,
+	nnom_weight_t *w, nnom_bias_t *b);
+~~~
+
+This funtion is for 1D or 2D, mutiple channels transposed convolution.  
+
+**Arguments**
+
+- ** filters:** the number of filters. or the channels of the output spaces.
+- **k (kernel):** the kernel shape, which is returned by `kernel()`
+- **s (stride):** the stride shape, which is returned by `stride()`
+- **pad (padding):** the padding method either `PADDING_SAME` or `PADDING_VALID`
+- **w (weights) / b (bias)**: weights and bias constants and shits. Generated in `weights.h`
+
+**Return**
+
+- The layer instance
+
+
+**Notes**
+
+When it is used for 1D convolution, the H should be set to 1 constantly in kernel and stride.  
+
+---
+
 ## Dense()
 
 ~~~C

@@ -1,34 +1,28 @@
 '''
-    Copyright (c) 2018-2019
-    Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+    Copyright (c) 2018-2020
+    Jianjia Ma
     majianjia@live.com
-
-    SPDX-License-Identifier: LGPL-3.0
-
+    SPDX-License-Identifier: Apache-2.0
     Change Logs:
     Date           Author       Notes
-    2019-02-05     Jianjia Ma   The first version
-
-
-    This file provides:
-    -> fake_quantisation layers which simulate the output quantisation on fixed-point NN models.
-    -> weights/bias quantisation of Convolution and Dense Layer. "weight.h" file generations
-    -> export "testing set" binary data file.
-    -> print output ranges of each layers.
-
-    Currently, this script does not support RNN (type) layers.
+    2019-02-12     Jianjia Ma   The first version
 '''
 
 
 import matplotlib.pyplot as plt
 import os
+nnscript = os.path.abspath('../../scripts')
+os.sys.path.append(nnscript)
 
-from keras.models import Sequential, load_model
-from keras.models import Model
-from keras.layers import *
-from keras.callbacks import ModelCheckpoint
-from nnom_utils import *
+from tensorflow.keras import *
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import *
+from tensorflow.keras.models import load_model, save_model
+import tensorflow as tf
+import numpy as np
+from nnom import *
 
+model_name = 'model.h5'
 
 def load_X(X_signals_paths):
     X_signals = []
@@ -87,17 +81,6 @@ def normalize(data):
 
 
 def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
-
-    # shuffle
-    permutation = np.random.permutation(y_train.shape[0])
-    x_train = x_train[permutation, :, :]
-    y_train = y_train[permutation]
-
-    #plot_raw(x_test)
-
-    print("x_train shape", x_train.shape)
-    print("y_train shape", y_train.shape)
-
     inputs = Input(shape=x_train.shape[1:])
     x = Conv1D(32, kernel_size=(9), strides=(2), padding='same')(inputs)
     x = BatchNormalization()(x)
@@ -142,31 +125,18 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
 
     model = Model(inputs=inputs, outputs=predictions)
 
-    model.compile(
-                  loss='categorical_crossentropy',
+    model.compile(loss='categorical_crossentropy',
                   optimizer='Adam',
-                  #optimizer='Adadelta',
-                  #optimizer='RMSprop',
-                  #optimizer='SGD',
                   metrics=['accuracy'])
-
     model.summary()
 
-    # save best
-    checkpoint = ModelCheckpoint(filepath=MODEL_PATH,
-            monitor='val_acc',
-            verbose=0,
-            save_best_only='True',
-            mode='auto',
-            period=1)
-    callback_lists = [checkpoint]
-
     history = model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, shuffle=True,
-                        verbose=2, validation_data=(x_test, y_test), callbacks=callback_lists)
+                        verbose=2, validation_data=(x_test, y_test))
 
     # free the session to avoid nesting naming while we load the best model after.
+    save_model(model, model_name)
     del model
-    K.clear_session()
+    tf.keras.backend.clear_session()
     return history
 
 
@@ -178,7 +148,7 @@ if __name__ == "__main__":
     if(not os.path.exists('data/UCI HAR Dataset')):
         raise Exception('Please download the dataset and unzip into "data/UCI HAR Dataset/"')
 
-    epochs = 50
+    epochs = 20
 
     # Those are separate normalised input features for the neural network
     INPUT_SIGNAL_TYPES = [
@@ -251,7 +221,7 @@ if __name__ == "__main__":
     history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
 
     # get best model
-    model = load_model(MODEL_PATH)
+    model = load_model(model_name)
 
     # evaluate
     evaluate_model(model, x_test, y_test)
@@ -260,8 +230,8 @@ if __name__ == "__main__":
     generate_model(model, x_test, 'weights.h')
 
     # plot
-    acc = history.history['acc']
-    val_acc = history.history['val_acc']
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
 
     plt.plot(range(0, epochs), acc, color='red', label='Training acc')
     plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')

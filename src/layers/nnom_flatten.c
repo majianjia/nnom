@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -19,14 +19,11 @@
 #include "nnom_layers.h"
 #include "layers/nnom_flatten.h"
 
-nnom_status_t flatten_build(nnom_layer_t *layer);
-nnom_status_t flatten_run(nnom_layer_t *layer);
-
-nnom_layer_t *flatten_s(nnom_flatten_config_t *config)
+nnom_layer_t *flatten_s(const nnom_flatten_config_t *config)
 {
 	nnom_layer_t *layer = Flatten();
 	if(layer)
-		layer->config = config;
+		layer->config = (void*) config;
 	return layer;
 }
 

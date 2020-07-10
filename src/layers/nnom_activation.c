@@ -1,8 +1,8 @@
 
 
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -25,17 +25,6 @@
 #include "arm_math.h"
 #include "arm_nnfunctions.h"
 #endif
-
-nnom_status_t activation_run(nnom_layer_t* layer);
-
-// activation takes act instance which is created. therefore, it must be free when activation is deleted.
-// this is the callback in layer->free
-static nnom_status_t activation_free(nnom_layer_t *layer)
-{
-	if(layer)
-		nnom_free(((nnom_activation_layer_t *)layer)->act);
-	return NN_SUCCESS;
-}
 
 nnom_layer_t *Activation(nnom_activation_t *act)
 {
@@ -83,6 +72,18 @@ nnom_layer_t *ReLU(void)
 	return layer;
 }
 
+nnom_layer_t *LeakyReLU(float alpha)
+{
+	nnom_layer_t *layer = Activation(act_leaky_relu(alpha));
+	if (layer == NULL)
+		return NULL;
+
+	// set type in layer parent
+	layer->type = NNOM_LEAKY_RELU;
+	return layer;
+}
+
+
 nnom_layer_t *Sigmoid(int32_t dec_bit)
 {
 	nnom_layer_t *layer = Activation(act_sigmoid(dec_bit));
@@ -104,17 +105,20 @@ nnom_layer_t *TanH(int32_t dec_bit)
 	return layer;
 }
 
+// activation takes act instance which is created. therefore, it must be free when activation is deleted.
+// this is the callback in layer->free
+nnom_status_t activation_free(nnom_layer_t *layer)
+{
+	if(layer)
+		nnom_free(((nnom_activation_layer_t *)layer)->act);
+	return NN_SUCCESS;
+}
+
 nnom_status_t activation_run(nnom_layer_t *layer)
 {
 	nnom_activation_layer_t *cl = (nnom_activation_layer_t *)layer;
 	return act_tensor_run(cl->act, layer->in->tensor);
 }
-
-
-#ifdef NNOM_USING_CMSIS_NN
-#include "arm_math.h"
-#include "arm_nnfunctions.h"
-#endif
 
 // porting
 static nnom_status_t relu_run(nnom_activation_t* act)
@@ -124,6 +128,14 @@ static nnom_status_t relu_run(nnom_activation_t* act)
 #else
 	local_relu_q7(act->tensor->p_data, tensor_size(act->tensor));
 #endif
+	return NN_SUCCESS;
+}
+
+// leaky relu 
+static nnom_status_t leaky_relu_run(nnom_activation_t* act)
+{
+	nnom_activation_leaky_re_lu_t* a = (nnom_activation_leaky_re_lu_t*) act;
+	local_leaky_relu_q7(act->tensor->p_data, a->alpha, tensor_size(act->tensor));
 	return NN_SUCCESS;
 }
 
@@ -166,6 +178,15 @@ nnom_activation_t* act_relu(void)
 	return act;
 }
 
+nnom_activation_t* act_leaky_relu(float alpha)
+{
+	nnom_activation_leaky_re_lu_t* act = nnom_mem(sizeof(nnom_activation_leaky_re_lu_t));
+	act->super.run = leaky_relu_run;
+	act->super.type = ACT_LEAKY_RELU;
+	act->alpha = alpha*128;
+	return (nnom_activation_t* )act;
+}
+
 nnom_activation_t* act_tanh(int32_t dec_bit)
 {
 	nnom_activation_fixed_q_t* act = nnom_mem(sizeof(nnom_activation_fixed_q_t));
@@ -185,8 +206,7 @@ nnom_activation_t* act_sigmoid(int32_t dec_bit)
 	return (nnom_activation_t*)act;
 }
 
-// a direct api on tensor
-// a activate a tensor
+// a direct api to run activate a tensor
 nnom_status_t act_tensor_run(nnom_activation_t* act, nnom_tensor_t* tensor)
 {
 	act->tensor = tensor;

@@ -2,7 +2,7 @@
 
 **(Source code and model are under developing, which could be changed from time to time)**
 
-![](octave_conv.png)
+![](docs/octave_conv.png)
 
 ## Octave Convolution
 

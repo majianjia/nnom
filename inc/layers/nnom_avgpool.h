@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2020
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -31,8 +31,13 @@ extern "C" {
 // Avg Pooling
 typedef nnom_maxpool_layer_t nnom_avgpool_layer_t;
 
+// method
+nnom_status_t avgpooling_build(nnom_layer_t *layer);
+nnom_status_t avgpool_run(nnom_layer_t *layer);
 
-
+// API
+nnom_layer_t *avgpool_s(const nnom_pool_config_t * config);
+nnom_layer_t *AvgPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad_type);
 
 
 #ifdef __cplusplus

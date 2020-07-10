@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2020
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -25,6 +25,20 @@ extern "C" {
 #include "nnom_layers.h"
 #include "nnom_local.h"
 #include "nnom_tensor.h"
+
+typedef struct _nnom_softmax_config_t
+{
+    nnom_layer_config_t super;
+} nnom_softmax_config_t;
+
+
+// method
+nnom_status_t softmax_run(nnom_layer_t *layer);
+nnom_status_t softmax_build(nnom_layer_t *layer);
+
+// API
+nnom_layer_t *softmax_s(const nnom_softmax_config_t * config);
+nnom_layer_t *Softmax(void);
 
 #ifdef __cplusplus
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -41,7 +41,28 @@ nnom_layer_io_t *io_init(void *owner_layer, nnom_layer_io_t *io);
 
 #define NN_CEILIF(x,y) ((x+y-1)/y)
 
+#include "layers/nnom_activation.h"
+#include "layers/nnom_concat.h"
+#include "layers/nnom_conv2d.h"
+#include "layers/nnom_cropping.h"
+#include "layers/nnom_conv2d_trans.h"
+#include "layers/nnom_dense.h"
+#include "layers/nnom_dw_conv2d.h"
+#include "layers/nnom_flatten.h"
+#include "layers/nnom_global_pool.h"
+#include "layers/nnom_input.h"
+#include "layers/nnom_lambda.h"
+#include "layers/nnom_matrix.h"
+#include "layers/nnom_maxpool.h"
+#include "layers/nnom_output.h"
+#include "layers/nnom_rnn.h"
+#include "layers/nnom_softmax.h"
+#include "layers/nnom_sumpool.h"
+#include "layers/nnom_upsample.h"
+#include "layers/nnom_zero_padding.h"
+
 // Layer APIs ******
+// (a summary for each individual layer's files)
 
 // input/output
 nnom_layer_t *Input(nnom_3d_shape_t input_shape, void *p_buf);
@@ -63,20 +84,25 @@ nnom_layer_t *Cropping(nnom_border_t pad);
 // Activation
 nnom_layer_t *Activation(nnom_activation_t *act);
 nnom_layer_t *ReLU(void);
+nnom_layer_t *LeakyReLU(float alpha);
 nnom_layer_t *Softmax(void);
 nnom_layer_t *Sigmoid(int32_t dec_bit);  // input dec bit
 nnom_layer_t *TanH(int32_t dec_bit);     // input dec bit 
 
 // Matrix
-nnom_layer_t *Add(int32_t oshift);       // output shift
-nnom_layer_t *Sub(int32_t oshift);       // output shift			
-nnom_layer_t *Mult(int32_t oshift);      // output shift
+nnom_layer_t *Add(int16_t oshift);       // output shift
+nnom_layer_t *Sub(int16_t oshift);       // output shift			
+nnom_layer_t *Mult(int16_t oshift);      // output shift
 
 nnom_layer_t *Flatten(void);
 nnom_layer_t *Concat(int8_t axis);
 // -- NN Constructers --
 // conv2d
 nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_3d_shape_t d, nnom_padding_t pad,
+					 const nnom_weight_t *w, const nnom_bias_t *b);
+
+// deconv2d
+nnom_layer_t *Conv2DTrans(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_3d_shape_t d, nnom_padding_t pad,
 					 const nnom_weight_t *w, const nnom_bias_t *b);
 
 // depthwise_convolution
@@ -99,6 +125,7 @@ nnom_status_t input_build(nnom_layer_t* layer);
 
 nnom_status_t conv2d_build(nnom_layer_t* layer);
 nnom_status_t dw_conv2d_build(nnom_layer_t* layer);
+nnom_status_t conv2d_trans_build(nnom_layer_t* layer);
 nnom_status_t dense_build(nnom_layer_t* layer);
 nnom_status_t rnn_build(nnom_layer_t* layer);
 
@@ -122,6 +149,7 @@ nnom_status_t default_run(nnom_layer_t* layer);  // simply copy data from input 
 
 nnom_status_t dw_conv2d_run(nnom_layer_t* layer);
 nnom_status_t conv2d_run(nnom_layer_t* layer);
+nnom_status_t conv2d_trans_run(nnom_layer_t* layer);
 nnom_status_t dense_run(nnom_layer_t* layer);
 nnom_status_t rnn_run(nnom_layer_t* layer);
 nnom_status_t cell_simple_rnn_run(nnom_layer_t* layer);
@@ -142,10 +170,10 @@ nnom_status_t add_run(nnom_layer_t* layer);
 nnom_status_t sub_run(nnom_layer_t* layer);
 nnom_status_t mult_run(nnom_layer_t* layer);
 
-
 // Activation APIs
 // Softmax is not considered as activation in NNoM, Softmax is in layer API.
 nnom_activation_t* act_relu(void);
+nnom_activation_t* act_leaky_relu(float alpha);
 nnom_activation_t* act_sigmoid(int32_t dec_bit);
 nnom_activation_t* act_tanh(int32_t dec_bit);
 

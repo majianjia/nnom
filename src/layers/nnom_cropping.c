@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -19,14 +19,11 @@
 #include "nnom_layers.h"
 #include "layers/nnom_cropping.h"
 
-nnom_status_t cropping_build(nnom_layer_t *layer);
-nnom_status_t cropping_run(nnom_layer_t *layer);
-
-nnom_layer_t * cropping_s(nnom_cropping_config_t *config)
+nnom_layer_t * cropping_s(const nnom_cropping_config_t *config)
 {
 	nnom_layer_t *layer = Cropping(config->pad);
 	if(layer)
-		layer->config = config;
+		layer->config = (void*) config;
 	return layer;
 }
 
@@ -37,6 +34,7 @@ nnom_layer_t *Cropping(nnom_border_t pad)
 	// most setting are the same as zero padding
 	layer = ZeroPadding(pad);
 	
+	// now change to cropping
 	layer->type = NNOM_CROPPING;
 	layer->run = cropping_run;
 	layer->build = cropping_build;

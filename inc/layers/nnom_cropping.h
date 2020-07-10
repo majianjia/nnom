@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2020
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -33,6 +33,12 @@ typedef nnom_zero_padding_layer_t nnom_cropping_layer_t;
 
 typedef nnom_zero_padding_config_t nnom_cropping_config_t;
 
+// method
+nnom_status_t cropping_build(nnom_layer_t *layer);
+nnom_status_t cropping_run(nnom_layer_t *layer);
+
+// API
+nnom_layer_t * cropping_s(const nnom_cropping_config_t *config);
 nnom_layer_t *Cropping(nnom_border_t pad);
 
 #ifdef __cplusplus

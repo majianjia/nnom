@@ -1,7 +1,7 @@
 
 /*
- * Copyright (c) 2018-2019
- * Jianjia Ma, Wearable Bio-Robotics Group (WBR)
+ * Copyright (c) 2018-2020
+ * Jianjia Ma
  * majianjia@live.com
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -20,7 +20,38 @@
 #include "nnom_layers.h"
 #include "layers/nnom_global_pool.h"
 
-nnom_status_t global_pool_build(nnom_layer_t *layer);
+nnom_layer_t * global_maxpool_s(const nnom_global_pool_config_t *config)
+{
+	nnom_maxpool_layer_t * cl = (nnom_maxpool_layer_t *)GlobalMaxPool();
+	if(cl)
+	{
+		cl->super.config = (void*) config;
+		cl->output_shift = config->output_shift;
+	}
+	return (nnom_layer_t *)cl;
+}
+nnom_layer_t * global_avgpool_s(const nnom_global_pool_config_t *config)
+{
+	nnom_maxpool_layer_t * cl = (nnom_maxpool_layer_t *)GlobalAvgPool();
+	if(cl)
+	{
+		cl->super.config = (void*) config;
+		cl->output_shift = config->output_shift;
+	}
+	return (nnom_layer_t *)cl;
+}
+
+nnom_layer_t * global_sumpool_s(const nnom_global_pool_config_t *config)
+{
+	nnom_maxpool_layer_t * cl = (nnom_maxpool_layer_t *)GlobalSumPool();
+	if(cl)
+	{
+		cl->super.config = (void*) config;
+		cl->output_shift = config->output_shift;
+	}
+	return (nnom_layer_t *)cl;
+}
+
 
 nnom_layer_t *GlobalMaxPool(void)
 {

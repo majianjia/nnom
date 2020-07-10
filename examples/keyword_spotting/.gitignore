@@ -1,0 +1,5 @@
+.vscode
+.idea
+.layer_q_list
+*.npy
+dat/*
