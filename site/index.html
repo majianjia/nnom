@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A higher-level Neural Network library for microcontrollers.">
+  
+  
+  <link rel="shortcut icon" href="img/favicon.ico">
+  <title>NNoM Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Overview";
+    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="js/jquery-2.1.1.min.js" defer></script>
+  <script src="js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+  <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-141541198-1', 'majianjia.github.io/nnom');
+      ga('send', 'pageview');
+  </script>
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href="." class="icon icon-home"> NNoM Documentation</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href=".">Overview</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#licenses">Licenses</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#why-nnom">Why NNoM?</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#documentations">Documentations</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#optimization">Optimization</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#available-operations">Available Operations</a>
+    </li>
+    </ul>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Guides</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="guide_5_min_to_nnom/">5 min to NNoM</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="guide_development/">Development Guide</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="Porting_and_Optimisation_Guide/">Porting and Optimisation Guide</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">APIs</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="api_nnom_utils/">Utils (Python)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="api_model/">Model</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="api_construction/">Construction Methods</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="api_properties/">Properties</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="api_layers/">Core Layers</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="api_pooling/">Pooling Layers</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="api_activations/">Activations</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="api_merge/">Merges Layers</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="api_evaluation/">Evaluation Methods</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Legacy Guide</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="A_Temporary_Guide_to_NNoM/">A Temporary Guide</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="legacy_README/">Old Readme</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Chinese (中文)</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="rt-thread_guide/">RT-Thread</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="example_mnist_simple_cn/">MNIST-Simple</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href=".">NNoM Documentation</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Overview</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/majianjia/nnom/edit/master/docs/index.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="neural-network-on-microcontroller-nnom">Neural Network on Microcontroller (NNoM)</h1>
+<p><a href="https://travis-ci.org/majianjia/nnom"><img alt="Build Status" src="https://travis-ci.org/majianjia/nnom.svg?branch=master" /></a>
+<a href="https://opensource.org/licenses/Apache-2.0"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a></p>
+<p>NNoM is a high-level inference Neural Network library specifically for microcontrollers. </p>
+<p>Document version 0.2.1</p>
+<p><a href="rt-thread_guide/">[Chinese Intro]</a></p>
+<p><strong>Highlights</strong></p>
+<ul>
+<li>Deploy Keras model to NNoM model with one line of code.</li>
+<li>User-friendly interfaces.</li>
+<li>Support complex structures; Inception, ResNet, DenseNet...</li>
+<li>High-performance backend selections.</li>
+<li>Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... </li>
+</ul>
+<p>The structure of NNoM is shown below:
+<img alt="" src="figures/nnom_structure.png" /></p>
+<p>More detail avaialble in <a href="guide_development/">Development Guide</a></p>
+<h2 id="licenses">Licenses</h2>
+<p>NNoM is released under Apache License 2.0 since nnom-V0.2.0. 
+License and copyright information can be found within the code.</p>
+<hr />
+<h2 id="why-nnom">Why NNoM?</h2>
+<p>The aims of NNoM is to provide a light-weight, user-friendly and flexible interface for fast deploying.</p>
+<p>Nowadays, neural networks are <strong>wider</strong>, <strong>deeper</strong>, and <strong>denser</strong>.
+<img alt="" src="figures/nnom_wdd.png" /></p>
+<blockquote>
+<p>[1] Szegedy, C., Liu, W., Jia, Y., Sermanet, P., Reed, S., Anguelov, D., ... &amp; Rabinovich, A. (2015). Going deeper with convolutions. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 1-9).</p>
+<p>[2] He, K., Zhang, X., Ren, S., &amp; Sun, J. (2016). Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 770-778).</p>
+<p>[3] Huang, G., Liu, Z., Van Der Maaten, L., &amp; Weinberger, K. Q. (2017). Densely connected convolutional networks. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 4700-4708).</p>
+</blockquote>
+<p>After 2014, the development of Neural Networks are more focus on structure optimising to improve efficiency and performance, which is more important to the small footprint platforms such as MCUs. 
+However, the available NN libs for MCU are too low-level which make it sooooo difficult to use with these complex strucures. </p>
+<p>Therefore, we build NNoM to help embedded developers for faster and simpler deploying NN model directly to MCU. </p>
+<blockquote>
+<p>NNoM will manage the strucutre, memory and everything else for developer. All you need is feeding your measurements then get the results. </p>
+</blockquote>
+<p><strong>NNoM is now working closely with Keras (You can easily learn <a href="https://keras.io/"><strong>Keras</strong></a> in 30 seconds!).</strong>
+There is no need to learn TensorFlow/Lite or other libs.  </p>
+<hr />
+<h2 id="documentations">Documentations</h2>
+<p>API manuals are available within this site. </p>
+<p><strong>Guides</strong></p>
+<p><a href="guide_5_min_to_nnom/">5 min to NNoM Guide</a></p>
+<p><a href="guide_development/">Development Guide</a></p>
+<p><a href="A_Temporary_Guide_to_NNoM/">The temporary guide</a></p>
+<p><a href="Porting_and_Optimisation_Guide/">Porting and optimising Guide</a> </p>
+<p><a href="rt-thread_guide/">RT-Thread Guide(Chinese)</a></p>
+<p><a href="example_mnist_simple_cn/">RT-Thread-MNIST example (Chinese)</a></p>
+<hr />
+<h2 id="examples">Examples</h2>
+<p><strong>Documented examples</strong></p>
+<p>Please check <a href="https://github.com/majianjia/nnom/tree/master/examples">examples</a> and choose one to start with. </p>
+<p>Most recent Examples:</p>
+<p><a href="https://github.com/majianjia/nnom/tree/master/examples/mnist-densenet">MNIST-DenseNet example</a></p>
+<p><a href="https://github.com/majianjia/nnom/tree/master/examples/octave-conv">Octave Convolution</a></p>
+<p><a href="https://github.com/majianjia/nnom/tree/master/examples/keyword_spotting">Keyword Spotting</a></p>
+<hr />
+<h2 id="dependencies">Dependencies</h2>
+<p>NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. </p>
+<h2 id="optimization">Optimization</h2>
+<p>You can select <a href="https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN">CMSIS-NN/DSP</a> as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. </p>
+<p>Check <a href="Porting_and_Optimisation_Guide/">Porting and optimising Guide</a> for detail. </p>
+<hr />
+<h2 id="available-operations">Available Operations</h2>
+<blockquote>
+<p>*Notes: NNoM now supports both HWC and CHW formats. Some operation might not support both format currently. Please check the tables for the current status. *</p>
+</blockquote>
+<p><strong>Core Layers</strong></p>
+<table>
+<thead>
+<tr>
+<th>Layers</th>
+<th>HWC</th>
+<th>CHW</th>
+<th>Layer API</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Convolution</td>
+<td>✓</td>
+<td>✓</td>
+<td>Conv2D()</td>
+<td>Support 1/2D</td>
+</tr>
+<tr>
+<td>Depthwise Conv</td>
+<td>✓</td>
+<td>✓</td>
+<td>DW_Conv2D()</td>
+<td>Support 1/2D</td>
+</tr>
+<tr>
+<td>Fully-connected</td>
+<td>✓</td>
+<td>✓</td>
+<td>Dense()</td>
+<td></td>
+</tr>
+<tr>
+<td>Lambda</td>
+<td>✓</td>
+<td>✓</td>
+<td>Lambda()</td>
+<td>single input / single output anonymous operation</td>
+</tr>
+<tr>
+<td>Batch Normalization</td>
+<td>✓</td>
+<td>✓</td>
+<td>N/A</td>
+<td>This layer is merged to the last Conv by the script</td>
+</tr>
+<tr>
+<td>Flatten</td>
+<td>✓</td>
+<td>✓</td>
+<td>Flatten()</td>
+<td></td>
+</tr>
+<tr>
+<td>SoftMax</td>
+<td>✓</td>
+<td>✓</td>
+<td>SoftMax()</td>
+<td>Softmax only has layer API</td>
+</tr>
+<tr>
+<td>Activation</td>
+<td>✓</td>
+<td>✓</td>
+<td>Activation()</td>
+<td>A layer instance for activation</td>
+</tr>
+<tr>
+<td>Input/Output</td>
+<td>✓</td>
+<td>✓</td>
+<td>Input()/Output()</td>
+<td></td>
+</tr>
+<tr>
+<td>Up Sampling</td>
+<td>✓</td>
+<td>✓</td>
+<td>UpSample()</td>
+<td></td>
+</tr>
+<tr>
+<td>Zero Padding</td>
+<td>✓</td>
+<td>✓</td>
+<td>ZeroPadding()</td>
+<td></td>
+</tr>
+<tr>
+<td>Cropping</td>
+<td>✓</td>
+<td>✓</td>
+<td>Cropping()</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>RNN Layers</strong></p>
+<table>
+<thead>
+<tr>
+<th>Layers</th>
+<th>Status</th>
+<th>Layer API</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recurrent NN</td>
+<td>Under Dev.</td>
+<td>RNN()</td>
+<td>Under Developpment</td>
+</tr>
+<tr>
+<td>Simple RNN</td>
+<td>Under Dev.</td>
+<td>SimpleCell()</td>
+<td>Under Developpment</td>
+</tr>
+<tr>
+<td>Gated Recurrent Network (GRU)</td>
+<td>Under Dev.</td>
+<td>GRUCell()</td>
+<td>Under Developpment</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Activations</strong></p>
+<p>Activation can be used by itself as layer, or can be attached to the previous layer as <a href="docs/A_Temporary_Guide_to_NNoM.md#addictionlly-activation-apis">"actail"</a> to reduce memory cost.</p>
+<table>
+<thead>
+<tr>
+<th>Actrivation</th>
+<th>HWC</th>
+<th>CHW</th>
+<th>Layer API</th>
+<th>Activation API</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ReLU</td>
+<td>✓</td>
+<td>✓</td>
+<td>ReLU()</td>
+<td>act_relu()</td>
+<td></td>
+</tr>
+<tr>
+<td>TanH</td>
+<td>✓</td>
+<td>✓</td>
+<td>TanH()</td>
+<td>act_tanh()</td>
+<td></td>
+</tr>
+<tr>
+<td>Sigmoid</td>
+<td>✓</td>
+<td>✓</td>
+<td>Sigmoid()</td>
+<td>act_sigmoid()</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pooling Layers</strong></p>
+<table>
+<thead>
+<tr>
+<th>Pooling</th>
+<th>HWC</th>
+<th>CHW</th>
+<th>Layer API</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Max Pooling</td>
+<td>✓</td>
+<td>✓</td>
+<td>MaxPool()</td>
+<td></td>
+</tr>
+<tr>
+<td>Average Pooling</td>
+<td>✓</td>
+<td>✓</td>
+<td>AvgPool()</td>
+<td></td>
+</tr>
+<tr>
+<td>Sum Pooling</td>
+<td>✓</td>
+<td>✓</td>
+<td>SumPool()</td>
+<td></td>
+</tr>
+<tr>
+<td>Global Max Pooling</td>
+<td>✓</td>
+<td>✓</td>
+<td>GlobalMaxPool()</td>
+<td></td>
+</tr>
+<tr>
+<td>Global Average Pooling</td>
+<td>✓</td>
+<td>✓</td>
+<td>GlobalAvgPool()</td>
+<td></td>
+</tr>
+<tr>
+<td>Global Sum Pooling</td>
+<td>✓</td>
+<td>✓</td>
+<td>GlobalSumPool()</td>
+<td>A better alternative to Global average pooling in MCU before Softmax</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Matrix Operations Layers</strong></p>
+<table>
+<thead>
+<tr>
+<th>Matrix</th>
+<th>HWC</th>
+<th>CHW</th>
+<th>Layer API</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Concatenate</td>
+<td>✓</td>
+<td>✓</td>
+<td>Concat()</td>
+<td>Concatenate through any axis</td>
+</tr>
+<tr>
+<td>Multiple</td>
+<td>✓</td>
+<td>✓</td>
+<td>Mult()</td>
+<td></td>
+</tr>
+<tr>
+<td>Addition</td>
+<td>✓</td>
+<td>✓</td>
+<td>Add()</td>
+<td></td>
+</tr>
+<tr>
+<td>Substraction</td>
+<td>✓</td>
+<td>✓</td>
+<td>Sub()</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="guide_5_min_to_nnom/" class="btn btn-neutral float-right" title="5 min to NNoM">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/majianjia/nnom/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+      
+        <span style="margin-left: 15px"><a href="guide_5_min_to_nnom/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '.';</script>
+    <script src="js/theme.js" defer></script>
+      <script src="search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.1.2
+Build Date UTC : 2020-07-10 20:31:15.914231+00:00
+-->

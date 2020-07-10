@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Merges Layers - NNoM Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Merges Layers";
+    var mkdocs_page_input_path = "api_merge.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+  <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-141541198-1', 'majianjia.github.io/nnom');
+      ga('send', 'pageview');
+  </script>
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> NNoM Documentation</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Guides</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../guide_5_min_to_nnom/">5 min to NNoM</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../guide_development/">Development Guide</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../Porting_and_Optimisation_Guide/">Porting and Optimisation Guide</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">APIs</span></p>
+                <ul class="current">
+                    <li class="toctree-l1"><a class="reference internal" href="../api_nnom_utils/">Utils (Python)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_model/">Model</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_construction/">Construction Methods</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_properties/">Properties</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_layers/">Core Layers</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_pooling/">Pooling Layers</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_activations/">Activations</a>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Merges Layers</a>
+    <ul class="current">
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_evaluation/">Evaluation Methods</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Legacy Guide</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../A_Temporary_Guide_to_NNoM/">A Temporary Guide</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../legacy_README/">Old Readme</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Chinese (中文)</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../rt-thread_guide/">RT-Thread</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../example_mnist_simple_cn/">MNIST-Simple</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">NNoM Documentation</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>APIs &raquo;</li>
+        
+      
+    
+    <li>Merges Layers</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/majianjia/nnom/edit/master/docs/api_merge.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="merging-methods">Merging Methods</h2>
+<p>Merge methods (layers) are use to merge 2 or more layer's output using the methods list below. </p>
+<p>These methods are also layers which return a layer instance. However, they normally take two or more layer's output and "merge" them into one output. These layer instance must be passed to either <code>model.merge(method, in1, in2)</code>or <code>model.mergex(method, num_of_input, in1, in2, 1n3 ...)</code>. An example will be to concat the Inception structure. </p>
+<hr />
+<h2 id="concat">Concat()</h2>
+<pre><code class="C">nnom_layer_t* Concat(int8_t axis);
+</code></pre>
+
+<p>Concatenate mutiple input on the selected axis. </p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> axis:</strong> the axis number to concatenate in HWC format. The axis could be nagative, such as '-1' indicate the last one axis which is 'Channel'.</li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The concat layer instance</li>
+</ul>
+<p><strong>Notes</strong></p>
+<p>The concatenated axis can be different in all input layers passed to this method. Other axes must be same. </p>
+<hr />
+<h2 id="mult">Mult()</h2>
+<pre><code class="C">nnom_layer_t* Mult(int32_t oshift);
+</code></pre>
+
+<p>Element wise mutiplication in all the inputs. </p>
+<p>This layer cannot use to merge more than 2 layer, which might cause overflowing problem. 2 <code>Mult()</code> must be used separately if willing to multiply 3 layer's output. The output shift individually of the 2 steps must be identify individually. Please check the example below for more than 2 input.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>oshift:</strong> the output shift of this layer.  </li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The mult layer instance</li>
+</ul>
+<p><strong>Notes</strong></p>
+<p>All input layers passed to this method must have same output shape. </p>
+<hr />
+<h2 id="add">Add()</h2>
+<pre><code class="C">nnom_layer_t* Add(int32_t oshift);
+</code></pre>
+
+<p>Element wise addition in all the inputs. </p>
+<p>This layer cannot use to merge more than 2 layer, which might cause overflowing problem. Please refer to <code>Mult()</code></p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>oshift:</strong> the output shift of this layer.  </li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The add layer instance</li>
+</ul>
+<p><strong>Notes</strong></p>
+<p>All input layers passed to this method must have same output shape. </p>
+<hr />
+<h2 id="sub">Sub()</h2>
+<pre><code class="C">nnom_layer_t* Sub(int32_t oshift);
+</code></pre>
+
+<p>Element wise substraction in all the inputs. </p>
+<p>This layer cannot use to merge more than 2 layer, which might cause overflowing problem. Please refer to <code>Mult()</code></p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>oshift:</strong> the output shift of this layer.  </li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The sub layer instance</li>
+</ul>
+<p><strong>Notes</strong></p>
+<p>All input layers passed to this method must have same output shape. </p>
+<hr />
+<h2 id="example">Example</h2>
+<p><strong> Channelwise concat for Inception </strong></p>
+<pre><code class="C">
+    input_layer = Input(shape(INPUT_HIGHT, INPUT_WIDTH, INPUT_CH), nnom_input_data);
+
+    // conv2d - 1 - inception
+    x1 = model.hook(Conv2D(16, kernel(1, 5), stride(1, 1), PADDING_SAME, &amp;c2_w, &amp;c2_b), x);
+    x1 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x1);
+
+    // conv2d - 2 - inception
+    x2 = model.hook(Conv2D(16, kernel(1, 3), stride(1, 1), PADDING_SAME, &amp;c3_w, &amp;c3_b), x);
+    x2 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x2);
+
+    // maxpool - 3 - inception
+    x3 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x);
+
+    // concatenate 
+    x = model.mergex(Concat(-1), 3, x1, x2, x3);
+
+    // flatten
+    x = model.hook(Flatten(), x);
+    ...
+</code></pre>
+
+<p><strong> Mult for 3 input </strong> (or Add, Sub)</p>
+<p>In Keras</p>
+<pre><code class="python">    #instead of 
+    x = multiply([x1,x2,x3]) 
+
+    # you must use this instead to allow sript to calculate oshift individually. 
+    x = multiply([x1,x2])
+    x = multiply([x,x3])
+</code></pre>
+
+<p>Then in NNoM</p>
+<pre><code class="C">    // x = x1 * x2 * x3
+    x = model.merge(Mult(oshift_1), x1, x2); 
+    x = model.merge(Mult(oshift_2), x, x3);
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../api_evaluation/" class="btn btn-neutral float-right" title="Evaluation Methods">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../api_activations/" class="btn btn-neutral" title="Activations"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/majianjia/nnom/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../api_activations/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../api_evaluation/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

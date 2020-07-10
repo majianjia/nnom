@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Porting and Optimisation Guide - NNoM Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Porting and Optimisation Guide";
+    var mkdocs_page_input_path = "Porting_and_Optimisation_Guide.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+  <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-141541198-1', 'majianjia.github.io/nnom');
+      ga('send', 'pageview');
+  </script>
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> NNoM Documentation</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Guides</span></p>
+                <ul class="current">
+                    <li class="toctree-l1"><a class="reference internal" href="../guide_5_min_to_nnom/">5 min to NNoM</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../guide_development/">Development Guide</a>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Porting and Optimisation Guide</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#options">Options</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#memory-interfaces">Memory interfaces</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#runtime-debuges">Runtime & debuges</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#nnom-configuration">NNoM configuration</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#format-configuration">Format configuration</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#porting-for-rt-thread">Porting for RT-Thread</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">APIs</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_nnom_utils/">Utils (Python)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_model/">Model</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_construction/">Construction Methods</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_properties/">Properties</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_layers/">Core Layers</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_pooling/">Pooling Layers</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_activations/">Activations</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_merge/">Merges Layers</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_evaluation/">Evaluation Methods</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Legacy Guide</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../A_Temporary_Guide_to_NNoM/">A Temporary Guide</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../legacy_README/">Old Readme</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Chinese (中文)</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../rt-thread_guide/">RT-Thread</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../example_mnist_simple_cn/">MNIST-Simple</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">NNoM Documentation</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Guides &raquo;</li>
+        
+      
+    
+    <li>Porting and Optimisation Guide</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/majianjia/nnom/edit/master/docs/Porting_and_Optimisation_Guide.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="porting">Porting</h1>
+<p>Porting is not necessary since NNoM is a pure C framework. 
+If your development environment support standard C library (libc), it will run without any problem by default setting.</p>
+<p>However, porting can gain better performance in some platforms by switch the backends or to provide print-out model info and evaluation.</p>
+<h2 id="options">Options</h2>
+<p>Porting is simply done by modified the <code>nnom_port.h</code> under <code>port/</code></p>
+<p>The default setting is shown below. </p>
+<pre><code class="C">// memory interfaces
+#define nnom_malloc(n)      malloc(n) 
+#define nnom_free(p)        free(p)
+#define nnom_memset(p,v,s)  memset(p,v,s)
+
+// runtime &amp; debuges
+#define nnom_us_get()       0
+#define nnom_ms_get()       0
+#define NNOM_LOG(...)       printf(__VA_ARGS__)
+
+// NNoM configuration
+#define NNOM_BLOCK_NUM      (8)     // maximum number of memory block  
+#define DENSE_WEIGHT_OPT    (1)     // if used fully connected layer optimized weights. 
+
+// Formate configuration
+//#define NNOM_USING_CHW            // using CHW format instead of default HWC
+//#define NNOM_USING_CMSIS_NN       // uncomment if use CMSIS-NN for optimation 
+</code></pre>
+
+<h3 id="memory-interfaces">Memory interfaces</h3>
+<p>Memory interfaces are required.</p>
+<p>If your platform doesn't support std interface, please modify them according to your platform. See <a href="#examples">example</a> for porting for RT-Thread.</p>
+<h3 id="runtime-debuges">Runtime &amp; debuges</h3>
+<p>They are optional. </p>
+<p>Its recommented to port them if your platform has console or terminal.
+They will help you to validate your model. </p>
+<p><code>nnom_us_get()</code> is used in runtime analysis. 
+If presented, NNoM would be able to record the time cost for each layer and calcualte the effeciency of them. 
+This method should return the current time in a us resolution (16/32-bit unsigned value, values can overflow). </p>
+<p><code>nnom_ms_get()</code> is used in evaluation with APIs in 'nnom_utils.c'. 
+It is used to evaluate the performance with the whole banch of testing data. </p>
+<p><code>LOG()</code> is used to print model compiling info and evaluation info. </p>
+<h3 id="nnom-configuration">NNoM configuration</h3>
+<p><code>NNOM_BLOCK_NUM</code> is the maximum number of memory block. The utilisation of memory block will be printed during compiling. 
+Adjust it when needed. </p>
+<p><code>DENSE_WEIGHT_OPT</code>, reorder weights for dense will gain better performance. If your model is using 'nnom_utils.py' to deploy, weights are already reordered. </p>
+<h3 id="format-configuration">Format configuration</h3>
+<p>There are 2 formats normally use in machine learning. <code>HWC</code> and <code>CHW</code>. 
+HWC called channel last, CHW called channel first. </p>
+<p>The default backend will be running on <code>HWC format</code>, which is optimized for CPU case. Images are normally stored in the memory using HWC format. </p>
+<p><strong>1. HWC format</strong></p>
+<p><code>NNOM_USING_CMSIS_NN</code> : uncomment it will enable the CMSIS-NN backend for acceleration.</p>
+<p>On ARM-Cortex-M4/7/33/35P chips, the performance can be increased about 5x while you enable it. 
+For detail please check the <a href="https://arxiv.org/pdf/1801.06601.pdf">paper</a></p>
+<p>To switch the backend from local backend to the optimized CMSIS-NN/DSP, simply uncomment the line <code>#define NNOM_USING_CMSIS_NN</code>.</p>
+<p>Then, in your project, you must:</p>
+<ol>
+<li>Include the CMSIS-NN as well as CMSIS-DSP in your project. </li>
+<li>Make sure the optimisation is enable on CMSIS-NN/DSP. </li>
+</ol>
+<p><strong>Notes</strong></p>
+<p>It is required that CMSIS version above 5.5.1+ (NN version &gt; 1.1.0, DSP version 1.6.0). </p>
+<p>Make sure your compiler is using the new version of "arm_math.h". 
+There might be a few duplicated in a project, such as the STM32 HAL has its own version of "arm_math.h" </p>
+<p>You might also define your chip core and enable your FPU support in your pre-compile configuration if you are not able to compile. </p>
+<blockquote>
+<p><em>e.g. when using STM32L476, you might add the two macro in your project ' ARM_MATH_CM4,  __FPU_PRESENT=1'</em></p>
+</blockquote>
+<p>After all, you can try to evaluate the performance using the APIs in 'nnom_utils.c'</p>
+<p><strong>2. CHW format</strong></p>
+<p><code>NNOM_USING_CHW</code> : uncomment it will change the whole backend format to <code>CHW</code></p>
+<p>This format runs very inefficient convolution in CPU only mode. However, it is compatible with most hardware accelerations, such as KPU in <a href="https://kendryte.com/">K210</a>. </p>
+<p>The pure C implemenmtation is completed. The haredware acceleration using KPU is underdevelopment, will be available soon.  </p>
+<p><strong>Notes</strong></p>
+<p>When enable CHW model, CMSIS-NN will be automaticly excluded. </p>
+<h2 id="examples">Examples</h2>
+<h3 id="porting-for-rt-thread">Porting for RT-Thread</h3>
+<pre><code class="C">// memory interfaces
+#define nnom_malloc(n)      rt_malloc(n) 
+#define nnom_free(p)        rt_free(p)
+#define nnom_memset(p,v,s)  rt_memset(p,v,s)
+
+// runtime &amp; debuges
+#define nnom_us_get()       0
+#define nnom_ms_get()       rt_tick_get()   // when tick is set to 1000
+#define NNOM_LOG(...)       rt_kprintf(__VA_ARGS__)
+
+// NNoM configuration
+#define NNOM_BLOCK_NUM      (8)     // maximum number of memory block  
+#define DENSE_WEIGHT_OPT    (1)     // if used fully connected layer optimized weights. 
+
+// Formate configuration
+//#define NNOM_USING_CHW            // using CHW format instead of default HWC
+//#define NNOM_USING_CMSIS_NN       // uncomment if use CMSIS-NN for optimation 
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../api_nnom_utils/" class="btn btn-neutral float-right" title="Utils (Python)">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../guide_development/" class="btn btn-neutral" title="Development Guide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/majianjia/nnom/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../guide_development/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../api_nnom_utils/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

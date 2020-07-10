@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Pooling Layers - NNoM Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Pooling Layers";
+    var mkdocs_page_input_path = "api_pooling.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+  <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-141541198-1', 'majianjia.github.io/nnom');
+      ga('send', 'pageview');
+  </script>
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> NNoM Documentation</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Guides</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../guide_5_min_to_nnom/">5 min to NNoM</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../guide_development/">Development Guide</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../Porting_and_Optimisation_Guide/">Porting and Optimisation Guide</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">APIs</span></p>
+                <ul class="current">
+                    <li class="toctree-l1"><a class="reference internal" href="../api_nnom_utils/">Utils (Python)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_model/">Model</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_construction/">Construction Methods</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_properties/">Properties</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_layers/">Core Layers</a>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Pooling Layers</a>
+    <ul class="current">
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_activations/">Activations</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_merge/">Merges Layers</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_evaluation/">Evaluation Methods</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Legacy Guide</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../A_Temporary_Guide_to_NNoM/">A Temporary Guide</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../legacy_README/">Old Readme</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Chinese (中文)</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../rt-thread_guide/">RT-Thread</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../example_mnist_simple_cn/">MNIST-Simple</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">NNoM Documentation</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>APIs &raquo;</li>
+        
+      
+    
+    <li>Pooling Layers</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/majianjia/nnom/edit/master/docs/api_pooling.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="pooling-layers">Pooling Layers</h2>
+<p>Pooling Layers are listed in <em>nnom_layers.h</em></p>
+<p>1D/2D operations are both working with (H, W, C) format, known as "channel last". When working with 1D operations, the H for all the shapes must be <code>1</code> constantly.</p>
+<hr />
+<h2 id="maxpool">MaxPool()</h2>
+<pre><code class="c">nnom_layer_t* MaxPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad);
+</code></pre>
+
+<p>This funtion is for 1D or 2D, mutiple channels max pooling.  </p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>k (kernel):</strong> the kernel shape, which is returned by <code>kernel()</code></li>
+<li><strong>s (stride):</strong> the stride shape, which is returned by <code>stride()</code></li>
+<li><strong>pad (padding):</strong> the padding method <code>PADDING_SAME</code> or <code>PADDING_VALID</code></li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The layer instance </li>
+</ul>
+<hr />
+<h2 id="avgpool">AvgPool()</h2>
+<pre><code class="c">nnom_layer_t* AvgPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad);
+</code></pre>
+
+<p>This funtion is for 1D or 2D, mutiple channels average pooling.  </p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>k (kernel):</strong> the kernel shape, which is returned by <code>kernel()</code></li>
+<li><strong>s (stride):</strong> the stride shape, which is returned by <code>stride()</code></li>
+<li><strong>pad (padding):</strong> the padding method <code>PADDING_SAME</code> or <code>PADDING_VALID</code></li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The layer instance </li>
+</ul>
+<p><strong>Notes</strong></p>
+<p>Average pooling is not recommended to use with fixed-point model (such as here). Small values will be vanished when the sum is devided. (CMSIS-NN currently does not support changing the output shifting in average pooling from input to output.) </p>
+<p>However, if the average pooling is the second last layer right before softmax layer, you can still use average pooling for training and then replaced by sumpooling in MCU. the only different is sumpooling (in NNoM) will not divide the sum directly but looking for a best shift (dynamic shifting) to cover the largest number. </p>
+<hr />
+<h2 id="sumpool">SumPool()</h2>
+<pre><code class="c">nnom_layer_t* SumPool(nnom_3d_shape_t k, nnom_3d_shape_t s, nnom_padding_t pad);
+</code></pre>
+
+<p>This funtion is for 1D or 2D, mutiple channels Sum pooling. This is a better alternative to average pooling <strong>WHEN</strong> deploy the trained model into NNoM. The output shift for the sumpool in NNoM is dynamic, means that this pooling can only place before softmax layer.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>k (kernel):</strong> the kernel shape, which is returned by <code>kernel()</code></li>
+<li><strong>s (stride):</strong> the stride shape, which is returned by <code>stride()</code></li>
+<li><strong>pad (padding):</strong> the padding method <code>PADDING_SAME</code> or <code>PADDING_VALID</code></li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The layer instance </li>
+</ul>
+<hr />
+<h2 id="globalmaxpool">GlobalMaxPool()</h2>
+<pre><code class="C">nnom_layer_t *GlobalMaxPool(void);
+</code></pre>
+
+<p>Global Max Pooling</p>
+<p><strong>Return</strong></p>
+<ul>
+<li>The layer instance </li>
+</ul>
+<hr />
+<h2 id="globalavgpool">GlobalAvgPool()</h2>
+<pre><code class="C">nnom_layer_t *GlobalAvgPool(void);
+</code></pre>
+
+<p>Global Average Pooling. </p>
+<p>Due to the same reason as discussed in Average Pooling, it is recommended to replace this layer by <code>GlobalSumPool()</code> when the layer it she second last layer, and before the softmax layer. </p>
+<p>If you used <code>generate_model()</code> to deploy your keras model to NNoM, this layer will be automaticly replaced by <code>GlobalSumPool()</code> when above conditions has met. </p>
+<p><strong>Return</strong></p>
+<ul>
+<li>The layer instance </li>
+</ul>
+<hr />
+<h2 id="globalsumpool">GlobalSumPool()</h2>
+<pre><code class="C">nnom_layer_t *GlobalSumPool(void);
+</code></pre>
+
+<p>Global sum pooling.</p>
+<p><strong>Return</strong></p>
+<ul>
+<li>The layer instance </li>
+</ul>
+<hr />
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../api_activations/" class="btn btn-neutral float-right" title="Activations">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../api_layers/" class="btn btn-neutral" title="Core Layers"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/majianjia/nnom/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../api_layers/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../api_activations/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
