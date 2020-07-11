@@ -14,7 +14,8 @@ nav:
   - Development Guide: 'guide_development.md'
   - Porting and Optimisation Guide: 'Porting_and_Optimisation_Guide.md'
 - APIs: 
-  - Utils (Python): 'api_nnom_utils.md'
+  - Utils : 'api_nnom_utils.md'
+  - Utils (>0.4.0): 'api_nnom.md'
   - Model: 'api_model.md'
   - Construction Methods: 'api_construction.md'
   - Properties: 'api_properties.md'

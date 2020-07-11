@@ -1,19 +1,21 @@
 
-## NNoM Utils - For layer APIs
+## NNoM Utils - Structured API
 
-**For 0.4.x and later, it is recommened to use the new scripts for more functions and supports for TensorFlow 2. The interfaces are compatible but will generate model using structred API instead of layer API. 
-[new scripts](api_nnom.md)**
-
-The support for this Utils will be limited for the future version. 
-
----
-
-NNoM Utils are Python scripts for deploying models. 
 What makes NNoM easy to use is the models can be deployed to MCU automatically or manually with the help of NNoM utils. 
-These functions are located in `scripts/nnom_utils.py`
+These functions are located in `scripts/nnom.py`
+
+This tools, will generate NNoM model using **Structured API** instead of 'layer API' in the previous script.
+
+Usage in short, in your python file, add the scripts the directory to your enviroment. Then you can imports the below apis from nnom.py. 
+
+~~~
+import sys
+import os
+sys.path.append(os.path.abspath("../../scripts"))
+from nnom import *
+~~~
 
 Please refer to [examples](https://github.com/majianjia/nnom/tree/dev/examples) for usage.
-
 
 # API 
 
@@ -22,28 +24,29 @@ Please refer to [examples](https://github.com/majianjia/nnom/tree/dev/examples) 
 ## generate_model()
 
 ~~~python
-generate_model(model, x_test, name='weights.h', format='hwc', kld=True)
+generate_model(model, x_test, per_channel_quant=False, name='weights.h', format='hwc', quantize_method='max_min')
 ~~~
 
 **This is all you need**
 
 This method is the most frequently used function for deployment. 
 
-1. It firsly scans the output range of each layer's output using `layers_output_ranges()`
+1. It firsly scans the output range of each layer's output using `quantize_output()`
 2. Then it quantised and write the weights & bias, fused the BatchNorm parameters using `generate_weights()`
-3. Finally, it generate the C functions ` nnom_model_t* nnom_model_create(void)` in `weights.h`
+3. Finally, it links all useful codes and generate the NNoM model in `weights.h`
 
 **Arguments**
 
 - **model:** the trained Keras model
-- **x_test:** the dataset used to check calibrate the output data quantisation range of each layer.  
-- **name:** the name of the automatically generated c file. 
+- **x_test:** the dataset used to check calibrate the output data quantisation range of each layer.
+- **per_channel_quant:** `true` quantise layers (Conv layers) in channel-wise (per-axis). `false`, layer-wise (per-tensor)
+- **name:** the name of the automatically generated header, contains the NNoM model. 
 - **format:** indicate the backend format, options between `'hwc'` and `'chw'`. See notes
-- **kld:** `True`, use KLD method for activation quantisation (saturated). `False`, use min-max method (nonsaturated). 
+- **quantize_method:** Option between `'max_min'` and `'kld'`. 'kld' indicated to use KLD method for activation quantisation (saturated). 'max_min', use min-max method (nonsaturated). 
 
 **Notes**
 
-- This method might not be updated from time to time with new features in NNoM. 
+- This API generate the model using Structured API. 
 - Currently, only support single input, single output models. 
 - The default backend format is set to 'hwc', also call 'channel last', which is the same format as CMSIS-NN. This format is optimal for CPU. 
 'chw' format, call 'channel first', is for MCU with hardware AI accelerator (such as [Kendryte K210](https://kendryte.com/)).
@@ -52,10 +55,10 @@ This setting only affects the format in the backend. the frontend will always us
 
 ---
 
-## layers_output_ranges()
+## quantize_output()
 
 ~~~python
-layers_output_ranges(model, x_test, kld=True, calibrate_size=1000)
+quantize_output(model, x_test, quantize_method='max_min', layer_offset=True, calibrate_size=100):
 ~~~
 
 This function is to check the output range and generate the output shifting list of each layer. It will automatically distinguish whether a layer can change its output Q format or not. 
@@ -64,12 +67,13 @@ This function is to check the output range and generate the output shifting list
 
 - **model:** the trained Keras model
 - **x_test:** the dataset for calibrating quantisation.
-- **kld:** `True`, use KLD method for activation quantisation (saturated). `False`, use min-max method (nonsaturated). 
-- **calibrate_size:** how many data for calibration. TensorRT suggest 1000 is enough. If `x_test` is longger than this value, it will randomly pick the lenght from the `x_test`.
+- **quantize_method:** Option between `'max_min'` and `'kld'`. 'kld' indicated to use KLD method for activation quantisation (saturated). 'max_min', use min-max method (nonsaturated). 
+- **layer_offset:** whether calculate the zero-point offset 
+- **calibrate_size:** how many data for calibration. TensorRT suggest 100 is enough. If `x_test` is longger than this value, it will randomly pick the lenght from the `x_test`.
 
 **Return**
 
-- The shifting list. 
+- The 2d shifting list with `list[][0]=shift`, `list[][1]=offset`
 
 **Notes**
 
@@ -80,7 +84,7 @@ This function is to check the output range and generate the output shifting list
 ## generate_weights()
 
 ~~~python
-generate_weights(model, name='weights.h', format='hwc', shift_list=None)
+quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=True, layer_q_list=None)
 ~~~
 
 Scans all the layer which includes weights, quantise the weights and put them into the c header.
@@ -89,12 +93,13 @@ Scans all the layer which includes weights, quantise the weights and put them in
 
 - **model:** the trained Keras model
 - **name:** the c file name to store weigths.
-- **shift_list:** the shift list returned by `layers_output_ranges(model, x_test)`
 - **format:** indicate the backend format, options between `'hwc'` and `'chw'`. See notes in [generate_model()](#generate_model)
+- **per_channel_quant:** `true` quantise layers (Conv layers) in channel-wise (per-axis). `false`, layer-wise (per-tensor)
+- **shift_list:** the shift list returned by `layers_output_ranges(model, x_test)`
 
 **Notes**
 
-- Use function individually when willing to use none-supported operation by `generate_model()`
+- Use function individually when willing to use non-supported operation by `generate_model()`
 
 ---
 
@@ -150,52 +155,11 @@ After training, it should be converted back to `0~127` for binary file because M
 
 ---
 
-## fake_clip()
-
-~~~python
-fake_clip(frac_bit=0, bit=8)
-~~~
-
-(deprecated) This function is used for inseart a fake_quantitation using tensorflow's method `tf.fake_quant_with_min_max_vars()`, for similating quantised output of fixed-point model (the deployed model) during training. It should be inserted to the model after every 'conv' or 'dense' layer. 
-
-However, without simulating the quantisation, most of the models are still performing well. Manually insert these layers will take huge effort for training-configuring cycle result in only a slitly better accuracy. 
-
-**Arguments**
-
-- **frac_bit:** the fraction bit in Q-format
-- **bit:** the quantisation bitwidth. 
-
-**Examples**
-
-~~~python
-    x = Conv2D(k, kernel_size=(3, 3), strides=(1,1), padding="same")(x)
-	x = fake_clip(frac_bit=7, bit=8)(x)  # quantise range to [-1~1) with 256 level. 
-	x = ReLU()(x)
-~~~
-
----
-
-## fake_clip_min_max()
-
-~~~python
-fake_clip_min_max(min=0, max=1,  bit=8)
-~~~
-
-(deprecated) a max-min version of `fake_clip()`, check `fake_clip()` for details.
-
-**Arguments**
-
-- **min:** the min value to be clipped.
-- **max:** the max value to be clipped. 
-- **bit:** the quantisation bitwidth. 
-
----
-
 # Examples
 
 This code snips shows training using above functions. 
 
-Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) for real-life utilisation. 
+Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) for the utilisation. 
 
 ~~~python
 	# load data

@@ -79,7 +79,7 @@ def main():
     #if(physical_devices is not None):
     #    tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-    epochs = 1
+    epochs = 3
     num_classes = 10
 
     # The data, split between train and test sets:
