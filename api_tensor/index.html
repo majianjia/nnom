@@ -9,7 +9,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Merges Layers - NNoM Documentation</title>
+  <title>Tensors - NNoM Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
 
   <link rel="stylesheet" href="../css/theme.css" />
@@ -18,8 +18,8 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Merges Layers";
-    var mkdocs_page_input_path = "api_merge.md";
+    var mkdocs_page_name = "Tensors";
+    var mkdocs_page_input_path = "api_tensor.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -72,7 +72,9 @@
                 </ul>
                 <p class="caption"><span class="caption-text">APIs</span></p>
                 <ul class="current">
-                    <li class="toctree-l1"><a class="reference internal" href="../api_nnom_utils/">Utils (Python)</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_nnom_utils/">Utils</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_nnom/">Utils (>0.4.0)</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_model/">Model</a>
                     </li>
@@ -80,15 +82,33 @@
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_properties/">Properties</a>
                     </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Tensors</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#new_tensor">new_tensor()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#delete_tensor">delete_tensor()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tensor_set_attr">tensor_set_attr()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tensor_set_attr_v">tensor_set_attr_v()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tensor_get_num_channel">tensor_get_num_channel()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tensor_cpy_attr">tensor_cpy_attr()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tensor_hwc2chw_q7">tensor_hwc2chw_q7()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tensor_chw2hwc_q7">tensor_chw2hwc_q7()</a>
+    </li>
+    </ul>
+                    </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_layers/">Core Layers</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_pooling/">Pooling Layers</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_activations/">Activations</a>
                     </li>
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Merges Layers</a>
-    <ul class="current">
-    </ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_merge/">Merges Layers</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_evaluation/">Evaluation Methods</a>
                     </li>
@@ -132,10 +152,10 @@
         
       
     
-    <li>Merges Layers</li>
+    <li>Tensors</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/majianjia/nnom/edit/master/docs/api_merge.md"
+        <a href="https://github.com/majianjia/nnom/edit/master/docs/api_tensor.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -146,116 +166,135 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="merging-methods">Merging Methods</h2>
-<p>Merge methods (layers) are use to merge 2 or more layer's output using the methods list below. </p>
-<p>These methods are also layers which return a layer instance. However, they normally take two or more layer's output and "merge" them into one output. These layer instance must be passed to either <code>model.merge(method, in1, in2)</code>or <code>model.mergex(method, num_of_input, in1, in2, 1n3 ...)</code>. An example will be to concat the Inception structure. </p>
+                <h1 id="tensor">Tensor</h1>
+<p>In the new NNoM (ver &gt; 0.4.0), the low-level operations are based on Tensors.</p>
+<p>Such as activations (data), weights, bias are all tensors. </p>
+<p>Tensor can be const (weights/bias) placed in ROM, or dynamic(activations) allocated in RAM. </p>
+<p>Activations tensors between layers will still sharing their data memories like the previous memory blocks management. 
+It still benefit from the memory management. </p>
+<p>User normally won't need to access the tensors beside the tensors of the input and output layers. </p>
 <hr />
-<h2 id="concat">Concat()</h2>
-<pre><code class="C">nnom_layer_t* Concat(int8_t axis);
+<h2 id="new_tensor">new_tensor()</h2>
+<pre><code class="C">nnom_tensor_t* new_tensor(nnom_qtype_t type, uint32_t num_dim, uint32_t num_channel);
 </code></pre>
 
-<p>Concatenate mutiple input on the selected axis. </p>
+<p>Create a tensor instance.</p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong> axis:</strong> the axis number to concatenate in HWC format. The axis could be nagative, such as '-1' indicate the last one axis which is 'Channel'.</li>
+<li><strong> type:</strong> tensor data quantisation type, select between <code>NNOM_QTYPE_PER_AXIS</code> and <code>NNOM_QTYPE_PER_TENSOR</code>.</li>
+<li><strong> num_dim:</strong> number of tensor dimension</li>
+<li><strong> num_channel:</strong> when <code>NNOM_QTYPE_PER_AXIS</code> passed as type, this is the number of the selected axis(channels). </li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
-<li>The concat layer instance</li>
+<li>The tensor instance.</li>
 </ul>
 <p><strong>Notes</strong></p>
-<p>The concatenated axis can be different in all input layers passed to this method. Other axes must be same. </p>
+<p>This does not allocated the data memory. </p>
 <hr />
-<h2 id="mult">Mult()</h2>
-<pre><code class="C">nnom_layer_t* Mult(int32_t oshift);
+<h2 id="delete_tensor">delete_tensor()</h2>
+<pre><code class="C">void delete_tensor(nnom_tensor_t* t);
 </code></pre>
 
-<p>Element wise mutiplication in all the inputs. </p>
-<p>This layer cannot use to merge more than 2 layer, which might cause overflowing problem. 2 <code>Mult()</code> must be used separately if willing to multiply 3 layer's output. The output shift individually of the 2 steps must be identify individually. Please check the example below for more than 2 input.</p>
+<p>Create a tensor instance.</p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong>oshift:</strong> the output shift of this layer.  </li>
+<li><strong> t:</strong> tensor willing to delete</li>
+</ul>
+<p><strong>Notes</strong></p>
+<p>This does not free the data memory. </p>
+<hr />
+<h2 id="tensor_set_attr">tensor_set_attr()</h2>
+<pre><code class="C">nnom_tensor_t* tensor_set_attr(nnom_tensor_t* t, 
+        nnom_qformat_param_t*dec_bit, nnom_qformat_param_t *offset, nnom_shape_data_t* dim, uint32_t num_dim, uint8_t bitwidth)
+</code></pre>
+
+<p>set the attributes of the tensors.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> t:</strong> tensor</li>
+<li><strong> dec_bit:</strong> the num of bit for the fractional part in q format. An array for each channel if the tensor is per-axis quantised.</li>
+<li><strong> offset:</strong> the zero-point offset for each channels. </li>
+<li><strong> dim:</strong> the dimension array of the tensor.</li>
+<li><strong> num_dim:</strong> number of dimemsions</li>
+<li><strong> bitwidth:</strong> bitwidth of the tensor data. -- only support 8 currently. </li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
-<li>The mult layer instance</li>
+<li>The tensor instance.</li>
 </ul>
-<p><strong>Notes</strong></p>
-<p>All input layers passed to this method must have same output shape. </p>
 <hr />
-<h2 id="add">Add()</h2>
-<pre><code class="C">nnom_layer_t* Add(int32_t oshift);
+<h2 id="tensor_set_attr_v">tensor_set_attr_v()</h2>
+<pre><code class="C">nnom_tensor_t* tensor_set_attr_v(nnom_tensor_t* t, 
+        nnom_qformat_param_t dec_bit, nnom_qformat_param_t offset, nnom_shape_data_t* dim, uint32_t num_dim, uint8_t bitwidth);
 </code></pre>
 
-<p>Element wise addition in all the inputs. </p>
-<p>This layer cannot use to merge more than 2 layer, which might cause overflowing problem. Please refer to <code>Mult()</code></p>
+<p>set the attributes of the tensors by value. This interface only support per-tensor quantisation tensor. </p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong>oshift:</strong> the output shift of this layer.  </li>
+<li><strong> t:</strong> tensor</li>
+<li><strong> dec_bit:</strong> the num of bit for the fractional part in q format. </li>
+<li><strong> offset:</strong> the zero-point offset for each channels. </li>
+<li><strong> dim:</strong> the dimension array of the tensor.</li>
+<li><strong> num_dim:</strong> number of dimemsions</li>
+<li><strong> bitwidth:</strong> bitwidth of the tensor data. -- only support 8 currently. </li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
-<li>The add layer instance</li>
+<li>The tensor instance.</li>
 </ul>
-<p><strong>Notes</strong></p>
-<p>All input layers passed to this method must have same output shape. </p>
 <hr />
-<h2 id="sub">Sub()</h2>
-<pre><code class="C">nnom_layer_t* Sub(int32_t oshift);
+<h2 id="tensor_get_num_channel">tensor_get_num_channel()</h2>
+<pre><code class="C">size_t tensor_get_num_channel(nnom_tensor_t* t);
 </code></pre>
 
-<p>Element wise substraction in all the inputs. </p>
-<p>This layer cannot use to merge more than 2 layer, which might cause overflowing problem. Please refer to <code>Mult()</code></p>
+<p>Return the data size of the tensor.</p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong>oshift:</strong> the output shift of this layer.  </li>
+<li><strong> t:</strong> tensor</li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
-<li>The sub layer instance</li>
+<li>The data size of the tensor.</li>
 </ul>
-<p><strong>Notes</strong></p>
-<p>All input layers passed to this method must have same output shape. </p>
 <hr />
-<h2 id="example">Example</h2>
-<p><strong> Channelwise concat for Inception </strong></p>
-<pre><code class="C">
-    input_layer = Input(shape(INPUT_HIGHT, INPUT_WIDTH, INPUT_CH), nnom_input_data);
-
-    // conv2d - 1 - inception
-    x1 = model.hook(Conv2D(16, kernel(1, 5), stride(1, 1), PADDING_SAME, &amp;c2_w, &amp;c2_b), x);
-    x1 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x1);
-
-    // conv2d - 2 - inception
-    x2 = model.hook(Conv2D(16, kernel(1, 3), stride(1, 1), PADDING_SAME, &amp;c3_w, &amp;c3_b), x);
-    x2 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x2);
-
-    // maxpool - 3 - inception
-    x3 = model.hook(MaxPool(kernel(1, 2), stride(1, 2), PADDING_VALID), x);
-
-    // concatenate 
-    x = model.mergex(Concat(-1), 3, x1, x2, x3);
-
-    // flatten
-    x = model.hook(Flatten(), x);
-    ...
+<h2 id="tensor_cpy_attr">tensor_cpy_attr()</h2>
+<pre><code class="C">nnom_tensor_t* tensor_cpy_attr(nnom_tensor_t* des, nnom_tensor_t* src);
 </code></pre>
 
-<p><strong> Mult for 3 input </strong> (or Add, Sub)</p>
-<p>In Keras</p>
-<pre><code class="python">    #instead of 
-    x = multiply([x1,x2,x3]) 
-
-    # you must use this instead to allow sript to calculate oshift individually. 
-    x = multiply([x1,x2])
-    x = multiply([x,x3])
+<p>Copy tensor attributes.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> des:</strong> destination tensor</li>
+<li><strong> src:</strong> source tensor</li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The destination tensor</li>
+</ul>
+<hr />
+<h2 id="tensor_hwc2chw_q7">tensor_hwc2chw_q7()</h2>
+<pre><code class="C">void tensor_hwc2chw_q7(nnom_tensor_t* des, nnom_tensor_t* src);
 </code></pre>
 
-<p>Then in NNoM</p>
-<pre><code class="C">    // x = x1 * x2 * x3
-    x = model.merge(Mult(oshift_1), x1, x2); 
-    x = model.merge(Mult(oshift_2), x, x3);
+<p>Reorder and copy tensor data.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> des:</strong> destination tensor</li>
+<li><strong> src:</strong> source tensor</li>
+</ul>
+<hr />
+<h2 id="tensor_chw2hwc_q7">tensor_chw2hwc_q7()</h2>
+<pre><code class="C">void tensor_chw2hwc_q7(nnom_tensor_t* des, nnom_tensor_t* src);
 </code></pre>
+
+<p>Reorder and copy tensor data.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> des:</strong> destination tensor</li>
+<li><strong> src:</strong> source tensor</li>
+</ul>
+<hr />
               
             </div>
           </div>
@@ -263,10 +302,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../api_evaluation/" class="btn btn-neutral float-right" title="Evaluation Methods">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../api_layers/" class="btn btn-neutral float-right" title="Core Layers">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../api_activations/" class="btn btn-neutral" title="Activations"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../api_properties/" class="btn btn-neutral" title="Properties"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -294,10 +333,10 @@
           <a href="https://github.com/majianjia/nnom/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
-        <span><a href="../api_activations/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../api_properties/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../api_evaluation/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../api_layers/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

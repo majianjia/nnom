@@ -72,13 +72,17 @@
                 </ul>
                 <p class="caption"><span class="caption-text">APIs</span></p>
                 <ul class="current">
-                    <li class="toctree-l1"><a class="reference internal" href="../api_nnom_utils/">Utils (Python)</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_nnom_utils/">Utils</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_nnom/">Utils (>0.4.0)</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_model/">Model</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_construction/">Construction Methods</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_properties/">Properties</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_tensor/">Tensors</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_layers/">Core Layers</a>
                     </li>
@@ -190,6 +194,21 @@ Actail will be called after a layer has finished its job, which will modify the 
 <p><strong>Notes</strong></p>
 <p>Using <code>layer = ReLU();</code> is no difference to <code>layer = Activation(act_relu());</code></p>
 <hr />
+<h2 id="leaky-relu">Leaky ReLU()</h2>
+<pre><code class="C">nnom_layer_t* LeakyReLU(float alpha);
+</code></pre>
+
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>alpha:</strong> The slope of the nagative parts. </li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The LeakyReLU layer instance</li>
+</ul>
+<p><strong>Notes</strong></p>
+<p>Internally, the alpha will be converted to Q0.7 format. </p>
+<hr />
 <h2 id="sigmoid">Sigmoid()</h2>
 <pre><code class="C">nnom_layer_t* Sigmoid(int32_t dec_bit);
 </code></pre>
@@ -233,6 +252,7 @@ due to the less resolutions. </li>
 <hr />
 <h1 id="activation-apis">Activation APIs</h1>
 <pre><code class="C">nnom_activation_t* act_relu(void);
+nnom_activation_t* act_leaky_relu(float alpha);
 nnom_activation_t* act_sigmoid(int32_t dec_bit);
 nnom_activation_t* act_tanh(int32_t dec_bit);
 </code></pre>

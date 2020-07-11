@@ -9,7 +9,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Utils (Python) - NNoM Documentation</title>
+  <title>Utils (>0.4.0) - NNoM Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
 
   <link rel="stylesheet" href="../css/theme.css" />
@@ -18,8 +18,8 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Utils (Python)";
-    var mkdocs_page_input_path = "api_nnom_utils.md";
+    var mkdocs_page_name = "Utils (>0.4.0)";
+    var mkdocs_page_input_path = "api_nnom.md";
     var mkdocs_page_url = null;
   </script>
   
@@ -72,7 +72,9 @@
                 </ul>
                 <p class="caption"><span class="caption-text">APIs</span></p>
                 <ul class="current">
-                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Utils (Python)</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_nnom_utils/">Utils</a>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Utils (>0.4.0)</a>
     <ul class="current">
     </ul>
                     </li>
@@ -81,6 +83,8 @@
                     <li class="toctree-l1"><a class="reference internal" href="../api_construction/">Construction Methods</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_properties/">Properties</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../api_tensor/">Tensors</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_layers/">Core Layers</a>
                     </li>
@@ -132,10 +136,10 @@
         
       
     
-    <li>Utils (Python)</li>
+    <li>Utils (>0.4.0)</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/majianjia/nnom/edit/master/docs/api_nnom_utils.md"
+        <a href="https://github.com/majianjia/nnom/edit/master/docs/api_nnom.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -146,35 +150,43 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="nnom-utils">NNoM Utils</h2>
-<p>NNoM Utils are Python scripts for deploying models. 
-What makes NNoM easy to use is the models can be deployed to MCU automatically or manually with the help of NNoM utils. 
-These functions are located in <code>scripts/nnom_utils.py</code></p>
-<p>Tutorial is comming, before it arrives, please refer to <a href="https://github.com/majianjia/nnom/tree/dev/examples">examples</a> for usage.</p>
+                <h2 id="nnom-utils-structured-api">NNoM Utils - Structured API</h2>
+<p>What makes NNoM easy to use is the models can be deployed to MCU automatically or manually with the help of NNoM utils. 
+These functions are located in <code>scripts/nnom.py</code></p>
+<p>This tools, will generate NNoM model using <strong>Structured API</strong> instead of 'layer API' in the previous script.</p>
+<p>Usage in short, in your python file, add the scripts the directory to your enviroment. Then you can imports the below apis from nnom.py. </p>
+<pre><code>import sys
+import os
+sys.path.append(os.path.abspath(&quot;../../scripts&quot;))
+from nnom import *
+</code></pre>
+
+<p>Please refer to <a href="https://github.com/majianjia/nnom/tree/dev/examples">examples</a> for usage.</p>
 <h1 id="api">API</h1>
 <hr />
 <h2 id="generate_model">generate_model()</h2>
-<pre><code class="python">generate_model(model, x_test, name='weights.h', format='hwc', kld=True)
+<pre><code class="python">generate_model(model, x_test, per_channel_quant=False, name='weights.h', format='hwc', quantize_method='max_min')
 </code></pre>
 
 <p><strong>This is all you need</strong></p>
 <p>This method is the most frequently used function for deployment. </p>
 <ol>
-<li>It firsly scans the output range of each layer's output using <code>layers_output_ranges()</code></li>
+<li>It firsly scans the output range of each layer's output using <code>quantize_output()</code></li>
 <li>Then it quantised and write the weights &amp; bias, fused the BatchNorm parameters using <code>generate_weights()</code></li>
-<li>Finally, it generate the C functions <code>nnom_model_t* nnom_model_create(void)</code> in <code>weights.h</code></li>
+<li>Finally, it links all useful codes and generate the NNoM model in <code>weights.h</code></li>
 </ol>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><strong>model:</strong> the trained Keras model</li>
-<li><strong>x_test:</strong> the dataset used to check calibrate the output data quantisation range of each layer.  </li>
-<li><strong>name:</strong> the name of the automatically generated c file. </li>
+<li><strong>x_test:</strong> the dataset used to check calibrate the output data quantisation range of each layer.</li>
+<li><strong>per_channel_quant:</strong> <code>true</code> quantise layers (Conv layers) in channel-wise (per-axis). <code>false</code>, layer-wise (per-tensor)</li>
+<li><strong>name:</strong> the name of the automatically generated header, contains the NNoM model. </li>
 <li><strong>format:</strong> indicate the backend format, options between <code>'hwc'</code> and <code>'chw'</code>. See notes</li>
-<li><strong>kld:</strong> <code>True</code>, use KLD method for activation quantisation (saturated). <code>False</code>, use min-max method (nonsaturated). </li>
+<li><strong>quantize_method:</strong> Option between <code>'max_min'</code> and <code>'kld'</code>. 'kld' indicated to use KLD method for activation quantisation (saturated). 'max_min', use min-max method (nonsaturated). </li>
 </ul>
 <p><strong>Notes</strong></p>
 <ul>
-<li>This method might not be updated from time to time with new features in NNoM. </li>
+<li>This API generate the model using Structured API. </li>
 <li>Currently, only support single input, single output models. </li>
 <li>The default backend format is set to 'hwc', also call 'channel last', which is the same format as CMSIS-NN. This format is optimal for CPU. 
 'chw' format, call 'channel first', is for MCU with hardware AI accelerator (such as <a href="https://kendryte.com/">Kendryte K210</a>).
@@ -182,8 +194,8 @@ This setting only affects the format in the backend. the frontend will always us
 <li>About activation quantisat method options, check <a href="http://on-demand.gputechconf.com/gtc/2017/presentation/s7310-8-bit-inference-with-tensorrt.pdf">TensorRT notes</a> for detail. </li>
 </ul>
 <hr />
-<h2 id="layers_output_ranges">layers_output_ranges()</h2>
-<pre><code class="python">layers_output_ranges(model, x_test, kld=True, calibrate_size=1000)
+<h2 id="quantize_output">quantize_output()</h2>
+<pre><code class="python">quantize_output(model, x_test, quantize_method='max_min', layer_offset=True, calibrate_size=100):
 </code></pre>
 
 <p>This function is to check the output range and generate the output shifting list of each layer. It will automatically distinguish whether a layer can change its output Q format or not. </p>
@@ -191,12 +203,13 @@ This setting only affects the format in the backend. the frontend will always us
 <ul>
 <li><strong>model:</strong> the trained Keras model</li>
 <li><strong>x_test:</strong> the dataset for calibrating quantisation.</li>
-<li><strong>kld:</strong> <code>True</code>, use KLD method for activation quantisation (saturated). <code>False</code>, use min-max method (nonsaturated). </li>
-<li><strong>calibrate_size:</strong> how many data for calibration. TensorRT suggest 1000 is enough. If <code>x_test</code> is longger than this value, it will randomly pick the lenght from the <code>x_test</code>.</li>
+<li><strong>quantize_method:</strong> Option between <code>'max_min'</code> and <code>'kld'</code>. 'kld' indicated to use KLD method for activation quantisation (saturated). 'max_min', use min-max method (nonsaturated). </li>
+<li><strong>layer_offset:</strong> whether calculate the zero-point offset </li>
+<li><strong>calibrate_size:</strong> how many data for calibration. TensorRT suggest 100 is enough. If <code>x_test</code> is longger than this value, it will randomly pick the lenght from the <code>x_test</code>.</li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
-<li>The shifting list. </li>
+<li>The 2d shifting list with <code>list[][0]=shift</code>, <code>list[][1]=offset</code></li>
 </ul>
 <p><strong>Notes</strong></p>
 <ul>
@@ -204,7 +217,7 @@ This setting only affects the format in the backend. the frontend will always us
 </ul>
 <hr />
 <h2 id="generate_weights">generate_weights()</h2>
-<pre><code class="python">generate_weights(model, name='weights.h', format='hwc', shift_list=None)
+<pre><code class="python">quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=True, layer_q_list=None)
 </code></pre>
 
 <p>Scans all the layer which includes weights, quantise the weights and put them into the c header.</p>
@@ -212,12 +225,13 @@ This setting only affects the format in the backend. the frontend will always us
 <ul>
 <li><strong>model:</strong> the trained Keras model</li>
 <li><strong>name:</strong> the c file name to store weigths.</li>
-<li><strong>shift_list:</strong> the shift list returned by <code>layers_output_ranges(model, x_test)</code></li>
 <li><strong>format:</strong> indicate the backend format, options between <code>'hwc'</code> and <code>'chw'</code>. See notes in <a href="#generate_model">generate_model()</a></li>
+<li><strong>per_channel_quant:</strong> <code>true</code> quantise layers (Conv layers) in channel-wise (per-axis). <code>false</code>, layer-wise (per-tensor)</li>
+<li><strong>shift_list:</strong> the shift list returned by <code>layers_output_ranges(model, x_test)</code></li>
 </ul>
 <p><strong>Notes</strong></p>
 <ul>
-<li>Use function individually when willing to use none-supported operation by <code>generate_model()</code></li>
+<li>Use function individually when willing to use non-supported operation by <code>generate_model()</code></li>
 </ul>
 <hr />
 <h2 id="evaluate_model">evaluate_model()</h2>
@@ -279,39 +293,9 @@ The 'n' is the size of one data, such as 28x28=784 for mnist, or 32x32x3=3072 fo
 MNIST range <code>0~255</code> whcih can be converted into <code>0~1</code> using <code>((float)mnist/255)</code> for training. 
 After training, it should be converted back to <code>0~127</code> for binary file because MCU only recognised q7 format. </p>
 <hr />
-<h2 id="fake_clip">fake_clip()</h2>
-<pre><code class="python">fake_clip(frac_bit=0, bit=8)
-</code></pre>
-
-<p>(deprecated) This function is used for inseart a fake_quantitation using tensorflow's method <code>tf.fake_quant_with_min_max_vars()</code>, for similating quantised output of fixed-point model (the deployed model) during training. It should be inserted to the model after every 'conv' or 'dense' layer. </p>
-<p>However, without simulating the quantisation, most of the models are still performing well. Manually insert these layers will take huge effort for training-configuring cycle result in only a slitly better accuracy. </p>
-<p><strong>Arguments</strong></p>
-<ul>
-<li><strong>frac_bit:</strong> the fraction bit in Q-format</li>
-<li><strong>bit:</strong> the quantisation bitwidth. </li>
-</ul>
-<p><strong>Examples</strong></p>
-<pre><code class="python">    x = Conv2D(k, kernel_size=(3, 3), strides=(1,1), padding=&quot;same&quot;)(x)
-    x = fake_clip(frac_bit=7, bit=8)(x)  # quantise range to [-1~1) with 256 level. 
-    x = ReLU()(x)
-</code></pre>
-
-<hr />
-<h2 id="fake_clip_min_max">fake_clip_min_max()</h2>
-<pre><code class="python">fake_clip_min_max(min=0, max=1,  bit=8)
-</code></pre>
-
-<p>(deprecated) a max-min version of <code>fake_clip()</code>, check <code>fake_clip()</code> for details.</p>
-<p><strong>Arguments</strong></p>
-<ul>
-<li><strong>min:</strong> the min value to be clipped.</li>
-<li><strong>max:</strong> the max value to be clipped. </li>
-<li><strong>bit:</strong> the quantisation bitwidth. </li>
-</ul>
-<hr />
 <h1 id="examples">Examples</h1>
 <p>This code snips shows training using above functions. </p>
-<p>Please check <a href="https://github.com/majianjia/nnom/tree/master/examples">examples</a> for real-life utilisation. </p>
+<p>Please check <a href="https://github.com/majianjia/nnom/tree/master/examples">examples</a> for the utilisation. </p>
 <pre><code class="python">    # load data
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
@@ -346,7 +330,7 @@ After training, it should be converted back to <code>0~127</code> for binary fil
         <a href="../api_model/" class="btn btn-neutral float-right" title="Model">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../Porting_and_Optimisation_Guide/" class="btn btn-neutral" title="Porting and Optimisation Guide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../api_nnom_utils/" class="btn btn-neutral" title="Utils"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -374,7 +358,7 @@ After training, it should be converted back to <code>0~127</code> for binary fil
           <a href="https://github.com/majianjia/nnom/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
-        <span><a href="../Porting_and_Optimisation_Guide/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../api_nnom_utils/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
         <span style="margin-left: 15px"><a href="../api_model/" style="color: #fcfcfc">Next &raquo;</a></span>
