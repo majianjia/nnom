@@ -90,6 +90,26 @@
                     </li>
                     <li class="toctree-l1 current"><a class="reference internal current" href="./">Activations</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#activations-layer-apis">Activations' Layer APIs</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#activation">Activation()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#softmax">Softmax()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#relu">ReLU()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#leaky-relu">Leaky ReLU()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#sigmoid">Sigmoid()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#tanh">TanH()</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#activation-apis">Activation APIs</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a>
+    </li>
     </ul>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_merge/">Merges Layers</a>
@@ -150,15 +170,15 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="activation-layers">Activation Layers</h2>
+                <h1 id="activation-layers">Activation Layers</h1>
 <p>To reduce the memory footprint, activations provides both <strong>Layer APIs</strong> and <strong>Activation APIs</strong>. </p>
 <p><strong>Layer APIs</strong> will create a layer instance for running the activation; </p>
 <p><strong>Activation APIs</strong> will only create activation instance, which can be attached on a existing layers as 'actail'. 
 Actail will be called after a layer has finished its job, which will modify the output of that layer. </p>
 <hr />
-<h1 id="activations-layer-apis">Activations' Layer APIs</h1>
+<h2 id="activations-layer-apis">Activations' Layer APIs</h2>
 <hr />
-<h2 id="activation">Activation()</h2>
+<h3 id="activation">Activation()</h3>
 <pre><code class="C">nnom_layer_t* Activation(nnom_activation_t *act);   
 </code></pre>
 
@@ -172,7 +192,7 @@ Actail will be called after a layer has finished its job, which will modify the 
 <li>The activation layer instance</li>
 </ul>
 <hr />
-<h2 id="softmax">Softmax()</h2>
+<h3 id="softmax">Softmax()</h3>
 <pre><code class="C">nnom_layer_t* Softmax(void);
 </code></pre>
 
@@ -183,7 +203,7 @@ Actail will be called after a layer has finished its job, which will modify the 
 <p><strong>Notes</strong></p>
 <p>Softmax only has Layer API.</p>
 <hr />
-<h2 id="relu">ReLU()</h2>
+<h3 id="relu">ReLU()</h3>
 <pre><code class="C">nnom_layer_t* ReLU(void);
 </code></pre>
 
@@ -194,7 +214,7 @@ Actail will be called after a layer has finished its job, which will modify the 
 <p><strong>Notes</strong></p>
 <p>Using <code>layer = ReLU();</code> is no difference to <code>layer = Activation(act_relu());</code></p>
 <hr />
-<h2 id="leaky-relu">Leaky ReLU()</h2>
+<h3 id="leaky-relu">Leaky ReLU()</h3>
 <pre><code class="C">nnom_layer_t* LeakyReLU(float alpha);
 </code></pre>
 
@@ -209,7 +229,7 @@ Actail will be called after a layer has finished its job, which will modify the 
 <p><strong>Notes</strong></p>
 <p>Internally, the alpha will be converted to Q0.7 format. </p>
 <hr />
-<h2 id="sigmoid">Sigmoid()</h2>
+<h3 id="sigmoid">Sigmoid()</h3>
 <pre><code class="C">nnom_layer_t* Sigmoid(int32_t dec_bit);
 </code></pre>
 
@@ -230,7 +250,7 @@ Actail will be called after a layer has finished its job, which will modify the 
 due to the less resolutions. </li>
 </ul>
 <hr />
-<h2 id="tanh">TanH()</h2>
+<h3 id="tanh">TanH()</h3>
 <pre><code class="C">nnom_layer_t* TanH(int32_t dec_bit);
 </code></pre>
 
@@ -250,7 +270,7 @@ due to the less resolutions. </li>
 <li>When dec_bit &lt; 4, this function is performed by {f(x)=1 if x&gt;0;  f(x)=0 if x=0;  f(x)=-1 if x&lt;0}. due to the loss of resolutions.</li>
 </ul>
 <hr />
-<h1 id="activation-apis">Activation APIs</h1>
+<h2 id="activation-apis">Activation APIs</h2>
 <pre><code class="C">nnom_activation_t* act_relu(void);
 nnom_activation_t* act_leaky_relu(float alpha);
 nnom_activation_t* act_sigmoid(int32_t dec_bit);

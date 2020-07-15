@@ -82,6 +82,24 @@
                     </li>
                     <li class="toctree-l1 current"><a class="reference internal current" href="./">Properties</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#typedef">Typedef</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#methods">Methods</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#shape">shape()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#kernel">kernel()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#stride">stride()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#border">border()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#qformat">qformat()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#shape_size">shape_size()</a>
+    </li>
+        </ul>
+    </li>
     </ul>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_tensor/">Tensors</a>
@@ -150,7 +168,7 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="properties">Properties</h2>
+                <h1 id="properties">Properties</h1>
 <p>Properties include some basic properties such as shape of the data buffer, Q-format of the data.</p>
 <hr />
 <h2 id="typedef">Typedef</h2>
@@ -186,9 +204,9 @@ typedef struct _nnom_border_t
 </code></pre>
 
 <hr />
-<h1 id="methods">Methods</h1>
+<h2 id="methods">Methods</h2>
 <hr />
-<h2 id="shape">shape()</h2>
+<h3 id="shape">shape()</h3>
 <pre><code class="C">nnom_3d_shape_t shape(size_t h, size_t w, size_t c);
 </code></pre>
 
@@ -203,7 +221,7 @@ typedef struct _nnom_border_t
 <li>A shape instance. </li>
 </ul>
 <hr />
-<h2 id="kernel">kernel()</h2>
+<h3 id="kernel">kernel()</h3>
 <pre><code class="C">nnom_3d_shape_t kernel(size_t h, size_t w);
 </code></pre>
 
@@ -218,7 +236,7 @@ typedef struct _nnom_border_t
 <li>A shape instance. </li>
 </ul>
 <hr />
-<h2 id="stride">stride()</h2>
+<h3 id="stride">stride()</h3>
 <pre><code class="C">nnom_3d_shape_t stride(size_t h, size_t w);
 </code></pre>
 
@@ -233,7 +251,7 @@ typedef struct _nnom_border_t
 <li>A shape instance. </li>
 </ul>
 <hr />
-<h2 id="border">border()</h2>
+<h3 id="border">border()</h3>
 <pre><code class="C">nnom_border_t border(size_t top, size_t bottom, size_t left, size_t right);
 </code></pre>
 
@@ -250,7 +268,7 @@ typedef struct _nnom_border_t
 <li>A shape instance. </li>
 </ul>
 <hr />
-<h2 id="qformat">qformat()</h2>
+<h3 id="qformat">qformat()</h3>
 <pre><code>nnom_qformat_t qformat(int8_t m, int8_t n);
 </code></pre>
 
@@ -266,7 +284,7 @@ typedef struct _nnom_border_t
 <p><strong>Notes</strong></p>
 <p>The Q-format within model is currently handled by Python script <code>nnom_utils.py</code>. This function will be deprecated. </p>
 <hr />
-<h2 id="shape_size">shape_size()</h2>
+<h3 id="shape_size">shape_size()</h3>
 <pre><code class="C">size_t shape_size(nnom_3d_shape_t *s);
 </code></pre>
 

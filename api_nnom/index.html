@@ -76,6 +76,16 @@
                     </li>
                     <li class="toctree-l1 current"><a class="reference internal current" href="./">Utils (>0.4.0)</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#generate_model">generate_model()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#quantize_output">quantize_output()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#generate_weights">generate_weights()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#evaluate_model">evaluate_model()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#generate_test_bin">generate_test_bin()</a>
+    </li>
     </ul>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_model/">Model</a>
@@ -150,7 +160,7 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="nnom-utils-structured-api">NNoM Utils - Structured API</h2>
+                <h1 id="nnom-utils-structured-api">NNoM Utils - Structured API</h1>
 <p>What makes NNoM easy to use is the models can be deployed to MCU automatically or manually with the help of NNoM utils. 
 These functions are located in <code>scripts/nnom.py</code></p>
 <p>This tools, will generate NNoM model using <strong>Structured API</strong> instead of 'layer API' in the previous script.</p>
@@ -162,7 +172,6 @@ from nnom import *
 </code></pre>
 
 <p>Please refer to <a href="https://github.com/majianjia/nnom/tree/dev/examples">examples</a> for usage.</p>
-<h1 id="api">API</h1>
 <hr />
 <h2 id="generate_model">generate_model()</h2>
 <pre><code class="python">generate_model(model, x_test, per_channel_quant=False, name='weights.h', format='hwc', quantize_method='max_min')

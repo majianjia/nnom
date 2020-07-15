@@ -74,6 +74,20 @@
                 <ul class="current">
                     <li class="toctree-l1 current"><a class="reference internal current" href="./">Utils</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#generate_model">generate_model()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#layers_output_ranges">layers_output_ranges()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#generate_weights">generate_weights()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#evaluate_model">evaluate_model()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#generate_test_bin">generate_test_bin()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fake_clip">fake_clip()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fake_clip_min_max">fake_clip_min_max()</a>
+    </li>
     </ul>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_nnom/">Utils (>0.4.0)</a>
@@ -150,7 +164,7 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="nnom-utils-for-layer-apis">NNoM Utils - For layer APIs</h2>
+                <h1 id="nnom-utils-for-layer-apis">NNoM Utils - For layer APIs</h1>
 <p><strong>For 0.4.x and later, it is recommened to use the new scripts for more functions and supports for TensorFlow 2. The interfaces are compatible but will generate model using structred API instead of layer API. 
 <a href="../api_nnom/">new scripts</a></strong></p>
 <p>The support for this Utils will be limited for the future version. </p>
@@ -159,7 +173,6 @@
 What makes NNoM easy to use is the models can be deployed to MCU automatically or manually with the help of NNoM utils. 
 These functions are located in <code>scripts/nnom_utils.py</code></p>
 <p>Please refer to <a href="https://github.com/majianjia/nnom/tree/dev/examples">examples</a> for usage.</p>
-<h1 id="api">API</h1>
 <hr />
 <h2 id="generate_model">generate_model()</h2>
 <pre><code class="python">generate_model(model, x_test, name='weights.h', format='hwc', kld=True)

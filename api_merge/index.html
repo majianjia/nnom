@@ -92,6 +92,16 @@
                     </li>
                     <li class="toctree-l1 current"><a class="reference internal current" href="./">Merges Layers</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#concat">Concat()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#mult">Mult()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#add">Add()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#sub">Sub()</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#example">Example</a>
+    </li>
     </ul>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_evaluation/">Evaluation Methods</a>
@@ -150,7 +160,7 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="merging-methods">Merging Methods</h2>
+                <h1 id="merging-methods">Merging Methods</h1>
 <p>Merge methods (layers) are use to merge 2 or more layer's output using the methods list below. </p>
 <p>These methods are also layers which return a layer instance. However, they normally take two or more layer's output and "merge" them into one output. These layer instance must be passed to either <code>model.merge(method, in1, in2)</code>or <code>model.mergex(method, num_of_input, in1, in2, 1n3 ...)</code>. An example will be to concat the Inception structure. </p>
 <hr />

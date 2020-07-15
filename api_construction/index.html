@@ -80,6 +80,26 @@
                     </li>
                     <li class="toctree-l1 current"><a class="reference internal current" href="./">Construction Methods</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#sequential-api">Sequential API</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#modeladd">model.add()</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#functional-apis">Functional APIs</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#modelhook">model.hook()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#modelmerge">model.merge()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#modelmergex">model.mergex()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#modelactive">model.active()</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a>
+    </li>
     </ul>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../api_properties/">Properties</a>
@@ -150,15 +170,15 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="constructions-apis">Constructions APIs</h2>
+                <h1 id="constructions-apis">Constructions APIs</h1>
 <p>NNoM support both <strong>Sequential model</strong> and <strong>Functional model</strong> similar to Keras. 
 NNoM treat them equaly in compiling and running, the only difference the methods of constructions. </p>
 <p>In <strong>Sequential model</strong>, the layer are stacked one by one sequently using <code>model.add()</code>. So call Sequential API. </p>
 <p>In <strong>Functional model</strong>, the links between layer are specified explicitly by using <code>model.hook()</code>, <code>model.merge()</code> or <code>model.mergex()</code>. So call Functional APIs</p>
 <hr />
-<h1 id="sequential-api">Sequential API</h1>
+<h2 id="sequential-api">Sequential API</h2>
 <hr />
-<h2 id="modeladd">model.add()</h2>
+<h3 id="modeladd">model.add()</h3>
 <pre><code class="c">nnom_status_t model.add(nnom_model_t *model,  nnom_layer_t *layer);
 </code></pre>
 
@@ -184,9 +204,9 @@ NNoM treat them equaly in compiling and running, the only difference the methods
 <li>You can stack like this whenever there are memory available :-)</li>
 </ul>
 <hr />
-<h1 id="functional-apis">Functional APIs</h1>
+<h2 id="functional-apis">Functional APIs</h2>
 <hr />
-<h2 id="modelhook">model.hook()</h2>
+<h3 id="modelhook">model.hook()</h3>
 <pre><code class="C">nnom_layer_t *model.hook(nnom_layer_t *curr, nnom_layer_t *last);
 </code></pre>
 
@@ -203,7 +223,7 @@ NNoM treat them equaly in compiling and running, the only difference the methods
 <p><strong>Note</strong></p>
 <p>A layer instance can be hooked many times (act as "last" layer). NNoM will manage the topology and run order from them during compiling. This is very useful when many layers wants to take the same output of previous layer. The example is many towers layer share one output in Inception structure. </p>
 <hr />
-<h2 id="modelmerge">model.merge()</h2>
+<h3 id="modelmerge">model.merge()</h3>
 <pre><code class="c">nnom_layer_t *model.merge(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2);
 </code></pre>
 
@@ -220,7 +240,7 @@ NNoM treat them equaly in compiling and running, the only difference the methods
 <li>The method (layer) instance. </li>
 </ul>
 <hr />
-<h2 id="modelmergex">model.mergex()</h2>
+<h3 id="modelmergex">model.mergex()</h3>
 <pre><code class="c">nnom_layer_t *model.mergex(nnom_layer_t *method, int num, ...)
 </code></pre>
 
@@ -238,7 +258,7 @@ NNoM treat them equaly in compiling and running, the only difference the methods
 <p><strong>Note</strong>
 Currently, all "merge methods" support mutiple input layers, they will be processed one by one with the order provided by the list. </p>
 <hr />
-<h2 id="modelactive">model.active()</h2>
+<h3 id="modelactive">model.active()</h3>
 <pre><code class="C">nnom_layer_t *model.active(nnom_activation_t *act, nnom_layer_t *target)
 </code></pre>
 
