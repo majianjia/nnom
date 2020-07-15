@@ -1,5 +1,5 @@
 
-## Activation Layers
+# Activation Layers
 
 To reduce the memory footprint, activations provides both **Layer APIs** and **Activation APIs**. 
 
@@ -11,11 +11,11 @@ Actail will be called after a layer has finished its job, which will modify the 
 
 ---
 
-# Activations' Layer APIs
+## Activations' Layer APIs
 
 ---
 
-## Activation() 
+### Activation() 
 
 ~~~C
 nnom_layer_t* Activation(nnom_activation_t *act);	
@@ -33,7 +33,7 @@ This is the Layer API wrapper for activations. It take activation instance as in
 
 ---
 
-## Softmax() 
+### Softmax() 
 
 ~~~C
 nnom_layer_t* Softmax(void);
@@ -50,7 +50,7 @@ Softmax only has Layer API.
 
 ---
 
-## ReLU() 
+### ReLU() 
 
 ~~~C
 nnom_layer_t* ReLU(void);
@@ -67,7 +67,7 @@ Using `layer = ReLU();` is no difference to `layer = Activation(act_relu());`
 
 ---
 
-## Leaky ReLU() 
+### Leaky ReLU() 
 
 ~~~C
 nnom_layer_t* LeakyReLU(float alpha);
@@ -87,7 +87,7 @@ Internally, the alpha will be converted to Q0.7 format.
 
 ---
 
-## Sigmoid() 
+### Sigmoid() 
 
 ~~~C
 nnom_layer_t* Sigmoid(int32_t dec_bit);
@@ -113,7 +113,7 @@ due to the less resolutions.
 
 ---
 
-## TanH() 
+### TanH() 
 
 ~~~C
 nnom_layer_t* TanH(int32_t dec_bit);
@@ -138,7 +138,7 @@ This function is affacted by an issue that we are currently working on. Check [i
 
 ---
 
-# Activation APIs
+## Activation APIs
 
 ~~~C
 nnom_activation_t* act_relu(void);

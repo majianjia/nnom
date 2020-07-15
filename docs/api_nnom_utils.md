@@ -1,5 +1,5 @@
 
-## NNoM Utils - For layer APIs
+# NNoM Utils - For layer APIs
 
 **For 0.4.x and later, it is recommened to use the new scripts for more functions and supports for TensorFlow 2. The interfaces are compatible but will generate model using structred API instead of layer API. 
 [new scripts](api_nnom.md)**
@@ -14,8 +14,6 @@ These functions are located in `scripts/nnom_utils.py`
 
 Please refer to [examples](https://github.com/majianjia/nnom/tree/dev/examples) for usage.
 
-
-# API 
 
 ---
 
