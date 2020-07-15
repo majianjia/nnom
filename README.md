@@ -5,7 +5,7 @@
 
 NNoM is a high-level inference Neural Network library specifically for microcontrollers. 
 
-[[English Manual]](https://majianjia.github.io/nnom/) [[Chinese Intro]](docs/rt-thread_guide.md) 
+[[English Manual]](https://majianjia.github.io/nnom/) [[中文简介]](docs/rt-thread_guide.md) 
 
 **Highlights**
 

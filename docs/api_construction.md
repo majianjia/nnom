@@ -1,5 +1,5 @@
 
-## Constructions APIs
+# Constructions APIs
 
 NNoM support both **Sequential model** and **Functional model** similar to Keras. 
 NNoM treat them equaly in compiling and running, the only difference the methods of constructions. 
@@ -10,11 +10,11 @@ In **Functional model**, the links between layer are specified explicitly by usi
 
 ---
 
-# Sequential API
+## Sequential API
 
 ---
 
-## model.add()
+### model.add()
 
 ~~~c
 nnom_status_t model.add(nnom_model_t *model,  nnom_layer_t *layer);
@@ -46,12 +46,11 @@ It is the only sequencial constructor. It stacks the new layer to the rear of th
 
 ---
 
-# Functional APIs
-
+## Functional APIs
 
 ---
 
-## model.hook()
+### model.hook()
  
 ~~~C
 nnom_layer_t *model.hook(nnom_layer_t *curr, nnom_layer_t *last);
@@ -75,7 +74,7 @@ A layer instance can be hooked many times (act as "last" layer). NNoM will manag
  
 ---
 
-## model.merge()
+### model.merge()
 
 ~~~c
 nnom_layer_t *model.merge(nnom_layer_t *method, nnom_layer_t *in1, nnom_layer_t *in2);
@@ -96,7 +95,7 @@ Specificaly, this method merge 2 layer's output.
 - The method (layer) instance. 
  
 --- 
-## model.mergex()
+### model.mergex()
 
 ~~~c
 nnom_layer_t *model.mergex(nnom_layer_t *method, int num, ...)
@@ -120,7 +119,7 @@ Currently, all "merge methods" support mutiple input layers, they will be proces
  
 ---
 
-## model.active()
+### model.active()
 
 ~~~C
 nnom_layer_t *model.active(nnom_activation_t *act, nnom_layer_t *target)

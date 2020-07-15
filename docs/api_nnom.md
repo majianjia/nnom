@@ -1,5 +1,5 @@
 
-## NNoM Utils - Structured API
+# NNoM Utils - Structured API
 
 What makes NNoM easy to use is the models can be deployed to MCU automatically or manually with the help of NNoM utils. 
 These functions are located in `scripts/nnom.py`
@@ -17,7 +17,6 @@ from nnom import *
 
 Please refer to [examples](https://github.com/majianjia/nnom/tree/dev/examples) for usage.
 
-# API 
 
 ---
 

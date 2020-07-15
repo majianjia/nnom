@@ -1,5 +1,5 @@
 
-## Properties
+# Properties
 
 Properties include some basic properties such as shape of the data buffer, Q-format of the data.
 
@@ -41,11 +41,11 @@ typedef struct _nnom_border_t
 
 ---
 
-# Methods
+## Methods
 
 ---
 
-## shape() 
+### shape() 
 
 ~~~C
 nnom_3d_shape_t shape(size_t h, size_t w, size_t c);
@@ -63,7 +63,7 @@ nnom_3d_shape_t shape(size_t h, size_t w, size_t c);
 
 ---
 
-## kernel()
+### kernel()
 
 ~~~C
 nnom_3d_shape_t kernel(size_t h, size_t w);
@@ -82,7 +82,7 @@ Use in pooling or convolutional layer to specified the kernel size.
 
 ---
 
-## stride() 
+### stride() 
 
 ~~~C
 nnom_3d_shape_t stride(size_t h, size_t w);
@@ -101,7 +101,7 @@ Use in pooling or convolutional layer to specified the stride size.
 
 ---
 
-## border() 
+### border() 
 
 ~~~C
 nnom_border_t border(size_t top, size_t bottom, size_t left, size_t right);
@@ -122,7 +122,7 @@ It pack the 4 padding/cropping value to a border object.
 
 ---
 
-## qformat()
+### qformat()
 
 ~~~
 nnom_qformat_t qformat(int8_t m, int8_t n);
@@ -144,7 +144,7 @@ The Q-format within model is currently handled by Python script `nnom_utils.py`.
 
 ---
 
-## shape_size()
+### shape_size()
 
 ~~~C
 size_t shape_size(nnom_3d_shape_t *s);

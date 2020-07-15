@@ -1,5 +1,5 @@
 
-## Layer APIs
+# Layer APIs
 
 Layers APIs are listed in *nnom_layers.h*
 

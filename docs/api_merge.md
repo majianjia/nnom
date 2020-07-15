@@ -1,5 +1,5 @@
 
-## Merging Methods
+# Merging Methods
 
 Merge methods (layers) are use to merge 2 or more layer's output using the methods list below. 
 

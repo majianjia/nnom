@@ -1,5 +1,5 @@
 
-## Pooling Layers
+# Pooling Layers
 
 Pooling Layers are listed in *nnom_layers.h*
 

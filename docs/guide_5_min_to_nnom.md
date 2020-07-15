@@ -1,5 +1,4 @@
 
-
 # 5 min Guide to NNoM
 
 The aim for NNoM is to help **Embedded Engineers** to develop and deploy **Neural Network models** onto the **MCUs**. NNoM is working closely with **Keras**. 

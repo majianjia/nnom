@@ -7,7 +7,7 @@ NNoM is a high-level inference Neural Network library specifically for microcont
 
 Document version 0.4.0
 
-[[Chinese Intro]](rt-thread_guide.md)
+[[中文简介]](rt-thread_guide.md)
 
 **Highlights**
 

@@ -1,5 +1,5 @@
 
-## Model APIs
+# Model APIs
 
 NNoM support **Sequential model** and **Functional model** whitch are similar to Keras. 
 
