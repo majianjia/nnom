@@ -26,18 +26,14 @@ If you are completely void in ML or Neural network, start with **[mnist-cnn](mni
 
 If you are trying to handle time sequence data (e.g. sensor measurement or voice), please check **[keyword_spotting](keyword_spotting)** and **[uci-inception](uci-inception)**.
 
-If you are using RT-Thread, the very first example you should try is **[mnist-simple](mnist-simple)**, just compile and run. 
+If you are using RT-Thread, the very first example you should try is **[mnist-simple](mnist-simple)**.
 
 
 ## Environment 
 
-All example require `Python3, Keras, Tensorflow` installed in your PC. 
+Recommended to use Tensorflow 2.0+ or Tensorflow 1.14+. 
 
-**mnist-cnn** and **mnist-densenet** are not relied on RT-Thread. 
-
-Others require [RT-Thread] and sometimes its Y-modem components. 
-
-**keyword_spotting** require a microphone on your development board and the porting of mic, if you are not using [32L476GDISCOVERY](https://www.st.com/en/evaluation-tools/32l476gdiscovery.html)
+**keyword_spotting** requires a microphone on your development board and the driver of the mic, if you are not using [32L476GDISCOVERY](https://www.st.com/en/evaluation-tools/32l476gdiscovery.html)
 
 
 
