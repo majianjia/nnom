@@ -181,9 +181,9 @@ It still benefit from the memory management. </p>
 <p>Create a tensor instance.</p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong> type:</strong> tensor data quantisation type, select between <code>NNOM_QTYPE_PER_AXIS</code> and <code>NNOM_QTYPE_PER_TENSOR</code>.</li>
-<li><strong> num_dim:</strong> number of tensor dimension</li>
-<li><strong> num_channel:</strong> when <code>NNOM_QTYPE_PER_AXIS</code> passed as type, this is the number of the selected axis(channels). </li>
+<li><strong>type:</strong> tensor data quantisation type, select between <code>NNOM_QTYPE_PER_AXIS</code> and <code>NNOM_QTYPE_PER_TENSOR</code>.</li>
+<li><strong>num_dim:</strong> number of tensor dimension</li>
+<li><strong>num_channel:</strong> when <code>NNOM_QTYPE_PER_AXIS</code> passed as type, this is the number of the selected axis(channels). </li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
@@ -199,7 +199,7 @@ It still benefit from the memory management. </p>
 <p>Create a tensor instance.</p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong> t:</strong> tensor willing to delete</li>
+<li><strong>t:</strong> tensor willing to delete</li>
 </ul>
 <p><strong>Notes</strong></p>
 <p>This does not free the data memory. </p>
@@ -212,12 +212,12 @@ It still benefit from the memory management. </p>
 <p>set the attributes of the tensors.</p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong> t:</strong> tensor</li>
-<li><strong> dec_bit:</strong> the num of bit for the fractional part in q format. An array for each channel if the tensor is per-axis quantised.</li>
-<li><strong> offset:</strong> the zero-point offset for each channels. </li>
-<li><strong> dim:</strong> the dimension array of the tensor.</li>
-<li><strong> num_dim:</strong> number of dimemsions</li>
-<li><strong> bitwidth:</strong> bitwidth of the tensor data. -- only support 8 currently. </li>
+<li><strong>t:</strong> tensor</li>
+<li><strong>dec_bit:</strong> the num of bit for the fractional part in q format. An array for each channel if the tensor is per-axis quantised.</li>
+<li><strong>offset:</strong> the zero-point offset for each channels. </li>
+<li><strong>dim:</strong> the dimension array of the tensor.</li>
+<li><strong>num_dim:</strong> number of dimemsions</li>
+<li><strong>bitwidth:</strong> bitwidth of the tensor data. -- only support 8 currently. </li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
@@ -232,12 +232,12 @@ It still benefit from the memory management. </p>
 <p>set the attributes of the tensors by value. This interface only support per-tensor quantisation tensor. </p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong> t:</strong> tensor</li>
-<li><strong> dec_bit:</strong> the num of bit for the fractional part in q format. </li>
-<li><strong> offset:</strong> the zero-point offset for each channels. </li>
-<li><strong> dim:</strong> the dimension array of the tensor.</li>
-<li><strong> num_dim:</strong> number of dimemsions</li>
-<li><strong> bitwidth:</strong> bitwidth of the tensor data. -- only support 8 currently. </li>
+<li><strong>t:</strong> tensor</li>
+<li><strong>dec_bit:</strong> the num of bit for the fractional part in q format. </li>
+<li><strong>offset:</strong> the zero-point offset for each channels. </li>
+<li><strong>dim:</strong> the dimension array of the tensor.</li>
+<li><strong>num_dim:</strong> number of dimemsions</li>
+<li><strong>bitwidth:</strong> bitwidth of the tensor data. -- only support 8 currently. </li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
@@ -251,7 +251,7 @@ It still benefit from the memory management. </p>
 <p>Return the data size of the tensor.</p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong> t:</strong> tensor</li>
+<li><strong>t:</strong> tensor</li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
@@ -265,8 +265,8 @@ It still benefit from the memory management. </p>
 <p>Copy tensor attributes.</p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong> des:</strong> destination tensor</li>
-<li><strong> src:</strong> source tensor</li>
+<li><strong>des:</strong> destination tensor</li>
+<li><strong>src:</strong> source tensor</li>
 </ul>
 <p><strong>Return</strong></p>
 <ul>
@@ -280,8 +280,8 @@ It still benefit from the memory management. </p>
 <p>Reorder and copy tensor data.</p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong> des:</strong> destination tensor</li>
-<li><strong> src:</strong> source tensor</li>
+<li><strong>des:</strong> destination tensor</li>
+<li><strong>src:</strong> source tensor</li>
 </ul>
 <hr />
 <h2 id="tensor_chw2hwc_q7">tensor_chw2hwc_q7()</h2>
@@ -291,8 +291,8 @@ It still benefit from the memory management. </p>
 <p>Reorder and copy tensor data.</p>
 <p><strong>Arguments</strong></p>
 <ul>
-<li><strong> des:</strong> destination tensor</li>
-<li><strong> src:</strong> source tensor</li>
+<li><strong>des:</strong> destination tensor</li>
+<li><strong>src:</strong> source tensor</li>
 </ul>
 <hr />
               

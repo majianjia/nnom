@@ -100,6 +100,8 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#leaky-relu">Leaky ReLU()</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#advance-relu">Advance ReLU</a>
+    </li>
     <li class="toctree-l3"><a class="reference internal" href="#sigmoid">Sigmoid()</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#tanh">TanH()</a>
@@ -229,6 +231,30 @@ Actail will be called after a layer has finished its job, which will modify the 
 <p><strong>Notes</strong></p>
 <p>Internally, the alpha will be converted to Q0.7 format. </p>
 <hr />
+<h3 id="advance-relu">Advance ReLU</h3>
+<pre><code class="C">No Layer API avaialbe.
+// Activation API
+nnom_activation_t* act_adv_relu(float negative_slope, float max, float threshold);
+</code></pre>
+
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong>negative_slope:</strong> The slope of the nagative parts. </li>
+<li><strong>max:</strong> The maximum number of the activation. </li>
+<li><strong>threshold:</strong> The threshold of the activation. </li>
+</ul>
+<p><strong>Return</strong></p>
+<ul>
+<li>The LeakyReLU layer instance</li>
+</ul>
+<p><strong>Notes</strong></p>
+<p>Same as keras:</p>
+<pre><code>`f(x) = max_value` for `x &gt;= max_value`,
+`f(x) = x` for `threshold &lt;= x &lt; max_value`,
+`f(x) = alpha * (x - threshold)` otherwise.
+</code></pre>
+
+<hr />
 <h3 id="sigmoid">Sigmoid()</h3>
 <pre><code class="C">nnom_layer_t* Sigmoid(int32_t dec_bit);
 </code></pre>
@@ -273,6 +299,7 @@ due to the less resolutions. </li>
 <h2 id="activation-apis">Activation APIs</h2>
 <pre><code class="C">nnom_activation_t* act_relu(void);
 nnom_activation_t* act_leaky_relu(float alpha);
+nnom_activation_t* act_adv_relu(float negative_slope, float max, float threshold);
 nnom_activation_t* act_sigmoid(int32_t dec_bit);
 nnom_activation_t* act_tanh(int32_t dec_bit);
 </code></pre>
@@ -306,6 +333,7 @@ layer = model.hook(ReLU(), layer);
 input = Input(shape(1, 10, 1), buffer);
 layer = model.hook(Dense(10), input);
 layer = model.active(act_relu(), layer);
+layer = model.active(act_adv_relu(0.3, 6, 0), layer);
 </code></pre>
 
 <p>This method perform the same but take less memory due to it uses the activation directly.</p>

@@ -96,6 +96,8 @@
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#model_stat">model_stat()</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#model_io_format">model_io_format()</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#nnom_predict">nnom_predict()</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#prediction_create">prediction_create()</a>
@@ -207,6 +209,36 @@ Total ops (MAC): 6610752
 Prediction time :109309us
 Efficiency 60.47 ops/us
 Total Memory cost (Network and NNoM): 32876
+</code></pre>
+
+<hr />
+<h2 id="model_io_format">model_io_format()</h2>
+<pre><code class="C">void model_io_format(nnom_model_t *m);
+</code></pre>
+
+<p>To print the Qformat of input and output tensor, aswell as the output shape.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><strong> m:</strong> the model to print.</li>
+</ul>
+<p><strong>Notes</strong></p>
+<p>Qformat: <code>integer bit</code>.<code>decimal bit</code></p>
+<p><strong>Example</strong></p>
+<pre><code>Print layer input/output..
+Layer(#)        -  Input(Qnm)  Output(Qnm)   Oshape 
+----------------------------------------------------------
+#1        Input -     0. 7      0. 7      (  28,  28,   1,)
+#2       Conv2D -     0. 7      3. 4      (  26,  26,  16,)
+#3       Conv2D -     3. 4      3. 4      (  24,  24,  32,)
+#4      MaxPool -     3. 4      3. 4      (  12,  12,  32,)
+#5       Conv2D -     3. 4      3. 4      (  10,  10,  64,)
+#6       Conv2D -     3. 4      3. 4      (   8,   8,  64,)
+#7      MaxPool -     3. 4      3. 4      (   4,   4,  64,)
+#8      Flatten -     3. 4      3. 4      (1024,          )
+#9        Dense -     3. 4      4. 3      (  64,          )
+#10       Dense -     4. 3      5. 2      (  10,          )
+#11     Softmax -     5. 2      0. 7      (  10,          )
+#12      Output -     0. 7      0. 7      (  10,          )
 </code></pre>
 
 <hr />
