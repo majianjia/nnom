@@ -367,3 +367,42 @@ void model_stat(nnom_model_t *m)
 
 	NNOM_LOG("Total memory:%d\n", nnom_mem_stat());
 }
+
+void model_io_format(nnom_model_t *m)
+{
+	size_t total_ops = 0;
+	size_t total_time = 0;
+	nnom_layer_t *layer;
+	size_t run_num = 0;
+
+	if (!m)
+		return;
+
+	layer = m->head;
+
+	NNOM_LOG("\nPrint layer input/output..\n");
+	NNOM_LOG("Layer(#)        -  Input(Qnm)  Output(Qnm)   Oshape \n");
+	NNOM_LOG("----------------------------------------------------------\n");
+	while (layer)
+	{
+		run_num++;
+		NNOM_LOG("#%-3d", run_num);
+		NNOM_LOG(" %10s -  ", (char *)&default_layer_names[layer->type]);
+		NNOM_LOG("  %2d.%2d", 7-layer->in->tensor->q_dec[0], layer->in->tensor->q_dec[0]);
+		NNOM_LOG("     %2d.%2d", 7-layer->out->tensor->q_dec[0], layer->out->tensor->q_dec[0]);
+		NNOM_LOG("      (");
+		for (int i = 0; i < 3; i++)
+		{
+			if (layer->out->tensor->num_dim > i)
+				NNOM_LOG("%4d,", layer->out->tensor->dim[i]);
+			else 
+				NNOM_LOG("     ");
+		}
+		NNOM_LOG(")\n");
+		
+		if (layer->shortcut == NULL)
+			break;
+		layer = layer->shortcut;
+	}
+
+}

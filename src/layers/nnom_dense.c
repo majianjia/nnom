@@ -148,6 +148,9 @@ nnom_status_t dense_build(nnom_layer_t *layer)
 	nnom_shape_data_t dim[1] = {cl->output_unit};
 	tensor_set_attr(layer->out->tensor, cl->weight->q_dec, cl->weight->q_offset, dim, 1, 8); // test, this is not correct
 
+	// calculate the output tensor q format, only support per tensor quantise now
+	layer->out->tensor->q_dec[0] = layer->in->tensor->q_dec[0] + cl->weight->q_dec[0] - cl->output_rshift[0];
+
 	// vec_buffer size: dim_vec (*2, q7->q15) ? I am not sure this is right
 	layer->comp->size = tensor_size(layer->in->tensor)*2;
 

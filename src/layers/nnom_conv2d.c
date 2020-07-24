@@ -205,6 +205,9 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 	// copy then change later. 
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 	
+	// calculate the output tensor q format, only support per tensor quantise now
+	layer->out->tensor->q_dec[0] = layer->in->tensor->q_dec[0] + cl->weight->q_dec[0] - cl->output_rshift[0];
+	
 	// now we set up the tensor shape, always HWC format
 	layer->out->tensor->dim[0] = conv_output_length(layer->in->tensor->dim[0], cl->kernel.h, cl->padding_type, cl->stride.h, cl->dilation.h);
 	layer->out->tensor->dim[1] = conv_output_length(layer->in->tensor->dim[1], cl->kernel.w, cl->padding_type, cl->stride.w, cl->dilation.w);

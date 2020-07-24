@@ -23,7 +23,7 @@ import warnings
 
 model_major_version = 0
 model_sub_version = 4
-model_reversion = 0
+model_reversion = 1
 
 #define NNOM_MAJORVERSION     0L              /**< major version number */
 #define NNOM_SUBVERSION       4L              /**< minor version number */
@@ -692,7 +692,16 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 fp.write('\tlayer[%s] = model.active(act_leaky_relu(%ff), layer[%s]);\n' % (id, cfg["alpha"],LI[inp][0]))
             elif ('re_lu' in layer.name):
                 inp = layer_name_from_tensor(layer.input)
-                fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n' % (id, LI[inp][0]))
+                cfg = layer.get_config()
+                if(cfg['max_value'] is None and cfg['negative_slope'] == 0 and cfg['threshold'] == 0):
+                    fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n' % (id, LI[inp][0]))
+                else:
+                    if(cfg['max_value'] is None):
+                        max_v = '0x7fc00000'        #QNaN for None in NNoM
+                    else:
+                        max_v = str(cfg['max_value'])
+                    fp.write('\tlayer[%s] = model.active(act_adv_relu(%f,%s,%f), layer[%s]);\n'
+                             % (id, cfg['negative_slope'], max_v, cfg['threshold'], LI[inp][0]))
             # pooling
             elif ('max_pooling' in layer.name):
                 inp = layer_name_from_tensor(layer.input)

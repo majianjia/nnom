@@ -128,6 +128,7 @@ There is no structred API for activation currently, since activation are not usu
 | ------ |--|--|--|--|
 | ReLU  | N/A |ReLU()|act_relu()||
 | Leaky ReLU (New!) | N/A |ReLU()|act_relu()||
+| Adv ReLU  | N/A |N/A|act_adv_relu()|advance ReLU, Slope, max, threshold|
 | TanH | N/A |TanH()|act_tanh()||
 |Sigmoid|N/A| Sigmoid()|act_sigmoid()||
 

@@ -1263,6 +1263,24 @@ void local_leaky_relu_q7(q7_t *data, q7_t alpha, uint32_t size)
     }
 }
 
+// alpha in q7 format with dec_bit=7
+// max and threshold has the same Q format with the activation
+void local_adv_relu_q7(q7_t *data, q7_t negative_slope, q7_t max, q7_t threshold, uint32_t size)
+{
+    uint32_t i;
+    for (i = 0; i < size; i++)
+    {
+        //   `f(x) = max_value` for `x >= max_value`,
+        //   `f(x) = x` for `threshold <= x < max_value`,
+        //   `f(x) = alpha * (x - threshold)` otherwise.
+
+        if(data[i] > max)
+            data[i] = max;
+        if (data[i] < threshold)
+            data[i] = (data[i] - threshold) * negative_slope / 128;    
+    }
+}
+
 // matrix ops
 void local_mult_q7(q7_t *pSrcA,
                    q7_t *pSrcB,

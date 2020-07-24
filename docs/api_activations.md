@@ -87,6 +87,37 @@ Internally, the alpha will be converted to Q0.7 format.
 
 ---
 
+### Advance ReLU 
+
+
+~~~C
+No Layer API avaialbe.
+// Activation API
+nnom_activation_t* act_adv_relu(float negative_slope, float max, float threshold);
+~~~
+
+**Arguments**
+
+- **negative_slope:** The slope of the nagative parts. 
+- **max:** The maximum number of the activation. 
+- **threshold:** The threshold of the activation. 
+
+**Return**
+
+- The LeakyReLU layer instance
+
+**Notes**
+
+Same as keras:
+
+~~~
+`f(x) = max_value` for `x >= max_value`,
+`f(x) = x` for `threshold <= x < max_value`,
+`f(x) = alpha * (x - threshold)` otherwise.
+~~~
+
+---
+
 ### Sigmoid() 
 
 ~~~C
@@ -143,6 +174,7 @@ This function is affacted by an issue that we are currently working on. Check [i
 ~~~C
 nnom_activation_t* act_relu(void);
 nnom_activation_t* act_leaky_relu(float alpha);
+nnom_activation_t* act_adv_relu(float negative_slope, float max, float threshold);
 nnom_activation_t* act_sigmoid(int32_t dec_bit);
 nnom_activation_t* act_tanh(int32_t dec_bit);
 ~~~
@@ -188,6 +220,7 @@ nnom_layer_t layer;
 input = Input(shape(1, 10, 1), buffer);
 layer = model.hook(Dense(10), input);
 layer = model.active(act_relu(), layer);
+layer = model.active(act_adv_relu(0.3, 6, 0), layer);
 ~~~
 
 This method perform the same but take less memory due to it uses the activation directly.

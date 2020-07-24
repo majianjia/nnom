@@ -82,6 +82,8 @@ nnom_status_t nnom_predict(nnom_model_t *m, uint32_t *label, float *prob);
 
 void model_stat(nnom_model_t *m);
 
+void model_io_format(nnom_model_t *m);
+
 #ifdef __cplusplus
 }
 #endif
