@@ -154,6 +154,26 @@ typedef enum
 	}
 extern const char default_activation_names[][8];
 
+// RNN cell type
+typedef enum
+{
+	NNOM_UNKOWN_CELL = 0,
+	NNOM_SIMPLE_CELL,
+	NNOM_GRU_CELL,
+	NNOM_LSTM_CELL,
+	NNOM_CELL_TYPE_MAX
+} nnom_rnn_cell_type_t;
+
+#define DEFUALT_CELL_NAMES \
+	{                    \
+		"UNKNOW",          \
+		"RNN",		 \
+		"GRU",		\
+		"LSTM",      \
+	}
+extern const char default_cell_names[][8];
+
+
 // parameters
 typedef enum
 {

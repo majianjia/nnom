@@ -766,6 +766,12 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 inp = layer_name_from_tensor(layer.input)
                 fp.write('\tlayer[{0}] = model.hook(softmax_s(&{1}_config), layer[{2}]);\n'.format(id, layer.name, LI[inp][0]))
             else:
+
+                if ('rnn' in layer.name):
+                    cfg = layer.get_config()
+                    wt = layer.get_weights()
+                    print(cfg, wt)
+
                 raise Exception('unsupported layer', layer.name, layer)
 
             """

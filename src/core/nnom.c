@@ -19,6 +19,7 @@
 
 const char default_layer_names[][12] = DEFUALT_LAYER_NAMES;
 const char default_activation_names[][8] = ACTIVATION_NAMES;
+const char default_cell_names[][8] = DEFUALT_CELL_NAMES;
 size_t nnom_memory_taken = 0;
 
 void *nnom_mem(size_t size)
@@ -631,7 +632,6 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 
 		// 3. assign for computational buf
 		if (layer->comp != NULL)
-		//if (shape_size(&layer->comp->shape) > 0)
 		{
 			layer->comp->mem = allocate_block(block_pool);
 			layer->comp->mem->owners += 1; // add us to buffer users

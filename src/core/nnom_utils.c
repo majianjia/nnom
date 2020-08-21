@@ -370,8 +370,6 @@ void model_stat(nnom_model_t *m)
 
 void model_io_format(nnom_model_t *m)
 {
-	size_t total_ops = 0;
-	size_t total_time = 0;
 	nnom_layer_t *layer;
 	size_t run_num = 0;
 

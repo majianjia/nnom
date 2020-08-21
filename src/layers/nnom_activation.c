@@ -106,12 +106,16 @@ nnom_layer_t *TanH(int32_t dec_bit)
 	return layer;
 }
 
+void act_delete(nnom_activation_t* act){
+	nnom_free(act);
+}
+
 // activation takes act instance which is created. therefore, it must be free when activation is deleted.
 // this is the callback in layer->free
 nnom_status_t activation_free(nnom_layer_t *layer)
 {
 	if(layer)
-		nnom_free(((nnom_activation_layer_t *)layer)->act);
+		act_delete(((nnom_activation_layer_t *)layer)->act);
 	return NN_SUCCESS;
 }
 

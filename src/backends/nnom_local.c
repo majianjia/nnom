@@ -981,6 +981,111 @@ void local_cropping_CHW_q7(const q7_t *Im_in,           // input image
 	}	
 }
 
+
+void local_dot_q7_opt(const q7_t *pV, // pointer to vector
+	const q7_t *pM,               // pointer to matrix
+	const uint16_t dim_vec,       // length of the vector
+	const uint16_t num_of_rows,   // numCol of A
+	const uint16_t out_shift,     // amount of right-shift for output
+	 q7_t *pOut)                   // output operand)
+{
+    uint16_t rowCnt = num_of_rows >> 2;
+    const q7_t *pB = pM;
+    const q7_t *pA;
+    q7_t *pO = pOut;
+
+    while (rowCnt)
+    {
+        pA = pV;
+        q31_t     sum =  (q31_t) NNOM_ROUND(out_shift);
+        q31_t     sum2 = (q31_t) NNOM_ROUND(out_shift);
+        q31_t     sum3 = (q31_t) NNOM_ROUND(out_shift);
+        q31_t     sum4 = (q31_t) NNOM_ROUND(out_shift);
+
+        uint16_t colCnt = dim_vec >> 2;
+
+        while (colCnt)
+        {
+            q7_t inA1 = *pA++;
+            q7_t inA3 = *pA++;
+            q7_t inA2 = *pA++;
+            q7_t inA4 = *pA++;
+
+            q7_t inB1 = *pB++;
+            q7_t inB3 = *pB++;
+            q7_t inB2 = *pB++;
+            q7_t inB4 = *pB++;
+
+            sum += inA1 * inB1 + inA2 * inB2;
+            sum2 += inA1 * inB3 + inA2 * inB4;
+
+            inB1 = *pB++;
+            inB3 = *pB++;
+            inB2 = *pB++;
+            inB4 = *pB++;
+
+            sum3 += inA1 * inB1 + inA2 * inB2;
+            sum4 += inA1 * inB3 + inA2 * inB4;
+
+            inB1 = *pB++;
+            inB3 = *pB++;
+            inB2 = *pB++;
+            inB4 = *pB++;
+
+            sum += inA3 * inB1 + inA4 * inB2;
+            sum2 += inA3 * inB3 + inA4 * inB4;
+
+            inB1 = *pB++;
+            inB3 = *pB++;
+            inB2 = *pB++;
+            inB4 = *pB++;
+
+            sum3 += inA3 * inB1 + inA4 * inB2;
+            sum4 += inA3 * inB3 + inA4 * inB4;
+
+            colCnt--;
+        }
+        colCnt = dim_vec & 0x3;
+        while (colCnt)
+        {
+            q7_t inA = *pA++;
+            q7_t inB = *pB++;
+            sum += inA * inB;
+            inB = *pB++;
+            sum2 += inA * inB;
+            inB = *pB++;
+            sum3 += inA * inB;
+            inB = *pB++;
+            sum4 += inA * inB;
+
+            colCnt--;
+        }
+        *pO++ = (q7_t)__NNOM_SSAT((sum >> out_shift), 8);
+        *pO++ = (q7_t)__NNOM_SSAT((sum2 >> out_shift), 8);
+        *pO++ = (q7_t)__NNOM_SSAT((sum3 >> out_shift), 8);
+        *pO++ = (q7_t)__NNOM_SSAT((sum4 >> out_shift), 8);
+
+        rowCnt--;
+    }
+
+    rowCnt = num_of_rows & 0x3;
+
+    while (rowCnt)
+    {
+		int ip_out = (q31_t) NNOM_ROUND (out_shift);
+        pA = pV;
+        for (int j = 0; j < dim_vec; j++)
+        {
+            q7_t inA = *pA++;
+            q7_t inB = *pB++;
+            ip_out += inA * inB;
+        }
+        *pO++ = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
+
+        rowCnt--;
+    }
+}
+
 void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to vector
 	const q7_t *pM,               // pointer to matrix
 	const uint16_t dim_vec,       // length of the vector

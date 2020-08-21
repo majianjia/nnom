@@ -152,7 +152,6 @@ nnom_status_t conv2d_run(nnom_layer_t* layer);
 nnom_status_t conv2d_trans_run(nnom_layer_t* layer);
 nnom_status_t dense_run(nnom_layer_t* layer);
 nnom_status_t rnn_run(nnom_layer_t* layer);
-nnom_status_t cell_simple_rnn_run(nnom_layer_t* layer);
 
 nnom_status_t upsample_run(nnom_layer_t* layer);
 nnom_status_t zero_padding_run(nnom_layer_t* layer);

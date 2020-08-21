@@ -199,8 +199,6 @@ nnom_status_t dense_run(nnom_layer_t *layer)
 			bias_shift, output_shift,
 			cl->bias->p_data,
 			layer->out->tensor->p_data, (q15_t *)(layer->comp->mem->blk));
-
-
 	return result;
 }
 

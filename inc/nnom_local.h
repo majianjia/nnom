@@ -399,7 +399,7 @@ void local_add_q7(q7_t * pSrcA, q7_t * pSrcB, q7_t * pDst, const uint16_t out_sh
 // sub 
 void local_sub_q7(q7_t * pSrcA, q7_t * pSrcB, q7_t * pDst, const uint16_t out_shift, uint32_t blockSize);
 
-// 
+// take multiple blocks (>2) as input
 void local_multiple_add_q7( q7_t *p_dst,
                   const int16_t out_shift,
                   uint32_t block_size,
@@ -417,6 +417,17 @@ void local_multiple_sub_q7( q7_t *p_dst,
                   uint32_t block_size,
                   uint32_t num_block,
                   q7_t **p_src);
+
+// matrix operation
+
+// matrix dot, 
+// it takes reorderd weight as input, (see dense layer for detail. this is basiclly a dense opt without bias)
+void local_dot_q7_opt(const q7_t *pV, // pointer to vector
+	const q7_t *pM,               // pointer to matrix
+	const uint16_t dim_vec,       // length of the vector
+	const uint16_t num_of_rows,   // numCol of A
+	const uint16_t out_shift,   // amount of right-shift for output
+	q7_t *pOut);				// result buffer  
 
 
 
