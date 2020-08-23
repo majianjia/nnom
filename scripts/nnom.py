@@ -534,7 +534,7 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
 
             # CHW format
             if ('chw' in format):
-                if "dense" in var_name and "kernel" in var_name:
+                if ("dense" in var_name or "rnn" in var_name) and "kernel" in var_name:
                     transposed_wts = np.transpose(var_values)
                     transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts, (transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
                 # all other kernels, bias stay the same
@@ -551,7 +551,7 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
                         transposed_wts = np.transpose(var_values, (3, 0, 1, 2))
                 else:  # fully connected layer weights or biases of any layer
                     # test, use opt weight reorder
-                    if "dense" in var_name and "kernel" in var_name:
+                    if ("dense" in var_name or "rnn" in var_name) and "kernel" in var_name:
                         transposed_wts = np.transpose(var_values)
                         transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
                     else:
