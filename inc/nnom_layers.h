@@ -61,6 +61,7 @@ nnom_layer_io_t *io_init(void *owner_layer, nnom_layer_io_t *io);
 #include "layers/nnom_upsample.h"
 #include "layers/nnom_zero_padding.h"
 #include "layers/nnom_rnn.h"
+#include "layers/nnom_simple_cell.h"
 
 // Layer APIs ******
 // (a summary for each individual layer's files)

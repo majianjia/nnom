@@ -111,17 +111,20 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
 
     # conclusion
     x = Conv1D(48, kernel_size=(3), strides=(1), padding="same")(x)
+    x = BatchNormalization()(x)
     x = ReLU()(x)
     x = MaxPool1D(2, strides=2)(x)
     x = Dropout(0.2)(x)
 
-    x = RNN(SimpleRNNCell(10), return_sequences=True)(x)
-    x = RNN(SimpleRNNCell(10), return_sequences=True)(x)
+    x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
 
-    x = SimpleRNN(10, return_sequences=True)(x)
-    x = SimpleRNN(10, return_sequences=True)(x)
+    # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
+    # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
 
-    x = GRU(10, return_sequences=True)(x)
+    # x = SimpleRNN(16, return_sequences=True)(x)
+    # x = SimpleRNN(16, return_sequences=True)(x)
+
+    #x = GRU(10, return_sequences=True)(x)
 
     # our netowrk is not that deep, so a hidden fully connected layer is introduce
     x = Flatten()(x)
@@ -156,7 +159,7 @@ if __name__ == "__main__":
     if(not os.path.exists('data/UCI HAR Dataset')):
         raise Exception('Please download the dataset and unzip into "data/UCI HAR Dataset/"')
 
-    epochs = 2
+    epochs = 10
 
     # Those are separate normalised input features for the neural network
     INPUT_SIGNAL_TYPES = [
@@ -235,7 +238,7 @@ if __name__ == "__main__":
     evaluate_model(model, x_test, y_test)
 
     # save weight
-    generate_model(model, x_test, 'weights.h')
+    generate_model(model, x_test, 'weights-uci.h')
 
     # plot
     acc = history.history['accuracy']

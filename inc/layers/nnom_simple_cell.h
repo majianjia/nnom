@@ -40,7 +40,7 @@ extern "C" {
 typedef struct _nnom_simple_cell_config_t
 {
 	nnom_layer_config_t super;
-	nnom_tensor_t *weight;
+	nnom_tensor_t *weights;
 	nnom_tensor_t* recurrent_weights;
 	nnom_tensor_t *bias;
 	nnom_qformat_param_t *oshift_iw;
@@ -67,7 +67,6 @@ typedef struct _nnom_simple_cell_t
 	nnom_qformat_param_t q_dec_iw, q_dec_hw, q_dec_h;
 	nnom_qformat_param_t oshift_iw, oshift_hw, bias_shift;
 
-	uint16_t units; // unit, the output
 	uint16_t vsize; // vector size, the input
 } nnom_simple_cell_t;
 
@@ -76,7 +75,7 @@ typedef struct _nnom_simple_cell_t
 // The shape for RNN input is (batch, timestamp, feature), where batch is always 1. 
 //
 // SimpleCell
-nnom_rnn_cell_t *simple_cell_s(nnom_simple_cell_config_t* config);
+nnom_rnn_cell_t *simple_cell_s(const nnom_simple_cell_config_t* config);
 
 nnom_status_t simple_cell_free(nnom_rnn_cell_t* cell);
 nnom_status_t simple_cell_build(nnom_rnn_cell_t* cell);

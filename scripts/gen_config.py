@@ -398,9 +398,9 @@ def gen_simple_cell_config(layer, q_list):
     c = '''
 const nnom_simple_cell_config_t <layer_name>_simple_cell_config = {
     .super = <base_config>,
-    .weights = <weights>,
-    .recurrent_weights = <recurrent_weights>,
-    .bias = <bias>,
+    .weights = (nnom_tensor_t*)&<weights>,
+    .recurrent_weights = (nnom_tensor_t*)&<recurrent_weights>,
+    .bias = (nnom_tensor_t*)&<bias>,
     .oshift_iw = <oshift_iw>,
     .oshift_hw = <oshift_hw>,
     .q_dec_iw = <q_dec_iw>,

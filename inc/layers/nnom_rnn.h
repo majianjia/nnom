@@ -67,7 +67,7 @@ typedef struct _nnom_rnn_layer_t
 
 
 // rnn layer 
-nnom_layer_t *rnn_s(nnom_rnn_cell_t *cell, nnom_rnn_config_t* config);
+nnom_layer_t *rnn_s(nnom_rnn_cell_t *cell, const nnom_rnn_config_t* config);
 
 nnom_status_t rnn_run(nnom_layer_t* layer);
 nnom_status_t rnn_build(nnom_layer_t* layer);

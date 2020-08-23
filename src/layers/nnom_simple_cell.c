@@ -24,6 +24,80 @@
 #include "arm_nnfunctions.h"
 #endif
 
+
+
+// Simple RNN
+// unit = output shape
+// type of activation
+nnom_rnn_cell_t *simple_cell_s(const nnom_simple_cell_config_t* config)
+{
+	nnom_simple_cell_t *cell;
+	cell = nnom_mem(sizeof(nnom_simple_cell_t));
+	if (cell == NULL)
+		return NULL;
+	// set methods
+	cell->super.run = simple_cell_run;
+	cell->super.build = simple_cell_build;
+	cell->super.free = simple_cell_free;
+	cell->super.config = (void*) config;
+	cell->super.units = config->units;
+
+	// set parameters 
+	cell->bias = config->bias;
+	cell->weights = config->weights;
+	cell->recurrent_weights = config->recurrent_weights;
+	cell->act_type = config->act_type; 
+	// q format for intermediate products
+	cell->q_dec_iw = config->q_dec_iw;
+	cell->q_dec_hw = config->q_dec_hw;
+	cell->q_dec_h = config->q_dec_h;
+	
+	return (nnom_rnn_cell_t *)cell;
+}
+
+nnom_status_t simple_cell_free(nnom_rnn_cell_t* cell)
+{
+	return NN_SUCCESS;
+}
+
+// the state buffer and computational buffer shape of the cell
+nnom_status_t simple_cell_build(nnom_rnn_cell_t* cell)
+{
+	nnom_layer_t *layer = cell->layer; 
+	nnom_simple_cell_t *c = (nnom_simple_cell_t *)cell;
+	nnom_simple_cell_config_t *config = (nnom_simple_cell_config_t *)cell->config;
+	int q_hw_iw;
+	
+	// activation, check if activation is supported 
+	if(config->act_type != ACT_SIGMOID && config->act_type != ACT_TANH)
+		return NN_ARGUMENT_ERROR;
+
+	// calculate output shift for the 2 calculation. 
+	// hw = the product of hidden x weight, iw = the product of input x weight
+	// due to the addition of them, they must have same q format.
+	q_hw_iw = MIN(c->q_dec_hw, c->q_dec_iw);  
+
+	// for the 2 dot in cell: output shift = input_dec + weight_dec - output_dec
+	c->oshift_hw = c->q_dec_h + c->recurrent_weights->q_dec[0] - q_hw_iw;
+	c->oshift_iw = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - q_hw_iw;
+
+	// bias shift =  bias_dec - out_dec
+	c->bias_shift = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - c->bias->q_dec[0];
+
+	// state size = one timestamp output size. 
+	cell->state_size = cell->units;
+	c->vsize = tensor_get_num_channel(layer->in->tensor); // vector (feature) size
+
+	// comp buffer size: not required
+	cell->comp_buf_size = 0; 
+
+	// finally, calculate the MAC for info
+	cell->macc = tensor_size(layer->in->tensor) * tensor_size(layer->out->tensor)  
+				+ tensor_size(layer->out->tensor) * tensor_size(layer->out->tensor);
+
+	return NN_SUCCESS;
+}
+
 // This Simple Cell replicate the Keras's SimpleCell as blow 
 /*
  def call(self, inputs, states, training=None):
@@ -40,88 +114,15 @@
     return output, new_state
 */
 
-
-// Simple RNN
-// unit = output shape
-// type of activation
-nnom_rnn_cell_t *simple_cell_s(nnom_simple_cell_config_t* config)
-{
-	nnom_simple_cell_t *cell;
-	cell = nnom_mem(sizeof(nnom_simple_cell_t));
-	if (cell == NULL)
-		return (nnom_rnn_cell_t *)cell;
-	// set methods
-	cell->super.run = simple_cell_run;
-	cell->super.build = simple_cell_build;
-	cell->super.free = simple_cell_free;
-	cell->super.config = (void*) config;
-	cell->super.units = config->units;
-
-	// set parameters 
-	cell->bias = config->bias;
-	cell->weights = config->weight;
-	cell->recurrent_weights = config->recurrent_weights;
-	cell->act_type = config->act_type; 
-
-	//cell->output_shift = w->shift;
-	//cell->bias_shift = w->shift - b->shift;	// bias is quantized to have maximum shift of weights
-
-	return (nnom_rnn_cell_t *)cell;
-}
-
-nnom_status_t simple_cell_free(nnom_rnn_cell_t* cell)
-{
-	// nnom_simple_cell_t *c = (nnom_simple_cell_t*)cell;
-	// act_delete(c->act);
-	return NN_SUCCESS;
-}
-
-// the state buffer and computational buffer shape of the cell
-nnom_status_t simple_cell_build(nnom_rnn_cell_t* cell)
-{
-	nnom_layer_t *layer = cell->layer; 
-	nnom_simple_cell_t *c = (nnom_simple_cell_t *)cell;
-	nnom_simple_cell_config_t *config = (nnom_simple_cell_config_t *)cell->config;
-	int q_hw_iw;
-	
-	// activation, check if activation is supported 
-	if(config->act_type != ACT_SIGMOID || config->act_type != ACT_TANH)
-		return NN_ARGUMENT_ERROR;
-
-	// calculate output shift for the 2 calculation. 
-	// hw = the product of hidden x weight, iw = the product of input x weight
-	// due to the addition of them, they must have same q format.
-	q_hw_iw = MIN(c->q_dec_hw, c->q_dec_iw);  
-
-	// for the 2 dot in cell: output shift = input_dec + weight_dec - output_dec
-	c->oshift_hw = c->q_dec_h + c->recurrent_weights->q_dec[0] - q_hw_iw;
-	c->oshift_iw = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - q_hw_iw;
-
-	// bias shift =  bias_dec - out_dec
-	c->bias_shift = c->bias->q_dec[0] - q_hw_iw;
-
-	// state size = one timestamp output size. 
-	cell->state_size = cell->units;
-
-	// comp buffer size: not required
-	cell->comp_buf_size = 0; 
-
-	// finally, calculate the MAC for info
-	cell->macc = tensor_size(layer->in->tensor) * tensor_size(layer->out->tensor)  
-				+ tensor_size(layer->out->tensor) * tensor_size(layer->out->tensor);
-
-	return NN_SUCCESS;
-}
-
 nnom_status_t simple_cell_run(nnom_rnn_cell_t* cell)
 {
 	nnom_layer_t *layer = cell->layer;
-	nnom_rnn_layer_t* cl 	= (nnom_rnn_layer_t *)layer;
+	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t *) layer;
 	nnom_simple_cell_t* c = (nnom_simple_cell_t*) cell;
-	int act_int_bit = 7 - c->q_dec_hw;
+	int act_int_bit = 7 - MIN(c->q_dec_hw, c->q_dec_iw);
 
 	// in_state x recurrent_weight -> h2 (output buf)
-	local_dot_q7_opt(cell->in_state, c->recurrent_weights->p_data, c->units, cell->units, c->oshift_hw, cell->out_data);
+	local_dot_q7_opt(cell->in_state, c->recurrent_weights->p_data, cell->units, cell->units, c->oshift_hw, cell->out_data);
 	// (input x weight) + bias -> h (in_state buf)
 	local_fully_connected_q7_opt(cell->in_data, c->weights->p_data, c->vsize, cell->units, c->bias_shift, c->oshift_iw, c->bias->p_data, cell->in_state, NULL);
 	// h + h2 -> (out_state buf)
