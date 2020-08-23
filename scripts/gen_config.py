@@ -48,6 +48,7 @@ def gen_values(var_name, var, size='', dtype='const int8_t'):
     s = s.replace('<var_name>', var_name).replace('<var>', var).replace('<size>', size).replace('<dtype>', dtype)
     return s
 
+# generate tensor by the tensor config
 def gen_tensor(tensor, dec_bits, tensor_value='NULL', per_axis=False):
     config = '''
 const nnom_shape_data_t <tensor_name>_dim[] = <dim>;
@@ -66,6 +67,39 @@ const nnom_tensor_t <tensor_name> = {
     # inconsistance of TF1 and TF2
     shape = tensor_shape(tensor)
     config = config.replace('<tensor_name>', convert_tensor_name(tensor))#.name.replace('/','_').split(':')[0]) #conv2d/kernel:0
+    config = config.replace('<bitwidth>', '8')
+    config = config.replace('<value>', tensor_value)
+    config = config.replace('<dim>', to_cstyle(shape))
+    config = config.replace('<num_dim>', str(len(shape)))
+    if(type(dec_bits) == str):
+        config = config.replace('<q_dec>', dec_bits)
+        config = config.replace('<q_offset>', to_cstyle([0]))
+    else:
+        config = config.replace('<q_dec>', to_cstyle(dec_bits))
+        config = config.replace('<q_offset>', to_cstyle([0]))
+    if(per_axis):
+        config = config.replace('<qtype>', 'NNOM_QTYPE_PER_AXIS')
+    else:
+        config = config.replace('<qtype>', 'NNOM_QTYPE_PER_TENSOR')
+    return config
+
+# create tensor by directly setting up the value
+def gen_create_tensor(tensor_name, shape, dec_bits, tensor_value='NULL', per_axis=False):
+    config = '''
+const nnom_shape_data_t <tensor_name>_dim[] = <dim>;
+const nnom_qformat_param_t <tensor_name>_dec[] = <q_dec>;
+const nnom_qformat_param_t <tensor_name>_offset[] = <q_offset>;
+const nnom_tensor_t <tensor_name> = {
+    .p_data = (void*)<value>,
+    .dim = (nnom_shape_data_t*)<tensor_name>_dim,
+    .q_dec = (nnom_qformat_param_t*)<tensor_name>_dec,
+    .q_offset = (nnom_qformat_param_t*)<tensor_name>_offset,
+    .qtype = <qtype>,
+    .num_dim = <num_dim>,
+    .bitwidth = <bitwidth>
+};
+'''
+    config = config.replace('<tensor_name>', tensor_name)
     config = config.replace('<bitwidth>', '8')
     config = config.replace('<value>', tensor_value)
     config = config.replace('<dim>', to_cstyle(shape))
@@ -344,6 +378,54 @@ const nnom_lambda_config_t <layer_name>_config = {
     c = c.replace('<build_func_name>', build_func_name)
     c = c.replace('<free_func_name>', free_func_name)
     c = c.replace('<parameters_name>', parameters_name)
+    return c
+
+def gen_rnn_config(layer):
+    c = '''
+const nnom_rnn_config_t <layer_name>_config = {
+    .super = <base_config>,
+    .stateful = <stateful>,
+    .return_sequence = <return_sequence>
+};
+'''
+    c = c.replace('<layer_name>', layer.name)
+    c = c.replace('<base_config>', gen_base_config(layer))
+    c = c.replace('<stateful>', 'true' if layer.stateful else 'false')
+    c = c.replace('<return_sequence>', 'true' if layer.return_sequences else 'false')
+    return c
+
+def gen_simple_cell_config(layer, q_list):
+    c = '''
+const nnom_simple_cell_config_t <layer_name>_simple_cell_config = {
+    .super = <base_config>,
+    .weights = <weights>,
+    .recurrent_weights = <recurrent_weights>,
+    .bias = <bias>,
+    .oshift_iw = <oshift_iw>,
+    .oshift_hw = <oshift_hw>,
+    .q_dec_iw = <q_dec_iw>,
+    .q_dec_hw = <q_dec_hw>,
+    .q_dec_h = <q_dec_h>,
+    .act_type = <act_type>,
+    .units = <units>
+};
+'''
+    try:
+        cell_cfg = layer.get_config()['cell']['config']
+    except:
+        cell_cfg = layer.get_config()
+    c = c.replace('<layer_name>', layer.name)
+    c = c.replace('<base_config>', gen_base_config(layer))
+    c = c.replace('<weights>', convert_tensor_name(layer.weights[0]))
+    c = c.replace('<recurrent_weights>', convert_tensor_name(layer.weights[1]))
+    c = c.replace('<bias>', convert_tensor_name(layer.weights[2]))
+    c = c.replace('<oshift_iw>', '0')
+    c = c.replace('<oshift_hw>', '0')
+    c = c.replace('<q_dec_iw>', str(q_list[1])) # the qfmt of input x weight
+    c = c.replace('<q_dec_hw>', str(q_list[2])) # q of hidden x recurrent weight
+    c = c.replace('<q_dec_h>', str(q_list[0])) # output, should be 7
+    c = c.replace('<act_type>', 'ACT_' + cell_cfg['activation'].upper())
+    c = c.replace('<units>', str(cell_cfg['units']))
     return c
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2019-08-21     Jianjia Ma   The first version
+ * 2020-08-21     Jianjia Ma   The first version
  */
 
 #include <stdint.h>
@@ -23,6 +23,23 @@
 #include "arm_math.h"
 #include "arm_nnfunctions.h"
 #endif
+
+// This Simple Cell replicate the Keras's SimpleCell as blow 
+/*
+ def call(self, inputs, states, training=None):
+    prev_output = states[0] if nest.is_sequence(states) else states
+
+	h = K.dot(inputs, self.kernel)
+	h = K.bias_add(h, self.bias)
+
+	h2 = K.dot(prev_output, self.recurrent_kernel)
+    output = h + H2
+    output = self.activation(output)
+
+    new_state = [output] if nest.is_sequence(states) else output
+    return output, new_state
+*/
+
 
 // Simple RNN
 // unit = output shape
@@ -52,7 +69,6 @@ nnom_rnn_cell_t *simple_cell_s(nnom_simple_cell_config_t* config)
 	return (nnom_rnn_cell_t *)cell;
 }
 
-
 nnom_status_t simple_cell_free(nnom_rnn_cell_t* cell)
 {
 	// nnom_simple_cell_t *c = (nnom_simple_cell_t*)cell;
@@ -60,47 +76,42 @@ nnom_status_t simple_cell_free(nnom_rnn_cell_t* cell)
 	return NN_SUCCESS;
 }
 
-
 // the state buffer and computational buffer shape of the cell
 nnom_status_t simple_cell_build(nnom_rnn_cell_t* cell)
 {
 	nnom_layer_t *layer = cell->layer; 
 	nnom_simple_cell_t *c = (nnom_simple_cell_t *)cell;
 	nnom_simple_cell_config_t *config = (nnom_simple_cell_config_t *)cell->config;
+	int q_hw_iw;
 	
 	// activation, check if activation is supported 
-	switch(config->act_type)
-	{
-		case ACT_SIGMOID: //c->act = act_sigmoid(int_bit); 
-		break;
-		case ACT_TANH:// c->act = act_tanh(int_bit); 
-		break;
-		default: 
-			return NN_ARGUMENT_ERROR;
-	}
+	if(config->act_type != ACT_SIGMOID || config->act_type != ACT_TANH)
+		return NN_ARGUMENT_ERROR;
 
+	// calculate output shift for the 2 calculation. 
+	// hw = the product of hidden x weight, iw = the product of input x weight
+	// due to the addition of them, they must have same q format.
+	q_hw_iw = MIN(c->q_dec_hw, c->q_dec_iw);  
+
+	// for the 2 dot in cell: output shift = input_dec + weight_dec - output_dec
+	c->oshift_hw = c->q_dec_h + c->recurrent_weights->q_dec[0] - q_hw_iw;
+	c->oshift_iw = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - q_hw_iw;
+
+	// bias shift =  bias_dec - out_dec
+	c->bias_shift = c->bias->q_dec[0] - q_hw_iw;
+
+	// state size = one timestamp output size. 
+	cell->state_size = cell->units;
+
+	// comp buffer size: not required
+	cell->comp_buf_size = 0; 
 
 	// finally, calculate the MAC for info
-	cell->macc = tensor_size(layer->in->tensor) * tensor_size(layer->out->tensor) + tensor_size(layer->out->tensor)*tensor_size(layer->out->tensor);
+	cell->macc = tensor_size(layer->in->tensor) * tensor_size(layer->out->tensor)  
+				+ tensor_size(layer->out->tensor) * tensor_size(layer->out->tensor);
 
 	return NN_SUCCESS;
 }
-
-// This Simple Cell replicate the Keras's SimpleCell as blow 
-/*
- def call(self, inputs, states, training=None):
-    prev_output = states[0] if nest.is_sequence(states) else states
-
-	h = K.dot(inputs, self.kernel)
-	h = K.bias_add(h, self.bias)
-
-	h2 = K.dot(prev_output, self.recurrent_kernel)
-    output = h + H2
-    output = self.activation(output)
-
-    new_state = [output] if nest.is_sequence(states) else output
-    return output, new_state
-*/
 
 nnom_status_t simple_cell_run(nnom_rnn_cell_t* cell)
 {

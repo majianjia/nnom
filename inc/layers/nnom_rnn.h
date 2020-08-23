@@ -30,7 +30,7 @@ extern "C" {
 typedef struct _nnom_rnn_config_t
 {
 	nnom_layer_config_t super;
-	bool return_sequance;
+	bool return_sequence;
 	bool stateful;
 } nnom_rnn_config_t;
 
@@ -48,6 +48,7 @@ typedef struct _nnom_rnn_cell_t
 	void *in_state;					// input state data (or hidden state)
 	void *out_state;				// output state data
 
+	size_t comp_buf_size;			// the size of temporary buffer. 
 	size_t state_size; 				// the size of hidden state
 	uint16_t units;					// the output units 
 
@@ -58,6 +59,7 @@ typedef struct _nnom_rnn_layer_t
 {
 	nnom_layer_t super;
 	nnom_rnn_cell_t *cell;
+	void *state_buf;		// memory allocated to store state, size = 2 x size of state required by cell. 
 
 	bool return_sequence; 	// whether to return the output for each unit (sequence)
 	bool stateful;			// whether the states are kept after one inteference
@@ -67,6 +69,9 @@ typedef struct _nnom_rnn_layer_t
 // rnn layer 
 nnom_layer_t *rnn_s(nnom_rnn_cell_t *cell, nnom_rnn_config_t* config);
 
+nnom_status_t rnn_run(nnom_layer_t* layer);
+nnom_status_t rnn_build(nnom_layer_t* layer);
+nnom_status_t rnn_free(nnom_layer_t* layer);
 
 #ifdef __cplusplus
 }

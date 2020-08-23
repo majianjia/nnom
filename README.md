@@ -25,16 +25,19 @@ Pull request welcome. QQ/TIM group: 763089399.
 
 ## Latest Updates - v0.4.x
 
-**New Structured Interface**
+**Recurrent Layers (RNN) (0.4.1)**
+
+Recurrent layers (Simple RNN, GRU, LSTM) are coming in the next release (0.4.1). Or check the `v0.4.x-dev branch` for the latest update.  
+
+**New Structured Interface (0.4.0)** 
 
 NNoM has provided a new layer interface called **Structured Interface**, all marked with `_s` suffix. which aims to use one C-structure to provided all the configuration for a layer. Different from the Layer API which is human friendly, this structured API are more machine friendly. 
 
-**Per-Channel Quantisation**
+**Per-Channel Quantisation (0.4.0)**
 
-The new structred API supports per-channel quantisation (per-axis) and dilations for Convolutional layers. 
+The new structred API supports per-channel quantisation (per-axis) and dilations for **Convolutional layers**. 
 
-
-**New Scripts**
+**New Scripts (0.4.0)**
 
 From 0.4.0, NNoM will switch to structured interface as default to generate the model header `weights.h`. The scripts corresponding to structured interfaces are `nnom.py` while the Layer Interface corresponding to `nnom_utils.py`.
 
@@ -112,11 +115,12 @@ Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) 
 
 **RNN Layers**
 
-| Layers | Status |Layer API|Comments|
+| Layers | Status | Struct API |Comments|
 | ------ | ------ | ------| ------|
-| Recurrent NN | Under Dev.| RNN()| Under Developpment |
-| Simple RNN | Under Dev. | SimpleCell()| Under Developpment |
-| Gated Recurrent Network (GRU)| Under Dev. | GRUCell()| Under Developpment |
+| Recurrent NN Layer| Alpha | rnn_s()| (New)|
+| Simple RNN | Alpha | simple_cell_s()|(New)|
+| Gated Recurrent Network (GRU)| Under Dev. | gru_cell_s()| Under Developpment |
+| Long Short-Term Memory (LSTM)| Under Dev. | lstm_s()| Under Developpment |
 
 **Activations**
 

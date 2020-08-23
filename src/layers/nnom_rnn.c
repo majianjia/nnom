@@ -47,7 +47,7 @@ nnom_layer_t *rnn_s(nnom_rnn_cell_t *cell, nnom_rnn_config_t* config)
 	// set buf state
 	in->type = NNOM_TENSOR_BUF_TEMP;
 	out->type = NNOM_TENSOR_BUF_TEMP;
-	comp->type = NNOM_TENSOR_BUF_RESERVED; // reserve buf for RNN state (statfulness)
+	comp->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
@@ -58,7 +58,7 @@ nnom_layer_t *rnn_s(nnom_rnn_cell_t *cell, nnom_rnn_config_t* config)
 	layer->super.free = rnn_free;
 
 	// rnn parameters.
-	layer->return_sequence = config->return_sequance;
+	layer->return_sequence = config->return_sequence;
 	layer->stateful = config->stateful;
 	layer->super.config = (void*)config;
 	layer->cell = cell;
@@ -72,8 +72,13 @@ nnom_layer_t *rnn_s(nnom_rnn_cell_t *cell, nnom_rnn_config_t* config)
 nnom_status_t rnn_free(nnom_layer_t* layer)
 {
 	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t*)layer;
+	// free cell
 	if(cl->cell->free)
 		cl->cell->free(cl->cell);
+
+	// free state buffer
+	nnom_free(cl->state_buf);
+
 	return NN_SUCCESS;
 }
 
@@ -108,52 +113,60 @@ nnom_status_t rnn_build(nnom_layer_t* layer)
 	cl->cell->build(cl->cell);
 
 	// get the size of computation buffer?
-	layer->comp->size = cl->cell->state_size * 2; // upper/lower state buffer. 
-
+	cl->super.comp->size = cl->cell->comp_buf_size; 	// size of intermediate buffer required by the cell. 
+	cl->state_buf = nnom_mem(cl->cell->state_size * 2); // allocate state buf for upper/lower state buffer. 
+	
 	// get the computational cost provided by Cell
 	layer->stat.macc = cl->cell->macc;
 	return NN_SUCCESS;
 }
 
 
-
 nnom_status_t rnn_run(nnom_layer_t* layer)
 {
 	nnom_status_t result;
 	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t*)(layer);
-	size_t timestamps_size = layer->in->tensor->dim[0];
-	size_t feature_size = tensor_get_num_channel(layer->in->tensor);
+	size_t timestamps_size = layer->in->tensor->dim[0];	// timestamp = first dimension
+	size_t feature_size = tensor_get_num_channel(layer->in->tensor); // feature size = last dimension. 
 	size_t output_size = cl->cell->units;
 	size_t state_size = cl->cell->state_size;
+	size_t output_growth;
+	size_t output_offset;
+	q7_t* upper_state = (q7_t*)layer->comp->mem->blk + state_size;
+	q7_t* lower_state = (q7_t*)layer->comp->mem->blk;
 
 	// currently not support stateful. and not support reserved mem block
 	if (!cl->stateful)
 		memset(layer->comp->mem->blk, 0, state_size*2);
 
+	// set output data
+	output_growth = cl->return_sequence ? output_size : 0;
+
 	// run
-	for (uint32_t round = 0; round < timestamps_size; round++)
+	for (uint32_t round = 0, output_offset=0; round < timestamps_size; round++, output_offset+=output_growth)
 	{
-		// set input buffer
-		cl->cell->in_state = (q7_t*)layer->in->tensor->p_data + feature_size * round;
-		if (cl->return_sequence)
-			cl->cell->out_data = (q7_t*)layer->out->tensor->p_data + output_size * round;
-		else
-			cl->cell->out_data = layer->out->tensor->p_data;
+		// set input data
+		cl->cell->in_data = (q7_t*)layer->in->tensor->p_data + feature_size * round;
+
+		// set output data
+		cl->cell->out_data = (q7_t*)layer->out->tensor->p_data + output_offset;
 
 		// switch upper/lower state buffer
-		if(cl->cell->in_state != layer->comp->mem->blk)
+		if(cl->cell->in_state != lower_state)
 		{
-			cl->cell->in_state = layer->comp->mem->blk;
-			cl->cell->out_state = (q7_t*)layer->comp->mem->blk + state_size;
+			cl->cell->in_state = lower_state;
+			cl->cell->out_state = upper_state;
 		}
 		else
 		{
-			cl->cell->in_state = (q7_t*)layer->comp->mem->blk + state_size;
-			cl->cell->out_state = layer->comp->mem->blk;
+			cl->cell->in_state = upper_state;
+			cl->cell->out_state = lower_state;
 		}
 
 		// run it
 		result = cl->cell->run(cl->cell);
+		if(result != NN_SUCCESS)
+			return result;
 	}
 	
 	return result;

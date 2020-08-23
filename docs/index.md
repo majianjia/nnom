@@ -24,16 +24,21 @@ More detail avaialble in [Development Guide](guide_development.md)
 
 ## Latest Updates - v0.4.x
 
-**New Structured Interface**
+## Latest Updates - v0.4.x
+
+**Recurrent Layers (RNN) (0.4.1)**
+
+Recurrent layers (Simple RNN, GRU, LSTM) are coming in the next release (0.4.1). Or check the `v0.4.x-dev branch` for the latest update.  
+
+**New Structured Interface (0.4.0)** 
 
 NNoM has provided a new layer interface called **Structured Interface**, all marked with `_s` suffix. which aims to use one C-structure to provided all the configuration for a layer. Different from the Layer API which is human friendly, this structured API are more machine friendly. 
 
-**Per-Channel Quantisation**
+**Per-Channel Quantisation (0.4.0)**
 
-The new structred API supports per-channel quantisation (per-axis) and dilations for Convolutional layers. 
+The new structred API supports per-channel quantisation (per-axis) and dilations for **Convolutional layers**. 
 
-
-**New Scripts**
+**New Scripts (0.4.0)**
 
 From 0.4.0, NNoM will switch to structured interface as default to generate the model header `weights.h`. The scripts corresponding to structured interfaces are `nnom.py` while the Layer Interface corresponding to `nnom_utils.py`.
 

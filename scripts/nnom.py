@@ -13,6 +13,7 @@
 import sklearn.metrics as skmetrics
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import tensorflow.keras.backend as K
 from tensorflow.keras import *
 from tensorflow.keras.layers import *
 from fully_connected_opt_weight_generation import *
@@ -27,7 +28,7 @@ model_reversion = 1
 
 #define NNOM_MAJORVERSION     0L              /**< major version number */
 #define NNOM_SUBVERSION       4L              /**< minor version number */
-#define NNOM_REVISION         0L              /**< revise version number */
+#define NNOM_REVISION         1L              /**< revise version number */
 #define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 
 def fuse_bn_to_conv(layer):
@@ -146,7 +147,10 @@ def is_shift_layer(layer):
         'multiply' in layer.name or
        ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')or
        ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
-       ('activation' in layer.name and layer.get_config()['activation'] == 'tanh')
+       ('activation' in layer.name and layer.get_config()['activation'] == 'tanh') or
+        'rnn' in layer.name or  # rnn layers are tend to be fixed shift
+        'gru' in layer.name or
+        'lstm' in layer.name
     ):
         return True
     return False
@@ -159,7 +163,18 @@ def is_shift_fixed(layer):
         'tanh' in layer.name or
         ('activation' in layer.name and layer.get_config()['activation'] == 'softmax') or
         ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
-        ('activation' in layer.name and layer.get_config()['activation'] == 'tanh')
+        ('activation' in layer.name and layer.get_config()['activation'] == 'tanh') or
+        'rnn' in layer.name or # rnn layers are tend to be fixed shift
+        'gru' in layer.name or
+        'lstm' in layer.name
+    ):
+        return True
+    return  False
+
+def is_rnn_layer(layer):
+    if( 'rnn' in layer.name or
+        'gru' in layer.name or
+        'lstm' in layer.name
     ):
         return True
     return  False
@@ -270,7 +285,50 @@ def quantize_data(data, dec_bits, axis=-1, per_axis=False):
     else:
         return np.round(data * 2 ** dec_bits)
 
-def quantize_output(model, x_test, quantize_method='max_min', layer_offset=True, calibrate_size=100):
+def quantize_rnn_intermediate_output(layer, features):
+    def nnom_sigmoid(data):
+        return 1 / (1 + np.exp(-data))
+    def nnom_tanh(data):
+        return np.tanh(data)
+    if(type(layer.cell) is SimpleRNNCell):
+        cfg = layer.cell.get_config()
+        state = np.zeros(cfg['units'])
+        kernel = layer.get_weights()[0]
+        recurrent_kernel = layer.get_weights()[1]
+        bias = layer.get_weights()[2]
+        # replicate keras's implementation
+        def simple_cell_run(inputs, state, kernel, recurrent_kernel, bias, activation):
+            h = np.dot(inputs, kernel)
+            h = np.add(h, bias)
+            h2 = np.dot(state, recurrent_kernel)
+            output = h + h2
+            output = activation(output)
+            return output, h, h2
+
+        output_arrary = []
+        h_array = []
+        h2_array = []
+        activation = nnom_tanh if cfg['activation'] is 'tanh' else nnom_sigmoid
+        for feature in features:
+            if(not layer.stateful):
+                state = np.zeros(cfg['units'])
+            for fe in feature:
+                output, h, h2 = simple_cell_run(fe, state, kernel, recurrent_kernel, bias, activation)
+                state = output
+                output_arrary.append(output)
+                h_array.append(h)
+                h2_array.append(h2)
+        output_arrary = np.array(output_arrary)
+        h_array = np.array(h_array)
+        h2_array = np.array(h2_array)
+        qout = find_dec_bits_kld(output_arrary)
+        qh = find_dec_bits_kld(h_array)
+        qh2 = find_dec_bits_kld(h2_array)
+        return [qout, qh, qh2]
+
+    return []
+
+def quantize_output(model, x_test, quantize_method='max_min', layer_offset=False, calibrate_size=100):
     # limit the test data size
     np.random.shuffle(x_test)
     if (x_test.shape[0] > calibrate_size):
@@ -287,6 +345,15 @@ def quantize_output(model, x_test, quantize_method='max_min', layer_offset=True,
         if ("input" in layer.name):
             features = x_test
         else:
+            # rnn need a further step to determine the intermediate q format
+            if ('rnn' in layer.name or 'gru' in layer.name or 'lstm' in layer.name):
+                in_layer = layer.inbound_nodes[0].inbound_layers
+                layer_model = Model(inputs=model.input, outputs=in_layer.output)
+                features = layer_model.predict(x_test)
+                intermediate_dec = quantize_rnn_intermediate_output(layer, features)
+                print(layer.name, 'dec bit', intermediate_dec)
+                layer_q_list['intermediate_' + layer.name] = intermediate_dec
+
             # batch_normalization will need to be handled differently, since we are fusing the weight to its previosu conv.
             # sigmoid and tanh are different, their shift is fixed to 7
             if (is_shift_layer(layer) or
@@ -296,6 +363,7 @@ def quantize_output(model, x_test, quantize_method='max_min', layer_offset=True,
             else:
                 # leave the features not changed, so this layer shift will be the same as its inputs
                 pass
+
         # we currently only support one offset for a layer output.
         if(layer_offset):
             offset = find_offset(features)
@@ -312,6 +380,8 @@ def quantize_output(model, x_test, quantize_method='max_min', layer_offset=True,
         else:
             dec_bits = find_dec_bits_max_min(features, bit_width=8)
             print(layer.name,"Quantized method:","max-min"," Values max:", np.max(features), "min:", np.min(features), "dec bit", dec_bits)
+        # quantise offset
+        offset = int(np.round(offset * 2 ** dec_bits))
         # record the shift
         if (type(model.input) == tf.Tensor and type(model.layers[0]) != InputLayer):
             layer_q_list[layer.name.split(':')[0]] = [dec_bits, offset]
@@ -362,10 +432,6 @@ def quantize_output(model, x_test, quantize_method='max_min', layer_offset=True,
             if(not is_shift_layer(layer) or dec_min < layer_q_list[layer.name][0]): # update current layer's shift only when we cannot change the shift
                 layer_q_list[layer.name][0] = dec_min
     # quantise offset
-    # new offset = offset * 2^dec
-    for layer in layer_q_list:
-        layer_q_list[layer][1] = int(np.round(layer_q_list[layer][1] * 2 ** layer_q_list[layer][0]))
-
     print("quantisation list", layer_q_list)
     return layer_q_list
 
@@ -373,8 +439,6 @@ def quantize_output(model, x_test, quantize_method='max_min', layer_offset=True,
 def layer_name_from_tensor(t):
     return t.name.replace(':','/').split('/')[0]
 
-def transpose_wt():
-    return
 
 def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=True, layer_q_list=None):
     # Quantize weights to 8-bits using (min,max) and write to file
@@ -397,13 +461,11 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
         # generate weights and bias now
         weight_dec_shift = 0
         print('quantizing weights for layer', layer.name)
-        for var in layer.weights:
-            var_name = convert_tensor_name(var)
-            if("kernel" in var_name ):
-                var_values = layer.get_weights()[0] # weight
-            elif("bias" in var_name):
-                var_values = layer.get_weights()[1] # bias
-            else:
+        layer_weights = layer.get_weights()
+        for idx, var in enumerate(layer_weights):
+            var_name = convert_tensor_name(layer.weights[idx])
+            var_values = var
+            if("kernel" not in var_name and 'bias' not in var_name): # ignore batchnormalisation's parameters
                 continue
 
             print(var_name, "original shape:", var_values.shape)
@@ -419,7 +481,7 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
             print("  dec bit", dec_bits)
 
             # kernel dec, bias dec, bias shift, output shift
-            if(is_shift_layer(layer)):
+            if(is_shift_layer(layer) and not is_rnn_layer(layer)):
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 layer_input_dec = layer_q_list[inp][0]
                 layer_output_dec = layer_q_list[layer.name][0]
@@ -438,6 +500,20 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
                                     bias_shift[i] = 0
                     # layer wise
                     else:
+                        bias_shift = layer_input_dec + weight_dec_shift - dec_bits
+                        layer_output_shift = layer_input_dec + weight_dec_shift - layer_output_dec
+                        if (bias_shift < 0):
+                            dec_bits = weight_dec_shift
+                            bias_shift = 0
+            # RNN layer's kernel dec, bias dec, bias shift, output shift
+            if(is_rnn_layer(layer)):
+                inp = layer.input.name.replace(':','/').split('/')[0]
+                layer_input_dec = layer_q_list[inp][0]
+                layer_output_dec = layer_q_list[layer.name][0]
+                if (type(layer.cell) is SimpleRNNCell):
+                    if ("kernel" in var_name and 'recurrent' not in var_name):
+                        weight_dec_shift = dec_bits
+                    elif ('bias' in var_name):
                         bias_shift = layer_input_dec + weight_dec_shift - dec_bits
                         layer_output_shift = layer_input_dec + weight_dec_shift - layer_output_dec
                         if (bias_shift < 0):
@@ -507,7 +583,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
     :return:
     """
     # get the quantize output range/format
-    layer_q_list = quantize_output(model, x_test, layer_offset=True, quantize_method=quantize_method)
+    layer_q_list = quantize_output(model, x_test, layer_offset=False, quantize_method=quantize_method)
     # quantize weights and output shift
     quantize_weights(model, per_channel_quant=per_channel_quant, name=name, format=format, layer_q_list=layer_q_list)
     # now generate the model
@@ -574,9 +650,6 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                     LI[layer.name] = (ID, layer)
                 ID += 1
 
-            # if ('input' in layer.name or not layer.weights):
-            #     continue
-
             def gen_weight_tensor(w, per_axis):
                 var_cname = convert_tensor_name(w) + '_data'
                 dec_bits_name = convert_tensor_name(w).upper() + '_DEC_BITS'
@@ -625,6 +698,16 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 fp.write(gen_lambda_config(layer))
             elif (type(layer) in [UpSampling2D, UpSampling1D]):
                 fp.write(gen_upsampling_config(layer))
+            elif(type(layer) in [RNN, SimpleRNN, GRU, LSTM]):
+                if(type(layer.cell) is SimpleRNNCell):
+                    for w in layer.weights:
+                        gen_weight_tensor(w, per_axis=False)
+                    fp.write(gen_simple_cell_config(layer, layer_q_list['intermediate_'+layer.name]))
+                elif(type(layer.cell) is GRUCell):
+                    pass
+                elif(type(layer.cell) is LSTMCell):
+                    pass
+                fp.write(gen_rnn_config(layer))
 
             # last layer, attach the additional nnom output layer
             if(id == len(L)-1):
@@ -765,13 +848,20 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
             elif ('softmax' in layer.name):
                 inp = layer_name_from_tensor(layer.input)
                 fp.write('\tlayer[{0}] = model.hook(softmax_s(&{1}_config), layer[{2}]);\n'.format(id, layer.name, LI[inp][0]))
+
+            elif (type(layer) in [RNN, SimpleRNN, GRU, LSTM] or
+                    layer.name in ['rnn', 'gru', 'simplernn','lstm']):
+                inp = layer_name_from_tensor(layer.input)
+                line = '\tlayer[{0}] = model.hook(rnn_s(<rnn_cell>, &{1}_config), layer[{2}]);\n'.format(id, layer.name, LI[inp][0])
+
+                if (type(layer.cell) is SimpleRNNCell):
+                    line = line.replace('<rnn_cell>', 'simple_cell_s(&%s_simple_cell_config)' %(layer.name))
+                elif (type(layer.cell) is GRUCell or 'gru' in layer.cell.name):
+                    pass
+                elif (type(layer.cell) is LSTMCell or 'gru' in layer.cell.name):
+                    pass
+                fp.write(line)
             else:
-
-                if ('rnn' in layer.name):
-                    cfg = layer.get_config()
-                    wt = layer.get_weights()
-                    print(cfg, wt)
-
                 raise Exception('unsupported layer', layer.name, layer)
 
             """
