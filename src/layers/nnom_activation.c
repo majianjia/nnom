@@ -84,6 +84,16 @@ nnom_layer_t *LeakyReLU(float alpha)
 	return layer;
 }
 
+nnom_layer_t *AdvReLU(float alpha, float max, float threshold)
+{
+	nnom_layer_t *layer = Activation(act_adv_relu(alpha, max, threshold));
+	if (layer == NULL)
+		return NULL;
+
+	// set type in layer parent
+	layer->type = NNOM_ADV_RELU;
+	return layer;
+}
 
 nnom_layer_t *Sigmoid(int32_t dec_bit)
 {

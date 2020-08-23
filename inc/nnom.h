@@ -78,6 +78,7 @@ typedef enum
 	NNOM_ACTIVATION,
 	NNOM_RELU,
 	NNOM_LEAKY_RELU,
+	NNOM_ADV_RELU,
 	NNOM_SIGMOID,
 	NNOM_TANH,
 	NNOM_SOFTMAX,
@@ -115,6 +116,7 @@ typedef enum
 			"Activation",   \
 			"ReLU",         \
 			"Leaky_ReLU",	\
+			"Adv_ReLU",	    \
 			"Sigmoid",      \
 			"Tanh",         \
 			"Softmax",      \

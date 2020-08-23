@@ -145,11 +145,12 @@ Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for deta
 
 **RNN Layers**
 
-| Layers | Status |Layer API|Comments|
+| Layers | Status | Struct API |Comments|
 | ------ | ------ | ------| ------|
-| Recurrent NN | Under Dev.| RNN()| Under Developpment |
-| Simple RNN | Under Dev. | SimpleCell()| Under Developpment |
-| Gated Recurrent Network (GRU)| Under Dev. | GRUCell()| Under Developpment |
+| Recurrent NN Layer| Alpha | rnn_s()| (New)|
+| Simple RNN | Alpha | simple_cell_s()|(New)|
+| Gated Recurrent Network (GRU)| Under Dev. | gru_cell_s()| Under Developpment |
+| Long Short-Term Memory (LSTM)| Under Dev. | lstm_s()| Under Developpment |
 
 **Activations**
 
@@ -160,8 +161,8 @@ There is no structred API for activation currently, since activation are not usu
 | Actrivation | Struct API |Layer API|Activation API|Comments|
 | ------ |--|--|--|--|
 | ReLU  | N/A |ReLU()|act_relu()||
-| Leaky ReLU (New!) | N/A |ReLU()|act_relu()||
-| Adv ReLU  | N/A |N/A|act_adv_relu()|advance ReLU, Slope, max, threshold|
+| Leaky ReLU (New!) | N/A |LeakyReLU()|act_leaky_relu()||
+| Adv ReLU(New!) | N/A |N/A|act_adv_relu()|advance ReLU, Slope, max, threshold|
 | TanH | N/A |TanH()|act_tanh()||
 |Sigmoid|N/A| Sigmoid()|act_sigmoid()||
 

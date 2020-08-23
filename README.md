@@ -131,8 +131,8 @@ There is no structred API for activation currently, since activation are not usu
 | Actrivation | Struct API |Layer API|Activation API|Comments|
 | ------ |--|--|--|--|
 | ReLU  | N/A |ReLU()|act_relu()||
-| Leaky ReLU (New!) | N/A |ReLU()|act_relu()||
-| Adv ReLU  | N/A |N/A|act_adv_relu()|advance ReLU, Slope, max, threshold|
+| Leaky ReLU (New!) | N/A |LeakyReLU()|act_leaky_relu()||
+| Adv ReLU(New!) | N/A |N/A|act_adv_relu()|advance ReLU, Slope, max, threshold|
 | TanH | N/A |TanH()|act_tanh()||
 |Sigmoid|N/A| Sigmoid()|act_sigmoid()||
 

@@ -53,8 +53,8 @@ typedef struct _nnom_activation_leaky_relu_t
 typedef struct _nnom_activation_adv_relu_t
 {
 	nnom_activation_t super;
-	q7_t negative_slope;					// negative_slope is present by q0.7 format. (-128 = -1) 
-	float max;					// cap of the max value
+	q7_t negative_slope;			// negative_slope is present by q0.7 format. (-128 = -1) 
+	float max;						// cap of the max value
 	float threshold;				// threshold
 } nnom_activation_adv_relu_t;
 
