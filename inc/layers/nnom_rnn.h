@@ -52,6 +52,7 @@ typedef struct _nnom_rnn_cell_t
 	size_t comp_buf_size;			// the size of temporary buffer. 
 	size_t state_size; 				// the size of hidden state
 	uint16_t units;					// the output units 
+	uint16_t feature_size;			// the input feature size (vector size)
 
 	size_t macc; // stat of MAC count. 
 } nnom_rnn_cell_t;

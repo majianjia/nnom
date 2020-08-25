@@ -107,6 +107,9 @@ nnom_status_t rnn_build(nnom_layer_t* layer)
 	// output q format - the output of the available activations are both q0.7.  
 	layer->out->tensor->q_dec[0] = 7;
 
+	// get feature size from input tensor
+	cl->cell->feature_size = tensor_get_num_channel(layer->in->tensor); // vector (feature) size
+
 	// call cell builder to build the cell
 	cl->cell->build(cl->cell);
 

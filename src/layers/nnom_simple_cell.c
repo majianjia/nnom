@@ -87,7 +87,6 @@ nnom_status_t simple_cell_build(nnom_rnn_cell_t* cell)
 
 	// state size = one timestamp output size. 
 	cell->state_size = cell->units;
-	c->vsize = tensor_get_num_channel(layer->in->tensor); // vector (feature) size
 
 	// comp buffer size: not required
 	cell->comp_buf_size = 0; 
@@ -125,7 +124,8 @@ nnom_status_t simple_cell_run(nnom_rnn_cell_t* cell)
 	// in_state x recurrent_weight -> h2 (output buf)
 	local_dot_q7_opt(cell->in_state, c->recurrent_weights->p_data, cell->units, cell->units, c->oshift_hw, cell->out_data);
 	// (input x weight) + bias -> h (in_state buf)
-	local_fully_connected_q7_opt(cell->in_data, c->weights->p_data, c->vsize, cell->units, c->bias_shift, c->oshift_iw, c->bias->p_data, cell->in_state, NULL);
+	local_fully_connected_q7_opt(cell->in_data, c->weights->p_data, 
+				cell->feature_size, cell->units, c->bias_shift, c->oshift_iw, c->bias->p_data, cell->in_state, NULL);
 	// h + h2 -> (out_state buf)
 	local_add_q7(cell->in_state, cell->out_data, cell->out_state, 0, cell->units);
 

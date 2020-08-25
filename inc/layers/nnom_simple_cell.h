@@ -66,8 +66,7 @@ typedef struct _nnom_simple_cell_t
 	// h: hidden state
 	nnom_qformat_param_t q_dec_iw, q_dec_hw, q_dec_h;
 	nnom_qformat_param_t oshift_iw, oshift_hw, bias_shift;
-
-	uint16_t vsize; // vector size, the input
+	
 } nnom_simple_cell_t;
 
 

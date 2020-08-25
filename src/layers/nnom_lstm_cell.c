@@ -71,28 +71,27 @@ nnom_status_t lstm_cell_build(nnom_rnn_cell_t* cell)
 	if(config->act_type != ACT_SIGMOID && config->act_type != ACT_TANH)
 		return NN_ARGUMENT_ERROR;
 
-	// // calculate output shift for the 2 calculation. 
-	// // hw = the product of hidden x weight, iw = the product of input x weight
-	// // due to the addition of them, they must have same q format.
-	// q_hw_iw = MIN(c->q_dec_hw, c->q_dec_iw);  
+	// calculate output shift for the 2 calculation. 
+	// hw = the product of hidden x weight, iw = the product of input x weight
+	// due to the addition of them, they must have same q format.
+	q_hw_iw = MIN(c->q_dec_hw, c->q_dec_iw);  
 
-	// // for the 2 dot in cell: output shift = input_dec + weight_dec - output_dec
-	// c->oshift_hw = c->q_dec_h + c->recurrent_weights->q_dec[0] - q_hw_iw;
-	// c->oshift_iw = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - q_hw_iw;
+	// for the 2 dot in cell: output shift = input_dec + weight_dec - output_dec
+	c->oshift_hw = c->q_dec_h + c->recurrent_weights->q_dec[0] - q_hw_iw;
+	c->oshift_iw = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - q_hw_iw;
 
-	// // bias shift =  bias_dec - out_dec
-	// c->bias_shift = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - c->bias->q_dec[0];
+	// bias shift =  bias_dec - out_dec
+	c->bias_shift = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - c->bias->q_dec[0];
 
-	// // state size = one timestamp output size. 
-	// cell->state_size = cell->units;
-	// c->vsize = tensor_get_num_channel(layer->in->tensor); // vector (feature) size
+	// state size = one timestamp output size. 
+	cell->state_size = cell->units * 2;
 
 	// // comp buffer size: not required
-	// cell->comp_buf_size = 0; 
+	cell->comp_buf_size = cell->units * 12; 
 
 	// // finally, calculate the MAC for info
-	// cell->macc = tensor_size(layer->in->tensor) * cell->units 	  // input: (feature * timestamp) * state
-	// 			+ cell->state_size * tensor_size(layer->out->tensor);  // recurrent, state * (timestamp * output_unit)
+	cell->macc = tensor_size(layer->in->tensor) * cell->units *4 	  // input: (feature * timestamp) * state * 4 gates
+				+ cell->state_size * tensor_size(layer->out->tensor) *4;  // recurrent, state * (timestamp * output_unit) * 4 gate
 
 	return NN_SUCCESS;
 }
@@ -147,11 +146,13 @@ nnom_status_t lstm_cell_run(nnom_rnn_cell_t* cell)
     local_dot_q7_opt(h_tm1, c->recurrent_weights->p_data, cell->units*4, cell->units*4, c->oshift_hw, buf1);
 
     // z1 = K.dot(cell_inputs, kernel) + bias -> buf2
-    local_fully_connected_q7_opt(cell->in_data, c->weights->p_data, c->vsize, cell->units*4, c->bias_shift, c->oshift_iw, c->bias->p_data, buf2, NULL);
+    local_fully_connected_q7_opt(cell->in_data, c->weights->p_data, 
+            cell->feature_size, cell->units*4, c->bias_shift, c->oshift_iw, c->bias->p_data, buf2, NULL);
 
     // z += z1  -> buf0
     local_add_q7(buf1, buf2, buf0, 0, cell->units*4);
 
+    // split the data to each gate
     z[0] = buf0;
     z[1] = buf0 + cell->units;
     z[2] = buf0 + cell->units*2;
@@ -181,23 +182,6 @@ nnom_status_t lstm_cell_run(nnom_rnn_cell_t* cell)
 
     // h -> output ** (copy hidden to output)
     memcpy(cell->out_data, o_state[1], cell->units);
-
-
-	// // in_state x recurrent_weight -> h2 (output buf)
-	// local_dot_q7_opt(cell->in_state, c->recurrent_weights->p_data, cell->units, cell->units, c->oshift_hw, cell->out_data);
-	// // (input x weight) + bias -> h (in_state buf)
-	// local_fully_connected_q7_opt(cell->in_data, c->weights->p_data, c->vsize, cell->units, c->bias_shift, c->oshift_iw, c->bias->p_data, cell->in_state, NULL);
-	// // h + h2 -> (out_state buf)
-	// local_add_q7(cell->in_state, cell->out_data, cell->out_state, 0, cell->units);
-
-	// // active(out_state buf)
-	// if(c->act_type == ACT_TANH)
-	// 	local_tanh_q7(cell->out_state, cell->units, act_int_bit);
-	// else
-	// 	local_sigmoid_q7(cell->out_state, cell->units, act_int_bit);
-
-	// // (out_state buf) --copy--> (output buf)
-	// memcpy(cell->out_data, cell->out_state, cell->units);
 
 	return NN_SUCCESS;
 }
