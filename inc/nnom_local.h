@@ -434,7 +434,7 @@ void local_dot_q7(const q7_t *pV, // pointer to vector
 	const uint16_t dim_vec,       // length of the vector
 	const uint16_t num_of_rows,   // numCol of A
 	const uint16_t out_shift,     // amount of right-shift for output
-	 q7_t *pOut)                   // output operand)
+	 q7_t *pOut);                   // output operand)
 
 
 // For more info. check CMSIS-NN lib
