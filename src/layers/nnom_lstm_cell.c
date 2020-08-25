@@ -177,7 +177,7 @@ nnom_status_t lstm_cell_run(nnom_rnn_cell_t* cell)
     local_add_q7(buf1, o_state[0], o_state[1], 0, cell->units);
 
     // h = o * nn.tanh(c) -> o_state[0] ** fill the lower state (memory, hidden)
-    local_tanh(o_state[1], cell->units, 0); // should be Q0.7 check later. 
+    local_tanh_q7(o_state[1], cell->units, 0); // should be Q0.7 check later. 
     local_dot_q7_opt(z[3], o_state[1], cell->units, cell->units, 7, o_state[0]);
 
     // h -> output ** (copy hidden to output)
