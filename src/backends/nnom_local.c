@@ -1113,7 +1113,6 @@ void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to ve
 	const q7_t *bias, q7_t *pOut, // output operand
 	q15_t *vec_buffer)
 {
-
     uint16_t rowCnt = num_of_rows >> 2;
     const q7_t *pB = pM;
     const q7_t *pA;

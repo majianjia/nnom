@@ -495,7 +495,14 @@ static void print_layer_info(nnom_layer_t *layer, uint32_t layer_count)
 	else
 		compsize = 0;
 	// names
-	NNOM_LOG("#%-3d %-10s - ", layer_count, default_layer_names[layer->type]);
+	if(layer->type != NNOM_RNN)
+		NNOM_LOG("#%-3d %-10s - ", layer_count, default_layer_names[layer->type]);
+	else
+	{
+		NNOM_LOG("#%-3d %-3s/", layer_count, default_layer_names[layer->type]);
+		NNOM_LOG("%-6s - ", default_cell_names[((nnom_rnn_layer_t*)layer)->cell->type]);
+	}
+		
 	// activations
 	if (layer->actail != NULL)
 		NNOM_LOG("%-8s - ", default_activation_names[layer->actail->type]);

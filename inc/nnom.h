@@ -169,7 +169,7 @@ typedef enum
 #define DEFUALT_CELL_NAMES \
 	{                    \
 		"UNKNOW",          \
-		"RNN",		 \
+		"Simple",		 \
 		"GRU",		\
 		"LSTM",      \
 	}

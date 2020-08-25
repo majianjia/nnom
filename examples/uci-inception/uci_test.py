@@ -88,41 +88,41 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     x = ReLU()(x)
     x = MaxPool1D(2, strides=2)(x)
 
-    # inception - 1
-    x1 = Conv1D(32, kernel_size=(5), strides=(1), padding="same")(x)
-    x1 = BatchNormalization()(x1)
-    x1 = Dropout(0.2)(x1)
-    x1 = ReLU()(x1)
-    x1 = MaxPool1D(2, strides=2)(x1)
+    # # inception - 1
+    # x1 = Conv1D(32, kernel_size=(5), strides=(1), padding="same")(x)
+    # x1 = BatchNormalization()(x1)
+    # x1 = Dropout(0.2)(x1)
+    # x1 = ReLU()(x1)
+    # x1 = MaxPool1D(2, strides=2)(x1)
+    #
+    # # inception - 2
+    # x2 = Conv1D(32, kernel_size=(3), strides=(1), padding="same")(x)
+    # x2 = BatchNormalization()(x2)
+    # x2 = Dropout(0.2)(x2)
+    # x2 = ReLU()(x2)
+    # x2 = MaxPool1D(2, strides=2)(x2)
+    #
+    # # inception - 3
+    # x3 = MaxPool1D(2, strides=2)(x)
+    # x3 = Dropout(0.2)(x3)
+    #
+    # # concate all inception layers
+    # x = concatenate([ x1, x2,x3], axis=-1)
+    #
+    # #conclusion
+    # x = Conv1D(48, kernel_size=(3), strides=(1), padding="same")(x)
+    # x = BatchNormalization()(x)
+    # x = ReLU()(x)
+    # #x = MaxPool1D(2, strides=2)(x)
+    # x = Dropout(0.2)(x)
 
-    # inception - 2
-    x2 = Conv1D(32, kernel_size=(3), strides=(1), padding="same")(x)
-    x2 = BatchNormalization()(x2)
-    x2 = Dropout(0.2)(x2)
-    x2 = ReLU()(x2)
-    x2 = MaxPool1D(2, strides=2)(x2)
+    x = RNN(SimpleRNNCell(32), return_sequences=True)(x)
 
-    # inception - 3
-    x3 = MaxPool1D(2, strides=2)(x)
-    x3 = Dropout(0.2)(x3)
+    x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
+    x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
 
-    # concate all inception layers
-    x = concatenate([ x1, x2,x3], axis=-1)
-
-    #conclusion
-    x = Conv1D(48, kernel_size=(3), strides=(1), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-    #x = MaxPool1D(2, strides=2)(x)
-    x = Dropout(0.2)(x)
-
-    x = RNN(SimpleRNNCell(32), return_sequences=False)(x)
-
-    # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
-    # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
-
-    # x = SimpleRNN(16, return_sequences=True)(x)
-    # x = SimpleRNN(16, return_sequences=True)(x)
+    x = SimpleRNN(16, return_sequences=True)(x)
+    x = SimpleRNN(16, return_sequences=True)(x)
 
     #x = GRU(10, return_sequences=True)(x)
 

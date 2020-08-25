@@ -41,7 +41,7 @@ nnom_rnn_cell_t *simple_cell_s(const nnom_simple_cell_config_t* config)
 	cell->super.free = simple_cell_free;
 	cell->super.config = (void*) config;
 	cell->super.units = config->units;
-	cell->super.type = NNOM_LSTM_CELL;
+	cell->super.type = NNOM_SIMPLE_CELL;
 
 	// set parameters 
 	cell->bias = config->bias;
