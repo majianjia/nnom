@@ -1086,6 +1086,24 @@ void local_dot_q7_opt(const q7_t *pV, // pointer to vector
     }
 }
 
+void local_dot_q7(const q7_t *pV, // pointer to vector
+	const q7_t *pM,               // pointer to matrix
+	const uint16_t dim_vec,       // length of the vector
+	const uint16_t num_of_rows,   // numCol of A
+	const uint16_t out_shift,     // amount of right-shift for output
+	 q7_t *pOut)                   // output operand)
+{
+    for (int i = 0; i < num_of_rows; i++)
+    {
+        int ip_out = (q31_t) NNOM_ROUND(out_shift);
+        for (int j = 0; j < dim_vec; j++)
+        {
+            ip_out += pV[j] * pM[i * dim_vec + j];
+        }
+        pOut[i] = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
+    }
+}
+
 void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to vector
 	const q7_t *pM,               // pointer to matrix
 	const uint16_t dim_vec,       // length of the vector

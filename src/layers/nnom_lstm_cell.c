@@ -165,23 +165,27 @@ nnom_status_t lstm_cell_run(nnom_rnn_cell_t* cell)
     // o = nn.sigmoid(z3)
     local_sigmoid_q7(z[3], cell->units, act_int_bit);
 
-    // c = f * c_tm1 + i * nn.tanh(z2)
+    /* c = f * c_tm1 + i * nn.tanh(z2) for the step 1-3. */
     // 1. i * tanh(z2) -> buf1
     local_tanh_q7(z[2], cell->units, act_int_bit);
-    local_dot_q7_opt(z[2], z[0], cell->units, cell->units, 7, buf1);
+    local_mult_q7(z[0], z[2], buf1, 7, cell->units); //q0.7 * q0.7 shift 7
 
     // 2. f * c_tm1 -> o_state[0] 
-    local_dot_q7_opt(z[1], c_tm1, cell->units, cell->units, 7, o_state[0]); //q0.7 * q0.7 shift 7
+    local_mult_q7(z[1], c_tm1, o_state[0], 7, cell->units);
 
-    // 3. c = i*tanh + f*c_tm1 -> o_state[1] ** fill the upper state (carry)
+    // 3. c = i*tanh + f*c_tm1 -> o_state[1]   ** fill the upper state (carry)
     local_add_q7(buf1, o_state[0], o_state[1], 0, cell->units);
 
-    // h = o * nn.tanh(c) -> o_state[0] ** fill the lower state (memory, hidden)
-    local_tanh_q7(o_state[1], cell->units, 0); // should be Q0.7 check later. 
-    local_dot_q7_opt(z[3], o_state[1], cell->units, cell->units, 7, o_state[0]);
-
-    // h -> output ** (copy hidden to output)
+    /* h = o * nn.tanh(c) -> o_state[0] for the step 1-2 */
+    // 1. tanh(c) -> output_buf  --- first copy then activate. 
     memcpy(cell->out_data, o_state[1], cell->units);
+    local_tanh_q7(cell->out_data, cell->units, 0); 
+
+    // 2. h = o*tanh(c) -> o_state[0]    ** fill the lower state (memory, hidden)
+    local_mult_q7(z[3], cell->out_data, o_state[0], 7, cell->units);
+
+    // h -> output_buf ** (copy hidden to output)
+    memcpy(cell->out_data, o_state[0], cell->units);
 
 	return NN_SUCCESS;
 }
