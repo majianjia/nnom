@@ -41,7 +41,8 @@ typedef struct _nnom_rnn_cell_t
 	nnom_status_t (*build)(struct _nnom_rnn_cell_t* cell); // cell builder, calculate buffer size, output data size
 	nnom_status_t (*free)(struct _nnom_rnn_cell_t* cell); // 
 	nnom_layer_t *layer;				// pointer to its layer holder
-	nnom_layer_config_t *config;		// config for the cell event it is a layer type			
+	nnom_layer_config_t *config;		// config for the cell event it is a layer type		
+	nnom_rnn_cell_type_t type;	
 
 	void *in_data;						// input data
 	void *out_data;						// output data

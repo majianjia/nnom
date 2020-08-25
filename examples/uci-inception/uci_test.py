@@ -109,14 +109,14 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     # concate all inception layers
     x = concatenate([ x1, x2,x3], axis=-1)
 
-    # conclusion
+    #conclusion
     x = Conv1D(48, kernel_size=(3), strides=(1), padding="same")(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
-    x = MaxPool1D(2, strides=2)(x)
+    #x = MaxPool1D(2, strides=2)(x)
     x = Dropout(0.2)(x)
 
-    x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
+    x = RNN(SimpleRNNCell(32), return_sequences=False)(x)
 
     # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
     # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
@@ -238,7 +238,7 @@ if __name__ == "__main__":
     evaluate_model(model, x_test, y_test)
 
     # save weight
-    generate_model(model, x_test, 'weights-uci.h')
+    generate_model(model, x_test, name='weights-uci.h')
 
     # plot
     acc = history.history['accuracy']

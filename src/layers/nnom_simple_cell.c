@@ -41,6 +41,7 @@ nnom_rnn_cell_t *simple_cell_s(const nnom_simple_cell_config_t* config)
 	cell->super.free = simple_cell_free;
 	cell->super.config = (void*) config;
 	cell->super.units = config->units;
+	cell->super.type = NNOM_LSTM_CELL;
 
 	// set parameters 
 	cell->bias = config->bias;
@@ -92,8 +93,8 @@ nnom_status_t simple_cell_build(nnom_rnn_cell_t* cell)
 	cell->comp_buf_size = 0; 
 
 	// finally, calculate the MAC for info
-	cell->macc = tensor_size(layer->in->tensor) * tensor_size(layer->out->tensor)  
-				+ tensor_size(layer->out->tensor) * tensor_size(layer->out->tensor);
+	cell->macc = tensor_size(layer->in->tensor) * cell->units 	  // input: (feature * timestamp) * state
+				+ cell->state_size * tensor_size(layer->out->tensor);  // recurrent, state * (timestamp * output_unit)
 
 	return NN_SUCCESS;
 }
