@@ -272,19 +272,19 @@ def find_dec_bits_kld(data, bit_width=8, scan_times=4):
     return dec_bits
 
 # convert to [-128,128) or int8
-def quantize_data(data, dec_bits, axis=-1, per_axis=False):
+def quantize_data(data, dec_bits, axis=-1, per_axis=False, bitwith=8):
     if (per_axis):
         out = []
         for i in np.arange(0, data.shape[axis]):
             d = np.take(data, indices=i, axis=axis)
             d = np.round(d * 2 ** dec_bits[i])
-            d = np.clip(d, -2 ** dec_bits[i], 2 ** dec_bits[i]-1)
+            d = np.clip(d, -2**(bitwith-1), 2**(bitwith-1)-1)
             d = np.expand_dims(d, axis=axis)
             out.append(d)
         out = np.concatenate(out, axis=axis)
         return out
     else:
-        return np.clip(np.round(data * 2 ** dec_bits), -2 ** dec_bits, 2 ** dec_bits -1)
+        return np.clip(np.round(data * 2 ** dec_bits), -2**(bitwith-1), 2**(bitwith-1) -1)
 
 def quantize_rnn_intermediate_output(layer, features):
     def nnom_sigmoid(data):
