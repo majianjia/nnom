@@ -27,8 +27,7 @@ typedef struct _nnom_lstm_cell_config_t
 	nnom_tensor_t *weights;
 	nnom_tensor_t* recurrent_weights;
 	nnom_tensor_t *bias;
-	nnom_qformat_param_t q_dec_iw, q_dec_hw, q_dec_h;
-	nnom_activation_type_t act_type;		// type of the activation
+	nnom_qformat_param_t q_dec_z, q_dec_h, q_dec_c; // z = iw + hw, c = cell state; h=output and memory
 	uint16_t units;
 } nnom_lstm_cell_config_t;
 
@@ -36,7 +35,6 @@ typedef struct _nnom_lstm_cell_config_t
 typedef struct _nnom_lstm_cell_t
 {
 	nnom_rnn_cell_t super;
-	nnom_activation_type_t act_type;
 
 	nnom_tensor_t* weights;
 	nnom_tensor_t* recurrent_weights;
@@ -45,9 +43,10 @@ typedef struct _nnom_lstm_cell_t
 	// experimental, 
 	// iw: input x weight
 	// hw: hidden state x recurrent weight
-	// h: hidden state
-	nnom_qformat_param_t q_dec_iw, q_dec_hw, q_dec_h;
-	nnom_qformat_param_t oshift_iw, oshift_hw, bias_shift;
+	// h: hidden state (memor)
+	// c: cell state
+	nnom_qformat_param_t q_dec_z, q_dec_h, q_dec_c;
+	nnom_qformat_param_t oshift_iw, oshift_hw, oshift_zc, bias_shift;
 
 } nnom_lstm_cell_t;
 

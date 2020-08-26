@@ -45,7 +45,12 @@ nnom_rnn_cell_t *lstm_cell_s(const nnom_lstm_cell_config_t* config)
 	cell->bias = config->bias;
 	cell->weights = config->weights;
 	cell->recurrent_weights = config->recurrent_weights;
-	cell->act_type = config->act_type; 
+
+    // q format for intermediate calculation
+    cell->q_dec_c = config->q_dec_c;
+    cell->q_dec_h = config->q_dec_h;
+    cell->q_dec_z = config->q_dec_z;
+
 	// // q format for intermediate products
 	// cell->q_dec_iw = config->q_dec_iw;
 	// cell->q_dec_hw = config->q_dec_hw;
@@ -65,20 +70,17 @@ nnom_status_t lstm_cell_build(nnom_rnn_cell_t* cell)
 	nnom_layer_t *layer = cell->layer; 
 	nnom_lstm_cell_t *c = (nnom_lstm_cell_t *)cell;
 	nnom_lstm_cell_config_t *config = (nnom_lstm_cell_config_t *)cell->config;
-	int q_hw_iw;
-	
-	// activation, check if activation is supported 
-	if(config->act_type != ACT_SIGMOID && config->act_type != ACT_TANH)
-		return NN_ARGUMENT_ERROR;
 
 	// calculate output shift for the 2 calculation. 
 	// hw = the product of hidden x weight, iw = the product of input x weight
 	// due to the addition of them, they must have same q format.
-	q_hw_iw = MIN(c->q_dec_hw, c->q_dec_iw);  
+    // that is -> c->q_dec_z; 
 
 	// for the 2 dot in cell: output shift = input_dec + weight_dec - output_dec
-	c->oshift_hw = c->q_dec_h + c->recurrent_weights->q_dec[0] - q_hw_iw;
-	c->oshift_iw = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - q_hw_iw;
+	c->oshift_hw = c->q_dec_h + c->recurrent_weights->q_dec[0] - c->q_dec_z; 
+	c->oshift_iw = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - c->q_dec_z; 
+	
+	c->oshift_zc = c->q_dec_z + c->q_dec_c - c->q_dec_c;
 
 	// bias shift =  bias_dec - out_dec
 	c->bias_shift = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - c->bias->q_dec[0];
@@ -124,7 +126,7 @@ nnom_status_t lstm_cell_run(nnom_rnn_cell_t* cell)
 	nnom_layer_t *layer = cell->layer;
 	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t *) layer;
 	nnom_lstm_cell_t* c = (nnom_lstm_cell_t*) cell;
-    int act_int_bit = 7 - MIN(c->q_dec_hw, c->q_dec_iw);
+    int act_int_bit = 7 - c->q_dec_z;
 
     // state buffer
     // low |-- hidden --|-- carry --| high
@@ -143,7 +145,7 @@ nnom_status_t lstm_cell_run(nnom_rnn_cell_t* cell)
     buf2 = (q7_t*)layer->comp->mem->blk + cell->units*8;
 
     // z = K.dot(h_tm1, recurrent_kernel)  -> buf1
-    local_dot_q7_opt(h_tm1, c->recurrent_weights->p_data, cell->units*4, cell->units*4, c->oshift_hw, buf1);
+    local_dot_q7_opt(h_tm1, c->recurrent_weights->p_data, cell->units, cell->units*4, c->oshift_hw, buf1);
 
     // z1 = K.dot(cell_inputs, kernel) + bias -> buf2
     local_fully_connected_q7_opt(cell->in_data, c->weights->p_data, 
@@ -168,10 +170,10 @@ nnom_status_t lstm_cell_run(nnom_rnn_cell_t* cell)
     /* c = f * c_tm1 + i * nn.tanh(z2) for the step 1-3. */
     // 1. i * tanh(z2) -> buf1
     local_tanh_q7(z[2], cell->units, act_int_bit);
-    local_mult_q7(z[0], z[2], buf1, 7, cell->units); //q0.7 * q0.7 shift 7
+    local_mult_q7(z[0], z[2], buf1, 14 - c->q_dec_c, cell->units); //q0.7 * q0.7 >> (shift) = q_c // i am not very sure
 
     // 2. f * c_tm1 -> o_state[0] 
-    local_mult_q7(z[1], c_tm1, o_state[0], 7, cell->units);
+    local_mult_q7(z[1], c_tm1, o_state[0], c->oshift_zc, cell->units);
 
     // 3. c = i*tanh + f*c_tm1 -> o_state[1]   ** fill the upper state (carry)
     local_add_q7(buf1, o_state[0], o_state[1], 0, cell->units);
@@ -179,7 +181,7 @@ nnom_status_t lstm_cell_run(nnom_rnn_cell_t* cell)
     /* h = o * nn.tanh(c) -> o_state[0] for the step 1-2 */
     // 1. tanh(c) -> output_buf  --- first copy then activate. 
     memcpy(cell->out_data, o_state[1], cell->units);
-    local_tanh_q7(cell->out_data, cell->units, 0); 
+    local_tanh_q7(cell->out_data, cell->units, 7 - c->q_dec_c); 
 
     // 2. h = o*tanh(c) -> o_state[0]    ** fill the lower state (memory, hidden)
     local_mult_q7(z[3], cell->out_data, o_state[0], 7, cell->units);

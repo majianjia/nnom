@@ -43,8 +43,6 @@ typedef struct _nnom_simple_cell_config_t
 	nnom_tensor_t *weights;
 	nnom_tensor_t* recurrent_weights;
 	nnom_tensor_t *bias;
-	nnom_qformat_param_t *oshift_iw;
-	nnom_qformat_param_t *oshift_hw;
 	nnom_qformat_param_t q_dec_iw, q_dec_hw, q_dec_h;
 	nnom_activation_type_t act_type;		// type of the activation
 	uint16_t units;

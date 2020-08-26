@@ -291,6 +291,13 @@ def quantize_rnn_intermediate_output(layer, features):
         return 1 / (1 + np.exp(-data))
     def nnom_tanh(data):
         return np.tanh(data)
+    def split_array(d, num):
+        l = len(d)
+        if(num==4):
+            return d[:int(l/4)], d[int(l/4): int(l/2)], d[int(l/2):-int(l/4)], d[-int(l/4):]
+        elif(num==3):
+            return d[:int(l/3)], d[int(l/3): -int(l/3)], d[-int(1/3):]
+
     if(type(layer.cell) is SimpleRNNCell):
         cfg = layer.cell.get_config()
         state = np.zeros(cfg['units'])
@@ -298,7 +305,7 @@ def quantize_rnn_intermediate_output(layer, features):
         recurrent_kernel = layer.get_weights()[1]
         bias = layer.get_weights()[2]
         # replicate keras's implementation
-        def simple_cell_run(inputs, state, kernel, recurrent_kernel, bias, activation):
+        def simple_cell_step(inputs, state, kernel, recurrent_kernel, bias, activation):
             h = np.dot(inputs, kernel)
             h = np.add(h, bias)
             h2 = np.dot(state, recurrent_kernel)
@@ -314,7 +321,7 @@ def quantize_rnn_intermediate_output(layer, features):
             if(not layer.stateful):
                 state = np.zeros(cfg['units'])
             for fe in feature:
-                output, h, h2 = simple_cell_run(fe, state, kernel, recurrent_kernel, bias, activation)
+                output, h, h2 = simple_cell_step(fe, state, kernel, recurrent_kernel, bias, activation)
                 state = output
                 output_arrary.append(output)
                 h_array.append(h)
@@ -322,10 +329,59 @@ def quantize_rnn_intermediate_output(layer, features):
         output_arrary = np.array(output_arrary)
         h_array = np.array(h_array)
         h2_array = np.array(h2_array)
-        qout = find_dec_bits_kld(output_arrary)
-        qh = find_dec_bits_kld(h_array)
-        qh2 = find_dec_bits_kld(h2_array)
+        # qout = find_dec_bits_kld(output_arrary)
+        # qh = find_dec_bits_kld(h_array)
+        # qh2 = find_dec_bits_kld(h2_array)
+        qout = find_dec_bits_max_min(output_arrary)
+        qh = find_dec_bits_max_min(h_array)
+        qh2 = find_dec_bits_max_min(h2_array)
         return [qout, qh, qh2]
+
+    elif (type(layer.cell) is LSTMCell or 'lstm' in layer.cell.name):
+        cfg = layer.cell.get_config()
+        state = np.zeros(cfg['units']*2)
+        kernel = layer.get_weights()[0]
+        recurrent_kernel = layer.get_weights()[1]
+        bias = layer.get_weights()[2]
+
+        def lstm_cell_step(cell_inputs, cell_states, kernel, recurrent_kernel, bias):
+            """Step function that will be used by Keras RNN backend."""
+            h_tm1 = cell_states[0]  # previous memory state
+            c_tm1 = cell_states[1]  # previous carry state
+            z1 = np.dot(cell_inputs, kernel)
+            z2 = np.dot(h_tm1, recurrent_kernel)
+            z = z1+z2
+            z = np.add(z, bias)  # -----> q_z
+            z0, z1, z2, z3 = split_array(z, 4)
+            i = nnom_sigmoid(z0) # q0.7
+            f = nnom_sigmoid(z1) # q0.7
+            c1 = f*c_tm1
+            c2 = i*nnom_tanh(z2) # q0.7
+            c = c1 + c2          # -----> q_c
+            o = nnom_sigmoid(z3) # q0.7
+            h = o * nnom_tanh(c) # q0.7
+            return h, [h, c], z
+        h_array = []
+        c_array = []
+        z_array = []
+        for feature in features:
+            if(not layer.stateful):
+                state = [np.zeros(cfg['units']), np.zeros(cfg['units']) ]
+            for fe in feature:
+                output, state, z = lstm_cell_step(fe, state, kernel, recurrent_kernel, bias)
+                h_array.append(output)
+                c_array.append(state[1])
+                z_array.append(z)
+        h_array = np.array(h_array)
+        c_array = np.array(c_array)
+        z_array = np.array(z_array)
+        # q_h = find_dec_bits_kld(h_array)
+        # q_c = find_dec_bits_kld(c_array)
+        # q_z = find_dec_bits_kld(z_array)
+        q_h = find_dec_bits_max_min(h_array)
+        q_c = find_dec_bits_max_min(c_array)
+        q_z = find_dec_bits_max_min(z_array)
+        return [q_h, q_c, q_z]
 
     return []
 
@@ -511,15 +567,15 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 layer_input_dec = layer_q_list[inp][0]
                 layer_output_dec = layer_q_list[layer.name][0]
-                if (type(layer.cell) is SimpleRNNCell):
-                    if ("kernel" in var_name and 'recurrent' not in var_name):
-                        weight_dec_shift = dec_bits
-                    elif ('bias' in var_name):
-                        bias_shift = layer_input_dec + weight_dec_shift - dec_bits
-                        layer_output_shift = layer_input_dec + weight_dec_shift - layer_output_dec
-                        if (bias_shift < 0):
-                            dec_bits = weight_dec_shift
-                            bias_shift = 0
+                #if (type(layer.cell) is SimpleRNNCell ):
+                if ("kernel" in var_name and 'recurrent' not in var_name):
+                    weight_dec_shift = dec_bits
+                elif ('bias' in var_name):
+                    bias_shift = layer_input_dec + weight_dec_shift - dec_bits
+                    layer_output_shift = layer_input_dec + weight_dec_shift - layer_output_dec
+                    if (bias_shift < 0):
+                        dec_bits = weight_dec_shift
+                        bias_shift = 0
 
             # now quantise them
             if(type(layer) in [Conv2D, Conv1D, DepthwiseConv2D, Conv2DTranspose]):
@@ -699,14 +755,17 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 fp.write(gen_lambda_config(layer))
             elif (type(layer) in [UpSampling2D, UpSampling1D]):
                 fp.write(gen_upsampling_config(layer))
-            elif(type(layer) in [RNN, SimpleRNN, GRU, LSTM]):
+            elif(type(layer) in [RNN, SimpleRNN, GRU, LSTM] or 'gru' in layer.name or 'lstm' in layer.name):
                 if(type(layer.cell) is SimpleRNNCell):
                     for w in layer.weights:
                         gen_weight_tensor(w, per_axis=False)
                     fp.write(gen_simple_cell_config(layer, layer_q_list['intermediate_'+layer.name]))
-                elif(type(layer.cell) is GRUCell):
+                elif(type(layer.cell) is GRUCell or 'gru' in layer.cell.name):
                     pass
-                elif(type(layer.cell) is LSTMCell):
+                elif(type(layer.cell) is LSTMCell or 'lstm' in layer.cell.name):
+                    for w in layer.weights:
+                        gen_weight_tensor(w, per_axis=False)
+                    fp.write(gen_lstm_cell_config(layer, layer_q_list['intermediate_'+layer.name]))
                     pass
                 fp.write(gen_rnn_config(layer))
 
@@ -859,7 +918,8 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                     line = line.replace('<rnn_cell>', 'simple_cell_s(&%s_simple_cell_config)' %(layer.name))
                 elif (type(layer.cell) is GRUCell or 'gru' in layer.cell.name):
                     pass
-                elif (type(layer.cell) is LSTMCell or 'gru' in layer.cell.name):
+                elif (type(layer.cell) is LSTMCell or 'lstm' in layer.cell.name):
+                    line = line.replace('<rnn_cell>', 'lstm_cell_s(&%s_lstm_cell_config)' % (layer.name))
                     pass
                 fp.write(line)
             else:

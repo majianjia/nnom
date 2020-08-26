@@ -401,8 +401,6 @@ const nnom_simple_cell_config_t <layer_name>_simple_cell_config = {
     .weights = (nnom_tensor_t*)&<weights>,
     .recurrent_weights = (nnom_tensor_t*)&<recurrent_weights>,
     .bias = (nnom_tensor_t*)&<bias>,
-    .oshift_iw = <oshift_iw>,
-    .oshift_hw = <oshift_hw>,
     .q_dec_iw = <q_dec_iw>,
     .q_dec_hw = <q_dec_hw>,
     .q_dec_h = <q_dec_h>,
@@ -419,12 +417,39 @@ const nnom_simple_cell_config_t <layer_name>_simple_cell_config = {
     c = c.replace('<weights>', convert_tensor_name(layer.weights[0]))
     c = c.replace('<recurrent_weights>', convert_tensor_name(layer.weights[1]))
     c = c.replace('<bias>', convert_tensor_name(layer.weights[2]))
-    c = c.replace('<oshift_iw>', '0')
-    c = c.replace('<oshift_hw>', '0')
     c = c.replace('<q_dec_iw>', str(q_list[1])) # the qfmt of input x weight
     c = c.replace('<q_dec_hw>', str(q_list[2])) # q of hidden x recurrent weight
-    c = c.replace('<q_dec_h>', str(q_list[0])) # output, should be 7
+    c = c.replace('<q_dec_h>', str(q_list[0])) # output, if act != relu, should be 7 (consider delete it.)
     c = c.replace('<act_type>', 'ACT_' + cell_cfg['activation'].upper())
+    c = c.replace('<units>', str(cell_cfg['units']))
+    return c
+
+
+def gen_lstm_cell_config(layer, q_list):
+    c = '''
+const nnom_lstm_cell_config_t <layer_name>_lstm_cell_config = {
+    .super = <base_config>,
+    .weights = (nnom_tensor_t*)&<weights>,
+    .recurrent_weights = (nnom_tensor_t*)&<recurrent_weights>,
+    .bias = (nnom_tensor_t*)&<bias>,
+    .q_dec_z = <q_dec_z>,
+    .q_dec_h = <q_dec_h>,
+    .q_dec_c = <q_dec_c>,
+    .units = <units>
+};
+'''
+    try:
+        cell_cfg = layer.get_config()['cell']['config']
+    except:
+        cell_cfg = layer.get_config()
+    c = c.replace('<layer_name>', layer.name)
+    c = c.replace('<base_config>', gen_base_config(layer))
+    c = c.replace('<weights>', convert_tensor_name(layer.weights[0]))
+    c = c.replace('<recurrent_weights>', convert_tensor_name(layer.weights[1]))
+    c = c.replace('<bias>', convert_tensor_name(layer.weights[2]))
+    c = c.replace('<q_dec_h>', str(q_list[0])) # output and memory state, (should be q0.7. consider delete it)
+    c = c.replace('<q_dec_c>', str(q_list[1])) # cell state
+    c = c.replace('<q_dec_z>', str(q_list[2])) # input*weight + hidden*weight + bias
     c = c.replace('<units>', str(cell_cfg['units']))
     return c
 
@@ -434,7 +459,7 @@ if __name__ == "__main__":
     model = load_model("../model.h5")
     print(gen_tensor(model.layers[1].weights[0], dec_bits=(1, 2, 3, 4, 5)))
     print(gen_tensor(model.layers[1].weights[1], dec_bits=(1, 2, 3, 4, 5)))
-    print(gen_conv2d_config(model.layers[1], (1,2,3)))
+    print(gen_conv2d_config(model.layers[1], (1,2,3), 3))
 
     with open("test.h", 'w') as fp:
         # fp.write(gen_tensor(model.layers[1].weights[0], dec_bits=(1, 2, 3, 4, 5)))
@@ -448,11 +473,11 @@ if __name__ == "__main__":
             if(type(layer) in [Conv2D, Conv1D]):
                 for w in layer.weights:
                     fp.write(gen_tensor(w, [3]))
-                fp.write(gen_conv2d_config(layer, {0}))
+                fp.write(gen_conv2d_config(layer, {0}, 2))
             elif(type(layer) in [Dense]):
                 for w in layer.weights:
                     fp.write(gen_tensor(w, [3]))
-                fp.write(gen_dense_config(layer))
+                fp.write(gen_dense_config(layer, 2, 2))
             elif(type(layer) in [Input]):
                 fp.write(gen_io_config(layer, [9,1,1]))
             elif(type(layer) in [MaxPooling2D, GlobalMaxPooling2D, AveragePooling2D, GlobalAveragePooling2D]):
