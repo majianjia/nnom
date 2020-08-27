@@ -312,7 +312,6 @@ def quantize_rnn_intermediate_output(layer, features):
             output = h + h2
             output = activation(output)
             return output, h, h2
-
         output_arrary = []
         h_array = []
         h2_array = []
@@ -349,9 +348,9 @@ def quantize_rnn_intermediate_output(layer, features):
             h_tm1 = cell_states[0]  # previous memory state
             c_tm1 = cell_states[1]  # previous carry state
             z1 = np.dot(cell_inputs, kernel)
+            z1 = np.add(z1, bias)
             z2 = np.dot(h_tm1, recurrent_kernel)
-            z = z1+z2
-            z = np.add(z, bias)  # -----> q_z
+            z = z1+z2               # -----> q_z
             z0, z1, z2, z3 = split_array(z, 4)
             i = nnom_sigmoid(z0) # q0.7
             f = nnom_sigmoid(z1) # q0.7
@@ -359,28 +358,51 @@ def quantize_rnn_intermediate_output(layer, features):
             c2 = i*nnom_tanh(z2) # q0.7
             c = c1 + c2          # -----> q_c
             o = nnom_sigmoid(z3) # q0.7
-            h = o * nnom_tanh(c) # q0.7
-            return h, [h, c], z
+            tc = nnom_tanh(c)
+            h = o * tc # q0.7
+            return h, [h, c], z ,z0, z1, z2, z3
         h_array = []
         c_array = []
         z_array = []
+        z0_array = []
+        z1_array = []
+        z2_array = []
+        z3_array = []
         for feature in features:
             if(not layer.stateful):
                 state = [np.zeros(cfg['units']), np.zeros(cfg['units']) ]
             for fe in feature:
-                output, state, z = lstm_cell_step(fe, state, kernel, recurrent_kernel, bias)
+                fe = np.zeros(32)
+                fe.fill(2)
+                output, state, z, z0, z1, z2, z3 = lstm_cell_step(fe, state, kernel, recurrent_kernel, bias)
                 h_array.append(output)
                 c_array.append(state[1])
                 z_array.append(z)
+                z0_array.append(z0)
+                z1_array.append(z1)
+                z2_array.append(z2)
+                z3_array.append(z3)
         h_array = np.array(h_array)
         c_array = np.array(c_array)
         z_array = np.array(z_array)
+        z0_array = np.array(z0_array)
+        z1_array = np.array(z1_array)
+        z2_array = np.array(z2_array)
+        z3_array = np.array(z3_array)
         # q_h = find_dec_bits_kld(h_array)
         # q_c = find_dec_bits_kld(c_array)
         # q_z = find_dec_bits_kld(z_array)
+        # q_z0 = find_dec_bits_kld(z0_array)
+        # q_z1 = find_dec_bits_kld(z1_array)
+        # q_z2 = find_dec_bits_kld(z2_array)
+        # q_z3 = find_dec_bits_kld(z3_array)
         q_h = find_dec_bits_max_min(h_array)
         q_c = find_dec_bits_max_min(c_array)
         q_z = find_dec_bits_max_min(z_array)
+        q_z0 = find_dec_bits_max_min(z0_array)
+        q_z1 = find_dec_bits_max_min(z1_array)
+        q_z2 = find_dec_bits_max_min(z2_array)
+        q_z3 = find_dec_bits_max_min(z3_array)
         return [q_h, q_c, q_z]
 
     return []
@@ -567,12 +589,12 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
                 inp = layer.input.name.replace(':','/').split('/')[0]
                 layer_input_dec = layer_q_list[inp][0]
                 layer_output_dec = layer_q_list[layer.name][0]
-                #if (type(layer.cell) is SimpleRNNCell ):
+                #if (type(layer.cell) is SimpleRNNCell):
                 if ("kernel" in var_name and 'recurrent' not in var_name):
                     weight_dec_shift = dec_bits
                 elif ('bias' in var_name):
                     bias_shift = layer_input_dec + weight_dec_shift - dec_bits
-                    layer_output_shift = layer_input_dec + weight_dec_shift - layer_output_dec
+                    layer_output_shift = layer_input_dec + weight_dec_shift - layer_output_dec # this is not valid
                     if (bias_shift < 0):
                         dec_bits = weight_dec_shift
                         bias_shift = 0
@@ -590,7 +612,7 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
 
             # CHW format
             if ('chw' in format):
-                if ("dense" in var_name or "rnn" in var_name) and "kernel" in var_name:
+                if ("dense" in var_name or is_rnn_layer(layer)) and "kernel" in var_name:
                     transposed_wts = np.transpose(var_values)
                     transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts, (transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
                 # all other kernels, bias stay the same
@@ -607,7 +629,7 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
                         transposed_wts = np.transpose(var_values, (3, 0, 1, 2))
                 else:  # fully connected layer weights or biases of any layer
                     # test, use opt weight reorder
-                    if ("dense" in var_name or "rnn" in var_name) and "kernel" in var_name:
+                    if ("dense" in var_name or is_rnn_layer(layer)) and "kernel" in var_name:
                         transposed_wts = np.transpose(var_values)
                         transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
                     else:

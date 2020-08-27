@@ -76,7 +76,7 @@ nnom_status_t lstm_cell_build(nnom_rnn_cell_t* cell)
 	// due to the addition of them, they must have same q format.
     // that is -> c->q_dec_z; 
 
-	// for the 2 dot in cell: output shift = input_dec + weight_dec - output_dec
+	// for the dots in cell: output shift = input_dec + weight_dec - output_dec
 	c->oshift_hw = c->q_dec_h + c->recurrent_weights->q_dec[0] - c->q_dec_z; 
 	c->oshift_iw = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - c->q_dec_z; 
 	
@@ -121,12 +121,30 @@ nnom_status_t lstm_cell_build(nnom_rnn_cell_t* cell)
     return h, [h, c]
 */
 
+static void print_variable(q7_t* data,char*name, int dec_bit, int size)
+{
+//	printf("\n");
+//	printf("%s\n", name);
+//	for(int i = 0; i < size; i++)
+//	{
+//		if(i%8==0)
+//			printf("\n");
+//		printf("%f\t", (float) data[i] / (1 << dec_bit));
+
+//	}
+//	printf("\n");
+}
+
+
 nnom_status_t lstm_cell_run(nnom_rnn_cell_t* cell)
 {
 	nnom_layer_t *layer = cell->layer;
 	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t *) layer;
 	nnom_lstm_cell_t* c = (nnom_lstm_cell_t*) cell;
     int act_int_bit = 7 - c->q_dec_z;
+	
+			// test
+			memset(cell->in_data, 16, cell->feature_size); 
 
     // state buffer
     // low |-- hidden --|-- carry --| high
@@ -144,15 +162,19 @@ nnom_status_t lstm_cell_run(nnom_rnn_cell_t* cell)
     buf1 = (q7_t*)layer->comp->mem->blk + cell->units*4;
     buf2 = (q7_t*)layer->comp->mem->blk + cell->units*8;
 
-    // z = K.dot(h_tm1, recurrent_kernel)  -> buf1
-    local_dot_q7_opt(h_tm1, c->recurrent_weights->p_data, cell->units, cell->units*4, c->oshift_hw, buf1);
-
     // z1 = K.dot(cell_inputs, kernel) + bias -> buf2
     local_fully_connected_q7_opt(cell->in_data, c->weights->p_data, 
-            cell->feature_size, cell->units*4, c->bias_shift, c->oshift_iw, c->bias->p_data, buf2, NULL);
+            cell->feature_size, cell->units*4, c->bias_shift, c->oshift_iw, c->bias->p_data, buf1, NULL);
 
-    // z += z1  -> buf0
+    // z2 = K.dot(h_tm1, recurrent_kernel)  -> buf1
+    local_dot_q7_opt(h_tm1, c->recurrent_weights->p_data, cell->units, cell->units*4, c->oshift_hw, buf2);
+
+    // z = z1 + z2  -> buf0
     local_add_q7(buf1, buf2, buf0, 0, cell->units*4);
+	
+		print_variable(buf0, "z", c->q_dec_z, cell->units*4);
+		print_variable(buf1, "z1", c->q_dec_z, cell->units*4);
+		print_variable(buf2, "z2", c->q_dec_z, cell->units*4);
 
     // split the data to each gate
     z[0] = buf0;
@@ -166,25 +188,42 @@ nnom_status_t lstm_cell_run(nnom_rnn_cell_t* cell)
     local_sigmoid_q7(z[1], cell->units, act_int_bit);
     // o = nn.sigmoid(z3)
     local_sigmoid_q7(z[3], cell->units, act_int_bit);
+	
+		print_variable(z[0], "z[0] - i", 7, cell->units);
+		print_variable(z[1], "z[1] - f", 7, cell->units);
+		print_variable(z[3], "z[3] - o", 7, cell->units);
 
     /* c = f * c_tm1 + i * nn.tanh(z2) for the step 1-3. */
     // 1. i * tanh(z2) -> buf1
     local_tanh_q7(z[2], cell->units, act_int_bit);
+	
+		print_variable(z[2], "z[2] - ?", 7, cell->units);
+	
     local_mult_q7(z[0], z[2], buf1, 14 - c->q_dec_c, cell->units); //q0.7 * q0.7 >> (shift) = q_c // i am not very sure
+
+			print_variable(buf1, "c2: i * tanh(z2) ", c->q_dec_c, cell->units);
 
     // 2. f * c_tm1 -> o_state[0] 
     local_mult_q7(z[1], c_tm1, o_state[0], c->oshift_zc, cell->units);
+	
+			print_variable(o_state[0], "c1: f * c_tm1", c->q_dec_c, cell->units);
 
     // 3. c = i*tanh + f*c_tm1 -> o_state[1]   ** fill the upper state (carry)
     local_add_q7(buf1, o_state[0], o_state[1], 0, cell->units);
+	
+			print_variable(o_state[1], "c = c1+c2", c->q_dec_c, cell->units);
 
     /* h = o * nn.tanh(c) -> o_state[0] for the step 1-2 */
     // 1. tanh(c) -> output_buf  --- first copy then activate. 
     memcpy(cell->out_data, o_state[1], cell->units);
     local_tanh_q7(cell->out_data, cell->units, 7 - c->q_dec_c); 
+	
+			print_variable(cell->out_data, "tanh(c)", 7, cell->units);
 
     // 2. h = o*tanh(c) -> o_state[0]    ** fill the lower state (memory, hidden)
     local_mult_q7(z[3], cell->out_data, o_state[0], 7, cell->units);
+	
+			print_variable(o_state[0], "h = o*tanh(c)", 7, cell->units);
 
     // h -> output_buf ** (copy hidden to output)
     memcpy(cell->out_data, o_state[0], cell->units);
