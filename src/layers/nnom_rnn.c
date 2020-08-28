@@ -140,11 +140,16 @@ nnom_status_t rnn_run(nnom_layer_t* layer)
 	// reset state buffer if not in stateful
 	if (!cl->stateful)
 		memset(cl->state_buf, 0, state_size * 2);
-	
-//	for(int i=0; i< state_size; i++)
-//	{
-//		((q15_t*)cl->state_buf)[i] = 8*256; // 1qbit 3=8
-//	}
+
+//	//test for LSTM fill known input
+//	for(int i=0; i< state_size/4; i++)
+//		((q15_t*)cl->state_buf)[i] = 32767; // q7*8
+//	for(int i=state_size/4; i< state_size/2; i++)
+//		((q15_t*)cl->state_buf)[i] = 8*256; // q3*=8
+//	for(int i=state_size/2; i< state_size*3/4; i++)
+//		((q15_t*)cl->state_buf)[i] = 32767; // q7*8
+//	for(int i=state_size*3/4; i< state_size; i++)
+//		((q15_t*)cl->state_buf)[i] = 8*256; // q3*=8
 
 	// set output data
 	output_growth = cl->return_sequence ? output_size : 0;

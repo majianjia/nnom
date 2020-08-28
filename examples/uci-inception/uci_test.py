@@ -124,7 +124,9 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     #x = SimpleRNN(16, return_sequences=True)(x)
     # x = SimpleRNN(16, return_sequences=True)(x)
 
-    #x = RNN(LSTMCell(16), return_sequences=True)(x)
+    x = RNN(LSTMCell(16), return_sequences=True)(x)
+    x = LSTM(12, return_sequences=True)(x)
+    x = LSTM(9, return_sequences=True)(x)
     x = LSTM(8, return_sequences=True)(x)
 
     # x = RNN(GRUCell(16), return_sequences=True)(x)
@@ -239,7 +241,7 @@ if __name__ == "__main__":
     generate_test_bin(x_train_bin, y_train, name='uci_train_data.bin')
 
     # train model
-    #history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
+    history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
 
     # get best model
     model = load_model(model_name)

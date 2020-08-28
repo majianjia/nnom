@@ -34,8 +34,8 @@ nnom_rnn_cell_t *lstm_cell_s(const nnom_lstm_cell_config_t* config)
 	if (cell == NULL)
 		return NULL;
 	// set methods
-	// cell->super.run = lstm_cell_q7_run;
-	// cell->super.build = lstm_cell_q7_build;
+//	cell->super.run = lstm_cell_q7_run;
+//	cell->super.build = lstm_cell_q7_build;
 	cell->super.run = lstm_cell_q7_q15_run;
 	cell->super.build = lstm_cell_q7_q15_build;
 	cell->super.free = lstm_cell_free;
@@ -124,7 +124,7 @@ nnom_status_t lstm_cell_q7_build(nnom_rnn_cell_t* cell)
 */
 
 static void print_variable(q7_t* data,char*name, int dec_bit, int size)
-//{
+{
 //	printf("\n");
 //	printf("%s\n", name);
 //	for(int i = 0; i < size; i++)
@@ -132,10 +132,23 @@ static void print_variable(q7_t* data,char*name, int dec_bit, int size)
 //		if(i%8==0)
 //			printf("\n");
 //		printf("%f\t", (float) data[i] / (1 << dec_bit));
-
 //	}
 //	printf("\n");
 }
+
+static void print_variable_q15(q15_t *data,char*name, int dec_bit, int size)
+{
+//	printf("\n\n");
+//	printf("%s", name);
+//	for(int i = 0; i < size; i++)
+//	{
+//		if(i%8==0)
+//			printf("\n");
+//		printf("%f\t", (float) data[i] / (1 << dec_bit));
+//	}
+//	printf("\n");
+}
+
 
 // experimental: Q7 intermediate are barely working. with massive accuracy drop (20~30%). 
 nnom_status_t lstm_cell_q7_run(nnom_rnn_cell_t* cell)
@@ -255,10 +268,8 @@ nnom_status_t lstm_cell_q7_q15_build(nnom_rnn_cell_t* cell)
     // that is -> c->q_dec_z; 
 
 	// for the dots in cell: output shift = input_dec + weight_dec - output_dec
-	c->oshift_hw = c->q_dec_h + c->recurrent_weights->q_dec[0] - c->q_dec_z - c->q_dec_z; // no idea why twice 
+	c->oshift_hw = c->q_dec_h + c->recurrent_weights->q_dec[0] - c->q_dec_z;
 	c->oshift_iw = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - c->q_dec_z; 
-	
-	c->oshift_zc = c->q_dec_z + c->q_dec_c - c->q_dec_c; // this is not correct and it is not needed
 
 	// bias shift =  bias_dec - out_dec
 	c->bias_shift = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - c->bias->q_dec[0];
@@ -277,18 +288,6 @@ nnom_status_t lstm_cell_q7_q15_build(nnom_rnn_cell_t* cell)
 }
 
 
-static void print_variable_q15(q15_t *data,char*name, int dec_bit, int size)
-{
-//	printf("\n\n");
-//	printf("%s", name);
-//	for(int i = 0; i < size; i++)
-//	{
-//		if(i%8==0)
-//			printf("\n");
-//		printf("%f\t", (float) data[i] / (1 << dec_bit));
-//	}
-//	printf("\n");
-}
 
 
 // Q7 input output 
@@ -325,12 +324,12 @@ nnom_status_t lstm_cell_q7_q15_run(nnom_rnn_cell_t* cell)
     //local_q7_to_q15_no_shift(cell->in_data, in_q15_buf, cell->feature_size);
     local_q7_to_q15(cell->in_data, in_q15_buf, cell->feature_size);
 			print_variable_q15(in_q15_buf, "input", layer->in->tensor->q_dec[0] + 8, cell->feature_size);
-			print_variable_q15(h_tm1, "h_tml", c->q_dec_c + 8, cell->state_size/2);
-			print_variable_q15(c_tm1, "c_tml", c->q_dec_c + 8, cell->state_size/2);
+			print_variable_q15(h_tm1, "h_tml", 15, cell->units);
+			print_variable_q15(c_tm1, "c_tml", c->q_dec_c + 8, cell->units);
 
     // z1 = K.dot(cell_inputs, kernel) + bias -> buf1
     local_fully_connected_mat_q7_vec_q15(in_q15_buf, c->weights->p_data, 
-            cell->feature_size, cell->units*4, c->bias_shift+8, c->oshift_iw, c->bias->p_data, buf1, NULL);
+            cell->feature_size, cell->units*4, c->bias_shift + 8, c->oshift_iw, c->bias->p_data, buf1, NULL);
 
     // z2 = K.dot(h_tm1, recurrent_kernel)  -> buf2
     local_fully_connected_mat_q7_vec_q15(h_tm1, c->recurrent_weights->p_data, 

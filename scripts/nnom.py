@@ -171,6 +171,15 @@ def is_shift_fixed(layer):
         return True
     return  False
 
+def is_lstm_layer(layer):
+    if type(layer) is LSTM or 'lstm' in layer.name:
+        return True
+    if(type(layer) is RNN or 'rnn' in layer.name):
+        if(type(layer.cell) is GRUCell or 'lstm' in layer.cell.name):
+            return True
+    return False
+
+
 def is_rnn_layer(layer):
     if( 'rnn' in layer.name or
         'gru' in layer.name or
@@ -344,7 +353,6 @@ def quantize_rnn_intermediate_output(layer, features):
         bias = layer.get_weights()[2]
 
         def lstm_cell_step(cell_inputs, cell_states, kernel, recurrent_kernel, bias):
-            """Step function that will be used by Keras RNN backend."""
             h_tm1 = cell_states[0]  # previous memory state
             c_tm1 = cell_states[1]  # previous carry state
             z1 = np.dot(cell_inputs, kernel)
@@ -370,11 +378,11 @@ def quantize_rnn_intermediate_output(layer, features):
         z3_array = []
         for feature in features:
             if(not layer.stateful):
-            #     state = [np.ones(cfg['units']), np.ones(cfg['units']) ]
+            #     state = [np.ones(cfg['units']), np.ones(cfg['units']) ]  # for test
             # for fe in feature:
             #     fe = np.zeros(32)
             #     fe.fill(2)
-                state = [np.zero(cfg['units']), np.zero(cfg['units']) ]
+                state = [np.zeros(cfg['units']), np.zeros(cfg['units']) ]
             for fe in feature:
                 output, state, z, z0, z1, z2, z3 = lstm_cell_step(fe, state, kernel, recurrent_kernel, bias)
                 h_array.append(output)
@@ -401,7 +409,7 @@ def quantize_rnn_intermediate_output(layer, features):
         q_h = find_dec_bits_max_min(h_array)
         q_c = find_dec_bits_max_min(c_array)
         q_z = find_dec_bits_max_min(z_array)
-        q_z0 = find_dec_bits_max_min(z0_array)
+        q_z0 = find_dec_bits_max_min(z0_array)      # not needed.
         q_z1 = find_dec_bits_max_min(z1_array)
         q_z2 = find_dec_bits_max_min(z2_array)
         q_z3 = find_dec_bits_max_min(z3_array)
@@ -413,7 +421,6 @@ def quantize_rnn_intermediate_output(layer, features):
         kernel = layer.get_weights()[0]
         recurrent_kernel = layer.get_weights()[1]
         bias = layer.get_weights()[2]
-
 
 
         return [0,0,0]
@@ -624,7 +631,12 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
 
             # CHW format
             if ('chw' in format):
-                if ("dense" in var_name or is_rnn_layer(layer)) and "kernel" in var_name:
+                if (is_lstm_layer(layer)):   # currently we use 16 bit intermediate
+                    transposed_wts = np.transpose(var_values)
+                    # if('kernel' in var_name):
+                    #     transposed_wts = convert_q7_q15_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
+                # dense and rnn still working under HWC format
+                elif ("dense" in var_name or is_rnn_layer(layer)) and "kernel" in var_name:
                     transposed_wts = np.transpose(var_values)
                     transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts, (transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
                 # all other kernels, bias stay the same
@@ -639,17 +651,15 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
                         transposed_wts = np.transpose(var_values, (2, 0, 1, 3))
                     else:
                         transposed_wts = np.transpose(var_values, (3, 0, 1, 2))
+                elif(is_lstm_layer(layer)):   # currently we use 16 bit intermediate
+                    transposed_wts = np.transpose(var_values)
+                    # if('kernel' in var_name): # not working yet
+                    #     transposed_wts = convert_q7_q15_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
                 else:  # fully connected layer weights or biases of any layer
-                    # test, do not reorder lstm
-                    if('lstm' in layer.name):
-                        transposed_wts = np.transpose(var_values)
-                    else:
-                        # test, use opt weight reorder
-                        if ("dense" in var_name or is_rnn_layer(layer)) and "kernel" in var_name:
-                            transposed_wts = np.transpose(var_values)
-                            transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
-                        else:
-                            transposed_wts = np.transpose(var_values)
+                    # test, use opt weight reorder
+                    transposed_wts = np.transpose(var_values)
+                    if ("dense" in var_name or is_rnn_layer(layer)) and "kernel" in var_name: # and other RNN layers
+                        transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
 
             print("  reshape to:",transposed_wts.shape)
             with open(name, 'a') as f:
