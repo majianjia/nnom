@@ -124,13 +124,15 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     #x = SimpleRNN(16, return_sequences=True)(x)
     # x = SimpleRNN(16, return_sequences=True)(x)
 
-    x = RNN(LSTMCell(16), return_sequences=True)(x)
-    x = LSTM(12, return_sequences=True)(x)
-    x = LSTM(9, return_sequences=True)(x)
-    x = LSTM(8, return_sequences=True)(x)
+    # x = RNN(LSTMCell(16), return_sequences=True)(x)
+    # x = LSTM(12, return_sequences=True)(x)
+    #x = LSTM(12, return_sequences=True)(x)
+    #x = LSTM(32)(x)
 
-    # x = RNN(GRUCell(16), return_sequences=True)(x)
-    # x = GRU(8, return_sequences=True)(x)
+    x = RNN(GRUCell(16), return_sequences=True)(x)
+    x = GRU(8, return_sequences=True)(x)
+    x = RNN(GRUCell(16), return_sequences=True)(x)
+    x = GRU(32)(x)
 
 
     # our netowrk is not that deep, so a hidden fully connected layer is introduce
@@ -156,8 +158,6 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     del model
     tf.keras.backend.clear_session()
     return history
-
-
 
 if __name__ == "__main__":
     ## cpu normally run fast in 1-D data

@@ -63,6 +63,7 @@ typedef struct _nnom_rnn_layer_t
 	nnom_rnn_cell_t *cell;
 	void *state_buf;		// memory allocated to store state, size = 2 x size of state required by cell. 
 
+	uint16_t timestamp_size;// size of timestamp
 	bool return_sequence; 	// whether to return the output for each unit (sequence)
 	bool stateful;			// whether the states are kept after one inteference
 } nnom_rnn_layer_t;

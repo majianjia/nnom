@@ -87,13 +87,16 @@ nnom_status_t rnn_build(nnom_layer_t* layer)
 
 	// get the tensor from last layer's output
 	layer->in->tensor = layer->in->hook.io->tensor;
+	
+	// timestamp size
+	cl->timestamp_size = layer->in->tensor->num_dim > 2 ? layer->in->tensor->dim[1] : layer->in->tensor->dim[0];
 
 	if(cl->return_sequence)
 	{
 		// create new tensor for the output
 		layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, 2, 0);
 		// shape: timestamp, units
-		layer->out->tensor->dim[0] = layer->in->tensor->num_dim > 2 ? layer->in->tensor->dim[1] : layer->in->tensor->dim[0];
+		layer->out->tensor->dim[0] = cl->timestamp_size;
 		layer->out->tensor->dim[1] = cl->cell->units;
 	}
 	else
@@ -120,7 +123,7 @@ nnom_status_t rnn_build(nnom_layer_t* layer)
 		return NN_NO_MEMORY;
 	
 	// get the computational cost provided by Cell
-	layer->stat.macc = cl->cell->macc;
+	layer->stat.macc = cl->cell->macc * cl->timestamp_size;
 	return NN_SUCCESS;
 }
 
@@ -140,16 +143,6 @@ nnom_status_t rnn_run(nnom_layer_t* layer)
 	// reset state buffer if not in stateful
 	if (!cl->stateful)
 		memset(cl->state_buf, 0, state_size * 2);
-
-//	//test for LSTM fill known input
-//	for(int i=0; i< state_size/4; i++)
-//		((q15_t*)cl->state_buf)[i] = 32767; // q7*8
-//	for(int i=state_size/4; i< state_size/2; i++)
-//		((q15_t*)cl->state_buf)[i] = 8*256; // q3*=8
-//	for(int i=state_size/2; i< state_size*3/4; i++)
-//		((q15_t*)cl->state_buf)[i] = 32767; // q7*8
-//	for(int i=state_size*3/4; i< state_size; i++)
-//		((q15_t*)cl->state_buf)[i] = 8*256; // q3*=8
 
 	// set output data
 	output_growth = cl->return_sequence ? output_size : 0;

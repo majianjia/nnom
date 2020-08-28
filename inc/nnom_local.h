@@ -506,8 +506,12 @@ void local_sub_q15(q15_t * pSrcA, q15_t * pSrcB, q15_t * pDst, const uint16_t ou
 // Convert Q7 to Q15
 void local_q7_to_q15_no_shift(const q7_t *src, q15_t *des, uint32_t size);
 void local_q7_to_q15(const q7_t *src, q15_t *des, uint32_t size);
+
 // q15 shift to q7
-void local_q15_to_q7(const q15_t *src, q7_t *des, uint32_t size, uint32_t shift);
+void local_q15_to_q7(const q15_t *src, q7_t *des,  uint32_t shift, uint32_t size);
+
+// y = 1 - x
+void local_1_minor_z_q15(q15_t *src, q15_t *des, uint16_t dec_bit, uint32_t size);
 
 
 // Below tables credit to CMSIS

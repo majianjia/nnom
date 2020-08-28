@@ -26,7 +26,7 @@ typedef struct _nnom_gru_cell_config_t
 	nnom_tensor_t *weights;
 	nnom_tensor_t* recurrent_weights;
 	nnom_tensor_t *bias;
-	nnom_qformat_param_t q_dec_z, q_dec_h, q_dec_r; // z, r, h
+	nnom_qformat_param_t q_dec_z, q_dec_h; // z, r, h
 	uint16_t units;
 } nnom_gru_cell_config_t;
 
@@ -41,8 +41,8 @@ typedef struct _nnom_gru_cell_t
 
     // decide later. 
     // z, r, h
-	nnom_qformat_param_t q_dec_z, q_dec_h, q_dec_r;
-	nnom_qformat_param_t oshift_iw, oshift_hw, oshift_zc, bias_shift;
+	nnom_qformat_param_t q_dec_z, q_dec_h;
+	nnom_qformat_param_t oshift_iw, oshift_hw, bias_shift;
 
 } nnom_gru_cell_t;
 

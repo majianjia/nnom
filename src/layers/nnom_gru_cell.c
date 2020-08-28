@@ -44,15 +44,9 @@ nnom_rnn_cell_t *gru_cell_s(const nnom_gru_cell_config_t* config)
 	cell->recurrent_weights = config->recurrent_weights;
 
     // q format for intermediate calculation
-    cell->q_dec_r = config->q_dec_r;
     cell->q_dec_h = config->q_dec_h;
     cell->q_dec_z = config->q_dec_z;
 
-	// // q format for intermediate products
-	// cell->q_dec_iw = config->q_dec_iw;
-	// cell->q_dec_hw = config->q_dec_hw;
-	// cell->q_dec_h = config->q_dec_h;
-	
 	return (nnom_rnn_cell_t *)cell;
 }
 
@@ -74,21 +68,22 @@ nnom_status_t gru_cell_build(nnom_rnn_cell_t* cell)
     // that is -> c->q_dec_z; 
 
 	// for the dots in cell: output shift = input_dec + weight_dec - output_dec
-	c->oshift_hw = c->q_dec_h + c->recurrent_weights->q_dec[0] - c->q_dec_z; 
+	c->oshift_hw = c->q_dec_h + c->recurrent_weights->q_dec[0] - c->q_dec_z;
 	c->oshift_iw = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - c->q_dec_z; 
-
+	
 	// bias shift =  bias_dec - out_dec
 	c->bias_shift = layer->in->tensor->q_dec[0] + c->weights->q_dec[0] - c->bias->q_dec[0];
 
 	// state size = one timestamp output size. 
-	cell->state_size = cell->units * 2;
+	cell->state_size = cell->units * 2; // Q15
 
-	// // comp buffer size: not required
-	cell->comp_buf_size = cell->units * 12; 
+	// comp buffer size: not required
+	cell->comp_buf_size = cell->units * (3*3) * 2 + cell->feature_size * 2; //q15 + input q7->q15 buffer.  
 
-	// // finally, calculate the MAC for info
-	cell->macc = tensor_size(layer->in->tensor) * cell->units *4 	  // input: (feature * timestamp) * state * 4 gates
-				+ cell->state_size * tensor_size(layer->out->tensor) *4;  // recurrent, state * (timestamp * output_unit) * 4 gate
+	// finally, calculate the MAC for info
+	cell->macc = cell->feature_size * cell->units *3 // input: (feature * timestamp) * state * 3 gates
+				+ cell->units * cell->units *8 // recurrent, state * (timestamp * output_unit) * (5 gate + 3 mult)
+				+ cell->units * (3 + 3 + 5);  // 3 gates, 3 mult, 5  addition
 
 	return NN_SUCCESS;
 }
@@ -121,110 +116,118 @@ nnom_status_t gru_cell_build(nnom_rnn_cell_t* cell)
     return h, [h]
 */
 
+
+// delete after testing completed
+static void print_variable_q15(q15_t *data,char*name, int dec_bit, int size)
+{
+//	printf("\n\n");
+//	printf("%s", name);
+//	for(int i = 0; i < size; i++)
+//	{
+//		if(i%8==0)
+//			printf("\n");
+//		printf("%f\t", (float) data[i] / (1 << dec_bit));
+//	}
+//	printf("\n");
+}
+
+
+
 //
 nnom_status_t gru_cell_run(nnom_rnn_cell_t* cell)
 {
 	nnom_layer_t *layer = cell->layer;
-	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t *) layer;
 	nnom_gru_cell_t* c = (nnom_gru_cell_t*) cell;
     int act_int_bit = 7 - c->q_dec_z;
-
+	// gate data    
+    q15_t* x_z, *x_r, *x_h;
+    q15_t* recurrent_z, *recurrent_r, *recurrent_h;
+	q15_t* temp[3];
 	
-	// 			// test
-	// 			//memset(cell->in_data, 32, cell->feature_size); 
+    	 		// test
+	 			//memset(cell->in_data, 5 * (1<<layer->in->tensor->q_dec[0]), cell->feature_size); 
 
-    // // state buffer
-    // // low |-- hidden --|-- carry --| high
-    // q7_t* h_tm1 = (q7_t*)cell->in_state;
-    // q7_t* c_tm1 = (q7_t*)cell->in_state + cell->state_size/2;
-    // q7_t* o_state[2];
-    // o_state[0] = (q7_t*)cell->out_state;
-    // o_state[1] = (q7_t*)cell->out_state + cell->state_size/2;
+    // bias
+    q7_t* bias = (q7_t*)c->bias->p_data;
+    q7_t* recurrent_bias = (q7_t*)c->bias->p_data + cell->units*3;
 
-    // // computing buffer
-    // // low |-- buf0 --|-- buf1 --|-- buf2 --|
-    // q7_t* z[4];
-    // q7_t *buf0, *buf1, *buf2;
-    // buf0 = (q7_t*)layer->comp->mem->blk;
-    // buf1 = (q7_t*)layer->comp->mem->blk + cell->units*4;
-    // buf2 = (q7_t*)layer->comp->mem->blk + cell->units*8;
+    // state buffer
+    q15_t* h_tm1 = (q15_t*)cell->in_state;
+    q15_t* h_t = (q15_t*)cell->out_state;
 
-    // // z1 = K.dot(cell_inputs, kernel) + bias -> buf2
-    // local_fully_connected_q7_opt(cell->in_data, c->weights->p_data, 
-    //         cell->feature_size, cell->units*4, c->bias_shift, c->oshift_iw, c->bias->p_data, buf1, NULL);
+    // computing buffer
+    // low |-- buf0 --|-- buf1 --|-- buf2 --|-- input_q15 --|
+    q15_t *buf[3];
+    buf[0] = (q15_t*)layer->comp->mem->blk;
+    buf[1] = (q15_t*)layer->comp->mem->blk + cell->units*3;
+    buf[2] = (q15_t*)layer->comp->mem->blk + cell->units*6;
+    q15_t *in_q15_buf = (q15_t*)layer->comp->mem->blk + cell->units*9;
 
-    // // z2 = K.dot(h_tm1, recurrent_kernel)  -> buf1
-    // local_dot_q7_opt(h_tm1, c->recurrent_weights->p_data, cell->units, cell->units*4, c->oshift_hw, buf2);
+    // input q7 cast to q15
+    local_q7_to_q15(cell->in_data, in_q15_buf, cell->feature_size);
 
-    // // z = z1 + z2  -> buf0
-    // local_add_q7(buf1, buf2, buf0, 0, cell->units*4);
-	
-	// 		print_variable(buf0, "z", c->q_dec_z, cell->units*4);
-	// 		print_variable(buf1, "z1", c->q_dec_z, cell->units*4);
-	// 		print_variable(buf2, "z2", c->q_dec_z, cell->units*4);
+    // matrix_x = K.dot(cell_inputs, kernel) + bias  --> buf0
+    local_fully_connected_mat_q7_vec_q15(in_q15_buf, c->weights->p_data, 
+            cell->feature_size, cell->units*3, c->bias_shift + 8, c->oshift_iw, bias, buf[0], NULL);
 
-    // // split the data to each gate
-    // z[0] = buf0;
-    // z[1] = buf0 + cell->units;
-    // z[2] = buf0 + cell->units*2;
-    // z[3] = buf0 + cell->units*3;
+    // matrix_intter = K.dot(h_tm1, recurrent_kernel) + bias -> buf1
+    local_fully_connected_mat_q7_vec_q15(h_tm1, c->recurrent_weights->p_data, 
+            cell->units, cell->units*3,  c->bias_shift + 8, c->oshift_hw, recurrent_bias, buf[1], NULL); 
+			
+			print_variable_q15(in_q15_buf, "input", layer->in->tensor->q_dec[0]+8, cell->feature_size);
+			print_variable_q15(buf[0], "matrix_x", c->q_dec_z+8, cell->units*3);
+			print_variable_q15(buf[1], "matrix_recurrent", 	c->q_dec_z+8, cell->units*3);
 
-    // // i = nn.sigmoid(z0)
-    // local_sigmoid_q7(z[0], cell->units, act_int_bit);
-    // // f = nn.sigmoid(z1)
-    // local_sigmoid_q7(z[1], cell->units, act_int_bit);
-    // // o = nn.sigmoid(z3)
-    // local_sigmoid_q7(z[3], cell->units, act_int_bit);
-	
-	// // i = nn.sigmoid(z0)
-    // local_hard_sigmoid_q7(z[0], cell->units, c->q_dec_z);
-    // // f = nn.sigmoid(z1)
-    // local_hard_sigmoid_q7(z[1], cell->units, c->q_dec_z);
-    // // o = nn.sigmoid(z3)
-    // local_hard_sigmoid_q7(z[3], cell->units, c->q_dec_z);
-	
-	// 		print_variable(z[0], "z[0] - i", 7, cell->units);
-	// 		print_variable(z[1], "z[1] - f", 7, cell->units);
-	// 		print_variable(z[3], "z[3] - o", 7, cell->units);
+	// split to each gate
+    x_z = buf[0];
+    x_r = buf[0] + cell->units;
+    x_h = buf[0] + cell->units*2;
+    recurrent_z = buf[1];
+    recurrent_r = buf[1] + cell->units;
+    recurrent_h = buf[1] + cell->units*2;
+	// buffers
+    temp[0] = buf[2];
+    temp[1] = buf[2] + cell->units;
+    temp[2] = buf[2] + cell->units*2;
 
-    // /* c = f * c_tm1 + i * nn.tanh(z2) for the step 1-3. */
-    // // 1. i * tanh(z2) -> buf1
-    // //local_tanh_q7(z[2], cell->units, act_int_bit);
-	
-	// local_hard_tanh_q7(z[2], cell->units, c->q_dec_z);
-	// 		print_variable(z[2], "z[2] - ?", 7, cell->units);
-	
-    // local_mult_q7(z[0], z[2], buf1, 14 - c->q_dec_c, cell->units); //q0.7 * q0.7 >> (shift) = q_c // i am not very sure
+    /* z = nn.sigmoid(x_z + recurrent_z) */
+    // 1.  z1 = x_z + recurrent_z    --->  temp[0]
+    local_add_q15(x_z, recurrent_z, temp[0], 0, cell->units);
+    // 2.  z = sigmoid(z1)
+    local_sigmoid_q15(temp[0], cell->units, act_int_bit);
+		print_variable_q15(temp[0], "z", 15, cell->units);
 
-	// 		print_variable(buf1, "c2: i * tanh(z2) ", c->q_dec_c, cell->units);
+    /* r = nn.sigmoid(x_r + recurrent_r) */
+    // 1.  r1 = x_r + recurrent_r    --->  temp[1]
+    local_add_q15(x_r, recurrent_r, temp[1], 0, cell->units);
+    // 2.  r = sigmoid(r1)
+    local_sigmoid_q15(temp[1], cell->units, act_int_bit);
+		print_variable_q15(temp[1], "r", 15, cell->units);
 
-    // // 2. f * c_tm1 -> o_state[0] 
-    // local_mult_q7(z[1], c_tm1, o_state[0], c->oshift_zc, cell->units);
-	
-	// 		print_variable(o_state[0], "c1: f * c_tm1", c->q_dec_c, cell->units);
+    /* hh = nn.tanh(x_h + r * recurrent_h) */
+    // 1.  hh1 = r * recurrent_h     ---> temp[2]
+    local_mult_q15(temp[1], recurrent_h, temp[2], 15, cell->units);
+    // 2.  hh2 = x_h + h1            ---> temp[1]
+    local_add_q15(x_h, temp[2], temp[1], 0, cell->units);
+    // 3.  hh = tanh(h2)           ---> temp[1]
+    local_tanh_q15(temp[1], cell->units, act_int_bit);
+		print_variable_q15(temp[1], "hh", 15, cell->units);
 
-    // // 3. c = i*tanh + f*c_tm1 -> o_state[1]   ** fill the upper state (carry)
-    // local_add_q7(buf1, o_state[0], o_state[1], 0, cell->units);
-	
-	// 		print_variable(o_state[1], "c = c1+c2", c->q_dec_c, cell->units);
+    /* h = z * h_tm1 + (1 - z) * hh  */
+    // 1. h1 = z*h_tm1   ---> temp[2]
+    local_mult_q15(temp[0], h_tm1, temp[2], 15, cell->units);
+		print_variable_q15( temp[2], "h1", 15, cell->units);
+    // 2. h2 = 1 - z            ---> h_t state buff
+    local_1_minor_z_q15(temp[0], h_t, 15, cell->units);
+		print_variable_q15( h_t, "h2", 15, cell->units);
+    // 3. h3 = h2 * hh          ---> temp[0]
+    local_mult_q15(h_t, temp[1],  temp[0], 15, cell->units);
+		print_variable_q15( temp[0], "h3", 15, cell->units);
+    // h = h1 + h3
+    local_add_q15(temp[2], temp[0], h_t, 0, cell->units);
+		print_variable_q15(h_t, "h", 15, cell->units);
 
-    // /* h = o * nn.tanh(c) -> o_state[0] for the step 1-2 */
-    // // 1. tanh(c) -> output_buf  --- first copy then activate. 
-    // memcpy(cell->out_data, o_state[1], cell->units);
-    // //
-	// //local_tanh_q7(cell->out_data, cell->units, 7 - c->q_dec_c); 
-	
-	// local_hard_tanh_q7(cell->out_data, cell->units, c->q_dec_c); 
-	
-	// 		print_variable(cell->out_data, "tanh(c)", 7, cell->units);
-
-    // // 2. h = o*tanh(c) -> o_state[0]    ** fill the lower state (memory, hidden)
-    // local_mult_q7(z[3], cell->out_data, o_state[0], 7, cell->units);
-	
-	// 		print_variable(o_state[0], "h = o*tanh(c)", 7, cell->units);
-
-    // // h -> output_buf ** (copy hidden to output)
-    // memcpy(cell->out_data, o_state[0], cell->units);
-
+    // finally, copy and convert state to output
+    local_q15_to_q7(h_t, cell->out_data, 8, cell->units);
 	return NN_SUCCESS;
 }

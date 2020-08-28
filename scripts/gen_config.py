@@ -463,7 +463,6 @@ const nnom_gru_cell_config_t <layer_name>_gru_cell_config = {
     .bias = (nnom_tensor_t*)&<bias>,
     .q_dec_z = <q_dec_z>,
     .q_dec_h = <q_dec_h>,
-    .q_dec_r = <q_dec_r>,
     .units = <units>
 };
 '''
@@ -477,8 +476,7 @@ const nnom_gru_cell_config_t <layer_name>_gru_cell_config = {
     c = c.replace('<recurrent_weights>', convert_tensor_name(layer.weights[1]))
     c = c.replace('<bias>', convert_tensor_name(layer.weights[2]))
     c = c.replace('<q_dec_h>', str(q_list[0])) #
-    c = c.replace('<q_dec_r>', str(q_list[1])) #
-    c = c.replace('<q_dec_z>', str(q_list[2])) #
+    c = c.replace('<q_dec_z>', str(q_list[1])) #
     c = c.replace('<units>', str(cell_cfg['units']))
     return c
 

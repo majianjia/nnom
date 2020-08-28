@@ -1922,6 +1922,27 @@ void local_multiple_sub_q7( q7_t *p_dst,
     }
 }
 
+// y = 1 - x
+void local_1_minor_z_q15(q15_t* src, q15_t*des, uint16_t dec_bit, uint32_t size)
+{
+    int32_t one = (1 << dec_bit)-1;
+    for(int i=0; i<size/8; i++)
+    {
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+    }
+    for(int i=0; i<size%8; i++)
+    {
+        *des++ = one - *src++;
+    }
+}
+
 
 void local_q7_to_q15_no_shift(const q7_t *src, q15_t *des, uint32_t size)
 {
@@ -1964,7 +1985,7 @@ void local_q7_to_q15(const q7_t *src, q15_t *des, uint32_t size)
 }
 
 // right shift q15 to q7
-void local_q15_to_q7(const q15_t *src, q7_t *des, uint32_t size, uint32_t shift)
+void local_q15_to_q7(const q15_t *src, q7_t *des,  uint32_t shift, uint32_t size)
 {
     while(size-- >0)
     {

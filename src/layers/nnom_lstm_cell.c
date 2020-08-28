@@ -281,13 +281,12 @@ nnom_status_t lstm_cell_q7_q15_build(nnom_rnn_cell_t* cell)
 	cell->comp_buf_size = cell->units * 12 * 2 + cell->feature_size * 2; //q15 + input q7->q15 buffer.  
 
 	// // finally, calculate the MAC for info
-	cell->macc = tensor_size(layer->in->tensor) * cell->units *4 	  // input: (feature * timestamp) * state * 4 gates
-				+ cell->state_size * tensor_size(layer->out->tensor) *4;  // recurrent, state * (timestamp * output_unit) * 4 gate
+	cell->macc = cell->feature_size * cell->units *4 	  // input: (feature * timestamp) * state * 4 gates
+				+ cell->state_size * cell->units *4		// recurrent, state
+				+ cell->units * cell->units *10;  // (timestamp * output_unit) * (5 gate + 3 mult + 2 addition)
 
 	return NN_SUCCESS;
 }
-
-
 
 
 // Q7 input output 
@@ -386,7 +385,7 @@ nnom_status_t lstm_cell_q7_q15_run(nnom_rnn_cell_t* cell)
 			print_variable_q15(o_state[0], "h = o*tanh(c)", 15, cell->units);
 
     // copy and shift q15 to q7 ** (copy hidden to output)
-    local_q15_to_q7(o_state[0], cell->out_data, cell->units, 8);
+    local_q15_to_q7(o_state[0], cell->out_data, 8, cell->units);
 	
 			print_variable(cell->out_data, "q7 output)", 7, cell->units);
 
