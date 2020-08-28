@@ -54,8 +54,11 @@ typedef struct _nnom_lstm_cell_t
 nnom_rnn_cell_t *lstm_cell_s(const nnom_lstm_cell_config_t* config);
 
 nnom_status_t lstm_cell_free(nnom_rnn_cell_t* cell);
-nnom_status_t lstm_cell_build(nnom_rnn_cell_t* cell);
-nnom_status_t lstm_cell_run(nnom_rnn_cell_t* cell);
+nnom_status_t lstm_cell_q7_build(nnom_rnn_cell_t* cell);
+nnom_status_t lstm_cell_q7_q15_build(nnom_rnn_cell_t* cell);
+nnom_status_t lstm_cell_q7_run(nnom_rnn_cell_t* cell);
+nnom_status_t lstm_cell_q7_q15_run(nnom_rnn_cell_t* cell);
+
 
 
 #ifdef __cplusplus

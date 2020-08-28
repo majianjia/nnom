@@ -370,10 +370,12 @@ def quantize_rnn_intermediate_output(layer, features):
         z3_array = []
         for feature in features:
             if(not layer.stateful):
-                state = [np.zeros(cfg['units']), np.zeros(cfg['units']) ]
+            #     state = [np.ones(cfg['units']), np.ones(cfg['units']) ]
+            # for fe in feature:
+            #     fe = np.zeros(32)
+            #     fe.fill(2)
+                state = [np.zero(cfg['units']), np.zero(cfg['units']) ]
             for fe in feature:
-                fe = np.zeros(32)
-                fe.fill(2)
                 output, state, z, z0, z1, z2, z3 = lstm_cell_step(fe, state, kernel, recurrent_kernel, bias)
                 h_array.append(output)
                 c_array.append(state[1])
@@ -405,6 +407,16 @@ def quantize_rnn_intermediate_output(layer, features):
         q_z3 = find_dec_bits_max_min(z3_array)
         return [q_h, q_c, q_z]
 
+    elif (type(layer.cell) is GRUCell or 'gru' in layer.cell.name):
+        cfg = layer.cell.get_config()
+        state = np.zeros(cfg['units']*2)
+        kernel = layer.get_weights()[0]
+        recurrent_kernel = layer.get_weights()[1]
+        bias = layer.get_weights()[2]
+
+
+
+        return [0,0,0]
     return []
 
 def quantize_output(model, x_test, quantize_method='max_min', layer_offset=False, calibrate_size=100):
@@ -628,12 +640,16 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
                     else:
                         transposed_wts = np.transpose(var_values, (3, 0, 1, 2))
                 else:  # fully connected layer weights or biases of any layer
-                    # test, use opt weight reorder
-                    if ("dense" in var_name or is_rnn_layer(layer)) and "kernel" in var_name:
+                    # test, do not reorder lstm
+                    if('lstm' in layer.name):
                         transposed_wts = np.transpose(var_values)
-                        transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
                     else:
-                        transposed_wts = np.transpose(var_values)
+                        # test, use opt weight reorder
+                        if ("dense" in var_name or is_rnn_layer(layer)) and "kernel" in var_name:
+                            transposed_wts = np.transpose(var_values)
+                            transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
+                        else:
+                            transposed_wts = np.transpose(var_values)
 
             print("  reshape to:",transposed_wts.shape)
             with open(name, 'a') as f:
@@ -783,12 +799,13 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                         gen_weight_tensor(w, per_axis=False)
                     fp.write(gen_simple_cell_config(layer, layer_q_list['intermediate_'+layer.name]))
                 elif(type(layer.cell) is GRUCell or 'gru' in layer.cell.name):
-                    pass
+                    for w in layer.weights:
+                        gen_weight_tensor(w, per_axis=False)
+                    fp.write(gen_gru_cell_config(layer, layer_q_list['intermediate_'+layer.name]))
                 elif(type(layer.cell) is LSTMCell or 'lstm' in layer.cell.name):
                     for w in layer.weights:
                         gen_weight_tensor(w, per_axis=False)
                     fp.write(gen_lstm_cell_config(layer, layer_q_list['intermediate_'+layer.name]))
-                    pass
                 fp.write(gen_rnn_config(layer))
 
             # last layer, attach the additional nnom output layer
@@ -931,18 +948,15 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 inp = layer_name_from_tensor(layer.input)
                 fp.write('\tlayer[{0}] = model.hook(softmax_s(&{1}_config), layer[{2}]);\n'.format(id, layer.name, LI[inp][0]))
 
-            elif (type(layer) in [RNN, SimpleRNN, GRU, LSTM] or
-                    layer.name in ['rnn', 'gru', 'simplernn','lstm']):
+            elif (is_rnn_layer(layer)):
                 inp = layer_name_from_tensor(layer.input)
                 line = '\tlayer[{0}] = model.hook(rnn_s(<rnn_cell>, &{1}_config), layer[{2}]);\n'.format(id, layer.name, LI[inp][0])
-
                 if (type(layer.cell) is SimpleRNNCell):
                     line = line.replace('<rnn_cell>', 'simple_cell_s(&%s_simple_cell_config)' %(layer.name))
                 elif (type(layer.cell) is GRUCell or 'gru' in layer.cell.name):
-                    pass
+                    line = line.replace('<rnn_cell>', 'gru_cell_s(&%s_gru_cell_config)' % (layer.name))
                 elif (type(layer.cell) is LSTMCell or 'lstm' in layer.cell.name):
                     line = line.replace('<rnn_cell>', 'lstm_cell_s(&%s_lstm_cell_config)' % (layer.name))
-                    pass
                 fp.write(line)
             else:
                 raise Exception('unsupported layer', layer.name, layer)

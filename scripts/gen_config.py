@@ -424,7 +424,6 @@ const nnom_simple_cell_config_t <layer_name>_simple_cell_config = {
     c = c.replace('<units>', str(cell_cfg['units']))
     return c
 
-
 def gen_lstm_cell_config(layer, q_list):
     c = '''
 const nnom_lstm_cell_config_t <layer_name>_lstm_cell_config = {
@@ -452,6 +451,37 @@ const nnom_lstm_cell_config_t <layer_name>_lstm_cell_config = {
     c = c.replace('<q_dec_z>', str(q_list[2])) # input*weight + hidden*weight + bias
     c = c.replace('<units>', str(cell_cfg['units']))
     return c
+
+
+
+def gen_gru_cell_config(layer, q_list):
+    c = '''
+const nnom_gru_cell_config_t <layer_name>_gru_cell_config = {
+    .super = <base_config>,
+    .weights = (nnom_tensor_t*)&<weights>,
+    .recurrent_weights = (nnom_tensor_t*)&<recurrent_weights>,
+    .bias = (nnom_tensor_t*)&<bias>,
+    .q_dec_z = <q_dec_z>,
+    .q_dec_h = <q_dec_h>,
+    .q_dec_r = <q_dec_r>,
+    .units = <units>
+};
+'''
+    try:
+        cell_cfg = layer.get_config()['cell']['config']
+    except:
+        cell_cfg = layer.get_config()
+    c = c.replace('<layer_name>', layer.name)
+    c = c.replace('<base_config>', gen_base_config(layer))
+    c = c.replace('<weights>', convert_tensor_name(layer.weights[0]))
+    c = c.replace('<recurrent_weights>', convert_tensor_name(layer.weights[1]))
+    c = c.replace('<bias>', convert_tensor_name(layer.weights[2]))
+    c = c.replace('<q_dec_h>', str(q_list[0])) #
+    c = c.replace('<q_dec_r>', str(q_list[1])) #
+    c = c.replace('<q_dec_z>', str(q_list[2])) #
+    c = c.replace('<units>', str(cell_cfg['units']))
+    return c
+
 
 if __name__ == "__main__":
     # test only

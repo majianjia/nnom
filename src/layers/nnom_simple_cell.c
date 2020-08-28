@@ -132,8 +132,10 @@ nnom_status_t simple_cell_run(nnom_rnn_cell_t* cell)
 	// active(out_state buf)
 	if(c->act_type == ACT_TANH)
 		local_tanh_q7(cell->out_state, cell->units, act_int_bit);
+		//local_hard_tanh_q7(cell->out_state, cell->units, act_int_bit);
 	else
 		local_sigmoid_q7(cell->out_state, cell->units, act_int_bit);
+		//local_hard_sigmoid_q7(cell->out_state, cell->units, act_int_bit);
 
 	// (out_state buf) --copy--> (output buf)
 	memcpy(cell->out_data, cell->out_state, cell->units);

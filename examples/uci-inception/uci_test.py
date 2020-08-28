@@ -116,15 +116,20 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     # #x = MaxPool1D(2, strides=2)(x)
     # x = Dropout(0.2)(x)
 
-    x = RNN(SimpleRNNCell(32), return_sequences=True)(x)
+    #x = RNN(SimpleRNNCell(32), return_sequences=True)(x)
 
-    x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
-    x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
+    # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
+    # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
+    #
+    #x = SimpleRNN(16, return_sequences=True)(x)
+    # x = SimpleRNN(16, return_sequences=True)(x)
 
-    x = SimpleRNN(16, return_sequences=True)(x)
-    x = SimpleRNN(16, return_sequences=True)(x)
+    #x = RNN(LSTMCell(16), return_sequences=True)(x)
+    x = LSTM(8, return_sequences=True)(x)
 
-    #x = GRU(10, return_sequences=True)(x)
+    # x = RNN(GRUCell(16), return_sequences=True)(x)
+    # x = GRU(8, return_sequences=True)(x)
+
 
     # our netowrk is not that deep, so a hidden fully connected layer is introduce
     x = Flatten()(x)
@@ -222,6 +227,11 @@ if __name__ == "__main__":
     print("test acc2 range", np.max(x_test[:, :, 6:9]), np.min(x_test[:, :,6:9]))
     print("test gyro range", np.max(x_test[:, :, 3:6]), np.min(x_test[:, :, 3:6]))
 
+    # cut test
+    # only use 1000 for test
+    x_test = x_test[:500]
+    y_test = y_test[:500]
+
     # generate binary test data, convert range to [-128 127] for mcu
     x_test_bin = np.clip(x_test *128, -128, 127)
     x_train_bin = np.clip(x_train*128, -128, 127)
@@ -229,7 +239,7 @@ if __name__ == "__main__":
     generate_test_bin(x_train_bin, y_train, name='uci_train_data.bin')
 
     # train model
-    history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
+    #history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
 
     # get best model
     model = load_model(model_name)

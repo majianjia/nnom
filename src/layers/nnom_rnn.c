@@ -134,12 +134,17 @@ nnom_status_t rnn_run(nnom_layer_t* layer)
 	size_t state_size = cl->cell->state_size;
 	size_t output_growth;
 	size_t output_offset = 0;
-	q7_t* upper_state = (q7_t*)cl->state_buf + state_size;
-	q7_t* lower_state = (q7_t*)cl->state_buf;
+	void* upper_state = (q7_t*)cl->state_buf + state_size;
+	void* lower_state = (q7_t*)cl->state_buf;
 
 	// reset state buffer if not in stateful
 	if (!cl->stateful)
 		memset(cl->state_buf, 0, state_size * 2);
+	
+//	for(int i=0; i< state_size; i++)
+//	{
+//		((q15_t*)cl->state_buf)[i] = 8*256; // 1qbit 3=8
+//	}
 
 	// set output data
 	output_growth = cl->return_sequence ? output_size : 0;
