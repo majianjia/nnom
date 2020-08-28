@@ -27,7 +27,7 @@ Pull request welcome. QQ/TIM group: 763089399.
 
 **Recurrent Layers (RNN) (0.4.1)**
 
-Recurrent layers (Simple RNN, GRU, LSTM) are coming in the next release (0.4.1). Or check the `v0.4.x-dev branch` for the latest update.  
+Recurrent layers **(Simple RNN, GRU, LSTM)** are implemented in version 0.4.1. Support `statful` and `return_sequence` options. 
 
 **New Structured Interface (0.4.0)** 
 
@@ -94,13 +94,12 @@ Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) 
 > *Notes: NNoM now supports both HWC and CHW formats. Some operation might not support both format currently. Please check the tables for the current status. *
 
 
-
 **Core Layers**
 
 | Layers | Struct API |Layer API|Comments|
 | ------ |-------- |------|------|
 | Convolution  |conv2d_s()|Conv2D()|Support 1/2D, support dilations (New!)|
-| ConvTransposed  |conv2d_trans_s()|Conv2DTrans()|Under Dev. (New!)|
+| ConvTransposed (New!) |conv2d_trans_s()|Conv2DTrans()|Under Dev. |
 | Depthwise Conv |dwconv2d_s()|DW_Conv2D()|Support 1/2D|
 | Fully-connected |dense_s()| Dense()| |
 | Lambda |lambda_s()| Lambda() |single input / single output anonymous operation| 
@@ -117,10 +116,10 @@ Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) 
 
 | Layers | Status | Struct API |Comments|
 | ------ | ------ | ------| ------|
-| Recurrent NN Layer| Alpha | rnn_s()| (New)|
-| Simple RNN | Alpha | simple_cell_s()|(New)|
-| Gated Recurrent Network (GRU)| Under Dev. | gru_cell_s()| Under Developpment |
-| Long Short-Term Memory (LSTM)| Under Dev. | lstm_s()| Under Developpment |
+| Recurrent NN Layer(New!) | Alpha | rnn_s()| Layer wrapper of RNN|
+| Simple Cell (New!) | Alpha | simple_cell_s()||
+| GRU Cell (New!) | Alpha | gru_cell_s()| Gated Recurrent Network |
+| LSTM Cell (New!) | Alpha| lstm_s()| Long Short-Term Memory |
 
 **Activations**
 
@@ -134,7 +133,9 @@ There is no structred API for activation currently, since activation are not usu
 | Leaky ReLU (New!) | N/A |LeakyReLU()|act_leaky_relu()||
 | Adv ReLU(New!) | N/A |N/A|act_adv_relu()|advance ReLU, Slope, max, threshold|
 | TanH | N/A |TanH()|act_tanh()||
+| Hard TanH (New!)| N/A |TanH()||backend only|
 |Sigmoid|N/A| Sigmoid()|act_sigmoid()||
+|Hard Sigmoid (New!)|N/A| N/A| N/A|backend only|
 
 **Pooling Layers**
 
@@ -145,7 +146,7 @@ There is no structred API for activation currently, since activation are not usu
 | Sum Pooling |sumpool_s()|SumPool()||
 | Global Max Pooling|global_maxpool_s()|GlobalMaxPool()||
 | Global Average Pooling |global_avgpool_s()|GlobalAvgPool()||
-| Global Sum Pooling |global_sumpool_s()|GlobalSumPool()|A better alternative to Global average pooling in MCU before Softmax|
+| Global Sum Pooling |global_sumpool_s()|GlobalSumPool()|dynamic output shift|
 
 **Matrix Operations Layers**
 
@@ -161,7 +162,7 @@ There is no structred API for activation currently, since activation are not usu
 
 NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. 
 
-To use Log functions, you will need to enable libc in your projects. 
+However, You will need to enable `libc` for dynamic memory allocation `malloc(), free(), and memset()`. Or you can port to the equivalent memory method in your system.  
 
 
 ## Optimization
@@ -170,15 +171,15 @@ To use Log functions, you will need to enable libc in your projects.
 Please check [Porting and optimising Guide](docs/Porting_and_Optimisation_Guide.md) for detail. 
 
 ## Known Issues
-### Converter do not support implicitly defined activations
+### The Converter do not support implicitly defined activations
 The script currently does not support implicit act:
 ~~~
-Dense(32, activation="relu")
+x = Dense(32, activation="relu")(x)
 ~~~
 Use the explicit activation instead. 
 ~~~
-Dense(32)
-Relu()
+x = Dense(32)(x)
+x = Relu()(x)
 ~~~
 
 ## Contacts

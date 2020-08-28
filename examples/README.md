@@ -14,13 +14,14 @@ This example come with 10 embedded images allows users to do prediction through 
 - **octave-conv** is to show how to construct the latest Octave convolution in Keras then deploy to NNoM. 
 - **uci-inception** is an example using data from motion sensors and Inception structure. 
 It is an interactive example using shell and Y-modem to transmit testing data. 
+- **uci-har-RNN** is an example using data from motion sensors and Inception structure. However, use a stack of RNN layers to test the data. It can run on PC like `auto-test example`.
 - **mnist-cnn** is an entry level example using jupyter notebook following this [Keras tutorial](https://adventuresinmachinelearning.com/keras-tutorial-cnn-11-lines/) 
 - **mnist-densenet** is a example showing how to use DenseNet with NNoM. 
 This example can be compiled in PC using scons. It is also been use for Travis CI. Please check the Travis logging as well. 
 
 ## Recommendations 
 
-If you want to try it first on PC, start with **auto_test** and follow the guide in it. 
+If you want to try it first on PC, start with **auto_test** and follow the guide in it. **uci-har-rnn** also provides c code which can run on PC. 
 
 If you are completely void in ML or Neural network, start with **[mnist-cnn](mnist-cnn)** and the external tutorial for Keras. 
 

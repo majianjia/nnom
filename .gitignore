@@ -12,3 +12,5 @@ __pycache__
 *.sconsign.dblite
 .ipynb_checkpoints
 examples/uci-inception/.layer_q_list
+examples/uci-har-rnn/.layer_q_list
+examples/uci-har-rnn/result.csv
