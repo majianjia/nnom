@@ -14,3 +14,6 @@ __pycache__
 examples/uci-inception/.layer_q_list
 examples/uci-har-rnn/.layer_q_list
 examples/uci-har-rnn/result.csv
+examples/keyword_spotting/evaluation.csv
+examples/uci-har-rnn/weights.h
+examples/uci-har-rnn/model.exe

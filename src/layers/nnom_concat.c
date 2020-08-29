@@ -55,16 +55,9 @@ nnom_layer_t *Concat(int8_t axis)
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
-
-	// check the axis
-	{
-		uint32_t shape_element_num = sizeof(nnom_3d_shape_t) / sizeof(nnom_shape_data_t);
-		if (axis < 0)
-			axis = (shape_element_num + axis);
-		else if (axis >0)
-			axis = axis -1; // keras use axis start from 1. we are using 0, 1, 2 (check?)
-		layer->axis = axis; 
-	}
+	
+	// axis
+	layer->axis = axis; 
 
 	return (nnom_layer_t *)layer;
 }
@@ -87,15 +80,19 @@ nnom_status_t concat_build(nnom_layer_t *layer)
 		in = in->aux;
 		in_num++;
 	}
-	num_dim = layer->in->tensor->num_dim;
-	if (cl->axis >= num_dim || cl->axis <= -num_dim)
-		return NN_ARGUMENT_ERROR;
-
+	
 	// allocate new tensor for output, keep the same dimension lenght
 	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
+	
+	// convert the axis. 
+	if (cl->axis < 0)
+		cl->axis = (layer->in->tensor->num_dim + cl->axis);
+	else if (cl->axis >0)
+		cl->axis = cl->axis -1; // keras use axis start from 1. we are using 0, 1, 2 (check?)
 
 	// find out the concated axis
+	num_dim = layer->in->tensor->num_dim;
 	for (uint32_t i = 0; i < num_dim; i ++)
 	{
 		// exclue the concat axies
@@ -107,7 +104,7 @@ nnom_status_t concat_build(nnom_layer_t *layer)
 			in = layer->in;
 			while (in != NULL)
 			{
-				layer->out->tensor->dim[i] += layer->in->tensor->dim[i];
+				layer->out->tensor->dim[i] += in->tensor->dim[i];
 				in = in->aux;
 			}
 			continue;
@@ -160,6 +157,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	uint8_t *pout = layer->out->tensor->p_data;
 	uint32_t block_size;
 	uint32_t n_block;
+	uint8_t num_dim = layer->in->tensor->num_dim;
 	
 	// calcualte number of block to concat. the other shapes before the concat axis
 	n_block = 1;
@@ -176,7 +174,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 		{
 			// the block size of concat data in this layer
 			block_size = 1;
-			for(int j= 2; j >= chw_i(cl->axis); j--)
+			for(int j= num_dim-1; j >= chw_i(cl->axis); j--)
 				block_size *= layer->in->tensor->dim[hwc_i(j)];
 			// concat		
 			pin = (uint8_t *)in->tensor->p_data + i * block_size;
@@ -193,6 +191,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	uint8_t* pout = layer->out->tensor->p_data;
 	uint32_t block_size;
 	uint32_t n_block;
+	uint8_t num_dim = layer->in->tensor->num_dim;
 
 	// calcualte the number of block to concat. (the other shapes before the concat axis)
 	n_block = 1;
@@ -207,8 +206,8 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 		{
 			// the block size of concat data in this layer
 			block_size = 1;
-			for (int j = cl->axis; j < 3; j++)
-				block_size *= layer->in->tensor->dim[j];
+			for (int j = cl->axis; j < num_dim; j++)
+				block_size *= in->tensor->dim[j];
 			// concat		
 			pin = (uint8_t*)in->tensor->p_data + i * block_size;
 			memcpy(pout, pin, block_size);

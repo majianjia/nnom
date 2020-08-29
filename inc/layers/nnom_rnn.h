@@ -32,6 +32,7 @@ typedef struct _nnom_rnn_config_t
 	nnom_layer_config_t super;
 	bool return_sequence;
 	bool stateful;
+	bool go_backwards;
 } nnom_rnn_config_t;
 
 // RNN cell base type
@@ -66,6 +67,7 @@ typedef struct _nnom_rnn_layer_t
 	uint16_t timestamp_size;// size of timestamp
 	bool return_sequence; 	// whether to return the output for each unit (sequence)
 	bool stateful;			// whether the states are kept after one inteference
+	bool go_backwards;		// whether go backwards timestamping
 } nnom_rnn_layer_t;
 
 

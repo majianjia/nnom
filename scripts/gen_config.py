@@ -385,12 +385,14 @@ def gen_rnn_config(layer):
 const nnom_rnn_config_t <layer_name>_config = {
     .super = <base_config>,
     .stateful = <stateful>,
-    .return_sequence = <return_sequence>
+    .return_sequence = <return_sequence>,
+    .go_backwards = <go_backwards>
 };
 '''
     c = c.replace('<layer_name>', layer.name)
     c = c.replace('<base_config>', gen_base_config(layer))
     c = c.replace('<stateful>', 'true' if layer.stateful else 'false')
+    c = c.replace('<go_backwards>', 'true' if layer.go_backwards else 'false')
     c = c.replace('<return_sequence>', 'true' if layer.return_sequences else 'false')
     return c
 

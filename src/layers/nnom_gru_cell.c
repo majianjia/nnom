@@ -131,8 +131,6 @@ static void print_variable_q15(q15_t *data,char*name, int dec_bit, int size)
 //	printf("\n");
 }
 
-
-
 //
 nnom_status_t gru_cell_run(nnom_rnn_cell_t* cell)
 {

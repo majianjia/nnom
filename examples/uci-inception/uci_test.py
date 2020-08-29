@@ -88,52 +88,33 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     x = ReLU()(x)
     x = MaxPool1D(2, strides=2)(x)
 
-    # # inception - 1
-    # x1 = Conv1D(32, kernel_size=(5), strides=(1), padding="same")(x)
-    # x1 = BatchNormalization()(x1)
-    # x1 = Dropout(0.2)(x1)
-    # x1 = ReLU()(x1)
-    # x1 = MaxPool1D(2, strides=2)(x1)
-    #
-    # # inception - 2
-    # x2 = Conv1D(32, kernel_size=(3), strides=(1), padding="same")(x)
-    # x2 = BatchNormalization()(x2)
-    # x2 = Dropout(0.2)(x2)
-    # x2 = ReLU()(x2)
-    # x2 = MaxPool1D(2, strides=2)(x2)
-    #
-    # # inception - 3
-    # x3 = MaxPool1D(2, strides=2)(x)
-    # x3 = Dropout(0.2)(x3)
-    #
-    # # concate all inception layers
-    # x = concatenate([ x1, x2,x3], axis=-1)
-    #
-    # #conclusion
-    # x = Conv1D(48, kernel_size=(3), strides=(1), padding="same")(x)
-    # x = BatchNormalization()(x)
-    # x = ReLU()(x)
-    # #x = MaxPool1D(2, strides=2)(x)
-    # x = Dropout(0.2)(x)
+    # inception - 1
+    x1 = Conv1D(32, kernel_size=(5), strides=(1), padding="same")(x)
+    x1 = BatchNormalization()(x1)
+    x1 = Dropout(0.2)(x1)
+    x1 = ReLU()(x1)
+    x1 = MaxPool1D(2, strides=2)(x1)
 
-    #x = RNN(SimpleRNNCell(32), return_sequences=True)(x)
+    # inception - 2
+    x2 = Conv1D(32, kernel_size=(3), strides=(1), padding="same")(x)
+    x2 = BatchNormalization()(x2)
+    x2 = Dropout(0.2)(x2)
+    x2 = ReLU()(x2)
+    x2 = MaxPool1D(2, strides=2)(x2)
 
-    # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
-    # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
-    #
-    #x = SimpleRNN(16, return_sequences=True)(x)
-    # x = SimpleRNN(16, return_sequences=True)(x)
+    # inception - 3
+    x3 = MaxPool1D(2, strides=2)(x)
+    x3 = Dropout(0.2)(x3)
 
-    # x = RNN(LSTMCell(16), return_sequences=True)(x)
-    # x = LSTM(12, return_sequences=True)(x)
-    #x = LSTM(12, return_sequences=True)(x)
-    #x = LSTM(32)(x)
+    # concate all inception layers
+    x = concatenate([ x1, x2,x3], axis=-1)
 
-    x = RNN(GRUCell(16), return_sequences=True)(x)
-    x = GRU(8, return_sequences=True)(x)
-    x = RNN(GRUCell(16), return_sequences=True)(x)
-    x = GRU(32)(x)
-
+    #conclusion
+    x = Conv1D(48, kernel_size=(3), strides=(1), padding="same")(x)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
+    #x = MaxPool1D(2, strides=2)(x)
+    x = Dropout(0.2)(x)
 
     # our netowrk is not that deep, so a hidden fully connected layer is introduce
     x = Flatten()(x)
@@ -241,7 +222,7 @@ if __name__ == "__main__":
     generate_test_bin(x_train_bin, y_train, name='uci_train_data.bin')
 
     # train model
-    history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
+    #history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
 
     # get best model
     model = load_model(model_name)

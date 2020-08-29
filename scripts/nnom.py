@@ -314,6 +314,9 @@ def quantize_rnn_intermediate_output(layer, features):
             return d[:int(l/4)], d[int(l/4): int(l/2)], d[int(l/2):-int(l/4)], d[-int(l/4):]
         elif(num==3):
             return d[:int(l/3)], d[int(l/3): -int(l/3)], d[-int(l/3):]
+    lcfg = layer.get_config()
+    if(lcfg['go_backwards']):
+        features = features[:,::-1,:] # reverse timestamp
 
     if(type(layer.cell) is SimpleRNNCell):
         cfg = layer.cell.get_config()

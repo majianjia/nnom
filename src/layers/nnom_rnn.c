@@ -59,6 +59,7 @@ nnom_layer_t *rnn_s(nnom_rnn_cell_t *cell, const nnom_rnn_config_t* config)
 	// rnn parameters.
 	layer->return_sequence = config->return_sequence;
 	layer->stateful = config->stateful;
+	layer->go_backwards = config->go_backwards;
 	layer->super.config = (void*)config;
 	layer->cell = cell;
 
@@ -131,9 +132,8 @@ nnom_status_t rnn_run(nnom_layer_t* layer)
 {
 	nnom_status_t result;
 	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t*)(layer);
-	size_t timestamps_size = layer->in->tensor->num_dim > 2 ? layer->in->tensor->dim[1] : layer->in->tensor->dim[0];
+	size_t timestamps_size = layer->in->tensor->dim[layer->in->tensor->num_dim-2];
 	size_t feature_size = tensor_get_num_channel(layer->in->tensor); // feature size = last dimension. 
-	size_t output_size = cl->cell->units;
 	size_t state_size = cl->cell->state_size;
 	size_t output_growth;
 	size_t output_offset = 0;
@@ -145,17 +145,26 @@ nnom_status_t rnn_run(nnom_layer_t* layer)
 		memset(cl->state_buf, 0, state_size * 2);
 
 	// set output data
-	output_growth = cl->return_sequence ? output_size : 0;
+	output_growth = cl->return_sequence ? cl->cell->units : 0;
 
 	// run timestamp by timestamp
-	for (uint32_t round = 0; round < timestamps_size; round++, output_offset+=output_growth)
+	for (uint32_t round = 0; round < timestamps_size; round++)
 	{
-		// set input data
-		cl->cell->in_data = (q7_t*)layer->in->tensor->p_data + feature_size * round;
-
-		// set output data
-		cl->cell->out_data = (q7_t*)layer->out->tensor->p_data + output_offset;
-
+		if(cl->go_backwards)
+		{
+			// set input data
+			cl->cell->in_data = (q7_t*)layer->in->tensor->p_data + feature_size*(timestamps_size - 1 - round);
+			// set output data
+			cl->cell->out_data = (q7_t*)layer->out->tensor->p_data + output_growth*(timestamps_size - 1 - round);
+		}
+		else
+		{
+			// set input data
+			cl->cell->in_data = (q7_t*)layer->in->tensor->p_data + feature_size*round;
+			// set output data
+			cl->cell->out_data = (q7_t*)layer->out->tensor->p_data + output_growth*round;
+		}
+		
 		// switch upper/lower state buffer
 		if(cl->cell->in_state != lower_state)
 		{

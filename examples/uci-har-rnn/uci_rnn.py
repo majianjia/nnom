@@ -80,25 +80,25 @@ def normalize(data):
 
 def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     inputs = Input(shape=x_train.shape[1:])
-    x = Conv1D(32, kernel_size=(9), strides=(2), padding='same')(inputs)
+    x = Conv1D(16, kernel_size=(9), strides=(2), padding='same')(inputs)
     x = BatchNormalization()(x)
-    x = Dropout(0.2)(x)
-    x = ReLU()(x)
-    x = MaxPool1D(2, strides=2)(x)
 
-    x = RNN(SimpleRNNCell(16), return_sequences=True)(x)  # you can use either of the format
-    x = SimpleRNN(16, return_sequences=True)(x)
+    # you can use either of the format below.
+    # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
+    # x = SimpleRNN(16, return_sequences=True)(x)
 
-    x = RNN(LSTMCell(16), return_sequences=True)(x)
-    x = LSTM(12, return_sequences=True)(x)
+    x = RNN(LSTMCell(32), return_sequences=True)(x)
+    x = LSTM(32, return_sequences=True, go_backwards=True)(x)
 
-    x = RNN(GRUCell(16), return_sequences=True)(x)
-    x = GRU(32)(x)
+    # Bidirectional with concatenate. (not working yet)
+    x1 = RNN(GRUCell(16), return_sequences=True)(x)
+    x2 = GRU(16, return_sequences=True, go_backwards=True)(x)
+    x = concatenate([x1, x2], axis=-1)
 
     x = Flatten()(x)
     x = Dense(64)(x)
-    x = Dropout(0.2)(x)
     x = ReLU()(x)
+    x = Dropout(0.2)(x)
     x = Dense(6)(x)
     predictions = Softmax()(x)
 
@@ -213,7 +213,7 @@ def main():
     generate_model(model, x_test, name='weights.h')
 	
 	
-	# --------- for test in CI ----------
+    # --------- for test in CI ----------
     # build NNoM
     os.system("scons")
 
