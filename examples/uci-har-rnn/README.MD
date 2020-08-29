@@ -28,6 +28,6 @@ Linux user:
 - run data/download_dataset.py to download the UCI HAR dataset
 
 Windows user:
-- download dataset from [here](https://archive.ics.uci.edu/ml/machine-learning-databases/00240/UCI HAR Dataset.zip)
+- download dataset from [here](https://archive.ics.uci.edu/ml/machine-learning-databases/00240/UCI%20HAR%20Dataset.zip)
 - unzip the file to this folder. Which will looks like `data/UCI HAR Dataset/...`
 
