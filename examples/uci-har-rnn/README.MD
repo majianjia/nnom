@@ -18,7 +18,7 @@ You can use both format like both below.
 
 Run this example by using `python uci_rnn.py`. Require `scons` to build the c file. 
 
-This is same as the `auto-test example` which is used to test NNoM on Travis CI
+This is the same as the `auto-test example` which is used to test NNoM on Travis CI, but can also run on PC. 
 
 # Preparation
 
