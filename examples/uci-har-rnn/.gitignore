@@ -2,5 +2,6 @@
 .vscode
 __pycache__
 *.h5
+*.exe
 
 

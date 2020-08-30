@@ -685,10 +685,10 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
 
             # CHW format
             if ('chw' in format):
-                if (is_lstm_layer(layer) or is_gru_layer(layer)):   # currently we use 16 bit intermediate
+                if (is_lstm_layer(layer) or is_gru_layer(layer)):   # currently we use 16 bit intermediate， use reorder optimation
                     transposed_wts = np.transpose(var_values)
-                    # if('kernel' in var_name):
-                    #     transposed_wts = convert_q7_q15_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
+                    if('kernel' in var_name):
+                        transposed_wts = convert_q7_q15_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
                 # dense and rnn still working under HWC format
                 elif ("dense" in var_name or is_rnn_layer(layer)) and "kernel" in var_name:
                     transposed_wts = np.transpose(var_values)
@@ -705,10 +705,10 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
                         transposed_wts = np.transpose(var_values, (2, 0, 1, 3))
                     else:
                         transposed_wts = np.transpose(var_values, (3, 0, 1, 2))
-                elif(is_lstm_layer(layer) or is_gru_layer(layer)):   # currently we use 16 bit intermediate
+                elif(is_lstm_layer(layer) or is_gru_layer(layer)):   # currently we use 16 bit intermediate, use reorder optimation
                     transposed_wts = np.transpose(var_values)
-                    # if('kernel' in var_name): # not working yet
-                    #     transposed_wts = convert_q7_q15_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
+                    if('kernel' in var_name): # not working yet
+                         transposed_wts = convert_q7_q15_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
                 else:  # fully connected layer weights or biases of any layer
                     # test, use opt weight reorder
                     transposed_wts = np.transpose(var_values)

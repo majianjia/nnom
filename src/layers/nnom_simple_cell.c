@@ -92,8 +92,8 @@ nnom_status_t simple_cell_build(nnom_rnn_cell_t* cell)
 	cell->comp_buf_size = 0; 
 
 	// finally, calculate the MAC for info
-	cell->macc = tensor_size(layer->in->tensor) * cell->units 	  // input: (feature * timestamp) * state
-				+ cell->state_size * tensor_size(layer->out->tensor);  // recurrent, state * (timestamp * output_unit)
+	cell->macc = cell->feature_size * cell->units // input: feature  * state
+				+ cell->units * cell->units;      // recurrent, state *  output_unit
 
 	return NN_SUCCESS;
 }
