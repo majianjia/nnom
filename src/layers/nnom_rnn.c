@@ -136,7 +136,6 @@ nnom_status_t rnn_run(nnom_layer_t* layer)
 	size_t feature_size = tensor_get_num_channel(layer->in->tensor); // feature size = last dimension. 
 	size_t state_size = cl->cell->state_size;
 	size_t output_growth;
-	size_t output_offset = 0;
 	void* upper_state = (q7_t*)cl->state_buf + state_size;
 	void* lower_state = (q7_t*)cl->state_buf;
 

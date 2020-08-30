@@ -68,7 +68,6 @@ nnom_status_t concat_build(nnom_layer_t *layer)
 	nnom_concat_layer_t *cl = (nnom_concat_layer_t *)layer;
 	nnom_layer_io_t *in;
 	uint32_t in_num = 0;
-	uint32_t offset;
 	int32_t num_dim;
 
 	// for each input module, copy the shape from the output of last layer

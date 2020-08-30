@@ -87,8 +87,9 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
     # x = SimpleRNN(16, return_sequences=True)(x)
 
-    x = RNN(LSTMCell(32), return_sequences=True)(x)
-    x = LSTM(32, return_sequences=True, go_backwards=True)(x)
+    x2 = RNN(LSTMCell(32), return_sequences=True)(x)
+    x1 = LSTM(32, return_sequences=True, go_backwards=True)(x)
+    x = concatenate([x1, x2], axis=-1)
 
     # Bidirectional with concatenate. (not working yet)
     x1 = RNN(GRUCell(16), return_sequences=True)(x)

@@ -1252,23 +1252,17 @@ void local_dot_q15(const q15_t *pV, // pointer to vector
 
 
 void local_dot_q15_opt(const q15_t * pV,
-                        const q15_t * pM,
-                        const uint16_t dim_vec,
-                        const uint16_t num_of_rows,
-                        const uint16_t bias_shift,
-                        const uint16_t out_shift, 
-                        const q15_t * bias, 
-                        q15_t * pOut, 
-                        q15_t * vec_buffer)
+	const q15_t * pM,
+	const uint16_t dim_vec,
+	const uint16_t num_of_rows,
+	const uint16_t out_shift, 
+	q15_t * pOut)
 {
-    (void)vec_buffer;
-
     /* Run the following code as reference implementation for Cortex-M0 and Cortex-M3 */
     uint16_t  rowCnt = num_of_rows >> 2;
     const q15_t *pB = pM;
     const q15_t *pA;
     q15_t    *pO = pOut;
-    const q15_t *pBias = bias;
 
     while (rowCnt)
     {

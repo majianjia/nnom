@@ -121,7 +121,6 @@ nnom_status_t lstm_cell_q7_q15_build(nnom_rnn_cell_t* cell)
 nnom_status_t lstm_cell_q7_q15_run(nnom_rnn_cell_t* cell)
 {
 	nnom_layer_t *layer = cell->layer;
-	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t *) layer;
 	nnom_lstm_cell_t* c = (nnom_lstm_cell_t*) cell;
     int act_int_bit = 7 - c->q_dec_z;
 

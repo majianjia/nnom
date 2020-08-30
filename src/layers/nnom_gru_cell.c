@@ -60,7 +60,6 @@ nnom_status_t gru_cell_build(nnom_rnn_cell_t* cell)
 {
 	nnom_layer_t *layer = cell->layer; 
 	nnom_gru_cell_t *c = (nnom_gru_cell_t *)cell;
-	nnom_gru_cell_config_t *config = (nnom_gru_cell_config_t *)cell->config;
 
 	// calculate output shift for the 2 calculation. 
 	// hw = the product of hidden x weight, iw = the product of input x weight
