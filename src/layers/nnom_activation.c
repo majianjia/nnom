@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include "nnom.h"
 #include "nnom_local.h"
@@ -83,6 +84,16 @@ nnom_layer_t *LeakyReLU(float alpha)
 	return layer;
 }
 
+nnom_layer_t *AdvReLU(float alpha, float max, float threshold)
+{
+	nnom_layer_t *layer = Activation(act_adv_relu(alpha, max, threshold));
+	if (layer == NULL)
+		return NULL;
+
+	// set type in layer parent
+	layer->type = NNOM_ADV_RELU;
+	return layer;
+}
 
 nnom_layer_t *Sigmoid(int32_t dec_bit)
 {
@@ -105,12 +116,16 @@ nnom_layer_t *TanH(int32_t dec_bit)
 	return layer;
 }
 
+void act_delete(nnom_activation_t* act){
+	nnom_free(act);
+}
+
 // activation takes act instance which is created. therefore, it must be free when activation is deleted.
 // this is the callback in layer->free
 nnom_status_t activation_free(nnom_layer_t *layer)
 {
 	if(layer)
-		nnom_free(((nnom_activation_layer_t *)layer)->act);
+		act_delete(((nnom_activation_layer_t *)layer)->act);
 	return NN_SUCCESS;
 }
 
@@ -134,10 +149,30 @@ static nnom_status_t relu_run(nnom_activation_t* act)
 // leaky relu 
 static nnom_status_t leaky_relu_run(nnom_activation_t* act)
 {
-	nnom_activation_leaky_re_lu_t* a = (nnom_activation_leaky_re_lu_t*) act;
+	nnom_activation_leaky_relu_t* a = (nnom_activation_leaky_relu_t*) act;
 	local_leaky_relu_q7(act->tensor->p_data, a->alpha, tensor_size(act->tensor));
 	return NN_SUCCESS;
 }
+
+// advance relu
+static nnom_status_t adv_relu_run(nnom_activation_t* act)
+{
+	nnom_activation_adv_relu_t* a = (nnom_activation_adv_relu_t*) act;
+
+	// we need to convert float to fixpoint in runtime where we can know the tensor's q format
+	q7_t max = 127;
+	q7_t threshold = a->threshold * (1<<act->tensor->q_dec[0]);
+
+	if(a->max != 0x7fc00000) // QNAN for None
+	{
+		if(a->max * (1<<act->tensor->q_dec[0]) < 127)
+			max = a->max * (1<<act->tensor->q_dec[0]);
+	}
+
+	local_adv_relu_q7(act->tensor->p_data, a->negative_slope, max, threshold, tensor_size(act->tensor));
+	return NN_SUCCESS;
+}
+
 
 static nnom_status_t tanh_run(nnom_activation_t* act)
 {
@@ -180,10 +215,21 @@ nnom_activation_t* act_relu(void)
 
 nnom_activation_t* act_leaky_relu(float alpha)
 {
-	nnom_activation_leaky_re_lu_t* act = nnom_mem(sizeof(nnom_activation_leaky_re_lu_t));
+	nnom_activation_leaky_relu_t* act = nnom_mem(sizeof(nnom_activation_leaky_relu_t));
 	act->super.run = leaky_relu_run;
 	act->super.type = ACT_LEAKY_RELU;
 	act->alpha = alpha*128;
+	return (nnom_activation_t* )act;
+}
+
+nnom_activation_t* act_adv_relu(float negative_slope, float max, float threshold)
+{
+	nnom_activation_adv_relu_t* act = nnom_mem(sizeof(nnom_activation_adv_relu_t));
+	act->super.run = adv_relu_run;
+	act->super.type = ACT_ADV_RELU;
+	act->negative_slope = negative_slope*128;
+	act->max = max;
+	act->threshold = threshold;
 	return (nnom_activation_t* )act;
 }
 

@@ -52,6 +52,46 @@ Total Memory cost (Network and NNoM): 32876
 
 ---
 
+
+## model_io_format()
+~~~C
+void model_io_format(nnom_model_t *m);
+~~~
+
+To print the Qformat of input and output tensor, aswell as the output shape.
+
+**Arguments**
+
+- ** m:** the model to print.
+
+
+**Notes**
+
+Qformat: `integer bit`.`decimal bit`
+
+
+**Example**
+
+~~~
+Print layer input/output..
+Layer(#)        -  Input(Qnm)  Output(Qnm)   Oshape 
+----------------------------------------------------------
+#1        Input -     0. 7      0. 7      (  28,  28,   1,)
+#2       Conv2D -     0. 7      3. 4      (  26,  26,  16,)
+#3       Conv2D -     3. 4      3. 4      (  24,  24,  32,)
+#4      MaxPool -     3. 4      3. 4      (  12,  12,  32,)
+#5       Conv2D -     3. 4      3. 4      (  10,  10,  64,)
+#6       Conv2D -     3. 4      3. 4      (   8,   8,  64,)
+#7      MaxPool -     3. 4      3. 4      (   4,   4,  64,)
+#8      Flatten -     3. 4      3. 4      (1024,          )
+#9        Dense -     3. 4      4. 3      (  64,          )
+#10       Dense -     4. 3      5. 2      (  10,          )
+#11     Softmax -     5. 2      0. 7      (  10,          )
+#12      Output -     0. 7      0. 7      (  10,          )
+~~~
+
+---
+
 ## nnom_predict()
 
 ~~~C

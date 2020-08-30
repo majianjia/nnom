@@ -12,6 +12,16 @@ The target application of KWS could be: low-power wakeup, speech control toys ..
 
 [Test video](https://youtu.be/d9zxbZM_4D0). 
 
+## Model structure
+
+Please open the model python file to see. There are 2 demo models. 
+
+`kws.py` -> This model spot keyword using Conv2D, also know as [Keyword Spotting Through Image Recognition](https://arxiv.org/abs/1803.03759)
+
+`kws-rnn.py` -> This model use a regular RNN network (Conv1D and LSTM/GRU).
+
+Both model working on MFCC features see below for detail. 
+
 
 ## How does this example work?
 

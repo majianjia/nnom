@@ -154,6 +154,7 @@ A fully connected layer. It will flatten the data if the last output is mutiple-
 
 ---
 
+
 ## UpSample()
 
 ~~~C

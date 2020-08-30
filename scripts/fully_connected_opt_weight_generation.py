@@ -46,7 +46,7 @@ def convert_to_x4_q7_weights(weights):
         new_weights[counter+2] = weights[row_base+2][j]
         new_weights[counter+3] = weights[row_base+3][j]
         counter = counter + 4
-    return new_weights.reshape(r, h)
+    return new_weights
 
 def convert_to_x4_q15_weights(weights):
     [r, h, w, c] = weights.shape
@@ -59,7 +59,7 @@ def convert_to_x4_q15_weights(weights):
     for i in range(int(num_of_rows/4)):
       # we only need to do the re-ordering for every 4 rows
       row_base = 4*i
-      for j in range(int(num_of_cols/4)):
+      for j in range(int(num_of_cols/2)):
         # for each 2 entries
         column_base = 2*j
         new_weights[counter]   =  weights[row_base  ][column_base  ]
@@ -79,7 +79,7 @@ def convert_to_x4_q15_weights(weights):
         new_weights[counter+2] = weights[row_base+2][j]
         new_weights[counter+3] = weights[row_base+3][j]
         counter = counter + 4
-    return new_weights.reshape(r, h)
+    return new_weights
 
 def convert_q7_q15_weights(weights):
     [r, h, w, c] = weights.shape
@@ -92,7 +92,7 @@ def convert_q7_q15_weights(weights):
     for i in range(int(num_of_rows/4)):
       # we only need to do the re-ordering for every 4 rows
       row_base = 4*i
-      for j in range(int(num_of_cols/4)):
+      for j in range(int(num_of_cols/2)):
         # for each 2 entries
         column_base = 2*j
         new_weights[counter]   =  weights[row_base  ][column_base  ]
@@ -112,7 +112,7 @@ def convert_q7_q15_weights(weights):
         new_weights[counter+2] = weights[row_base+2][j]
         new_weights[counter+3] = weights[row_base+3][j]
         counter = counter + 4
-    return new_weights.reshape(r, h)
+    return new_weights
 
 
 if __name__ == "__main__":

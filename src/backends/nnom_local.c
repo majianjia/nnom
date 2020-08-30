@@ -981,6 +981,129 @@ void local_cropping_CHW_q7(const q7_t *Im_in,           // input image
 	}	
 }
 
+
+void local_dot_q7_opt(const q7_t *pV, // pointer to vector
+	const q7_t *pM,               // pointer to matrix
+	const uint16_t dim_vec,       // length of the vector
+	const uint16_t num_of_rows,   // numCol of A
+	const uint16_t out_shift,     // amount of right-shift for output
+	 q7_t *pOut)                   // output operand)
+{
+    uint16_t rowCnt = num_of_rows >> 2;
+    const q7_t *pB = pM;
+    const q7_t *pA;
+    q7_t *pO = pOut;
+
+    while (rowCnt)
+    {
+        pA = pV;
+        q31_t     sum =  (q31_t) NNOM_ROUND(out_shift);
+        q31_t     sum2 = (q31_t) NNOM_ROUND(out_shift);
+        q31_t     sum3 = (q31_t) NNOM_ROUND(out_shift);
+        q31_t     sum4 = (q31_t) NNOM_ROUND(out_shift);
+
+        uint16_t colCnt = dim_vec >> 2;
+
+        while (colCnt)
+        {
+            q7_t inA1 = *pA++;
+            q7_t inA3 = *pA++;
+            q7_t inA2 = *pA++;
+            q7_t inA4 = *pA++;
+
+            q7_t inB1 = *pB++;
+            q7_t inB3 = *pB++;
+            q7_t inB2 = *pB++;
+            q7_t inB4 = *pB++;
+
+            sum += inA1 * inB1 + inA2 * inB2;
+            sum2 += inA1 * inB3 + inA2 * inB4;
+
+            inB1 = *pB++;
+            inB3 = *pB++;
+            inB2 = *pB++;
+            inB4 = *pB++;
+
+            sum3 += inA1 * inB1 + inA2 * inB2;
+            sum4 += inA1 * inB3 + inA2 * inB4;
+
+            inB1 = *pB++;
+            inB3 = *pB++;
+            inB2 = *pB++;
+            inB4 = *pB++;
+
+            sum += inA3 * inB1 + inA4 * inB2;
+            sum2 += inA3 * inB3 + inA4 * inB4;
+
+            inB1 = *pB++;
+            inB3 = *pB++;
+            inB2 = *pB++;
+            inB4 = *pB++;
+
+            sum3 += inA3 * inB1 + inA4 * inB2;
+            sum4 += inA3 * inB3 + inA4 * inB4;
+
+            colCnt--;
+        }
+        colCnt = dim_vec & 0x3;
+        while (colCnt)
+        {
+            q7_t inA = *pA++;
+            q7_t inB = *pB++;
+            sum += inA * inB;
+            inB = *pB++;
+            sum2 += inA * inB;
+            inB = *pB++;
+            sum3 += inA * inB;
+            inB = *pB++;
+            sum4 += inA * inB;
+
+            colCnt--;
+        }
+        *pO++ = (q7_t)__NNOM_SSAT((sum >> out_shift), 8);
+        *pO++ = (q7_t)__NNOM_SSAT((sum2 >> out_shift), 8);
+        *pO++ = (q7_t)__NNOM_SSAT((sum3 >> out_shift), 8);
+        *pO++ = (q7_t)__NNOM_SSAT((sum4 >> out_shift), 8);
+
+        rowCnt--;
+    }
+
+    rowCnt = num_of_rows & 0x3;
+
+    while (rowCnt)
+    {
+		int ip_out = (q31_t) NNOM_ROUND (out_shift);
+        pA = pV;
+        for (int j = 0; j < dim_vec; j++)
+        {
+            q7_t inA = *pA++;
+            q7_t inB = *pB++;
+            ip_out += inA * inB;
+        }
+        *pO++ = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
+
+        rowCnt--;
+    }
+}
+
+void local_dot_q7(const q7_t *pV, // pointer to vector
+	const q7_t *pM,               // pointer to matrix
+	const uint16_t dim_vec,       // length of the vector
+	const uint16_t num_of_rows,   // numCol of A
+	const uint16_t out_shift,     // amount of right-shift for output
+	 q7_t *pOut)                   // output operand)
+{
+    for (int i = 0; i < num_of_rows; i++)
+    {
+        int ip_out = (q31_t) NNOM_ROUND(out_shift);
+        for (int j = 0; j < dim_vec; j++)
+        {
+            ip_out += pV[j] * pM[i * dim_vec + j];
+        }
+        pOut[i] = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
+    }
+}
+
 void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to vector
 	const q7_t *pM,               // pointer to matrix
 	const uint16_t dim_vec,       // length of the vector
@@ -990,7 +1113,6 @@ void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to ve
 	const q7_t *bias, q7_t *pOut, // output operand
 	q15_t *vec_buffer)
 {
-
     uint16_t rowCnt = num_of_rows >> 2;
     const q7_t *pB = pM;
     const q7_t *pA;
@@ -1109,6 +1231,266 @@ void local_fully_connected_q7(const q7_t *pV,               // pointer to vector
     }
 }
 
+void local_dot_q15(const q15_t *pV, // pointer to vector
+	const q15_t *pM,               // pointer to matrix
+	const uint16_t dim_vec,       // length of the vector
+	const uint16_t num_of_rows,   // numCol of A
+	const uint16_t out_shift,     // amount of right-shift for output
+	 q15_t *pOut)                   // output operand)
+{
+    for (int i = 0; i < num_of_rows; i++)
+    {
+        int ip_out = (q31_t) NNOM_ROUND(out_shift);
+        for (int j = 0; j < dim_vec; j++)
+        {
+            ip_out += pV[j] * pM[i * dim_vec + j];
+        }
+        pOut[i] = (q15_t)__NNOM_SSAT((ip_out >> out_shift), 16);
+    }
+}
+
+
+
+void local_dot_q15_opt(const q15_t * pV,
+	const q15_t * pM,
+	const uint16_t dim_vec,
+	const uint16_t num_of_rows,
+	const uint16_t out_shift, 
+	q15_t * pOut)
+{
+    /* Run the following code as reference implementation for Cortex-M0 and Cortex-M3 */
+    uint16_t  rowCnt = num_of_rows >> 2;
+    const q15_t *pB = pM;
+    const q15_t *pA;
+    q15_t    *pO = pOut;
+
+    while (rowCnt)
+    {
+        q31_t     sum =  (q31_t) NNOM_ROUND(out_shift);
+        q31_t     sum2 = (q31_t) NNOM_ROUND(out_shift);
+        q31_t     sum3 = (q31_t) NNOM_ROUND(out_shift);
+        q31_t     sum4 = (q31_t) NNOM_ROUND(out_shift);
+        uint16_t  colCnt = dim_vec >> 1;
+        pA = pV;
+        while (colCnt)
+        {
+            q15_t     inA1 = *pA++;
+            q15_t     inA2 = *pA++;
+            q15_t     inB1 = *pB++;
+            q15_t     inB2 = *pB++;
+            sum += inA1 * inB1 + inA2 * inB2;
+
+            inB1 = *pB++;
+            inB2 = *pB++;
+            sum2 += inA1 * inB1 + inA2 * inB2;
+
+            inB1 = *pB++;
+            inB2 = *pB++;
+            sum3 += inA1 * inB1 + inA2 * inB2;
+
+            inB1 = *pB++;
+            inB2 = *pB++;
+            sum4 += inA1 * inB1 + inA2 * inB2;
+
+            colCnt--;
+        }
+        colCnt = dim_vec & 0x1;
+        while (colCnt)
+        {
+            q15_t     inA = *pA++;
+            q15_t     inB = *pB++;
+            sum += inA * inB;
+            inB = *pB++;
+            sum2 += inA * inB;
+            inB = *pB++;
+            sum3 += inA * inB;
+            inB = *pB++;
+            sum4 += inA * inB;
+            colCnt--;
+        }
+        *pO++ = (q15_t) __NNOM_SSAT((sum >> out_shift), 16);
+        *pO++ = (q15_t) __NNOM_SSAT((sum2 >> out_shift), 16);
+        *pO++ = (q15_t) __NNOM_SSAT((sum3 >> out_shift), 16);
+        *pO++ = (q15_t) __NNOM_SSAT((sum4 >> out_shift), 16);
+
+        rowCnt--;
+    }
+    rowCnt = num_of_rows & 0x3;
+
+    while (rowCnt)
+    {
+        int       ip_out = (q31_t) + NNOM_ROUND(out_shift);
+        int       j;
+
+        pA = pV;
+        for (j = 0; j < dim_vec; j++)
+        {
+            q15_t     inA = *pA++;
+            q15_t     inB = *pB++;
+            ip_out += inA * inB;
+        }
+        *pO++ = (q15_t) __NNOM_SSAT((ip_out >> out_shift), 16);
+
+        rowCnt--;
+    }
+}
+
+void local_fully_connected_mat_q7_vec_q15_opt(const q15_t * pV,
+                                       const q7_t * pM,
+                                       const uint16_t dim_vec,
+                                       const uint16_t num_of_rows,
+                                       const uint16_t bias_shift,
+                                       const uint16_t out_shift, 
+                                       const q7_t * bias, 
+                                       q15_t * pOut, 
+                                       q15_t * vec_buffer)
+{
+
+    (void)vec_buffer;
+
+    /* Run the following code as reference implementation for Cortex-M0 and Cortex-M3 */
+    uint16_t  rowCnt = num_of_rows >> 2;
+    const q7_t *pB = pM;
+    const q15_t *pA;
+    q15_t    *pO = pOut;
+    const q7_t *pBias = bias;
+
+    while (rowCnt)
+    {
+        q31_t     sum;
+        q31_t     sum2;
+        q31_t     sum3;
+        q31_t     sum4;
+        uint16_t  colCnt = dim_vec >> 1;
+
+        // quick and dirty to support none bias fully connected
+        if(bias)
+        {
+            sum =  ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+            sum2 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+            sum3 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+            sum4 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+        }
+        else
+        {
+            sum =  (q31_t) NNOM_ROUND(out_shift);
+            sum2 = (q31_t) NNOM_ROUND(out_shift);
+            sum3 = (q31_t) NNOM_ROUND(out_shift);
+            sum4 = (q31_t) NNOM_ROUND(out_shift);
+        }
+        
+        pA = pV;
+        while (colCnt)
+        {
+            q15_t     inA1 = *pA++;
+            q15_t     inA2 = *pA++;
+
+            q7_t      inB1 = *pB++;
+            q7_t      inB3 = *pB++;
+            q7_t      inB2 = *pB++;
+            q7_t      inB4 = *pB++;
+
+            sum += inA1 * inB1 + inA2 * inB2;
+            sum2 += inA1 * inB3 + inA2 * inB4;
+
+            inB1 = *pB++;
+            inB3 = *pB++;
+            inB2 = *pB++;
+            inB4 = *pB++;
+
+            sum3 += inA1 * inB1 + inA2 * inB2;
+            sum4 += inA1 * inB3 + inA2 * inB4;
+
+            colCnt--;
+        }
+
+        colCnt = dim_vec & 0x1;
+        while (colCnt)
+        {
+            q15_t     inA = *pA++;
+            q7_t      inB = *pB++;
+            sum += inA * inB;
+            inB = *pB++;
+            sum2 += inA * inB;
+            inB = *pB++;
+            sum3 += inA * inB;
+            inB = *pB++;
+            sum4 += inA * inB;
+
+            colCnt--;
+        }
+        *pO++ = (q15_t) __NNOM_SSAT((sum >> out_shift), 16);
+        *pO++ = (q15_t) __NNOM_SSAT((sum2 >> out_shift), 16);
+        *pO++ = (q15_t) __NNOM_SSAT((sum3 >> out_shift), 16);
+        *pO++ = (q15_t) __NNOM_SSAT((sum4 >> out_shift), 16);
+
+        rowCnt--;
+    }
+
+    rowCnt = num_of_rows & 0x3;
+
+    while (rowCnt)
+    {
+        int       ip_out;
+        int       j;
+
+        // quick and dirty to support none bias fully connected
+        if(bias)
+            ip_out = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+        else
+            ip_out = (q31_t)NNOM_ROUND(out_shift);
+        
+        pA = pV;
+        for (j = 0; j < dim_vec; j++)
+        {
+            q15_t     inA = *pA++;
+            q7_t      inB = *pB++;
+            ip_out += inA * inB;
+        }
+        *pO++ = (q15_t) __NNOM_SSAT((ip_out >> out_shift), 16);
+
+        rowCnt--;
+    }
+}
+
+void local_fully_connected_mat_q7_vec_q15(const q15_t * pV,
+                                   const q7_t * pM,
+                                   const uint16_t dim_vec,
+                                   const uint16_t num_of_rows,
+                                   const uint16_t bias_shift,
+                                   const uint16_t out_shift,
+                                   const q7_t * bias,
+                                   q15_t * pOut,
+                                   q15_t * vec_buffer)
+{
+    int  i, j;
+
+    // a quick solution for none-bias dot. 
+    if(bias == NULL)
+    {
+        for (i = 0; i < num_of_rows; i++)
+        {
+            int ip_out = (q31_t) NNOM_ROUND(out_shift);
+            for (j = 0; j < dim_vec; j++)
+            {
+                ip_out += pV[j] * pM[i * dim_vec + j];
+            }
+            pOut[i] = (q15_t) __NNOM_SSAT((ip_out >> out_shift), 16);
+        }
+    }
+    else
+    {
+        for (i = 0; i < num_of_rows; i++)
+        {
+            int ip_out = ((q31_t)(bias[i]) << bias_shift) + NNOM_ROUND(out_shift);
+            for (j = 0; j < dim_vec; j++)
+            {
+                ip_out += pV[j] * pM[i * dim_vec + j];
+            }
+            pOut[i] = (q15_t) __NNOM_SSAT((ip_out >> out_shift), 16);
+        }
+    }
+}
 
 void local_softmax_q7(const q7_t *vec_in, const uint32_t dim_vec, q7_t *p_out)
 {
@@ -1168,7 +1550,72 @@ void local_softmax_q7(const q7_t *vec_in, const uint32_t dim_vec, q7_t *p_out)
     }
 }
 
-void local_sigmoid_q7(q7_t * data, uint32_t size, int16_t int_width)
+
+// hard sigmoid, 
+// y=-1 if x < -2.5
+// y=1  if x > 2.5
+// otherwise y = 0.2 * x + 0.5 (y=0.20315 * x + 0.5)
+void local_hard_sigmoid_q7(q7_t *data, uint32_t size, int16_t dec_bit)
+{
+	int16_t limit = 2.5f * (1<<dec_bit)-1; 
+	int16_t offset = 64;	// 0.5 * 128
+	int16_t mult = 26;  	// 0.2 * 128
+
+	// int bit >= 0
+	for(int i=0; i<size; i++)
+	{
+		if(data[i] <= -limit)
+			data[i] = 0;
+		else if(data[i] >= limit)
+			data[i] = 127;
+		else
+		{
+			data[i] = ((int16_t)data[i] * mult >> dec_bit) + offset;
+		} 
+	}   
+ }
+
+// hard tanh
+// y=-1 if x < -1
+// y=1  if x > 1
+// otherwise y = x
+void local_hard_tanh_q7(q7_t *data, uint32_t size, int16_t dec_bit)
+{
+    int16_t int_bit = 7 - dec_bit;
+    int16_t limit = 1 << dec_bit;
+
+    if(dec_bit == 7)
+        return;
+	
+	// int bit > 0
+	if(int_bit < 0)
+		for(int i=0; i<size; i++)
+		{
+			if(data[i] <= -limit)
+				data[i] = -128;
+			else if(data[i] >= limit)
+				data[i] = 127;
+			else
+			{
+				data[i] = data[i] >> (-int_bit);
+			}
+		}
+	else
+		// int bit >= 0
+		for(int i=0; i<size; i++)
+		{
+			if(data[i] <= -limit)
+				data[i] = -128;
+			else if(data[i] >= limit)
+				data[i] = 127;
+			else
+			{
+				data[i] = data[i] << int_bit;
+			}
+		}
+}
+
+void local_sigmoid_q7(q7_t *data, uint32_t size, int16_t int_width)
 {
     uint32_t i = size;
     q7_t *pIn = data;
@@ -1263,6 +1710,65 @@ void local_leaky_relu_q7(q7_t *data, q7_t alpha, uint32_t size)
     }
 }
 
+// alpha in q7 format with dec_bit=7
+// max and threshold has the same Q format with the activation
+void local_adv_relu_q7(q7_t *data, q7_t negative_slope, q7_t max, q7_t threshold, uint32_t size)
+{
+    uint32_t i;
+    for (i = 0; i < size; i++)
+    {
+        //   `f(x) = max_value` for `x >= max_value`,
+        //   `f(x) = x` for `threshold <= x < max_value`,
+        //   `f(x) = alpha * (x - threshold)` otherwise.
+
+        if(data[i] > max)
+            data[i] = max;
+        if (data[i] < threshold)
+            data[i] = (data[i] - threshold) * negative_slope / 128;    
+    }
+}
+
+
+static void local_activation_q15(q15_t * data, uint32_t size, uint16_t int_width, const q15_t*lookup_table)
+{
+    uint32_t  i = size;
+    q15_t    *pIn = data;
+    q15_t    *pOut = data;
+    uint16_t  shift_size = 8 + 3 - int_width;
+    uint32_t  bit_mask = 0x7FF >> int_width;
+    uint32_t  full_frac = bit_mask + 1;
+    while (i)
+    {
+        q15_t     out;
+        q15_t     in = *pIn++;
+        q15_t     frac = (uint32_t) in & bit_mask;
+        q15_t     value = lookup_table[(uint8_t)(in >> shift_size)];
+        if ((in >> shift_size) != 0x7f)
+        {
+            q15_t    value2 = lookup_table[(uint8_t)(1 + ((uint8_t)(in >> shift_size)))];
+            /* doing the interpolation here for better accuracy */
+            out = ((q31_t) (full_frac - frac) * value + (q31_t) value2 * frac) >> shift_size;
+        } else
+        {
+            /* the largest positive value does not have a right side for linear interpolation */
+            out = value;
+        }
+        *pOut++ = out;
+        i--;
+    }
+}
+
+void local_sigmoid_q15(q15_t * data, uint32_t size, uint16_t int_width)
+{
+    local_activation_q15(data, size, int_width, nnom_sigmoid_table_q15);
+}
+
+void local_tanh_q15(q15_t * data, uint32_t size, uint16_t int_width)
+{
+    local_activation_q15(data, size, int_width, nnom_tanh_table_q15);
+}
+
+
 // matrix ops
 void local_mult_q7(q7_t *pSrcA,
                    q7_t *pSrcB,
@@ -1306,6 +1812,52 @@ void local_sub_q7(q7_t *pSrcA,
     {
         q31_t sub = pSrcA[i] - pSrcB[i];
         pDst[i] = (q7_t) __NNOM_SSAT(((sub + NNOM_ROUND(out_shift)) >> out_shift), 8);
+    }
+}
+
+// matrix ops q15
+void local_mult_q15(q15_t *pSrcA,
+                   q15_t *pSrcB,
+                   q15_t *pDst,
+                   const uint16_t out_shift,
+                   uint32_t blockSize)
+{
+    uint32_t i;
+
+    for (i = 0; i < blockSize; i++)
+    {
+        q31_t product = pSrcA[i] * pSrcB[i];
+        pDst[i] = (q15_t) __NNOM_SSAT(((product + NNOM_ROUND(out_shift)) >> out_shift), 16);
+    }
+}
+
+void local_add_q15(q15_t *pSrcA,
+                  q15_t *pSrcB,
+                  q15_t *pDst,
+                  const uint16_t out_shift,
+                  uint32_t blockSize)
+{
+    uint32_t i;
+
+    for (i = 0; i < blockSize; i++)
+    {
+        q31_t sum = pSrcA[i] + pSrcB[i];
+        pDst[i] = (q15_t) __NNOM_SSAT(((sum + NNOM_ROUND(out_shift)) >> out_shift), 16);
+    }
+}
+
+void local_sub_q15(q15_t *pSrcA,
+                  q15_t *pSrcB,
+                  q15_t *pDst,
+                  const uint16_t out_shift,
+                  uint32_t blockSize)
+{
+    uint32_t i;
+
+    for (i = 0; i < blockSize; i++)
+    {
+        q31_t sub = pSrcA[i] - pSrcB[i];
+        pDst[i] = (q15_t) __NNOM_SSAT(((sub + NNOM_ROUND(out_shift)) >> out_shift), 16);
     }
 }
 
@@ -1364,5 +1916,76 @@ void local_multiple_sub_q7( q7_t *p_dst,
     }
 }
 
+// y = 1 - x
+void local_1_minor_z_q15(q15_t* src, q15_t*des, uint16_t dec_bit, uint32_t size)
+{
+    int32_t one = (1 << dec_bit)-1;
+    for(int i=0; i<size/8; i++)
+    {
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+    }
+    for(int i=0; i<size%8; i++)
+    {
+        *des++ = one - *src++;
+    }
+}
 
+
+void local_q7_to_q15_no_shift(const q7_t *src, q15_t *des, uint32_t size)
+{
+    // simple unloop
+    uint32_t  count = size/8;
+    while (count-- > 0)
+    {
+        *des++ = (q15_t)*src++;
+        *des++ = (q15_t)*src++;
+        *des++ = (q15_t)*src++;
+        *des++ = (q15_t)*src++;
+        *des++ = (q15_t)*src++;
+        *des++ = (q15_t)*src++;
+        *des++ = (q15_t)*src++;
+        *des++ = (q15_t)*src++;
+    }
+    count = size%8;
+    while(count-- > 0)
+        *des++ = (q15_t)*src++;
+}
+
+void local_q7_to_q15(const q7_t *src, q15_t *des, uint32_t size)
+{
+    // simple unloop
+    uint32_t  count = size/8;
+    while (count-- > 0)
+    {
+        *des++ = (q15_t)*src++<<8;
+        *des++ = (q15_t)*src++<<8;
+        *des++ = (q15_t)*src++<<8;
+        *des++ = (q15_t)*src++<<8;
+        *des++ = (q15_t)*src++<<8;
+        *des++ = (q15_t)*src++<<8;
+        *des++ = (q15_t)*src++<<8;
+        *des++ = (q15_t)*src++<<8;
+    }
+    count = size%8;
+    while(count-- > 0)
+        *des++ = (q15_t)*src++<<8;
+}
+
+// right shift q15 to q7
+void local_q15_to_q7(const q15_t *src, q7_t *des,  uint32_t shift, uint32_t size)
+{
+    while(size-- >0)
+    {
+        *des = *src >> shift;
+        des++;
+        src++;
+    }
+}
 

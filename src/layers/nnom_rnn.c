@@ -21,33 +21,11 @@
 
 nnom_status_t rnn_build(nnom_layer_t *layer);
 nnom_status_t rnn_run(nnom_layer_t *layer);
-
-// Simple RNN
-// unit = output shape
-// type of activation
-nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t *activation, const nnom_weight_t *w, const nnom_bias_t *b)
-{
-	nnom_simple_rnn_cell_t *cell;
-	cell = nnom_mem(sizeof(nnom_simple_rnn_cell_t));
-	if (cell == NULL)
-		return (nnom_rnn_cell_t *)cell;
-	// set parameters
-	cell->activation = activation;
-	cell->super.units = units;
-	cell->super.run = cell_simple_rnn_run;
-
-	cell->bias = b;
-	cell->weights = w;
-	//cell->output_shift = w->shift;
-	//cell->bias_shift = w->shift - b->shift;	// bias is quantized to have maximum shift of weights
-
-	return (nnom_rnn_cell_t *)cell;
-}
+nnom_status_t rnn_free(nnom_layer_t* layer);
 
 // RNN
-nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence)
+nnom_layer_t *rnn_s(nnom_rnn_cell_t *cell, const nnom_rnn_config_t* config)
 {
-
 	nnom_rnn_layer_t *layer;
 	nnom_buf_t *comp;
 	nnom_layer_io_t *in, *out;
@@ -68,7 +46,7 @@ nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence)
 	// set buf state
 	in->type = NNOM_TENSOR_BUF_TEMP;
 	out->type = NNOM_TENSOR_BUF_TEMP;
-	comp->type = NNOM_TENSOR_BUF_RESERVED; // reserve buf for RNN state (statfulness)
+	comp->type = NNOM_TENSOR_BUF_TEMP;
 	// put in & out on the layer.
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
@@ -76,143 +54,134 @@ nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence)
 	// set run and outshape methods
 	layer->super.run = rnn_run;
 	layer->super.build = rnn_build;
+	layer->super.free = rnn_free;
 
 	// rnn parameters.
-	layer->return_sequence = return_sequence;
+	layer->return_sequence = config->return_sequence;
+	layer->stateful = config->stateful;
+	layer->go_backwards = config->go_backwards;
+	layer->super.config = (void*)config;
 	layer->cell = cell;
+
+	// set this layer to the cell
+	layer->cell->layer = (nnom_layer_t *)layer;
 
 	return (nnom_layer_t *)layer;
 }
 
-
-// the state buffer and computational buffer shape of the cell
-nnom_status_t simplecell_build(nnom_layer_t* layer, nnom_rnn_cell_t* cell)
+nnom_status_t rnn_free(nnom_layer_t* layer)
 {
+	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t*)layer;
+	// free cell
+	if(cl->cell->free)
+		cl->cell->free(cl->cell);
+
+	// free state buffer
+	nnom_free(cl->state_buf);
 
 	return NN_SUCCESS;
 }
 
-// TODO
 nnom_status_t rnn_build(nnom_layer_t* layer)
 {
-	//nnom_rnn_layer_t* cl = (nnom_rnn_layer_t*)layer;
-	/*
-	// get the last layer's output as input shape
-	layer->in->shape = layer->in->hook.io->shape;
+	nnom_rnn_layer_t *cl = (nnom_rnn_layer_t *)layer;
 
-	// output shape
-	//layer->out->shape = layer->in->shape;
+	// get the tensor from last layer's output
+	layer->in->tensor = layer->in->hook.io->tensor;
+	
+	// timestamp size
+	cl->timestamp_size = layer->in->tensor->num_dim > 2 ? layer->in->tensor->dim[1] : layer->in->tensor->dim[0];
 
-	// TODO
-	// calculate computational and stat buf size
-	layer->comp = 0;
-
-	// calculate output shape according to the return_sequence
-	if (cl->return_sequence)
+	if(cl->return_sequence)
 	{
-		layer->out->shape.h = 1;				  // batch?
-		layer->out->shape.w = layer->in->shape.w; // timestamp (same timestamps)
-		layer->out->shape.c = cl->cell->units;	 // output unit
+		// create new tensor for the output
+		layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, 2, 0);
+		// shape: timestamp, units
+		layer->out->tensor->dim[0] = cl->timestamp_size;
+		layer->out->tensor->dim[1] = cl->cell->units;
 	}
 	else
 	{
-		layer->out->shape.h = 1;			  // batch?
-		layer->out->shape.w = 1;			  // timestamp
-		layer->out->shape.c = cl->cell->units; // output unit
+		// create new tensor for the output
+		layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, 1, 0);
+		// shape: timestamp, units
+		layer->out->tensor->dim[0] = cl->cell->units;
 	}
-	*/
+
+	// output q format - the output of the available activations are both q0.7.  
+	layer->out->tensor->q_dec[0] = 7;
+
+	// get feature size from input tensor
+	cl->cell->feature_size = tensor_get_num_channel(layer->in->tensor); // vector (feature) size
+
+	// call cell builder to build the cell
+	cl->cell->build(cl->cell);
+
+	// get the size of computation buffer?
+	cl->super.comp->size = cl->cell->comp_buf_size; 	// size of intermediate buffer required by the cell. 
+	cl->state_buf = nnom_mem(cl->cell->state_size * 2); // allocate state buf for upper/lower state buffer. 
+	if(!cl->state_buf)
+		return NN_NO_MEMORY;
+	
+	// get the computational cost provided by Cell
+	layer->stat.macc = cl->cell->macc * cl->timestamp_size;
 	return NN_SUCCESS;
 }
-
-nnom_status_t cell_simple_rnn_run(nnom_layer_t *layer)
-{
-	/*
-	nnom_status_t result;
-	// cell / layer
-	nnom_rnn_layer_t* cl 	= (nnom_rnn_layer_t *)layer;
-	nnom_simple_rnn_cell_t* cell = (nnom_simple_rnn_cell_t*)cl->cell;
-	// parameters
-	size_t input_size 		= layer->in->shape.c;				// in rnn, h = 1, w = timestamp, c = feature size. 
-	size_t output_size 		= cell->super.units;					// output size = state size in keras. 
-	q7_t* weight 			= (q7_t*)cell->weights->p_value;
-	q7_t* re_weight 		= (q7_t*)cell->weights->p_value + input_size;
-	q7_t* bias				= (q7_t*)cell->bias->p_value;
-	q7_t* bias_dummy		= (q7_t*)cell->bias->p_value + output_size;// this must be a dummy bias for all zero. 
-	uint16_t bias_shift 	= cell->bias->shift; 			 	// not sure
-	uint16_t output_shift 	= cell->weights->shift; 			// not correct
-	uint8_t* vector_buf 	= layer->comp->mem->blk;			// not correct, buf for calculation
-	
-	// layer->comp buf is use to store states and intermmediate buffer
-	// state buf | B1	|compute buf;  Additionaly, cell->output buffer can be used for calulation
-	// 
-	// h = tanh or relu(w*x + b_dummy + h*x + bias)
-
-	// w*x + b_dummy
-	// buff: input -> B1
-	result = (nnom_status_t)arm_fully_connected_q7(
-		cell->super.input_buf,
-		weight,
-		input_size, output_size,
-		bias_shift, output_shift,
-		bias_dummy,
-		cell->super.output_buf, (q15_t*)vector_buf);
-	
-	// h*x + bias (paramters are wrong)
-	// buff: state -> output
-	result = (nnom_status_t)arm_fully_connected_q7(
-		cell->super.input_buf,
-		re_weight,
-		input_size, output_size,
-		bias_shift, output_shift,
-		bias,
-		cell->super.output_buf, (q15_t*)vector_buf);
-	
-	// add (paramters are wrong)
-	// buff: B1 + output -> state 
-	arm_add_q7(layer->in->mem->blk, layer->out->mem->blk, layer->out->mem->blk, output_size);
-	
-	// finally the activation (thinking of changing the activation's run interfaces. )
-	// buff: state
-	result = act_direct_run(layer, cell->activation,  cell->super.output_buf, output_size, layer->in->qfmt);
-
-	// copy to output
-	//memcpy(cell->super.output_buf, state, output_size);
-
-	*/
-	return NN_SUCCESS;
-}
-
 
 nnom_status_t rnn_run(nnom_layer_t* layer)
 {
 	nnom_status_t result;
-	/*
 	nnom_rnn_layer_t* cl = (nnom_rnn_layer_t*)(layer);
-	size_t timestamps_size = layer->in->shape.w;
-	size_t feature_size = layer->in->shape.c;
-	size_t output_size = cl->cell->units;
+	size_t timestamps_size = layer->in->tensor->dim[layer->in->tensor->num_dim-2];
+	size_t feature_size = tensor_get_num_channel(layer->in->tensor); // feature size = last dimension. 
+	size_t state_size = cl->cell->state_size;
+	size_t output_growth;
+	void* upper_state = (q7_t*)cl->state_buf + state_size;
+	void* lower_state = (q7_t*)cl->state_buf;
 
-	// set the state buffer
-	cl->cell->state_buf = layer->comp->mem;
-
-	// currently not support stateful. and not support reserved mem block
+	// reset state buffer if not in stateful
 	if (!cl->stateful)
-		memset(cl->cell->state_buf, 0, shape_size(&layer->comp->shape));
+		memset(cl->state_buf, 0, state_size * 2);
 
-	// run
+	// set output data
+	output_growth = cl->return_sequence ? cl->cell->units : 0;
+
+	// run timestamp by timestamp
 	for (uint32_t round = 0; round < timestamps_size; round++)
 	{
-		// set input buffer
-		cl->cell->input_buf = (q7_t*)layer->in->mem->blk + feature_size * round;
-		if (cl->return_sequence)
-			cl->cell->output_buf = (q7_t*)layer->out->mem->blk + output_size * round;
+		if(cl->go_backwards)
+		{
+			// set input data
+			cl->cell->in_data = (q7_t*)layer->in->tensor->p_data + feature_size*(timestamps_size - 1 - round);
+			// set output data
+			cl->cell->out_data = (q7_t*)layer->out->tensor->p_data + output_growth*(timestamps_size - 1 - round);
+		}
 		else
-			cl->cell->output_buf = layer->out->mem->blk;
+		{
+			// set input data
+			cl->cell->in_data = (q7_t*)layer->in->tensor->p_data + feature_size*round;
+			// set output data
+			cl->cell->out_data = (q7_t*)layer->out->tensor->p_data + output_growth*round;
+		}
+		
+		// switch upper/lower state buffer
+		if(cl->cell->in_state != lower_state)
+		{
+			cl->cell->in_state = lower_state;
+			cl->cell->out_state = upper_state;
+		}
+		else
+		{
+			cl->cell->in_state = upper_state;
+			cl->cell->out_state = lower_state;
+		}
 
 		// run it
-		result = cl->cell->run(layer);
+		result = cl->cell->run(cl->cell);
+		if(result != NN_SUCCESS)
+			return result;
 	}
-	*/
+	
 	return result;
 }
 

@@ -78,49 +78,28 @@ def normalize(data):
     data[:, :, 6:9] = data[:, :, 6:9] / max(abs(np.max(data[:, :, 6:9])), abs(np.min(data[:, :, 6:9])))
     return data
 
-
-
 def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     inputs = Input(shape=x_train.shape[1:])
-    x = Conv1D(32, kernel_size=(9), strides=(2), padding='same')(inputs)
+    x = Conv1D(16, kernel_size=(9), strides=(2), padding='same')(inputs)
     x = BatchNormalization()(x)
-    x = Dropout(0.2)(x)
-    x = ReLU()(x)
-    x = MaxPool1D(2, strides=2)(x)
 
-    # inception - 1
-    x1 = Conv1D(32, kernel_size=(5), strides=(1), padding="same")(x)
-    x1 = BatchNormalization()(x1)
-    x1 = Dropout(0.2)(x1)
-    x1 = ReLU()(x1)
-    x1 = MaxPool1D(2, strides=2)(x1)
+    # you can use either of the format below.
+    # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
+    # x = SimpleRNN(16, return_sequences=True)(x)
 
-    # inception - 2
-    x2 = Conv1D(32, kernel_size=(3), strides=(1), padding="same")(x)
-    x2 = BatchNormalization()(x2)
-    x2 = Dropout(0.2)(x2)
-    x2 = ReLU()(x2)
-    x2 = MaxPool1D(2, strides=2)(x2)
+    x2 = RNN(LSTMCell(32), return_sequences=True)(x)
+    x1 = LSTM(32, return_sequences=True, go_backwards=True)(x)
+    x = concatenate([x1, x2], axis=-1)
 
-    # inception - 3
-    x3 = MaxPool1D(2, strides=2)(x)
-    x3 = Dropout(0.2)(x3)
+    # Bidirectional with concatenate. (not working yet)
+    x1 = RNN(GRUCell(16), return_sequences=True)(x)
+    x2 = GRU(16, return_sequences=True, go_backwards=True)(x)
+    x = concatenate([x1, x2], axis=-1)
 
-    # concate all inception layers
-    x = concatenate([ x1, x2,x3], axis=-1)
-
-    #conclusion
-    x = Conv1D(48, kernel_size=(3), strides=(1), padding="same")(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-    #x = MaxPool1D(2, strides=2)(x)
-    x = Dropout(0.2)(x)
-
-    # our netowrk is not that deep, so a hidden fully connected layer is introduce
     x = Flatten()(x)
     x = Dense(64)(x)
-    x = Dropout(0.2)(x)
     x = ReLU()(x)
+    x = Dropout(0.2)(x)
     x = Dense(6)(x)
     predictions = Softmax()(x)
 
@@ -140,7 +119,7 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     tf.keras.backend.clear_session()
     return history
 
-if __name__ == "__main__":
+def main():
     ## cpu normally run fast in 1-D data
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
@@ -194,6 +173,7 @@ if __name__ == "__main__":
 
     y_train = load_y(y_train_path)
     y_test = load_y(y_test_path)
+    y_test_original = y_test  # save for CI test
 
     y_train = one_hot(y_train, 6)
     y_test = one_hot(y_test, 6)
@@ -212,35 +192,49 @@ if __name__ == "__main__":
 
     # cut test
     # only use 1000 for test
-    x_test = x_test[:500]
-    y_test = y_test[:500]
+    x_test = x_test[:1000]
+    y_test = y_test[:1000]
 
     # generate binary test data, convert range to [-128 127] for mcu
     x_test_bin = np.clip(x_test *128, -128, 127)
     x_train_bin = np.clip(x_train*128, -128, 127)
-    generate_test_bin(x_test_bin, y_test, name='uci_test_data.bin')
-    generate_test_bin(x_train_bin, y_train, name='uci_train_data.bin')
+    generate_test_bin(x_test_bin, y_test, name='test_data.bin')
+    generate_test_bin(x_train_bin, y_train, name='train_data.bin')
 
     # train model
-    #history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
+    history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
 
     # get best model
     model = load_model(model_name)
 
     # evaluate
-    evaluate_model(model, x_test, y_test)
+    scores = evaluate_model(model, x_test, y_test)
 
     # save weight
-    generate_model(model, x_test, name='weights-uci.h')
+    generate_model(model, x_test, name='weights.h')
+	
+	
+    # --------- for test in CI ----------
+    # build NNoM
+    os.system("scons")
 
-    # plot
-    acc = history.history['accuracy']
-    val_acc = history.history['val_accuracy']
+    # do inference using NNoM
+    cmd = ".\model.exe" if 'win' in os.sys.platform else "./model"
+    os.system(cmd)
+    try:
+        # get NNoM results
+        result = np.genfromtxt('result.csv', delimiter=',', dtype=np.int, skip_header=1)
+        result = result[:,0]        # the first column is the label, the second is the probability
+        label = y_test_original[:len(y_test)].flatten()     # use the original numerical label
+        acc = np.sum(result == label).astype('float32')/len(result)
+        if (acc > 0.5):
+            print("Top 1 Accuracy on Keras %.2f%%" %(scores[1]*100))
+            print("Top 1 Accuracy on NNoM  %.2f%%" %(acc *100))
+            return 0
+        else:
+            raise Exception('test failed, accuracy is %.1f%% < 80%%' % (acc * 100.0))
+    except:
+        raise Exception('could not perform the test with NNoM')
 
-    plt.plot(range(0, epochs), acc, color='red', label='Training acc')
-    plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')
-    plt.title('Training and validation accuracy')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.legend()
-    plt.show()
+if __name__ == "__main__":
+    main()

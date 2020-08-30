@@ -60,6 +60,10 @@ nnom_layer_io_t *io_init(void *owner_layer, nnom_layer_io_t *io);
 #include "layers/nnom_sumpool.h"
 #include "layers/nnom_upsample.h"
 #include "layers/nnom_zero_padding.h"
+#include "layers/nnom_rnn.h"
+#include "layers/nnom_simple_cell.h"
+#include "layers/nnom_lstm_cell.h"
+#include "layers/nnom_gru_cell.h"
 
 // Layer APIs ******
 // (a summary for each individual layer's files)
@@ -152,7 +156,6 @@ nnom_status_t conv2d_run(nnom_layer_t* layer);
 nnom_status_t conv2d_trans_run(nnom_layer_t* layer);
 nnom_status_t dense_run(nnom_layer_t* layer);
 nnom_status_t rnn_run(nnom_layer_t* layer);
-nnom_status_t cell_simple_rnn_run(nnom_layer_t* layer);
 
 nnom_status_t upsample_run(nnom_layer_t* layer);
 nnom_status_t zero_padding_run(nnom_layer_t* layer);

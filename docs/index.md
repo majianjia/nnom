@@ -5,7 +5,7 @@
 
 NNoM is a high-level inference Neural Network library specifically for microcontrollers. 
 
-Document version 0.4.0
+Document version 0.4.1
 
 [[中文简介]](rt-thread_guide.md)
 
@@ -24,16 +24,19 @@ More detail avaialble in [Development Guide](guide_development.md)
 
 ## Latest Updates - v0.4.x
 
-**New Structured Interface**
+**Recurrent Layers (RNN) (0.4.1)**
+
+Recurrent layers **(Simple RNN, GRU, LSTM)** are implemented in version 0.4.1. Support `statful` and `return_sequence` options. 
+
+**New Structured Interface (0.4.0)** 
 
 NNoM has provided a new layer interface called **Structured Interface**, all marked with `_s` suffix. which aims to use one C-structure to provided all the configuration for a layer. Different from the Layer API which is human friendly, this structured API are more machine friendly. 
 
-**Per-Channel Quantisation**
+**Per-Channel Quantisation (0.4.0)**
 
-The new structred API supports per-channel quantisation (per-axis) and dilations for Convolutional layers. 
+The new structred API supports per-channel quantisation (per-axis) and dilations for **Convolutional layers**. 
 
-
-**New Scripts**
+**New Scripts (0.4.0)**
 
 From 0.4.0, NNoM will switch to structured interface as default to generate the model header `weights.h`. The scripts corresponding to structured interfaces are `nnom.py` while the Layer Interface corresponding to `nnom_utils.py`.
 
@@ -108,6 +111,9 @@ Most recent Examples:
 
 NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. 
 
+However, You will need to enable `libc` for dynamic memory allocation `malloc(), free(), and memset()`. Or you can port to the equivalent memory method in your system.  
+
+
 ## Optimization
 You can select [CMSIS-NN/DSP](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/NN) as the backend for about 5x performance with ARM-Cortex-M4/7/33/35P. 
 
@@ -125,7 +131,7 @@ Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for deta
 | Layers | Struct API |Layer API|Comments|
 | ------ |-------- |------|------|
 | Convolution  |conv2d_s()|Conv2D()|Support 1/2D, support dilations (New!)|
-| ConvTransposed  |conv2d_trans_s()|Conv2DTrans()|Under Dev. (New!)|
+| ConvTransposed (New!) |conv2d_trans_s()|Conv2DTrans()|Under Dev. |
 | Depthwise Conv |dwconv2d_s()|DW_Conv2D()|Support 1/2D|
 | Fully-connected |dense_s()| Dense()| |
 | Lambda |lambda_s()| Lambda() |single input / single output anonymous operation| 
@@ -140,11 +146,12 @@ Check [Porting and optimising Guide](Porting_and_Optimisation_Guide.md) for deta
 
 **RNN Layers**
 
-| Layers | Status |Layer API|Comments|
+| Layers | Status | Struct API |Comments|
 | ------ | ------ | ------| ------|
-| Recurrent NN | Under Dev.| RNN()| Under Developpment |
-| Simple RNN | Under Dev. | SimpleCell()| Under Developpment |
-| Gated Recurrent Network (GRU)| Under Dev. | GRUCell()| Under Developpment |
+| Recurrent NN Layer(New!) | Alpha | rnn_s()| Layer wrapper of RNN|
+| Simple Cell (New!) | Alpha | simple_cell_s()||
+| GRU Cell (New!) | Alpha | gru_cell_s()| Gated Recurrent Network |
+| LSTM Cell (New!) | Alpha| lstm_s()| Long Short-Term Memory |
 
 **Activations**
 
@@ -155,9 +162,12 @@ There is no structred API for activation currently, since activation are not usu
 | Actrivation | Struct API |Layer API|Activation API|Comments|
 | ------ |--|--|--|--|
 | ReLU  | N/A |ReLU()|act_relu()||
-| Leaky ReLU (New!) | N/A |ReLU()|act_relu()||
+| Leaky ReLU (New!) | N/A |LeakyReLU()|act_leaky_relu()||
+| Adv ReLU(New!) | N/A |N/A|act_adv_relu()|advance ReLU, Slope, max, threshold|
 | TanH | N/A |TanH()|act_tanh()||
+| Hard TanH (New!)| N/A |TanH()||backend only|
 |Sigmoid|N/A| Sigmoid()|act_sigmoid()||
+|Hard Sigmoid (New!)|N/A| N/A| N/A|backend only|
 
 **Pooling Layers**
 
@@ -168,7 +178,7 @@ There is no structred API for activation currently, since activation are not usu
 | Sum Pooling |sumpool_s()|SumPool()||
 | Global Max Pooling|global_maxpool_s()|GlobalMaxPool()||
 | Global Average Pooling |global_avgpool_s()|GlobalAvgPool()||
-| Global Sum Pooling |global_sumpool_s()|GlobalSumPool()|A better alternative to Global average pooling in MCU before Softmax|
+| Global Sum Pooling |global_sumpool_s()|GlobalSumPool()|dynamic output shift|
 
 **Matrix Operations Layers**
 
@@ -179,8 +189,4 @@ There is no structred API for activation currently, since activation are not usu
 | Addition  |add_s()|Add()||
 | Substraction  |sub_s()|Sub()||
 
-## Dependencies
 
-NNoM now use the local pure C backend implementation by default. Thus, there is no special dependency needed. 
-
-To use Log functions, you will need to enable libc in your projects. 

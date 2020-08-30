@@ -23,6 +23,7 @@ extern "C" {
 #include <string.h>
 #include <stdbool.h>
 #include <stdarg.h>
+#include <math.h>
 
 #include "nnom_port.h"
 
@@ -34,7 +35,7 @@ extern "C" {
 /* version */
 #define NNOM_MAJORVERSION     0L              /**< major version number */
 #define NNOM_SUBVERSION       4L              /**< minor version number */
-#define NNOM_REVISION         0L              /**< revise version number */
+#define NNOM_REVISION         1L              /**< revise version number */
 #define NNOM_VERSION          ((NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 
 #ifdef ARM_NN_TRUNCATE
@@ -77,6 +78,7 @@ typedef enum
 	NNOM_ACTIVATION,
 	NNOM_RELU,
 	NNOM_LEAKY_RELU,
+	NNOM_ADV_RELU,
 	NNOM_SIGMOID,
 	NNOM_TANH,
 	NNOM_SOFTMAX,
@@ -113,7 +115,8 @@ typedef enum
 			"RNN",          \
 			"Activation",   \
 			"ReLU",         \
-			"Leaky_ReLU",				\
+			"Leaky_ReLU",	\
+			"Adv_ReLU",	    \
 			"Sigmoid",      \
 			"Tanh",         \
 			"Softmax",      \
@@ -138,6 +141,7 @@ typedef enum
 {
 	ACT_RELU = 0,
 	ACT_LEAKY_RELU,
+	ACT_ADV_RELU,
 	ACT_TANH,
 	ACT_SIGMOID,
 } nnom_activation_type_t;
@@ -146,10 +150,31 @@ typedef enum
 	{                    \
 		"ReLU",          \
 		"LkyReLU",		 \
+		"AdvReLU",		\
 		"TanH",      \
 		"Sigmoid",   \
 	}
 extern const char default_activation_names[][8];
+
+// RNN cell type
+typedef enum
+{
+	NNOM_UNKOWN_CELL = 0,
+	NNOM_SIMPLE_CELL,
+	NNOM_GRU_CELL,
+	NNOM_LSTM_CELL,
+	NNOM_CELL_TYPE_MAX
+} nnom_rnn_cell_type_t;
+
+#define DEFUALT_CELL_NAMES \
+	{                    \
+		"UNKNOW",          \
+		"Simple",		 \
+		"GRU",		\
+		"LSTM",      \
+	}
+extern const char default_cell_names[][8];
+
 
 // parameters
 typedef enum
@@ -296,19 +321,6 @@ typedef struct _nnom_activation_t
 	nnom_activation_type_t type;
 } nnom_activation_t;
 
-// activation with fixed q format (tanh and sigmoid)
-typedef struct _nnom_activation_fixed_q_t
-{
-	nnom_activation_t super;
-	uint8_t dec_bit;
-} nnom_activation_fixed_q_t;
-
-// leaky relu
-typedef struct _nnom_activation_leaky_re_lu_t
-{
-	nnom_activation_t super;
-	q7_t alpha;					// alpha is present by q0.7 format. (-128 = -1) 
-} nnom_activation_leaky_re_lu_t;
 
 typedef struct _nnom_model nnom_model_t;
 

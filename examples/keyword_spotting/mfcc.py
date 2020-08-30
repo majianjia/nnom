@@ -43,7 +43,6 @@ def generate_mfcc(sig, rate, sig_len, noise=None, noise_weight=0.1, winlen=0.031
 
 def merge_mfcc_file(input_path='dat/', mix_noise=True, sig_len=16000, winlen=0.03125, winstep=0.03125/2, numcep=13, nfilt=26, nfft=512,
                     lowfreq=20, highfreq=4000, winfunc=np.hanning, ceplifter=0, preemph=0.97):
-
     train_data = []
     test_data = []
     validate_data = []

@@ -26,61 +26,57 @@ extern "C" {
 #include "nnom_local.h"
 #include "nnom_tensor.h"
 
-// RNN Options
-#define SEQUENCE_RETURN		true
-#define SEQUENCE_NO			false
-#define STATEFUL			true
-#define UN_STATEFUL			false
+// a machine interface for configuration
+typedef struct _nnom_rnn_config_t
+{
+	nnom_layer_config_t super;
+	bool return_sequence;
+	bool stateful;
+	bool go_backwards;
+} nnom_rnn_config_t;
 
-// RNN
+// RNN cell base type
 typedef struct _nnom_rnn_cell_t
 {
-	nnom_status_t (*run)(nnom_layer_t *layer); // simple RNN, GRU, LSTM runner
-	void *input_buf;						   // the input buf and output buf for current cell.
-	void *output_buf;						   // These will be set in rnn_run() before entre cell.run()
-	void *state_buf;						   // state
-	size_t units;							   //
+	nnom_status_t (*run)(struct _nnom_rnn_cell_t* cell); // cell runner
+	nnom_status_t (*build)(struct _nnom_rnn_cell_t* cell); // cell builder, calculate buffer size, output data size
+	nnom_status_t (*free)(struct _nnom_rnn_cell_t* cell); // 
+	nnom_layer_t *layer;				// pointer to its layer holder
+	nnom_layer_config_t *config;		// config for the cell event it is a layer type		
+	nnom_rnn_cell_type_t type;	
+
+	void *in_data;						// input data
+	void *out_data;						// output data
+	void *in_state;					// input state data (or hidden state)
+	void *out_state;				// output state data
+
+	size_t comp_buf_size;			// the size of temporary buffer. 
+	size_t state_size; 				// the size of hidden state
+	uint16_t units;					// the output units 
+	uint16_t feature_size;			// the input feature size (vector size)
+
+	size_t macc; // stat of MAC count. 
 } nnom_rnn_cell_t;
-
-typedef struct _nnom_simple_rnn_cell_t
-{
-	nnom_rnn_cell_t super;
-	nnom_activation_t* activation;
-
-	const nnom_weight_t *weights;
-	const nnom_bias_t *bias;
-} nnom_simple_rnn_cell_t;
-
-typedef struct _nnom_gru_cell_t
-{
-	nnom_rnn_cell_t super;
-	nnom_activation_t* activation;
-	nnom_activation_t* recurrent_activation;
-	//nnom_status_t(*activation)(nnom_layer_t *layer);
-	//nnom_status_t(*activation)(nnom_layer_t *layer);
-
-	const nnom_weight_t *weights;
-	const nnom_bias_t *bias;
-} nnom_gru_cell_t;
 
 typedef struct _nnom_rnn_layer_t
 {
 	nnom_layer_t super;
 	nnom_rnn_cell_t *cell;
+	void *state_buf;		// memory allocated to store state, size = 2 x size of state required by cell. 
 
-	bool return_sequence; // return sequence?
-	bool stateful;
+	uint16_t timestamp_size;// size of timestamp
+	bool return_sequence; 	// whether to return the output for each unit (sequence)
+	bool stateful;			// whether the states are kept after one inteference
+	bool go_backwards;		// whether go backwards timestamping
 } nnom_rnn_layer_t;
 
 
-// rnn layer based
-nnom_layer_t *RNN(nnom_rnn_cell_t *cell, bool return_sequence);
+// rnn layer 
+nnom_layer_t *rnn_s(nnom_rnn_cell_t *cell, const nnom_rnn_config_t* config);
 
-// RNN cells
-// The shape for RNN input is (batch, timestamp, feature), where batch is always 1. 
-//
-// SimpleRNNCell
-nnom_rnn_cell_t *SimpleCell(size_t units, nnom_activation_t* activation, const nnom_weight_t *w, const nnom_bias_t *b);
+nnom_status_t rnn_run(nnom_layer_t* layer);
+nnom_status_t rnn_build(nnom_layer_t* layer);
+nnom_status_t rnn_free(nnom_layer_t* layer);
 
 #ifdef __cplusplus
 }

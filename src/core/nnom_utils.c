@@ -307,9 +307,14 @@ nnom_status_t nnom_predict(nnom_model_t *m, uint32_t *label, float *prob)
 static void layer_stat(nnom_layer_t *layer)
 {
 	// layer stat
-	NNOM_LOG(" %10s -  %8d      ",
-		   (char *)&default_layer_names[layer->type],
-		   layer->stat.time);
+	if(layer->type != NNOM_RNN)
+		NNOM_LOG("%-10s - ", default_layer_names[layer->type]);
+	else
+	{
+		NNOM_LOG("%-3s/", default_layer_names[layer->type]);
+		NNOM_LOG("%-6s - ", default_cell_names[((nnom_rnn_layer_t*)layer)->cell->type]);
+	}
+	NNOM_LOG(" %8d      ", layer->stat.time);
 
 	// MAC operation
 	if(layer->stat.macc == 0)
@@ -366,4 +371,47 @@ void model_stat(nnom_model_t *m)
 		   (total_ops * 100) / (total_time) % 100);
 
 	NNOM_LOG("Total memory:%d\n", nnom_mem_stat());
+}
+
+void model_io_format(nnom_model_t *m)
+{
+	nnom_layer_t *layer;
+	size_t run_num = 0;
+
+	if (!m)
+		return;
+
+	layer = m->head;
+
+	NNOM_LOG("\nPrint layer input/output..\n");
+	NNOM_LOG("Layer(#)        -  Input(Qnm)  Output(Qnm)   Oshape \n");
+	NNOM_LOG("----------------------------------------------------------\n");
+	while (layer)
+	{
+		run_num++;
+		NNOM_LOG("#%-3d", run_num);
+		if(layer->type != NNOM_RNN)
+			NNOM_LOG("%-10s - ", default_layer_names[layer->type]);
+		else
+		{
+			NNOM_LOG("%-3s/", default_layer_names[layer->type]);
+			NNOM_LOG("%-6s - ", default_cell_names[((nnom_rnn_layer_t*)layer)->cell->type]);
+		}
+		NNOM_LOG("  %2d.%2d", 7-layer->in->tensor->q_dec[0], layer->in->tensor->q_dec[0]);
+		NNOM_LOG("     %2d.%2d", 7-layer->out->tensor->q_dec[0], layer->out->tensor->q_dec[0]);
+		NNOM_LOG("      (");
+		for (int i = 0; i < 3; i++)
+		{
+			if (layer->out->tensor->num_dim > i)
+				NNOM_LOG("%4d,", layer->out->tensor->dim[i]);
+			else 
+				NNOM_LOG("     ");
+		}
+		NNOM_LOG(")\n");
+		
+		if (layer->shortcut == NULL)
+			break;
+		layer = layer->shortcut;
+	}
+
 }
