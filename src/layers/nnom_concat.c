@@ -128,18 +128,20 @@ nnom_status_t concat_build(nnom_layer_t *layer)
 
 #ifdef NNOM_USING_CHW
 // axis index converter between HWC and CHW
-static inline int chw_i(int hwc)
+static inline int chw_i(int hwc, int num_dim)
 {
+    num_dim = num_dim -1;
 	hwc = hwc + 1;			
-	if(hwc>2) 
+	if(hwc>num_dim) 
 		hwc = 0;
 	return hwc;
 }
-static inline int hwc_i(int chw)
+static inline int hwc_i(int chw, int num_dim)
 {
+    num_dim = num_dim -1;
 	chw = chw - 1;			
-	if(chw<0) 
-		chw = 2;
+	if(chw<num_dim) 
+		chw = num_dim;
 	return chw;
 }
 #endif
@@ -160,9 +162,9 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	
 	// calcualte number of block to concat. the other shapes before the concat axis
 	n_block = 1;
-	for(int i= 0; i< chw_i(cl->axis); i++)
+	for(int i= 0; i< chw_i(cl->axis, num_dim); i++)
 	{
-		n_block *= layer->in->tensor->dim[hwc_i(i)];
+		n_block *= layer->in->tensor->dim[hwc_i(i, num_dim)];
 	}
 	
 	// concat all input layers
@@ -173,8 +175,8 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 		{
 			// the block size of concat data in this layer
 			block_size = 1;
-			for(int j= num_dim-1; j >= chw_i(cl->axis); j--)
-				block_size *= layer->in->tensor->dim[hwc_i(j)];
+			for(int j= num_dim-1; j >= chw_i(cl->axis, num_dim); j--)
+				block_size *= in->tensor->dim[hwc_i(j, num_dim)];
 			// concat		
 			pin = (uint8_t *)in->tensor->p_data + i * block_size;
 			memcpy(pout, pin, block_size);
