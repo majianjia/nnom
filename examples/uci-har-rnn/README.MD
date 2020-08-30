@@ -11,9 +11,9 @@ You can use both format like both below.
     x = GRU(16, return_sequences=True, stateful=True)(x)
 ~~~
 
-- Option supports are `return_sequences` and `stateful`. Please leave other option as default.
+- Option supports are `go_backwards`, `return_sequences` and `stateful`. Please leave other option as default. Please don't change the layer names/cell name. 
 - Does not support `return_state`. But you can use `layer_callback()` to get it or set it. 
-- For only Simple RNN, you can choose the activation between `sigmoid` and `tanh`.
+- For only Simple RNN, you can choose the activation between `sigmoid` and `tanh`. For GRU and LSTM, only default activation is support. i.e. `activation=sigmoid`, `recurrent_activation=tanh`
 - All RNN Cell **doesnt not support** `linear` and `relu` activation. 
 
 Run this example by using `python uci_rnn.py`. Require `scons` to build the c file. 
