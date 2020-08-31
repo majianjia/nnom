@@ -362,7 +362,6 @@ def quantize_rnn_intermediate_output(layer, features):
         kernel = layer.get_weights()[0]
         recurrent_kernel = layer.get_weights()[1]
         bias = layer.get_weights()[2]
-
         def lstm_cell_step(cell_inputs, cell_states, kernel, recurrent_kernel, bias):
             h_tm1 = cell_states[0]  # previous memory state
             c_tm1 = cell_states[1]  # previous carry state
@@ -424,11 +423,11 @@ def quantize_rnn_intermediate_output(layer, features):
         q_z1 = find_dec_bits_max_min(z1_array)
         q_z2 = find_dec_bits_max_min(z2_array)
         q_z3 = find_dec_bits_max_min(z3_array)
-        return [q_h, q_c, q_z]
+        return [q_h, q_c-1, q_z-1]
 
     elif (type(layer.cell) is GRUCell or 'gru' in layer.cell.name):
         cfg = layer.cell.get_config()
-        state = np.zeros(cfg['units']*2)
+        state = np.zeros(cfg['units'])
         k = layer.get_weights()[0]
         rk = layer.get_weights()[1]
         bias = layer.get_weights()[2]
@@ -451,13 +450,12 @@ def quantize_rnn_intermediate_output(layer, features):
             h3 = h2 * hh
             h = h1 + h3
             return h, [h], matrix_x, matrix_inner
-
         h_array = []
         z_array = []
         i_array=[]
         for feature in features:
             if (not layer.stateful):
-            #     state = [np.zeros(cfg['units']), np.zeros(cfg['units']) ]  # for test
+            #     state = [np.zeros(cfg['units']) ]  # for test
             # for fe in feature:
             #     fe = np.zeros(32)
             #     fe.fill(5)
@@ -706,9 +704,11 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
                     else:
                         transposed_wts = np.transpose(var_values, (3, 0, 1, 2))
                 elif(is_lstm_layer(layer) or is_gru_layer(layer)):   # currently we use 16 bit intermediate, use reorder optimation
-                    transposed_wts = np.transpose(var_values)
-                    if('kernel' in var_name): # not working yet
-                         transposed_wts = convert_q7_q15_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
+                    if('kernel' in var_name):
+                        transposed_wts = np.transpose(var_values)
+                        transposed_wts = convert_q7_q15_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
+                    else: # bias will not need to be transposed (for GRU which has 2d bias)
+                        transposed_wts = var_values
                 else:  # fully connected layer weights or biases of any layer
                     # test, use opt weight reorder
                     transposed_wts = np.transpose(var_values)
