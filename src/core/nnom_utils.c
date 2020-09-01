@@ -137,8 +137,8 @@ nnom_status_t prediction_run(nnom_predict_t *pre, uint32_t true_label, uint32_t*
 			sum += pre->buf_prediction[j];
 		}
 		// result
-		if (sum != 0)
-			* prob = (float)max_val / (float)sum;
+		if (max_val != 0)
+			*prob = (float)max_val / 127.f;
 		else
 			*prob = 0;
 		*predict_label = max_index;
@@ -266,7 +266,7 @@ nnom_status_t nnom_predict(nnom_model_t *m, uint32_t *label, float *prob)
 	model_run(m);
 
 	// get the output memory
-	output = m->tail->out->mem->blk;
+	output = m->tail->out->tensor->p_data;
 
 	// multiple neural output
 	if (tensor_size(m->tail->out->tensor) > 1)
@@ -286,8 +286,8 @@ nnom_status_t nnom_predict(nnom_model_t *m, uint32_t *label, float *prob)
 		}
 		// send results
 		*label = max_index;
-		if(sum !=0)
-			*prob = (float)max_val/(float)sum; 
+		if(max_val !=0)
+			*prob = (float)max_val/127.f; 
 		else
 			*prob = 0; 
 	}

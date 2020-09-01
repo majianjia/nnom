@@ -148,9 +148,7 @@ def is_shift_layer(layer):
        ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')or
        ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
        ('activation' in layer.name and layer.get_config()['activation'] == 'tanh') or
-        'rnn' in layer.name or  # rnn layers are tend to be fixed shift
-        'gru' in layer.name or
-        'lstm' in layer.name
+        is_rnn_layer(layer)
     ):
         return True
     return False
@@ -164,9 +162,7 @@ def is_shift_fixed(layer):
         ('activation' in layer.name and layer.get_config()['activation'] == 'softmax') or
         ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
         ('activation' in layer.name and layer.get_config()['activation'] == 'tanh') or
-        'rnn' in layer.name or # rnn layers are tend to be fixed shift
-        'gru' in layer.name or
-        'lstm' in layer.name
+        is_rnn_layer(layer)
     ):
         return True
     return  False
@@ -187,11 +183,10 @@ def is_gru_layer(layer):
             return True
     return False
 
-
 def is_rnn_layer(layer):
     if( 'rnn' in layer.name or
-        'gru' in layer.name or
-        'lstm' in layer.name
+        is_lstm_layer(layer) or
+        is_gru_layer(layer)
     ):
         return True
     return  False
@@ -423,7 +418,7 @@ def quantize_rnn_intermediate_output(layer, features):
         q_z1 = find_dec_bits_max_min(z1_array)
         q_z2 = find_dec_bits_max_min(z2_array)
         q_z3 = find_dec_bits_max_min(z3_array)
-        return [q_h, q_c-1, q_z-1]
+        return [q_h, q_c, q_z]
 
     elif (type(layer.cell) is GRUCell or 'gru' in layer.cell.name):
         cfg = layer.cell.get_config()
