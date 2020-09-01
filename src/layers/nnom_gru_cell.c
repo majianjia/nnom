@@ -190,7 +190,7 @@ nnom_status_t gru_cell_run(nnom_rnn_cell_t* cell)
     /* hh = nn.tanh(x_h + r * recurrent_h) */
     // 1.  hh1 = r * recurrent_h     ---> temp[2]
     local_mult_q15(temp[1], recurrent_h, temp[2], 15, cell->units);
-    // 2.  hh2 = x_h + h1            ---> temp[1]
+    // 2.  hh2 = x_h + hh1            ---> temp[1]
     local_add_q15(x_h, temp[2], temp[1], 0, cell->units);
     // 3.  hh = tanh(h2)           ---> temp[1]
     local_tanh_q15(temp[1], cell->units, act_int_bit);

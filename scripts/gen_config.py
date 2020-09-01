@@ -29,14 +29,16 @@ def tensor_shape(tensor):
     # inconsistance of TF1 and TF2
     # get tensor shape without None or ?
     try:
-        shape = [d.value for d in tensor.shape] # tf1
+        shape = tensor.shape.as_list() # tf1
     except:
-        shape = tensor.shape # tf2
-
+        shape = tensor.get_shape().as_list() # tf2
     if(shape[0] == None):
         shape = shape[1:]
     else:
         shape = shape
+    # for rnn input with timestamp = None, need a better implementation
+    for i in range(len(shape)):
+        shape[i] = shape[i] if shape[i] is not None else 1
     return shape
 
 def gen_base_config(layer):
