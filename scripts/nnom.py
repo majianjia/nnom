@@ -331,6 +331,7 @@ def quantize_rnn_intermediate_output(layer, features):
         h_array = []
         h2_array = []
         activation = nnom_tanh if cfg['activation'] is 'tanh' else nnom_sigmoid
+        state = np.zeros(cfg['units'])
         for feature in features:
             if(not layer.stateful):
                 state = np.zeros(cfg['units'])
@@ -381,12 +382,9 @@ def quantize_rnn_intermediate_output(layer, features):
         z1_array = []
         z2_array = []
         z3_array = []
+        state = [np.zeros(cfg['units']), np.zeros(cfg['units'])]
         for feature in features:
             if(not layer.stateful):
-            #     state = [np.ones(cfg['units']), np.ones(cfg['units']) ]  # for test
-            # for fe in feature:
-            #     fe = np.zeros(32)
-            #     fe.fill(2)
                 state = [np.zeros(cfg['units']), np.zeros(cfg['units']) ]
             for fe in feature:
                 output, state, z, z0, z1, z2, z3 = lstm_cell_step(fe, state, kernel, recurrent_kernel, bias)
@@ -448,12 +446,9 @@ def quantize_rnn_intermediate_output(layer, features):
         h_array = []
         z_array = []
         i_array=[]
+        state = [np.zeros(cfg['units'])]
         for feature in features:
             if (not layer.stateful):
-            #     state = [np.zeros(cfg['units']) ]  # for test
-            # for fe in feature:
-            #     fe = np.zeros(32)
-            #     fe.fill(5)
                 state = [np.zeros(cfg['units'])]
             for fe in feature:
                 output, state, z, i = gru_cell_step(fe, state, k, rk, bias[0], bias[1])
@@ -473,11 +468,11 @@ def quantize_rnn_intermediate_output(layer, features):
         return [q_h, q_z]
     return []
 
-def quantize_output(model, x_test, quantize_method='max_min', layer_offset=False, calibrate_size=100):
+def quantize_output(model, x_test, quantize_method='max_min', layer_offset=False, calibrate_size=None):
     # limit the test data size
-    np.random.shuffle(x_test)
-    if (x_test.shape[0] > calibrate_size):
-        x_test = x_test[:calibrate_size]
+    if(calibrate_size is not None):
+        if (x_test.shape[0] > calibrate_size):
+            x_test = x_test[:calibrate_size]
     # test, show the output ranges
     layer_q_list = {}
     # FIXME: only support one input
