@@ -812,7 +812,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                                      'please use Input layer as your first layer in the model', layer.name, layer)
                 size = 1
                 for s in layer.input.shape[1:]:
-                    size *= s
+                    size *= s if s is not None else 1
                 fp.write(gen_values('nnom_input_data', '{0}', size=str(size), dtype='static int8_t'))
                 fp.write(gen_tensor(layer.input, layer_q_list[layer.name][0], tensor_value='nnom_input_data'))
                 fp.write(gen_io_config(layer, tensor_name=convert_tensor_name(layer.input)))
@@ -866,7 +866,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
             if(id == len(L)-1):
                 size=1
                 for s in layer.output.shape[1:]:
-                    size = size * s
+                    size *= s if s is not None else 1
                 fp.write(gen_values('nnom_output_data', '{0}', size=str(size), dtype='static int8_t'))
                 fp.write(gen_output_config(layer,  dec_bits=layer.name.upper()+'_OUTPUT_DEC', value_name='nnom_output_data'))
 
