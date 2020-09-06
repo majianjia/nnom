@@ -207,9 +207,9 @@ def find_dec_bits_max_min(data, bit_width=8):
     :param bit_width:
     :return:
     """
-    max_val = data.max()
-    min_val = data.min()
-    int_bits = int(np.ceil(np.log2(max(abs(max_val), abs(min_val)))))
+    max_val = abs(data.max()) - abs(data.max()/pow(2, bit_width)) # allow very small saturation.
+    min_val = abs(data.min()) - abs(data.max()/pow(2, bit_width))
+    int_bits = int(np.ceil(np.log2(max(max_val, min_val))))
     dec_bits = (bit_width-1) - int_bits
     return dec_bits
 
