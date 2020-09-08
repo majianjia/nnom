@@ -237,7 +237,7 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 nnom_status_t conv2d_free(nnom_layer_t *layer)
 {
 	// free weight and bias tensor when we are not initialised from structured configuration. 
-	if(layer->config != NULL)
+	if(!layer->config)
 	{
 		nnom_conv2d_layer_t* cl = (nnom_conv2d_layer_t*)layer;
 		delete_tensor(cl->weight);

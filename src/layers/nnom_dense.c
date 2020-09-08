@@ -165,7 +165,7 @@ nnom_status_t dense_build(nnom_layer_t *layer)
 nnom_status_t dense_free(nnom_layer_t *layer)
 {
 	// free weight and bias tensor when we are not initialised from structured configuration. 
-	if(layer->config != NULL)
+	if(!layer->config)
 	{
 		nnom_dense_layer_t* cl = (nnom_dense_layer_t*)layer;
 		delete_tensor(cl->weight);
