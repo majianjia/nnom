@@ -320,17 +320,17 @@ static void layer_stat(nnom_layer_t *layer)
 	if(layer->stat.macc == 0)
 		NNOM_LOG("            ");
 	else if (layer->stat.macc < 10000)
-		NNOM_LOG("%7d     ", layer->stat.macc);
+		NNOM_LOG("%7d     ", (uint32_t)layer->stat.macc);
 	else if (layer->stat.macc < 1000*1000)
-		NNOM_LOG("%6dk     ", layer->stat.macc/1000);
+		NNOM_LOG("%6dk     ", (uint32_t)(layer->stat.macc/1000));
 	else if (layer->stat.macc < 1000*1000*1000)
-		NNOM_LOG("%3d.%02dM     ", layer->stat.macc/(1000*1000), layer->stat.macc%(1000*1000)/(10*1000)); // xxx.xx M
+		NNOM_LOG("%3d.%02dM     ", (uint32_t)(layer->stat.macc/(1000*1000)), (uint32_t)(layer->stat.macc%(1000*1000)/(10*1000))); // xxx.xx M
 	else
-		NNOM_LOG("%3d.%02dG     ", layer->stat.macc/(1000*1000*1000), layer->stat.macc%(1000*1000*1000)/(10*1000*1000)); // xxx.xx G
+		NNOM_LOG("%3d.%02dG     ", (uint32_t)(layer->stat.macc/(1000*1000*1000)), (uint32_t)(layer->stat.macc%(1000*1000*1000)/(10*1000*1000))); // xxx.xx G
 
 	// layer efficiency
 	if (layer->stat.macc != 0 && layer->stat.time != 0)
-		NNOM_LOG("%d.%02d\n", layer->stat.macc / layer->stat.time, (layer->stat.macc * 100) / (layer->stat.time) % 100);
+		NNOM_LOG("%d.%02d\n", (uint32_t)(layer->stat.macc / layer->stat.time), (uint32_t)((layer->stat.macc * 100) / (layer->stat.time) % 100));
 	else
 		NNOM_LOG("\n");
 }
@@ -340,7 +340,7 @@ void model_stat(nnom_model_t *m)
 	size_t total_ops = 0;
 	size_t total_time = 0;
 	nnom_layer_t *layer;
-	size_t run_num = 0;
+	uint32_t run_num = 0;
 
 	if (!m)
 		return;
@@ -362,21 +362,21 @@ void model_stat(nnom_model_t *m)
 		layer = layer->shortcut;
 	}
 	NNOM_LOG("\nSummary:\n");
-	NNOM_LOG("Total ops (MAC): %d", total_ops);
-	NNOM_LOG("(%d.%02dM)\n", total_ops/(1000*1000), total_ops%(1000*1000)/(10000));
-	NNOM_LOG("Prediction time :%dus\n", total_time);
+	NNOM_LOG("Total ops (MAC): %d", (uint32_t)(total_ops));
+	NNOM_LOG("(%d.%02dM)\n", (uint32_t) (total_ops/(1000*1000)), (uint32_t)(total_ops%(1000*1000)/(10000)));
+	NNOM_LOG("Prediction time :%dus\n", (uint32_t)total_time);
 	if(total_time != 0)
 		NNOM_LOG("Efficiency %d.%02d ops/us\n",
-		   (total_ops / total_time),
-		   (total_ops * 100) / (total_time) % 100);
+		   (uint32_t)(total_ops / total_time),
+		   (uint32_t)((total_ops * 100) / (total_time) % 100));
 
-	NNOM_LOG("Total memory:%d\n", nnom_mem_stat());
+	NNOM_LOG("Total memory:%d\n", (uint32_t)nnom_mem_stat());
 }
 
 void model_io_format(nnom_model_t *m)
 {
 	nnom_layer_t *layer;
-	size_t run_num = 0;
+	uint32_t run_num = 0;
 
 	if (!m)
 		return;
