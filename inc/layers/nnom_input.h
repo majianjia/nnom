@@ -38,8 +38,6 @@ typedef struct _nnom_io_layer
 typedef struct _nnom_io_config_t
 {
 	nnom_layer_config_t super;
-	// nnom_shape_data_t shape[3];
-	// void *data;
 	nnom_tensor_t *tensor; 
 }nnom_io_config_t;
 

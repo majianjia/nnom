@@ -557,17 +557,17 @@ def quantize_output(model, x_test, quantize_method='max_min', layer_offset=False
                 update_previous_layer_shift(LM[iname], dec_bit)
     for layer in L:
         if(type(layer.input) == list):
-            iname = layer.input[0].name.split('/')[0]
+            iname = layer.input[0].name.split('/')[0].split(':')[0]
             dec_min = layer_q_list[iname][0]
             # find min dec bit in these input
             for inp in layer.input:
-                iname = inp.name.split('/')[0]
+                iname = inp.name.split('/')[0].split(':')[0]
                 if(layer_q_list[iname][0] < dec_min):
                     dec_min = layer_q_list[iname][0]
                 if(layer_q_list[iname][0] != dec_min):
                     bFlag = True
             for inp in layer.input:
-                iname = inp.name.split('/')[0]
+                iname = inp.name.split('/')[0].split(':')[0]
                 layer_q_list[iname][0] = dec_min
                 if(not is_shift_layer(LM[iname])):
                     update_previous_layer_shift(LM[iname], dec_min)
