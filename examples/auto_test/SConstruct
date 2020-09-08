@@ -26,6 +26,7 @@ objs += Glob('main.c')
 #                      'CMSIS_5/CMSIS/Core/Include'])
 #env.Append(CPPDEFINES=['__ARM_ARCH_8M_BASE__'])
 #env.Append(CCFLAGS=['-g','-O0','-std=gnu99'])
+env.Append(CCFLAGS=['-std=c99'])
 
 objs +=Glob('%s/src/core/*.c'%(ROOT))
 objs +=Glob('%s/src/layers/*.c'%(ROOT))
