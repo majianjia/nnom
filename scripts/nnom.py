@@ -871,7 +871,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 size=1
                 for s in layer.output.shape[1:]:
                     size *= s if s is not None else 1
-                if(len(model.output) == 1 or output_num == 0):
+                if(output_num == 0): # the first output or the only output
                     fp.write(gen_values('nnom_output_data', '{0}', size=str(size), dtype='static int8_t'))
                     fp.write(gen_output_config(layer, dec_bits=layer.name.upper() + '_OUTPUT_DEC', output_num=output_num, value_name='nnom_output_data'))
                     output_num += 1
@@ -904,7 +904,9 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
             fp.write('\tnnom_layer_t* layer[%d];\n' % (ID + 1))
         fp.write('\n\tcheck_model_version(NNOM_MODEL_VERSION);')
         fp.write('\n\tnew_model(&model);\n\n')
-        output_num = len(model.output) -1 # inverted order of output, very strange
+
+        # inverted order of output, very strange
+        output_num = (len(model.output) -1) if type(model.output) is list else 0
         for layer in L:
             if (is_skipable_layer(layer)):
                 continue
