@@ -73,6 +73,10 @@ nnom_status_t zero_padding_build(nnom_layer_t* layer)
 	// copy then change later. 
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
+	// see if the activation will change the q format
+	if(layer->actail) 
+		layer->out->tensor->q_dec[0] = act_get_dec_bit(layer->actail->type, layer->out->tensor->q_dec[0]);
+
 	// output shape
 	layer->out->tensor->dim[1] = layer->in->tensor->dim[1] + cl->pad.left + cl->pad.right;
 	layer->out->tensor->dim[0] = layer->in->tensor->dim[0] + cl->pad.top + cl->pad.bottom;

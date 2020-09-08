@@ -24,8 +24,6 @@
 #include "arm_nnfunctions.h"
 #endif
 
-
-
 // Simple RNN
 // unit = output shape
 // type of activation
@@ -116,7 +114,6 @@ nnom_status_t simple_cell_build(nnom_rnn_cell_t* cell)
 
 nnom_status_t simple_cell_run(nnom_rnn_cell_t* cell)
 {
-	nnom_layer_t *layer = cell->layer;
 	nnom_simple_cell_t* c = (nnom_simple_cell_t*) cell;
 	int act_int_bit = 7 - MIN(c->q_dec_hw, c->q_dec_iw);
 

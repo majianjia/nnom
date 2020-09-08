@@ -24,11 +24,11 @@ import warnings
 
 model_major_version = 0
 model_sub_version = 4
-model_reversion = 1
+model_reversion = 2
 
 #define NNOM_MAJORVERSION     0L              /**< major version number */
 #define NNOM_SUBVERSION       4L              /**< minor version number */
-#define NNOM_REVISION         1L              /**< revise version number */
+#define NNOM_REVISION         2L              /**< revise version number */
 #define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 
 def fuse_bn_to_conv(layer):
@@ -146,8 +146,9 @@ def is_shift_layer(layer):
         'subtract' in layer.name or
         'multiply' in layer.name or
        ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')or
-       ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
-       ('activation' in layer.name and layer.get_config()['activation'] == 'tanh') or
+        ('activation' in layer.name and layer.get_config()['activation'] == 'hard_sigmoid') or
+        ('activation' in layer.name and layer.get_config()['activation'] == 'tanh') or
+        ('activation' in layer.name and layer.get_config()['activation'] == 'hard_tanh') or
         is_rnn_layer(layer)
     ):
         return True
@@ -161,7 +162,9 @@ def is_shift_fixed(layer):
         'tanh' in layer.name or
         ('activation' in layer.name and layer.get_config()['activation'] == 'softmax') or
         ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
+        ('activation' in layer.name and layer.get_config()['activation'] == 'hard_sigmoid') or
         ('activation' in layer.name and layer.get_config()['activation'] == 'tanh') or
+        ('activation' in layer.name and layer.get_config()['activation'] == 'hard_tanh') or
         is_rnn_layer(layer)
     ):
         return True
@@ -788,6 +791,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 return True
             return False
 
+        output_num = 0
         for id, layer in enumerate(L):
             if (is_skipable_layer(layer)):
                 inp = layer.input.name.replace(':', '/').split('/')[0]
@@ -814,7 +818,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 for s in layer.input.shape[1:]:
                     size *= s if s is not None else 1
                 fp.write(gen_values('nnom_input_data', '{0}', size=str(size), dtype='static int8_t'))
-                fp.write(gen_tensor(layer.input, layer_q_list[layer.name][0], tensor_value='nnom_input_data'))
+                fp.write(gen_tensor(layer.input, layer_q_list[layer.name][0], tensor_value='nnom_input_data', is_io_tensor=True))
                 fp.write(gen_io_config(layer, tensor_name=convert_tensor_name(layer.input)))
             elif (type(layer) in [Conv2D, Conv1D, DepthwiseConv2D]):
                 for w in layer.weights:
@@ -862,13 +866,28 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                     fp.write(gen_lstm_cell_config(layer, layer_q_list['intermediate_'+layer.name]))
                 fp.write(gen_rnn_config(layer))
 
-            # last layer, attach the additional nnom output layer
-            if(id == len(L)-1):
+            # test, multiple output layer
+            if(len(layer.outbound_nodes) == 0):
                 size=1
                 for s in layer.output.shape[1:]:
                     size *= s if s is not None else 1
-                fp.write(gen_values('nnom_output_data', '{0}', size=str(size), dtype='static int8_t'))
-                fp.write(gen_output_config(layer,  dec_bits=layer.name.upper()+'_OUTPUT_DEC', value_name='nnom_output_data'))
+                if(len(model.output) == 1 or output_num == 0):
+                    fp.write(gen_values('nnom_output_data', '{0}', size=str(size), dtype='static int8_t'))
+                    fp.write(gen_output_config(layer, dec_bits=layer.name.upper() + '_OUTPUT_DEC', output_num=output_num, value_name='nnom_output_data'))
+                    output_num += 1
+                else:
+                    output_value_names = 'nnom_output_data'+str(output_num)
+                    fp.write(gen_values(output_value_names, '{0}', size=str(size), dtype='static int8_t'))
+                    fp.write(gen_output_config(layer, dec_bits=layer.name.upper() + '_OUTPUT_DEC', output_num=output_num, value_name=output_value_names))
+                    output_num += 1
+
+            # # last layer, attach the additional nnom output layer
+            # if(id == len(L)-1):
+            #     size=1
+            #     for s in layer.output.shape[1:]:
+            #         size *= s if s is not None else 1
+            #     fp.write(gen_values('nnom_output_data', '{0}', size=str(size), dtype='static int8_t'))
+            #     fp.write(gen_output_config(layer,  dec_bits=layer.name.upper()+'_OUTPUT_DEC', value_name='nnom_output_data'))
 
         # write version
         fp.write('/* model version */\n')
@@ -885,6 +904,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
             fp.write('\tnnom_layer_t* layer[%d];\n' % (ID + 1))
         fp.write('\n\tcheck_model_version(NNOM_MODEL_VERSION);')
         fp.write('\n\tnew_model(&model);\n\n')
+        output_num = len(model.output) -1 # inverted order of output, very strange
         for layer in L:
             if (is_skipable_layer(layer)):
                 continue
@@ -914,10 +934,13 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 cfg = layer.get_config()
                 if (cfg['activation'] == 'relu'):
                     fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n' % (id, LI[inp][0]))
-                if (cfg['activation'] == 'tanh'):
+                elif (cfg['activation'] == 'tanh'):
                     fp.write('\tlayer[%s] = model.active(act_tanh(%s_OUTPUT_DEC), layer[%s]);\n' % (
                     id, inp.upper(), LI[inp][0]))
-                if (cfg['activation'] == 'sigmoid'):
+                elif (cfg['activation'] == 'sigmoid'):
+                    fp.write('\tlayer[%s] = model.active(act_sigmoid(%s_OUTPUT_DEC), layer[%s]);\n' % (
+                    id, inp.upper(), LI[inp][0]))
+                elif (cfg['activation'] == 'hard_sigmoid'):
                     fp.write('\tlayer[%s] = model.active(act_sigmoid(%s_OUTPUT_DEC), layer[%s]);\n' % (
                     id, inp.upper(), LI[inp][0]))
                 elif (cfg['activation'] == 'softmax'):
@@ -1015,6 +1038,11 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
             else:
                 raise Exception('unsupported layer', layer.name, layer)
 
+            # test, multiple output layer (not yet working with multiple outputs)
+            if(len(layer.outbound_nodes) == 0):
+                fp.write('\tlayer[{0}] = model.hook(output_s(&{1}_config), layer[{2}]);\n'.format(id + 1, 'output'+str(output_num), LI[inp][0] + 1))
+                output_num -=1 # the num is inverted in keras, not a good solution yet.
+
             """
             # temporary fixed for activations attached into layers in construction
             def is_activation_attached(layer):
@@ -1037,7 +1065,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                     fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n'%(id, LI[inp][0]))
             """
         # generate final output layer
-        fp.write('\tlayer[{0}] = model.hook(output_s(&{1}_config), layer[{2}]);\n'.format(id+1, 'output', LI[inp][0]+1))
+        #fp.write('\tlayer[{0}] = model.hook(output_s(&{1}_config), layer[{2}]);\n'.format(id+1, 'output', LI[inp][0]+1))
         fp.write('\tmodel_compile(&model, layer[0], layer[%s]);\n' % (id + 1))
         if (ID > 32):
             fp.write('\tfree(layer);\n')

@@ -109,6 +109,10 @@ nnom_status_t maxpool_build(nnom_layer_t *layer)
 	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
 	// copy then change later. 
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
+	
+	// see if the activation will change the q format
+	if(layer->actail) 
+		layer->out->tensor->q_dec[0] = act_get_dec_bit(layer->actail->type, layer->out->tensor->q_dec[0]);
 
 	// now we set up the tensor shape, always HWC format
 	if (cl->padding_type == PADDING_SAME)
