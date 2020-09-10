@@ -931,9 +931,9 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	NNOM_LOG("-------------------------------------------------------------------------------------------------\n");
 
 	// if model's tail is not the last layer which built by user.
-	if (output != layer_shortcut_find_last(input))
-		NNOM_LOG("WARNING: model returned at #%d %s layer, but this layer is not the end of shortcut list \n",
-			find_index(m->head, output), default_layer_names[output->type]);
+	if (output->type != NNOM_OUTPUT)
+		NNOM_LOG("WARNING: the last layer '%s' is not the Output Layer, please check carefully.\n",
+			default_layer_names[output->type]);
 
 	// get the total (aligned) memory requirement
 	buf_size = mem_analysis_result(m);

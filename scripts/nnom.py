@@ -937,13 +937,13 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 if (cfg['activation'] == 'relu'):
                     fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n' % (id, LI[inp][0]))
                 elif (cfg['activation'] == 'tanh'):
-                    fp.write('\tlayer[%s] = model.active(act_tanh(%s_OUTPUT_DEC), layer[%s]);\n' % (
+                    fp.write('\tlayer[%s] = model.active(act_hard_tanh(%s_OUTPUT_DEC), layer[%s]);\n' % (
                     id, inp.upper(), LI[inp][0]))
                 elif (cfg['activation'] == 'sigmoid'):
                     fp.write('\tlayer[%s] = model.active(act_sigmoid(%s_OUTPUT_DEC), layer[%s]);\n' % (
                     id, inp.upper(), LI[inp][0]))
                 elif (cfg['activation'] == 'hard_sigmoid'):
-                    fp.write('\tlayer[%s] = model.active(act_sigmoid(%s_OUTPUT_DEC), layer[%s]);\n' % (
+                    fp.write('\tlayer[%s] = model.active(act_hard_sigmoid(%s_OUTPUT_DEC), layer[%s]);\n' % (
                     id, inp.upper(), LI[inp][0]))
                 elif (cfg['activation'] == 'softmax'):
                     fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n' % (id, LI[inp][0]))
