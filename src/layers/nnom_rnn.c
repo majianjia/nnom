@@ -185,6 +185,6 @@ nnom_status_t rnn_run(nnom_layer_t* layer)
 			return result;
 	}
 	
-	return result;
+	return NN_SUCCESS;
 }
 

@@ -232,7 +232,7 @@ nnom_activation_t* act_leaky_relu(float alpha)
 	nnom_activation_leaky_relu_t* act = nnom_mem(sizeof(nnom_activation_leaky_relu_t));
 	act->super.run = leaky_relu_run;
 	act->super.type = ACT_LEAKY_RELU;
-	act->alpha = alpha*128;
+	act->alpha = (q7_t)alpha*128;
 	return (nnom_activation_t* )act;
 }
 
@@ -241,7 +241,7 @@ nnom_activation_t* act_adv_relu(float negative_slope, float max, float threshold
 	nnom_activation_adv_relu_t* act = nnom_mem(sizeof(nnom_activation_adv_relu_t));
 	act->super.run = adv_relu_run;
 	act->super.type = ACT_ADV_RELU;
-	act->negative_slope = negative_slope*128;
+	act->negative_slope = (q7_t)negative_slope*128;
 	act->max = max;
 	act->threshold = threshold;
 	return (nnom_activation_t* )act;
