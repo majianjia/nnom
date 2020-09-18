@@ -11,3 +11,4 @@ rnn-denoise
 .dblite
 CppProperties.json
 *.pptx
+*.exe
