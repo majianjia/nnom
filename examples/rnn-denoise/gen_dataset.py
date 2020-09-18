@@ -150,7 +150,7 @@ def noise_suppressed_example(filter_type='iir', plot=False):
     """
     # change here to select the file and its noise mixing level.
     nfilt = 20
-    test_num = 44          # which file
+    test_num = 1          # which file
     test_noise_level = 10  # noise level in db, selected from 0, 10, 20, depeneded on dataset
 
     # change here to select the file and its noise mixing level.
@@ -295,10 +295,10 @@ if __name__ == "__main__":
     noisy_speech_mfcc, noisy_file_label, _, _ , noisy_band_energy= \
         generate_data(noisy_speech_dir, nfilt=num_filter, numcep=num_filter, appendEnergy=True, preemph=0, vad_threshold=vad_energy_threashold)
 
-    plt.plot(vad[5], label='voice active')
-    plt.plot(total_energy[5], label='energy')
-    plt.legend()
-    plt.show()
+    # plt.plot(vad[5], label='voice active')
+    # plt.plot(total_energy[5], label='energy')
+    # plt.legend()
+    # plt.show()
 
     # combine them together
     clnsp_mfcc = []

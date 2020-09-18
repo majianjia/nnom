@@ -4,6 +4,19 @@ Also know as `rnn-denoise example`.
 
 This example is partially based on the methodology provided by the well-known [RNNoise](https://jmvalin.ca/demo/rnnoise/) project and their [paper](https://arxiv.org/abs/1709.08243) . Great thanks to them!
 
+**Third party packages and license**
+
+The third party packages I choose are mostly released with permissive license but one who use this example must take full responsibility of the original term and condition of these packages. 
+
+- [RNNoise](https://jmvalin.ca/demo/rnnoise/) 
+- [Microsoft Scalable Noisy Speech Dataset](https://github.com/microsoft/MS-SNSD) 
+- [python speech features](https://github.com/jameslyons/python_speech_features)
+- [arduino_fft](https://github.com/lloydroc/arduino_fft)
+- [CMSIS](https://github.com/ARM-software/CMSIS_5)
+
+This example and NNoM are provided with Apache-2.0 license. Please read license file in the main [NNoM repository](https://github.com/majianjia/nnom). 
+
+
 # A few key points before you start
 
 ## How does denoise works with Neural Network?
