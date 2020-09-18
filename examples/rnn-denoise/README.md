@@ -99,7 +99,7 @@ Overall, I would suggest you go through both python code, `gen_dataset.py` and `
 
 In the default model, there is a secondary output which has only one neural, indicating whether *speech is detected*. `1` is detected, `0` is not detected. In the MCU example `main_arm.c`, this is linked to a onboard LED which turns on if `VAD neural > 0.5`. 
 
-![](figures/speech_comparison.png)
+![](figures/gains_vad_sample.png)
 
 ## Equalizer
 
