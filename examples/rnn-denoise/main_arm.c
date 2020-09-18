@@ -236,7 +236,7 @@ int main(int argc, char* argv[])
 		
 		// convert it back to int16
 		for (int i = 0; i < AUDIO_FRAME_LEN / 2; i++)
-			audio_buffer_filtered[i] = audio_buffer[i + AUDIO_FRAME_LEN / 2] * 32768.f *0.7f; // 0.7 is the filter band overlapping factor
+			audio_buffer_filtered[i] = audio_buffer[i + AUDIO_FRAME_LEN / 2] * 32768.f *0.6f; // 0.7 is the filter band overlapping factor
 		
 		// voice detection to show an LED PE8 -> GreenLED
 		if(nnom_output_data1[0] >= 64)

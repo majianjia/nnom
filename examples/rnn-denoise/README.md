@@ -58,7 +58,10 @@ Then run `noisyspeech_synthesizer.py` to generate the speeches. If everything go
 
 Now we have Clean and Noisy speech located in `MS-SNSD/CleanSpeech_training` and `MS-SNSD/NoisySpeech_training`. However, our NN take MFCCs and their derivatives as input and gain as output, so we need to process them to get our training dataset. 
 
+
 Now we need to run `gen_dataset.py` to calculate the MFCC and gains. It will generate the dataset file `dataset.npz` which can be used later for NN training. 
+- This step will decide how much MFCC features you want to use in RNN and the equlizer `num_filter = 20`. Normally, this number can be from `10` to `26`. 
+- This step also generate the filter coefficents of the equalizer into a file `equalizer_coeff.h`, which will be used in C files. 
 
 In addition, `gen_dataset.py` also generates an audio file `_noisy_sample.wav` which is the raw noisy speech, as well as a filtered file filtered using the truth gains `_filtered_sample.wav`. I recommend you to check both and see what is the best result we can get by using this equalizer suppression principle. 
 

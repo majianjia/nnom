@@ -56,7 +56,7 @@ def filter_voice(sig, rate, gains, nband=26, lowfreq=20, highfreq=8000, filter_t
         for i in range(len(b)):
             filtered_signal += bandpass_filter_iir(sig, b[i].copy(), a[i].copy(), step, gains[:, i])
             print("filtering with frequency: ", band_frequency[i])
-        filtered_signal =filtered_signal * 0.7
+        filtered_signal =filtered_signal * 0.6
     return filtered_signal
 
 def normalize(data, n, quantize=True):
@@ -280,7 +280,7 @@ def main():
     vad_train = np.reshape(vad_train, (num_sequence * timestamp_size, 1))
 
     # train the model, choose either one.
-    #history = train(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=2, model_name="model.h5")
+    history = train(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=5, model_name="model.h5")
     #history = train_simple(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=10, model_name="model.h5")
 
     # get the model
@@ -289,7 +289,7 @@ def main():
     # denoise a file for test.
     # Make sure the MFCC parameters inside the voice_denoise() are the same as our gen_dataset.
     (rate, sig) = wav.read("_noisy_sample.wav")
-    filtered_sig = voice_denoise(sig, rate, model, timestamp_size, numcep=y_train.shape[-1], plot=True) # use plot=True argument to see the gains/vad
+    filtered_sig = voice_denoise(sig, rate, model, timestamp_size, numcep=y_train.shape[-1]) # use plot=True argument to see the gains/vad
     wav.write("_nn_filtered_sample.wav", rate, np.asarray(filtered_sig * 32767, dtype=np.int16))
 
     # now generate the NNoM model
@@ -305,7 +305,6 @@ if __name__ == '__main__':
        tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
     main()
-
 
     # def convert_to_inference_model(original_model):
     #     """ https://gist.github.com/rpicatoste/02cecac1ed52524301e3ab423dac888b """

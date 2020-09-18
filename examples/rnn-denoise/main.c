@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
 
 		// convert the filtered signal back to int16
 		for (int i = 0; i < AUDIO_FRAME_LEN / 2; i++)
-			audio_buffer_filtered[i] = audio_buffer[i + AUDIO_FRAME_LEN / 2] * 32768.f *0.7f; // 2 is the filter band overlapping factor
+			audio_buffer_filtered[i] = audio_buffer[i + AUDIO_FRAME_LEN / 2] * 32768.f *0.6f; 
 		
 		// write the filtered frame to WAV file. 
 		fwrite(audio_buffer_filtered, 256*sizeof(int16_t), 1, des_file);

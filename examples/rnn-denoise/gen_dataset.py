@@ -207,7 +207,7 @@ def noise_suppressed_example(filter_type='iir', plot=False):
         for i in range(len(b)):
             filtered_signal += bandpass_filter_iir(noisy_sig, b[i].copy(), a[i].copy(), step, gains[:, i])
             print("filtering with frequency: ", band_frequency[i])
-        filtered_signal = filtered_signal * 0.7
+        filtered_signal = filtered_signal * 0.6
 
     print('save to file')
     filtered_signal = np.clip(filtered_signal, -1, 1)
