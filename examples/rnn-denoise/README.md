@@ -2,26 +2,28 @@
 
 Also know as `rnn-denoise example`. 
 
-This example is partially based on the methodology provided by the well-known [RNNoise](https://jmvalin.ca/demo/rnnoise/) project, [paper](https://arxiv.org/abs/1709.08243). Great thanks to them!
+This example is partially based on the methodology provided by the well-known [RNNoise](https://jmvalin.ca/demo/rnnoise/) project and their [paper](https://arxiv.org/abs/1709.08243) . Great thanks to them!
 
 # A few key points before you start
 
 ## How does denoise works with Neural Network?
 
-The [RNNoise](https://jmvalin.ca/demo/rnnoise/) and the paper already explain the methodology we used in this project. 
+The [RNNoise](https://jmvalin.ca/demo/rnnoise/)  has already explained the methodology we used in this project. 
 
-Basically, we use the neural network model to control an audio Equalizer (EQ) in a very high frequency, therefore to suppress those bands contained noise. 
+Basically, we use a neural network model to control an audio Equalizer (EQ) in a very high frequency, therefore to suppress those bands contained noise while keep the gains contain speech. 
 
-Unlike the conventional neural networks output the signal directly, our NN model instead output the gains for each filter band in Equalizer.
+Unlike the conventional neural networks output the signal directly, our NN model instead output the gains for each filter band in the equalizer.
 
-The NN model uses the Mel-Scale to detect MFCC to determine the gains, instead of Opus scale (RNNoise) or Bark scale. 
+The example uses MFCC (Mel-scale) to determine the gains, instead of Opus scale (RNNoise) or Bark scale. 
+
+![](figures/general_workflow.png)
 
 
 # Step by step Guide
 
 ## Get the Noisy Speech
 
-This example uses [Microsoft Scalable Noisy Speech Dataset](https://github.com/microsoft/MS-SNSD)(MS-SNSD). If you want to train your own model, you shall download the data set from the above link then put them in folder `MS-SNSD/`.
+This example uses [Microsoft Scalable Noisy Speech Dataset](https://github.com/microsoft/MS-SNSD) (MS-SNSD). If you want to train your own model, you shall download the data set from the above repository then put them in folder `MS-SNSD/`.
 
 Then generate the `clean speech` and its corresponding `noisy speech` (These are used to generate the noisy MFCC and gains.).
 
@@ -39,13 +41,13 @@ total_snrlevels: 3
 
 Then run `noisyspeech_synthesizer.py` to generate the speeches. If everything goes well, there will be 3 new folders created `/Noise_training`, `/CleanSpeech_training` and `NoisySpeech_training`. We only need the 2 later folders. 
 
-## Get dataset
+## Generate the dataset
 
-Now we have Clean and Noisy speech located in `MS-SNSD/CleanSpeech_training` and `MS-SNSD/NoisySpeech_training`. However, our NN take MFCC as input and gain as output, we need to process them. 
+Now we have Clean and Noisy speech located in `MS-SNSD/CleanSpeech_training` and `MS-SNSD/NoisySpeech_training`. However, our NN take MFCCs and their derivatives as input and gain as output, so we need to process them to get our training dataset. 
 
 Now we need to run `gen_dataset.py` to calculate the MFCC and gains. It will generate the dataset file `dataset.npz` which can be used later for NN training. 
 
-In addition, `gen_dataset.py` also generates an audio file `_noisy_sample.wav` which is the raw noisy speech, as well as a filtered file filtered using the truth gains `_filtered_sample.wav`. I recommend you to check both and see what is the best result we can get using this equalizer principle. 
+In addition, `gen_dataset.py` also generates an audio file `_noisy_sample.wav` which is the raw noisy speech, as well as a filtered file filtered using the truth gains `_filtered_sample.wav`. I recommend you to check both and see what is the best result we can get by using this equalizer suppression principle. 
 
 ## Training
 
@@ -57,13 +59,13 @@ Also, it will use the NNoM model converter script ` generate_model(...)` to gene
 
 ## Inference using NNoM
 
-This example provided a `SConstruct` so you can run `scons` in this folder to build an Binary executable. 
+This example provided a `SConstruct` so you can run `scons` in this folder to build a binary executable. 
 
 This executable can take `.wav` file as input and output the filtered `.wav` file. (The **only** format it supports is `16kHz, 1CH, wav`)
 
 Use the below command in the folder to run
 - Win powershell: `.\rnn-denoise [input_file] [output_file]`
-- Linux: I dont know 
+- Linux: I don't know 
 
 i.e. run `.\rnn-denoise _noisy_sample.wav _nn_fixedpoit_filtered_sample.wav`
 
@@ -88,6 +90,8 @@ Overall, I would suggest you go through both python code, `gen_dataset.py` and `
 ## training data
 
 `x_train` is consist of 13 or 20 MFCC coefficent and the first and second derivative of the first 10 coefficent, giving in total 33 or 40 features.  
+
+![](figures/speech_to_dataset.png)
 
 `y_train` is consist of 2 data, `gains` and `VAD`. 
 - Gains are calculate by the sqaure root of each band energy of clean speech / noisy speech. Same as RNNoise. 
