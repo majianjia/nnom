@@ -6,7 +6,7 @@ This example is partially based on the methodology provided by the well-known [R
 
 **Third party packages and license**
 
-The third party packages I choose are mostly released with permissive license but one who use this example must take full responsibility of the original term and condition of these packages. 
+The below third party packages used in this example are mostly released with permissive license but one who use this example must take full responsibility of following the original term and condition of these packages. 
 
 - [RNNoise](https://jmvalin.ca/demo/rnnoise/) 
 - [Microsoft Scalable Noisy Speech Dataset](https://github.com/microsoft/MS-SNSD) 
@@ -14,20 +14,20 @@ The third party packages I choose are mostly released with permissive license bu
 - [arduino_fft](https://github.com/lloydroc/arduino_fft)
 - [CMSIS](https://github.com/ARM-software/CMSIS_5)
 
-This example and NNoM are provided with Apache-2.0 license. Please read license file in the main [NNoM repository](https://github.com/majianjia/nnom). 
+This example and NNoM are provided under Apache-2.0 license. Please read license file in the main [NNoM repository](https://github.com/majianjia/nnom). 
 
 
 # A few key points before you start
 
-## How does denoise works with Neural Network?
+## How does noise suppression works with Neural Network?
 
-The [RNNoise](https://jmvalin.ca/demo/rnnoise/)  has already explained the methodology we used in this project. 
+The [RNNoise](https://jmvalin.ca/demo/rnnoise/)  has already explained the methodology that we used in this project. 
 
 Basically, we use a neural network model to control an audio Equalizer (EQ) in a very high frequency, therefore to suppress those bands contained noise while keep the gains contain speech. 
 
-Unlike the conventional neural networks output the signal directly, our NN model instead output the gains for each filter band in the equalizer.
+Unlike the conventional neural networks which try output the signal directly, our NN model instead output the gains for each filter band of the equalizer.
 
-The example uses MFCC (Mel-scale) to determine the gains, instead of Opus scale (RNNoise) or Bark scale. 
+This example uses MFCC (Mel-scale) to determine the gains, instead of Opus scale (RNNoise) or Bark scale. 
 
 ![](figures/general_workflow.png)
 
@@ -36,11 +36,11 @@ The example uses MFCC (Mel-scale) to determine the gains, instead of Opus scale 
 
 ## Get the Noisy Speech
 
-This example uses [Microsoft Scalable Noisy Speech Dataset](https://github.com/microsoft/MS-SNSD) (MS-SNSD). If you want to train your own model, you shall download the data set from the above repository then put them in folder `MS-SNSD/`.
+This example uses [Microsoft Scalable Noisy Speech Dataset](https://github.com/microsoft/MS-SNSD) (MS-SNSD). If you want to train your own model, you may download the dataset from the above repository, then put them into folder `MS-SNSD/`.
 
-Then generate the `clean speech` and its corresponding `noisy speech` (These are used to generate the noisy MFCC and gains.).
+After the MS-SNSD is downloaded, you can now generate the `clean speech` and its corresponding `noisy speech` with variable levels of noise mixed.
 
-The recommended configurations (modify `noisyspeech_synthesizer.cfg`) for the dataset are:
+The advantage of using MS-SNSD is it is scaleable. Modify `noisyspeech_synthesizer.cfg` to configure how does the speech generated. The recommended configurations  for the this example are:
 ~~~
 sampling_rate: 16000
 audioformat: *.wav
@@ -52,40 +52,43 @@ snr_upper: 20
 total_snrlevels: 3  
 ~~~
 
-Then run `noisyspeech_synthesizer.py` to generate the speeches. If everything goes well, there will be 3 new folders created `/Noise_training`, `/CleanSpeech_training` and `NoisySpeech_training`. We only need the 2 later folders. 
+Then, run `noisyspeech_synthesizer.py` to generate the speeches. If everything goes well, there will be 3 new folders created `/Noise_training`, `/CleanSpeech_training` and `NoisySpeech_training`. We only need the 2 later folders. 
 
 ## Generate the dataset
 
-Now we have Clean and Noisy speech located in `MS-SNSD/CleanSpeech_training` and `MS-SNSD/NoisySpeech_training`. However, our NN take MFCCs and their derivatives as input and gain as output, so we need to process them to get our training dataset. 
+Now we have Clean and Noisy speech located in `MS-SNSD/CleanSpeech_training` and `MS-SNSD/NoisySpeech_training`. They are the raw PCM signal, but our NN take MFCCs and their derivatives as input and the equalizer gains as output, so we need to process them to get our training dataset. 
 
 
-Now we need to run `gen_dataset.py` to calculate the MFCC and gains. It will generate the dataset file `dataset.npz` which can be used later for NN training. 
-- This step will decide how much MFCC features you want to use in RNN and the equlizer `num_filter = 20`. Normally, this number can be from `10` to `26`. 
-- This step also generate the filter coefficents of the equalizer into a file `equalizer_coeff.h`, which will be used in C files. 
+Now we need to run `gen_dataset.py` to get the MFCC and gains. It will generate the dataset file `dataset.npz` which can be used later for NN training. Also,
+- You can config how much MFCC features you want to use in RNN ( which is also the number of filter bands in the equlizer). Modify `num_filter = 20`; this number can be from `10` to `26`. 
+- This step generate the filter coefficence of the equalizer into a file `equalizer_coeff.h` (`generate_filter_header(...)`), which will be used in C equalizer. 
 
-In addition, `gen_dataset.py` also generates an audio file `_noisy_sample.wav` which is the raw noisy speech, as well as a filtered file filtered using the truth gains `_filtered_sample.wav`. I recommend you to check both and see what is the best result we can get by using this equalizer suppression principle. 
+In addition, `gen_dataset.py` also generates an audio file `_noisy_sample.wav` which is the raw noisy speech, as well as a filtered file filtered using the truth gains `_filtered_sample.wav`. I would recommend to play both files and see what is the best result we can get by using this equalizer suppression method. 
 
 ## Training
 
-Once we have `dataset.npz`, just run `main.py` to train the model. The trained model will be saved as `model.h5`
+Once we have `dataset.npz` ready, just run `main.py` to train the model. The trained model will be saved as `model.h5`
+
+We train the RNN with `stateful=True` and `timestamps=1`, which is not friendly for training with back propagation, so I set the `batchsize` to very large to make BP's life easier. 
 
 At the later part of `main.py`, it will reload the `model.h5` and try to process the above noisy file `_noisy_sample.wav` using our flesh trained RNN ` filtered_sig = voice_denoise(...)` and save the filtered signal into `_nn_filtered_sample.wav`. 
 
-Also, it will use the NNoM model converter script ` generate_model(...)` to generate our NNoM model `weights.h`
+Also, it will use the NNoM model converter script `generate_model(...)` to generate our NNoM model `weights.h`
 
 ## Inference using NNoM
 
 This example provided a `SConstruct` so you can run `scons` in this folder to build a binary executable. 
 
-This executable can take `.wav` file as input and output the filtered `.wav` file. (The **only** format it supports is `16kHz, 1CH, wav`)
+This executable can take `.wav` file as input and output the filtered `.wav` file. 
+> The **only** format it supports is **16kHz**, **1CH**. `main.c` will not parse wav file but only copy the header and jumps to the data chunk.  
 
-Use the below command in the folder to run
-- Win powershell: `.\rnn-denoise [input_file] [output_file]`
+Once compiled, use the below command in the folder to run
+- Win powershell: `.\rnn-denoise [input_file] [output_file]` or drag the wav file onto the executable. 
 - Linux: I don't know 
 
 i.e. run `.\rnn-denoise _noisy_sample.wav _nn_fixedpoit_filtered_sample.wav`
 
-If you followed the guide, you will have the below files in your `rnn-denoise` folder. 
+If you have followed the guide, you show have the below files in your `rnn-denoise` folder. 
 ~~~
 _noisy_sample.wav  --> original noisy speech
 _filtered_sample.wav  --> denoised speech by truth gains
@@ -103,7 +106,7 @@ Graphically, the results look like:
 
 Overall, I would suggest you go through both python code, `gen_dataset.py` and `main.py`, read the comments in the code and test with different configurations. 
 
-## training data
+## Training data
 
 `x_train` is consist of 13 or 20 MFCC coefficent and the first and second derivative of the first 10 coefficent, giving in total 33 or 40 features.  
 
@@ -117,18 +120,18 @@ Overall, I would suggest you go through both python code, `gen_dataset.py` and `
 
 ## Gains and Voice Activity Detection
 
-In the default model, there is a secondary output which has only one neural, indicating whether *speech is detected*. `1` is detected, `0` is not detected. In the MCU example `main_arm.c`, this is linked to a onboard LED which turns on if `VAD neural > 0.5`. 
+In the default model, there is a secondary output which has only one neural, indicating whether *speech is detected*. `1` is detected, `0` is not detected. In the MCU example `main_arm.c`, this is linked to an onboard LED which turns on if `VAD neural > 0.5`. 
 
 ![](figures/gains_vad_sample.png)
 
 ## Equalizer
 
-The example uses a 20 bands (default) or 13 bands (or any other you would like) to suppress the noise. This each band is filtered by 1 (default) or 2 (not stable) orders IIR bandpass filter. The -3dB (cutoff) of 2 neighbour bands are intersected. The frequency response is shows here:
+The example uses a 20 bands (default) or 13 bands (or any number of band you would like) to suppress the noise. Each frequency band is filtered by 1 (default) or 2 (not stable) orders IIR bandpass filter. The -3dB (cutoff) of 2 neighbour bands are intersected. The frequency response is shown here:
 
 ![](figures/equalizer_frequency_response.png)
 
 The signal will pass each band in parallel then added together.
-Due to the overlapping of each band, the signal might sound too loud and will leed to overflow (cracking noise). So a factor of `0.7` is multiple to the final signal(not a mathematically  calculated number). 
+Due to the overlapping of each band, the signal might sound too loud and will leed to overflow (cracking noise). So a factor of `0.6` is multipled to the final signal (not a mathematically calculated number). 
 
 ## Model structure
 
@@ -136,25 +139,24 @@ This example provides 2 different RNN models. The first one is RNNoise-like stru
 
 ![](figures/model_structure_full.png)
 
-The other is a simple stacked-GRU. This will not provide VAD output. 
+The other is a simple stacked-GRU. This will not provide VAD output. Surprisingly, it also work well. 
 To test this one, replace the line `history = train(...)` with `train_simple(...)` in `main.py`
-
 
 The Keras model is train under `stateful=True` and with `timestamp=1` which is not ideal. The `batch_size` is equal to the actual timestamp, so we need to make the timestamp as large as possible to let the BP working. We are using `batch_size > 1024`. Remember to turn off the `shuffle`. 
 
- > The model only take 1 epoch to be overfitted... Recurrent dropout is very much needed. You may also add regular dropout between each GRU layers.
+ > The model only take 1 epoch to be overfitted... Recurrent dropout is very much needed. You may also add regular dropout layers in between each GRU layers.
 
 ## MCU examples
 
 The MCU example is `main_arm.c`. This example is running on STM32L476-Discovery. No RTOS related dependency.  
 
-It uses the input from the onboard Microphone and trys to filter the signal. Currently, it only outputs a VAD through the green LED (PE8), and it **does not** store the voice record or playback. However, the signal is processed, one can implement their own playback or recorder on the existing output easily.
+It uses the input from the onboard Microphone and trys to filter the signal. Currently, it only outputs a VAD through the green LED (PE8), and it **does not** record the filtered voice or playback. However, the RNN and equalizer is implemented and the signal are filtered, one can implement their own playback or recorder on the existing output  data easily.
 
-The functional part are identical to the `main.c`
+The functional part of `main_arm.c` are identical to the `main.c`
 
 If you are using ARM-Cortex M chips, turn on the below optimization will help to improve the performance. 
 
-- Turn on CMSIS-NN Support for NNoM
+- Turn on CMSIS-NN Support for NNoM. See [Porting and Optimization Guide](../../docs/Porting_and_Optimisation_Guide.md)
 - In `mfcc.h` turn on `PLATFORM_ARM` to use ARM FFT
 
 
@@ -182,28 +184,28 @@ Remember, our input audio format is `16kHz 1CH`, which means for each audio upda
 
 **13 Band Equalizer**
 
-| Condiction | Opt | MFCC(ms) | Network(ms) |Equalizer(EQ)(ms)| Total(ms) | Comment|
-| ------ | ------ | ------ | ------| ------|  ------| ------|
-|cmsis-nn| -O1| 0.63 | 3.34 | 2.75 | 7.11 | ------ |
-|cmsis-nn| -O2| 0.56 | 3.3 | 2.27 | 6.18 | ------ |
-|local+arm_fft| -O1| 0.63 | 7.78 | 2.75| 11.19 | ------ |
-|local+arm_fft| -O2| 0.55 | 7.78| 2.27| 10.65| ------ |
-|local+arduino_fft| -O0| 2.54 | 7.94 | 4.03| 14.57 | pure C fft|
-|local+arduino_fft| -O2| 1.89 | 7.78| 2.27| 11.98| pure C fft|
+| NN backend| FFT | Opt | MFCC(ms) | Network(ms) |Equalizer(EQ)(ms)| Total(ms) | Comment|
+| ------ | --- | ------ | ------ | ------| ------|  ------| ------|
+|cmsis-nn|arm_fft| -O1| 0.63 | 3.34 | 2.75 | 7.11 |  |
+|cmsis-nn|arm_fft |-O2| 0.56 | 3.3 | 2.27 | 6.18 |  |
+|local|arm_fft|-O1| 0.63 | 7.78 | 2.75| 11.19 |  |
+|local|arm_fft|-O2| 0.55 | 7.78| 2.27| 10.65|  |
+|local|arduino_fft| -O0| 2.54 | 7.94 | 4.03| 14.57 ||
+|local|arduino_fft| -O2| 1.89 | 7.78| 2.27| 11.98| |
 
  
 The test results are quite impressive. With the most optimized option, the total run time is only `6.18ms`, which is around `38%` of total CPU load. Under pure C implementation  (local+arduino_fft), the total run time is still under `16ms`. 
 
 **20 Band Equalizer**
 
-| Condiction | Opt | MFCC(ms) | Network(ms) |Equalizer(EQ)(ms)| Total(ms) | Comment|
-| ------ | ------ | ------ | ------| ------|  ------| ------|
-|cmsis-nn| -O1| 0.66 | 3.74 | 4.20 | 8.64 | ------ |
-|cmsis-nn| -O2| 0.58 | 3.35 | 3.46 | 7.44 | ------ |
-|local+arm_fft| -O1| 0.67 | 7.91 | 4.20| 12.81 | ------ |
-|local+arm_fft| -O2| 0.59 | 7.92| 3.46| 12.02| ------ |
-|local+arduino_fft| -O0| 2.60 | 8.09 | 6.15| 16.89 | pure C fft|
-|local+arduino_fft| -O2| 1.92 | 7.92| 3.47| 13.3| pure C fft|
+| NN backend| FFT | Opt | MFCC(ms) | Network(ms) |Equalizer(EQ)(ms)| Total(ms) | Comment|
+| ------ | ------ | ------ | ------ | ------| ------|  ------| ------|
+|cmsis-nn| arm_fft|-O1| 0.66 | 3.74 | 4.20 | 8.64 |  |
+|cmsis-nn| arm_fft|-O2| 0.58 | 3.35 | 3.46 | 7.44 |  |
+|local| arm_fft|-O1| 0.67 | 7.91 | 4.20| 12.81 |  |
+|local| arm_fft|-O2| 0.59 | 7.92| 3.46| 12.02|  |
+|local| arduino_fft|-O0| 2.60 | 8.09 | 6.15| 16.89 | |
+|local| arduino_fft|-O2| 1.92 | 7.92| 3.47| 13.3| |
 
 
 Compare the both, `20` band has more impact on the equalizer other than NN.
