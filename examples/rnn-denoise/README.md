@@ -4,6 +4,8 @@ Also know as `rnn-denoise example`.
 
 This example is partially based on the methodology provided by the well-known [RNNoise](https://jmvalin.ca/demo/rnnoise/) project and their [paper](https://arxiv.org/abs/1709.08243) . Great thanks to them!
 
+Audio Demo: https://youtu.be/JG0mSZ1ZnrY
+
 **Third party packages and license**
 
 The below third party packages used in this example are mostly released with permissive license but one who use this example must take full responsibility of following the original term and condition of these packages. 
@@ -100,7 +102,6 @@ Graphically, the results look like:
 
 ![](figures/speech_comparison.png)
 
-*awaiting for audio example ...*
 
 # Further details
 
