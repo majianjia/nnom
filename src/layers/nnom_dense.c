@@ -150,7 +150,10 @@ nnom_status_t dense_build(nnom_layer_t *layer)
 
 	// calculate the output tensor q format, only support per tensor quantise now
 	layer->out->tensor->q_dec[0] = layer->in->tensor->q_dec[0] + cl->weight->q_dec[0] - cl->output_rshift[0];
-
+	// see if the activation will change the q format
+	if(layer->actail) 
+		layer->out->tensor->q_dec[0] = act_get_dec_bit(layer->actail->type, layer->out->tensor->q_dec[0]);
+	
 	// vec_buffer size: dim_vec (*2, q7->q15) ? I am not sure this is right
 	layer->comp->size = tensor_size(layer->in->tensor)*2;
 
@@ -162,7 +165,7 @@ nnom_status_t dense_build(nnom_layer_t *layer)
 nnom_status_t dense_free(nnom_layer_t *layer)
 {
 	// free weight and bias tensor when we are not initialised from structured configuration. 
-	if(layer->config != NULL)
+	if(!layer->config)
 	{
 		nnom_dense_layer_t* cl = (nnom_dense_layer_t*)layer;
 		delete_tensor(cl->weight);

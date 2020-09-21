@@ -138,28 +138,22 @@ def main():
     x_val = x_val.reshape((x_val.shape[0], x_val.shape[1], x_val.shape[2], 1))
     print('x_train shape:', x_train.shape, 'max', x_train.max(), 'min', x_train.min())
 
-    # fake quantised
-    # instead of using maximum value for quantised, we allows some saturation to save more details in small values.
-    quantise_factor = pow(2, 3)
-    print("quantised by", quantise_factor)
-    x_train = (x_train / quantise_factor)
-    x_test = (x_test / quantise_factor)
-    x_val = (x_val / quantise_factor)
-
     # training data enforcement
     x_train = np.vstack((x_train, x_train*0.8))
     y_train = np.hstack((y_train, y_train))
     print(y_train.shape)
 
-    # saturation to -1 to 1
-    x_train = np.clip(x_train, -1, 1)
-    x_test = np.clip(x_test, -1, 1)
-    x_val = np.clip(x_val, -1, 1)
+    def normalize(data, n, quantize=True):
+        limit = pow(2, n)
+        data = np.clip(data, -limit, limit) / limit
+        if quantize:
+            data = np.round(data * 128) / 128.0
+        return data
 
-    # -1 to 1 quantised to 256 level (8bit)
-    x_train = (x_train * 128).round()/128
-    x_test = (x_test * 128).round()/128
-    x_val = (x_val * 128).round()/128
+    # instead of using maximum value for quantised, we allows some saturation to save more details in small values.
+    x_train = normalize(x_train, 3)
+    x_test = normalize(x_test, 3)
+    x_val = normalize(x_val, 3)
 
     print('quantised', 'x_train shape:', x_train.shape, 'max', x_train.max(), 'min', x_train.min())
     print("dataset abs mean at", abs(x_test).mean()*128)
@@ -201,7 +195,7 @@ def main():
 
     evaluate_model(model, x_test, y_test)
 
-    generate_model(model, np.vstack((x_test, x_val)), name="weights.h")
+    generate_model(model, x_test[:100], name="weights.h")
 
     acc = history.history['accuracy']
     val_acc = history.history['val_accuracy']

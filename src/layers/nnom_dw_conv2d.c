@@ -64,6 +64,9 @@ nnom_status_t dw_conv2d_build(nnom_layer_t *layer)
 
 	// calculate the output tensor q format, only support per tensor quantise now
 	layer->out->tensor->q_dec[0] = layer->in->tensor->q_dec[0] + cl->weight->q_dec[0] - cl->output_rshift[0];
+	// see if the activation will change the q format
+	if(layer->actail) 
+		layer->out->tensor->q_dec[0] = act_get_dec_bit(layer->actail->type, layer->out->tensor->q_dec[0]);
 
 	// now we set up the tensor shape, always HWC format
 	layer->out->tensor->dim[0] = conv_output_length(layer->in->tensor->dim[0], cl->kernel.h, cl->padding_type, cl->stride.h, cl->dilation.h);

@@ -73,6 +73,10 @@ nnom_status_t upsample_build(nnom_layer_t *layer)
 	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 
+	// see if the activation will change the q format
+	if(layer->actail) 
+		layer->out->tensor->q_dec[0] = act_get_dec_bit(layer->actail->type, layer->out->tensor->q_dec[0]);
+
 	// enlarge w and h, c stay the same.
 	layer->out->tensor->dim[0] = layer->in->tensor->dim[0] * cl->kernel.h;
 	layer->out->tensor->dim[1] = layer->in->tensor->dim[1] * cl->kernel.w;

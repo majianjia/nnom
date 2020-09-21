@@ -523,16 +523,16 @@ static void print_layer_info(nnom_layer_t *layer, uint32_t layer_count)
 	if(mac == 0)
 		NNOM_LOG("        ");
 	else if (mac < 10000)
-		NNOM_LOG("%7d ", mac);
+		NNOM_LOG("%7d ", (uint32_t)mac);
 	else if (mac < 1000*1000)
-		NNOM_LOG("%6dk ", mac/1000);
+		NNOM_LOG("%6dk ", (uint32_t)(mac/1000));
 	else if (mac < 1000*1000*1000)
-		NNOM_LOG("%3d.%02dM ", mac/(1000*1000), mac%(1000*1000)/(10*1000)); // xxx.xx M
+		NNOM_LOG("%3d.%02dM ", (uint32_t)(mac/(1000*1000)), (uint32_t)(mac%(1000*1000)/(10*1000))); // xxx.xx M
 	else
-		NNOM_LOG("%3d.%02dG ", mac/(1000*1000*1000), mac%(1000*1000*1000)/(10*1000*1000)); // xxx.xx G
+		NNOM_LOG("%3d.%02dG ", (uint32_t)(mac/(1000*1000*1000)), (uint32_t)(mac%(1000*1000*1000)/(10*1000*1000))); // xxx.xx G
 	
 	// memory 
-	NNOM_LOG("(%6d,%6d,%6d)", in_size, out_size, compsize);
+	NNOM_LOG("(%6d,%6d,%6d)", (uint32_t)in_size, (uint32_t)out_size,(uint32_t) compsize);
 }
 
 static void print_memory_block_info(nnom_mem_block_t *block_pool)
@@ -799,7 +799,7 @@ size_t mem_analysis_result(nnom_model_t *m)
 	for (index = 0; index < NNOM_BLOCK_NUM; index++)
 	{
 		total_mem += m->blocks[index].size;
-		NNOM_LOG("blk_%d:%d  ", index, m->blocks[index].size);
+		NNOM_LOG("blk_%d:%d  ", index, (uint32_t)(m->blocks[index].size));
 	}
 	// size of total memory cost by networks buffer
 	NNOM_LOG("\n Total memory cost by network buffers: %d bytes\n", total_mem);
@@ -931,9 +931,9 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	NNOM_LOG("-------------------------------------------------------------------------------------------------\n");
 
 	// if model's tail is not the last layer which built by user.
-	if (output != layer_shortcut_find_last(input))
-		NNOM_LOG("WARNING: model returned at #%d %s layer, but this layer is not the end of shortcut list \n",
-			find_index(m->head, output), default_layer_names[output->type]);
+	if (output->type != NNOM_OUTPUT)
+		NNOM_LOG("WARNING: the last layer '%s' is not the Output Layer, please check carefully.\n",
+			default_layer_names[output->type]);
 
 	// get the total (aligned) memory requirement
 	buf_size = mem_analysis_result(m);
@@ -942,7 +942,7 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	buf = nnom_mem(buf_size);
 	if (buf == NULL)
 	{
-		NNOM_LOG("ERROR: No enough memory for network buffer, required %d bytes\n", buf_size);
+		NNOM_LOG("ERROR: No enough memory for network buffer, required %d bytes\n", (uint32_t)buf_size);
 		return NN_NO_MEMORY;
 	}
 

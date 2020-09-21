@@ -17,11 +17,13 @@
 #include <stdbool.h>
 #include "rtthread.h"
 
+#include "stm32l4xx_hal.h"
 #include "nnom.h"
 #include "weights.h"
 
+// enable MFCC arm FFT acceleration
+#define PLATFORM_ARM
 #include "mfcc.h"
-#include "stm32l4xx_hal.h"
 
 // 
 rt_event_t audio_evt;
@@ -54,9 +56,11 @@ int16_t audio_buffer_16bit[(int)(AUDIO_FRAME_LEN*1.5)]; // an easy method for 50
 #define MFCC_LEN			(63)
 #define MFCC_COEFFS_FIRST	(1)		// ignore the mfcc feature before this number
 #define MFCC_COEFFS_LEN 	(13)    // the total coefficient to calculate
+#define MFCC_TOTAL_NUM_BANK	(26)    // total number of filter bands
 #define MFCC_COEFFS    	    (MFCC_COEFFS_LEN-MFCC_COEFFS_FIRST)
 
 #define MFCC_FEAT_SIZE 	(MFCC_LEN * MFCC_COEFFS)
+float mfcc_features_f[MFCC_COEFFS];	 			// output of mfcc
 int8_t mfcc_features[MFCC_LEN][MFCC_COEFFS];	 // ring buffer
 int8_t mfcc_features_seq[MFCC_LEN][MFCC_COEFFS]; // sequencial buffer for neural network input. 
 uint32_t mfcc_feat_index = 0;
@@ -162,6 +166,16 @@ static int32_t abs_mean(int8_t *p, size_t size)
 	return sum/size;
 }
 
+void quantize_data(float*din, int8_t *dout, uint32_t size, uint32_t int_bit)
+{
+	#define _MAX(x, y) (((x) > (y)) ? (x) : (y))
+	#define _MIN(x, y) (((x) < (y)) ? (x) : (y))
+	float limit = (1 << int_bit); 
+	for(uint32_t i=0; i<size; i++)
+		dout[i] = (int8_t)(_MAX(_MIN(din[i], limit), -limit) / limit * 127);
+}
+
+
 void thread_kws_serv(void *p)
 {
 	#define SaturaLH(N, L, H) (((N)<(L))?(L):(((N)>(H))?(H):(N)))
@@ -169,8 +183,10 @@ void thread_kws_serv(void *p)
 	int32_t *p_raw_audio;
 	uint32_t time;
 	
+
 	// calculate 13 coefficient, use number #2~13 coefficient. discard #1
-	mfcc = mfcc_create(MFCC_COEFFS_LEN, MFCC_COEFFS_FIRST, AUDIO_FRAME_LEN, 5, 0.97f); 
+	// features, offset, bands, 512fft, 0 preempha, attached_energy_to_band0
+	mfcc = mfcc_create(MFCC_COEFFS_LEN, MFCC_COEFFS_FIRST, MFCC_TOTAL_NUM_BANK, AUDIO_FRAME_LEN, 0.97f, true); 
 
 	while(1)
 	{
@@ -202,7 +218,10 @@ void thread_kws_serv(void *p)
 		rt_mutex_take(mfcc_buf_mutex, RT_WAITING_FOREVER);
 		for(int i=0; i<2; i++)
 		{
-			mfcc_compute(mfcc, &audio_buffer_16bit[i*AUDIO_FRAME_LEN/2], mfcc_features[mfcc_feat_index]);
+			mfcc_compute(mfcc, &audio_buffer_16bit[i*AUDIO_FRAME_LEN/2], mfcc_features_f);
+			
+			// quantise them using the same scale as training data (in keras), by 2^n. 
+			quantize_data(mfcc_features_f, mfcc_features[mfcc_feat_index], MFCC_COEFFS, 3);
 			
 			// debug only, to print mfcc data on console
 			if(is_print_mfcc)

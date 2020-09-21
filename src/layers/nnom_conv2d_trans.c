@@ -51,10 +51,9 @@ nnom_layer_t *Conv2DTrans(uint32_t multiplier, nnom_3d_shape_t k, nnom_3d_shape_
 // https://github.com/tensorflow/tensorflow/blob/2b96f3662bd776e277f86997659e61046b56c315/tensorflow/python/layers/utils.py#L156
 uint32_t conv_trans_output_length(uint32_t input_length, uint32_t kernel_size, nnom_padding_t padding, uint32_t stride_size, uint32_t dilation)
 {
-    #define max(a,b) ((a) > (b) ? (a) : (b))
 	input_length *= stride_size;
 	if (padding == PADDING_VALID)
-		input_length += max(kernel_size - stride_size, 0);
+		input_length += MAX(kernel_size - stride_size, 0);
 	return input_length;
 }
 
@@ -72,6 +71,9 @@ nnom_status_t conv2d_trans_build(nnom_layer_t *layer)
 
 	// calculate the output tensor q format, only support per tensor quantise now
 	layer->out->tensor->q_dec[0] = layer->in->tensor->q_dec[0] + cl->weight->q_dec[0] - cl->output_rshift[0];
+	// see if the activation will change the q format
+	if(layer->actail) 
+		layer->out->tensor->q_dec[0] = act_get_dec_bit(layer->actail->type, layer->out->tensor->q_dec[0]);
 
 	// now we set up the tensor shape, always HWC format
 	layer->out->tensor->dim[0] = conv_trans_output_length(layer->in->tensor->dim[0], cl->kernel.h, cl->padding_type, cl->stride.h, cl->dilation.h);

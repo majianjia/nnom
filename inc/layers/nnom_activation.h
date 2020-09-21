@@ -83,8 +83,11 @@ nnom_activation_t* act_leaky_relu(float alpha);
 nnom_activation_t* act_adv_relu(float negative_slope, float max, float threshold);
 nnom_activation_t* act_tanh(int32_t dec_bit);
 nnom_activation_t* act_sigmoid(int32_t dec_bit);
+nnom_activation_t* act_hard_tanh(int32_t dec_bit);
+nnom_activation_t* act_hard_sigmoid(int32_t dec_bit);
 
-
+// utils
+int32_t act_get_dec_bit(nnom_activation_type_t type, int32_t dec_bit);
 
 #ifdef __cplusplus
 }

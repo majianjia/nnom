@@ -98,8 +98,6 @@ nnom_layer_t *GlobalSumPool(void)
 		layer->type = NNOM_GLOBAL_SUMPOOL;
 		layer->run = sumpool_run; // global and basic pooling share the same runner
 		layer->build = global_pool_build;
-		
-		
 	}
 
 	return (nnom_layer_t *)layer;
@@ -117,6 +115,10 @@ nnom_status_t global_pool_build(nnom_layer_t *layer)
 
 	nnom_shape_data_t dim[1] = {tensor_get_num_channel(layer->in->tensor)}; // fill the first 2 dim later
 	tensor_set_attr_v(layer->out->tensor, layer->in->tensor->q_dec[0], 0, dim, sizeof(dim)/sizeof(nnom_shape_data_t), 8); 
+	
+	// see if the activation will change the q format
+	if(layer->actail) 
+		layer->out->tensor->q_dec[0] = act_get_dec_bit(layer->actail->type, layer->out->tensor->q_dec[0]);
 
 	// different from other *_build(), the kernel..padding left by layer API needs to be set in here
 	// due to the *_run() methods of global pooling are using the normall pooling's.

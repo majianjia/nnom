@@ -80,21 +80,36 @@ def normalize(data):
 
 def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     inputs = Input(shape=x_train.shape[1:])
-    x = Conv1D(16, kernel_size=(9), strides=(2), padding='same')(inputs)
+    x = Conv1D(9, kernel_size=(9), strides=(3), padding='same')(inputs)
     x = BatchNormalization()(x)
+
 
     # you can use either of the format below.
     # x = RNN(SimpleRNNCell(16), return_sequences=True)(x)
     # x = SimpleRNN(16, return_sequences=True)(x)
 
-    x2 = RNN(LSTMCell(32), return_sequences=True)(x)
-    x1 = LSTM(32, return_sequences=True, go_backwards=True)(x)
-    x = concatenate([x1, x2], axis=-1)
+    # x2 = RNN(LSTMCell(32), return_sequences=True)(x)
+    # x1 = LSTM(32, return_sequences=True, go_backwards=True)(x)
+    # x = concatenate([x1, x2], axis=-1)
+    #
+    # # Bidirectional with concatenate. (not working yet)
+    # x1 = RNN(GRUCell(16), return_sequences=True)(x)
+    # x2 = GRU(16, return_sequences=True, go_backwards=True)(x)
+    # x = concatenate([x1, x2], axis=-1)
+
 
     # Bidirectional with concatenate. (not working yet)
-    x1 = RNN(GRUCell(16), return_sequences=True)(x)
-    x2 = GRU(16, return_sequences=True, go_backwards=True)(x)
+
+    # x1 = LSTM(32, return_sequences=True)(x)
+    # x2 = LSTM(32, return_sequences=True, go_backwards=True)(x)
+    # x = add([x1, x2])
+    x = LSTM(32, return_sequences=True)(x)
+    x1 = GRU(32, return_sequences=True)(x)
+    x2 = GRU(32, return_sequences=True, go_backwards=True)(x)
     x = concatenate([x1, x2], axis=-1)
+
+    x = GRU(32, return_sequences=True)(x)
+    x = GRU(32, return_sequences=True)(x)
 
     x = Flatten()(x)
     x = Dense(64)(x)
@@ -106,7 +121,7 @@ def train(x_train, y_train, x_test, y_test, batch_size= 64, epochs = 100):
     model = Model(inputs=inputs, outputs=predictions)
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer='Adam',
+                  optimizer='adam',
                   metrics=['accuracy'])
     model.summary()
 
@@ -192,8 +207,8 @@ def main():
 
     # cut test
     # only use 1000 for test
-    x_test = x_test[:1000]
-    y_test = y_test[:1000]
+    # x_test = x_test[:1000]
+    # y_test = y_test[:1000]
 
     # generate binary test data, convert range to [-128 127] for mcu
     x_test_bin = np.clip(x_test *128, -128, 127)
@@ -202,7 +217,7 @@ def main():
     generate_test_bin(x_train_bin, y_train, name='train_data.bin')
 
     # train model
-    history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
+    #history = train(x_train,y_train, x_test, y_test, batch_size=128, epochs=epochs)
 
     # get best model
     model = load_model(model_name)
@@ -211,7 +226,7 @@ def main():
     scores = evaluate_model(model, x_test, y_test)
 
     # save weight
-    generate_model(model, x_test, name='weights.h')
+    generate_model(model, x_test[:200], name='weights.h')
 	
 	
     # --------- for test in CI ----------

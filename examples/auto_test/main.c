@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
 	input = load("test_data.bin", &size);	// load a continuous input dataset (test bin)
 	fp = fopen("result.csv", "w");			// csv file for result
 	fprintf(fp, "label, prob\n");				// header of csv
-	printf("validation size: %d\n", (int)size); 
+	printf("validation size: %d\n", (uint32_t)size); 
 	
 	model = nnom_model_create();				// create NNoM model
 	pre = prediction_create(model, nnom_output_data, sizeof(nnom_output_data), 4); // mnist, 10 classes, get top-4
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
 			// save results
 			fprintf(fp, "%d,%f\n", label, prob);
 		}
-		printf("Processing %d%%\n", seek * 100 / size);
+		printf("Processing %d%%\n", (uint32_t)(seek * 100 / size));
 	}
 	
 	// save result

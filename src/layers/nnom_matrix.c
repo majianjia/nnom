@@ -132,6 +132,10 @@ nnom_status_t matrix_build(nnom_layer_t *layer)
 	// output tensor
 	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR,layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
+	
+	// see if the activation will change the q format
+	if(layer->actail) 
+		layer->out->tensor->q_dec[0] = act_get_dec_bit(layer->actail->type, layer->out->tensor->q_dec[0]);
 
 	// now this build has passed the input tensors (shapes, formats) to the new tensors. 
 	return NN_SUCCESS;

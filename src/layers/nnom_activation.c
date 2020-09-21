@@ -204,6 +204,20 @@ static nnom_status_t sigmoid_run( nnom_activation_t* act)
 	return NN_SUCCESS;
 }
 
+static nnom_status_t hard_tanh_run( nnom_activation_t* act)
+{
+	nnom_activation_fixed_q_t * a = (nnom_activation_fixed_q_t*)act;
+    local_hard_tanh_q7(act->tensor->p_data, tensor_size(act->tensor), a->dec_bit); // hard take dec bit instead
+	return NN_SUCCESS;
+}
+
+static nnom_status_t hard_sigmoid_run( nnom_activation_t* act)
+{
+	nnom_activation_fixed_q_t * a = (nnom_activation_fixed_q_t*)act;
+    local_hard_sigmoid_q7(act->tensor->p_data, tensor_size(act->tensor), a->dec_bit); // hard take dec bit instead
+	return NN_SUCCESS;
+}
+
 //
 nnom_activation_t* act_relu(void)
 {
@@ -218,7 +232,7 @@ nnom_activation_t* act_leaky_relu(float alpha)
 	nnom_activation_leaky_relu_t* act = nnom_mem(sizeof(nnom_activation_leaky_relu_t));
 	act->super.run = leaky_relu_run;
 	act->super.type = ACT_LEAKY_RELU;
-	act->alpha = alpha*128;
+	act->alpha = (q7_t)alpha*128;
 	return (nnom_activation_t* )act;
 }
 
@@ -227,7 +241,7 @@ nnom_activation_t* act_adv_relu(float negative_slope, float max, float threshold
 	nnom_activation_adv_relu_t* act = nnom_mem(sizeof(nnom_activation_adv_relu_t));
 	act->super.run = adv_relu_run;
 	act->super.type = ACT_ADV_RELU;
-	act->negative_slope = negative_slope*128;
+	act->negative_slope = (q7_t)negative_slope*128;
 	act->max = max;
 	act->threshold = threshold;
 	return (nnom_activation_t* )act;
@@ -250,6 +264,47 @@ nnom_activation_t* act_sigmoid(int32_t dec_bit)
 	act->super.type = ACT_SIGMOID;
 	act->dec_bit = dec_bit;
 	return (nnom_activation_t*)act;
+}
+
+nnom_activation_t* act_hard_tanh(int32_t dec_bit)
+{
+	nnom_activation_fixed_q_t* act = nnom_mem(sizeof(nnom_activation_fixed_q_t));
+
+	act->super.run = hard_tanh_run;
+	act->super.type = ACT_HARD_TANH;
+	act->dec_bit = dec_bit;
+	return (nnom_activation_t*)act;
+}
+
+nnom_activation_t* act_hard_sigmoid(int32_t dec_bit)
+{
+	nnom_activation_fixed_q_t* act = nnom_mem(sizeof(nnom_activation_fixed_q_t));
+
+	act->super.run = hard_sigmoid_run;
+	act->super.type = ACT_HARD_SIGMOID;
+	act->dec_bit = dec_bit;
+	return (nnom_activation_t*)act;
+}
+
+
+
+// return the decimal bit if the activation will change the q format of the layer. 
+int32_t act_get_dec_bit(nnom_activation_type_t type, int32_t dec_bit)
+{
+	switch(type)
+	{
+		case ACT_RELU:
+		case ACT_LEAKY_RELU:
+		case ACT_ADV_RELU:
+			break;
+		case ACT_TANH:
+        case ACT_HARD_TANH:
+		case ACT_SIGMOID:
+        case ACT_HARD_SIGMOID:
+			dec_bit = 7;
+		default:break;
+	}
+	return dec_bit;
 }
 
 // a direct api to run activate a tensor

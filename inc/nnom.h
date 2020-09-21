@@ -33,9 +33,9 @@ extern "C" {
 #define q63_t 	int64_t
 
 /* version */
-#define NNOM_MAJORVERSION     0L              /**< major version number */
-#define NNOM_SUBVERSION       4L              /**< minor version number */
-#define NNOM_REVISION         1L              /**< revise version number */
+#define NNOM_MAJORVERSION     0              /**< major version number */
+#define NNOM_SUBVERSION       4              /**< minor version number */
+#define NNOM_REVISION         2              /**< revise version number */
 #define NNOM_VERSION          ((NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 
 #ifdef ARM_NN_TRUNCATE
@@ -101,7 +101,7 @@ typedef enum
 
 #define DEFUALT_LAYER_NAMES \
 	{                       \
-		"UNKNOWN",          \
+		"Unknown",          \
 			"Base",			\
 			"Input",        \
 			"Output",       \
@@ -139,20 +139,26 @@ extern const char default_layer_names[][12];
 // We dont count softmax an activation here, softmax is instanced as a layer
 typedef enum
 {
-	ACT_RELU = 0,
+    ACT_UNKNOWN = 0,
+	ACT_RELU,
 	ACT_LEAKY_RELU,
 	ACT_ADV_RELU,
 	ACT_TANH,
 	ACT_SIGMOID,
+    ACT_HARD_TANH,
+    ACT_HARD_SIGMOID
 } nnom_activation_type_t;
 
 #define ACTIVATION_NAMES \
 	{                    \
+        "Unknown",          \
 		"ReLU",          \
 		"LkyReLU",		 \
 		"AdvReLU",		\
 		"TanH",      \
 		"Sigmoid",   \
+        "HrdTanH",      \
+		"HrdSigd",   \
 	}
 extern const char default_activation_names[][8];
 
@@ -168,7 +174,7 @@ typedef enum
 
 #define DEFUALT_CELL_NAMES \
 	{                    \
-		"UNKNOW",          \
+		"Unknown",          \
 		"Simple",		 \
 		"GRU",		\
 		"LSTM",      \

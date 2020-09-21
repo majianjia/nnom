@@ -1,0 +1,14 @@
+__pycache__
+.idea
+.vscode
+.layer_q_list
+*.wav
+*.npz
+*.h5
+*.csv
+MS-SNSD/*
+rnn-denoise
+.dblite
+CppProperties.json
+*.pptx
+*.exe

@@ -110,6 +110,9 @@ nnom_status_t rnn_build(nnom_layer_t* layer)
 
 	// output q format - the output of the available activations are both q0.7.  
 	layer->out->tensor->q_dec[0] = 7;
+	// see if the activation will change the q format
+	if(layer->actail) 
+		layer->out->tensor->q_dec[0] = act_get_dec_bit(layer->actail->type, layer->out->tensor->q_dec[0]);
 
 	// get feature size from input tensor
 	cl->cell->feature_size = tensor_get_num_channel(layer->in->tensor); // vector (feature) size
@@ -182,6 +185,6 @@ nnom_status_t rnn_run(nnom_layer_t* layer)
 			return result;
 	}
 	
-	return result;
+	return NN_SUCCESS;
 }
 

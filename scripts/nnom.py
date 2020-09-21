@@ -24,11 +24,11 @@ import warnings
 
 model_major_version = 0
 model_sub_version = 4
-model_reversion = 1
+model_reversion = 2
 
 #define NNOM_MAJORVERSION     0L              /**< major version number */
 #define NNOM_SUBVERSION       4L              /**< minor version number */
-#define NNOM_REVISION         1L              /**< revise version number */
+#define NNOM_REVISION         2L              /**< revise version number */
 #define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 
 def fuse_bn_to_conv(layer):
@@ -146,11 +146,10 @@ def is_shift_layer(layer):
         'subtract' in layer.name or
         'multiply' in layer.name or
        ('activation' in layer.name and layer.get_config()['activation'] == 'softmax')or
-       ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
-       ('activation' in layer.name and layer.get_config()['activation'] == 'tanh') or
-        'rnn' in layer.name or  # rnn layers are tend to be fixed shift
-        'gru' in layer.name or
-        'lstm' in layer.name
+        ('activation' in layer.name and layer.get_config()['activation'] == 'hard_sigmoid') or
+        ('activation' in layer.name and layer.get_config()['activation'] == 'tanh') or
+        ('activation' in layer.name and layer.get_config()['activation'] == 'hard_tanh') or
+        is_rnn_layer(layer)
     ):
         return True
     return False
@@ -163,10 +162,10 @@ def is_shift_fixed(layer):
         'tanh' in layer.name or
         ('activation' in layer.name and layer.get_config()['activation'] == 'softmax') or
         ('activation' in layer.name and layer.get_config()['activation'] == 'sigmoid') or
+        ('activation' in layer.name and layer.get_config()['activation'] == 'hard_sigmoid') or
         ('activation' in layer.name and layer.get_config()['activation'] == 'tanh') or
-        'rnn' in layer.name or # rnn layers are tend to be fixed shift
-        'gru' in layer.name or
-        'lstm' in layer.name
+        ('activation' in layer.name and layer.get_config()['activation'] == 'hard_tanh') or
+        is_rnn_layer(layer)
     ):
         return True
     return  False
@@ -187,11 +186,10 @@ def is_gru_layer(layer):
             return True
     return False
 
-
 def is_rnn_layer(layer):
     if( 'rnn' in layer.name or
-        'gru' in layer.name or
-        'lstm' in layer.name
+        is_lstm_layer(layer) or
+        is_gru_layer(layer)
     ):
         return True
     return  False
@@ -212,9 +210,9 @@ def find_dec_bits_max_min(data, bit_width=8):
     :param bit_width:
     :return:
     """
-    max_val = data.max()
-    min_val = data.min()
-    int_bits = int(np.ceil(np.log2(max(abs(max_val), abs(min_val)))))
+    max_val = abs(data.max()) - abs(data.max()/pow(2, bit_width)) # allow very small saturation.
+    min_val = abs(data.min()) - abs(data.max()/pow(2, bit_width))
+    int_bits = int(np.ceil(np.log2(max(max_val, min_val))))
     dec_bits = (bit_width-1) - int_bits
     return dec_bits
 
@@ -336,6 +334,7 @@ def quantize_rnn_intermediate_output(layer, features):
         h_array = []
         h2_array = []
         activation = nnom_tanh if cfg['activation'] is 'tanh' else nnom_sigmoid
+        state = np.zeros(cfg['units'])
         for feature in features:
             if(not layer.stateful):
                 state = np.zeros(cfg['units'])
@@ -386,12 +385,9 @@ def quantize_rnn_intermediate_output(layer, features):
         z1_array = []
         z2_array = []
         z3_array = []
+        state = [np.zeros(cfg['units']), np.zeros(cfg['units'])]
         for feature in features:
             if(not layer.stateful):
-            #     state = [np.ones(cfg['units']), np.ones(cfg['units']) ]  # for test
-            # for fe in feature:
-            #     fe = np.zeros(32)
-            #     fe.fill(2)
                 state = [np.zeros(cfg['units']), np.zeros(cfg['units']) ]
             for fe in feature:
                 output, state, z, z0, z1, z2, z3 = lstm_cell_step(fe, state, kernel, recurrent_kernel, bias)
@@ -423,7 +419,7 @@ def quantize_rnn_intermediate_output(layer, features):
         q_z1 = find_dec_bits_max_min(z1_array)
         q_z2 = find_dec_bits_max_min(z2_array)
         q_z3 = find_dec_bits_max_min(z3_array)
-        return [q_h, q_c-1, q_z-1]
+        return [q_h, q_c, q_z]
 
     elif (type(layer.cell) is GRUCell or 'gru' in layer.cell.name):
         cfg = layer.cell.get_config()
@@ -453,12 +449,9 @@ def quantize_rnn_intermediate_output(layer, features):
         h_array = []
         z_array = []
         i_array=[]
+        state = [np.zeros(cfg['units'])]
         for feature in features:
             if (not layer.stateful):
-            #     state = [np.zeros(cfg['units']) ]  # for test
-            # for fe in feature:
-            #     fe = np.zeros(32)
-            #     fe.fill(5)
                 state = [np.zeros(cfg['units'])]
             for fe in feature:
                 output, state, z, i = gru_cell_step(fe, state, k, rk, bias[0], bias[1])
@@ -478,11 +471,11 @@ def quantize_rnn_intermediate_output(layer, features):
         return [q_h, q_z]
     return []
 
-def quantize_output(model, x_test, quantize_method='max_min', layer_offset=False, calibrate_size=100):
+def quantize_output(model, x_test, quantize_method='max_min', layer_offset=False, calibrate_size=None):
     # limit the test data size
-    np.random.shuffle(x_test)
-    if (x_test.shape[0] > calibrate_size):
-        x_test = x_test[:calibrate_size]
+    if(calibrate_size is not None):
+        if (x_test.shape[0] > calibrate_size):
+            x_test = x_test[:calibrate_size]
     # test, show the output ranges
     layer_q_list = {}
     # FIXME: only support one input
@@ -564,17 +557,17 @@ def quantize_output(model, x_test, quantize_method='max_min', layer_offset=False
                 update_previous_layer_shift(LM[iname], dec_bit)
     for layer in L:
         if(type(layer.input) == list):
-            iname = layer.input[0].name.split('/')[0]
+            iname = layer.input[0].name.split('/')[0].split(':')[0]
             dec_min = layer_q_list[iname][0]
             # find min dec bit in these input
             for inp in layer.input:
-                iname = inp.name.split('/')[0]
+                iname = inp.name.split('/')[0].split(':')[0]
                 if(layer_q_list[iname][0] < dec_min):
                     dec_min = layer_q_list[iname][0]
                 if(layer_q_list[iname][0] != dec_min):
                     bFlag = True
             for inp in layer.input:
-                iname = inp.name.split('/')[0]
+                iname = inp.name.split('/')[0].split(':')[0]
                 layer_q_list[iname][0] = dec_min
                 if(not is_shift_layer(LM[iname])):
                     update_previous_layer_shift(LM[iname], dec_min)
@@ -798,6 +791,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 return True
             return False
 
+        output_num = 0
         for id, layer in enumerate(L):
             if (is_skipable_layer(layer)):
                 inp = layer.input.name.replace(':', '/').split('/')[0]
@@ -822,9 +816,9 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                                      'please use Input layer as your first layer in the model', layer.name, layer)
                 size = 1
                 for s in layer.input.shape[1:]:
-                    size *= s
+                    size *= s if s is not None else 1
                 fp.write(gen_values('nnom_input_data', '{0}', size=str(size), dtype='static int8_t'))
-                fp.write(gen_tensor(layer.input, layer_q_list[layer.name][0], tensor_value='nnom_input_data'))
+                fp.write(gen_tensor(layer.input, layer_q_list[layer.name][0], tensor_value='nnom_input_data', is_io_tensor=True))
                 fp.write(gen_io_config(layer, tensor_name=convert_tensor_name(layer.input)))
             elif (type(layer) in [Conv2D, Conv1D, DepthwiseConv2D]):
                 for w in layer.weights:
@@ -872,13 +866,28 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                     fp.write(gen_lstm_cell_config(layer, layer_q_list['intermediate_'+layer.name]))
                 fp.write(gen_rnn_config(layer))
 
-            # last layer, attach the additional nnom output layer
-            if(id == len(L)-1):
+            # test, multiple output layer
+            if(len(layer.outbound_nodes) == 0):
                 size=1
                 for s in layer.output.shape[1:]:
-                    size = size * s
-                fp.write(gen_values('nnom_output_data', '{0}', size=str(size), dtype='static int8_t'))
-                fp.write(gen_output_config(layer,  dec_bits=layer.name.upper()+'_OUTPUT_DEC', value_name='nnom_output_data'))
+                    size *= s if s is not None else 1
+                if(output_num == 0): # the first output or the only output
+                    fp.write(gen_values('nnom_output_data', '{0}', size=str(size), dtype='static int8_t'))
+                    fp.write(gen_output_config(layer, dec_bits=layer.name.upper() + '_OUTPUT_DEC', output_num=output_num, value_name='nnom_output_data'))
+                    output_num += 1
+                else:
+                    output_value_names = 'nnom_output_data'+str(output_num)
+                    fp.write(gen_values(output_value_names, '{0}', size=str(size), dtype='static int8_t'))
+                    fp.write(gen_output_config(layer, dec_bits=layer.name.upper() + '_OUTPUT_DEC', output_num=output_num, value_name=output_value_names))
+                    output_num += 1
+
+            # # last layer, attach the additional nnom output layer
+            # if(id == len(L)-1):
+            #     size=1
+            #     for s in layer.output.shape[1:]:
+            #         size *= s if s is not None else 1
+            #     fp.write(gen_values('nnom_output_data', '{0}', size=str(size), dtype='static int8_t'))
+            #     fp.write(gen_output_config(layer,  dec_bits=layer.name.upper()+'_OUTPUT_DEC', value_name='nnom_output_data'))
 
         # write version
         fp.write('/* model version */\n')
@@ -895,6 +904,9 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
             fp.write('\tnnom_layer_t* layer[%d];\n' % (ID + 1))
         fp.write('\n\tcheck_model_version(NNOM_MODEL_VERSION);')
         fp.write('\n\tnew_model(&model);\n\n')
+
+        # inverted order of output, very strange
+        output_num = (len(model.output) -1) if type(model.output) is list else 0
         for layer in L:
             if (is_skipable_layer(layer)):
                 continue
@@ -924,11 +936,14 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 cfg = layer.get_config()
                 if (cfg['activation'] == 'relu'):
                     fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n' % (id, LI[inp][0]))
-                if (cfg['activation'] == 'tanh'):
-                    fp.write('\tlayer[%s] = model.active(act_tanh(%s_OUTPUT_DEC), layer[%s]);\n' % (
+                elif (cfg['activation'] == 'tanh'):
+                    fp.write('\tlayer[%s] = model.active(act_hard_tanh(%s_OUTPUT_DEC), layer[%s]);\n' % (
                     id, inp.upper(), LI[inp][0]))
-                if (cfg['activation'] == 'sigmoid'):
+                elif (cfg['activation'] == 'sigmoid'):
                     fp.write('\tlayer[%s] = model.active(act_sigmoid(%s_OUTPUT_DEC), layer[%s]);\n' % (
+                    id, inp.upper(), LI[inp][0]))
+                elif (cfg['activation'] == 'hard_sigmoid'):
+                    fp.write('\tlayer[%s] = model.active(act_hard_sigmoid(%s_OUTPUT_DEC), layer[%s]);\n' % (
                     id, inp.upper(), LI[inp][0]))
                 elif (cfg['activation'] == 'softmax'):
                     fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n' % (id, LI[inp][0]))
@@ -1025,6 +1040,11 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
             else:
                 raise Exception('unsupported layer', layer.name, layer)
 
+            # test, multiple output layer (not yet working with multiple outputs)
+            if(len(layer.outbound_nodes) == 0):
+                fp.write('\tlayer[{0}] = model.hook(output_s(&{1}_config), layer[{2}]);\n'.format(id + 1, 'output'+str(output_num), LI[inp][0] + 1))
+                output_num -=1 # the num is inverted in keras, not a good solution yet.
+
             """
             # temporary fixed for activations attached into layers in construction
             def is_activation_attached(layer):
@@ -1047,7 +1067,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                     fp.write('\tlayer[%s] = model.hook(Softmax(), layer[%s]);\n'%(id, LI[inp][0]))
             """
         # generate final output layer
-        fp.write('\tlayer[{0}] = model.hook(output_s(&{1}_config), layer[{2}]);\n'.format(id+1, 'output', LI[inp][0]+1))
+        #fp.write('\tlayer[{0}] = model.hook(output_s(&{1}_config), layer[{2}]);\n'.format(id+1, 'output', LI[inp][0]+1))
         fp.write('\tmodel_compile(&model, layer[0], layer[%s]);\n' % (id + 1))
         if (ID > 32):
             fp.write('\tfree(layer);\n')

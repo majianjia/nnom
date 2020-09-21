@@ -1557,7 +1557,7 @@ void local_softmax_q7(const q7_t *vec_in, const uint32_t dim_vec, q7_t *p_out)
 // otherwise y = 0.2 * x + 0.5 (y=0.20315 * x + 0.5)
 void local_hard_sigmoid_q7(q7_t *data, uint32_t size, int16_t dec_bit)
 {
-	int16_t limit = 2.5f * (1<<dec_bit)-1; 
+	int16_t limit = 2.5f * (1 << dec_bit)-1; 
 	int16_t offset = 64;	// 0.5 * 128
 	int16_t mult = 26;  	// 0.2 * 128
 
@@ -1570,7 +1570,7 @@ void local_hard_sigmoid_q7(q7_t *data, uint32_t size, int16_t dec_bit)
 			data[i] = 127;
 		else
 		{
-			data[i] = ((int16_t)data[i] * mult >> dec_bit) + offset;
+			data[i] = ((int16_t)(data[i] * mult) >> dec_bit) + offset;
 		} 
 	}   
  }
@@ -1587,7 +1587,7 @@ void local_hard_tanh_q7(q7_t *data, uint32_t size, int16_t dec_bit)
     if(dec_bit == 7)
         return;
 	
-	// int bit > 0
+	// int bit < 0
 	if(int_bit < 0)
 		for(int i=0; i<size; i++)
 		{

@@ -25,18 +25,20 @@ def to_cstyle(data, integer=True):
     s = s.replace('(', '[').replace(')', ']')
     return s.replace('[', '{').replace(']', '}')
 
-def tensor_shape(tensor):
+def tensor_shape(tensor, is_io_tensor=False):
     # inconsistance of TF1 and TF2
     # get tensor shape without None or ?
     try:
-        shape = [d.value for d in tensor.shape] # tf1
+        shape = tensor.shape.as_list() # tf1
     except:
-        shape = tensor.shape # tf2
-
-    if(shape[0] == None):
+        shape = tensor.get_shape().as_list() # tf2
+    if(shape[0] == None or is_io_tensor):
         shape = shape[1:]
     else:
         shape = shape
+    # for rnn input with timestamp = None, need a better implementation
+    for i in range(len(shape)):
+        shape[i] = shape[i] if shape[i] is not None else 1
     return shape
 
 def gen_base_config(layer):
@@ -49,7 +51,7 @@ def gen_values(var_name, var, size='', dtype='const int8_t'):
     return s
 
 # generate tensor by the tensor config
-def gen_tensor(tensor, dec_bits, tensor_value='NULL', per_axis=False):
+def gen_tensor(tensor, dec_bits, tensor_value='NULL', per_axis=False, is_io_tensor=False):
     config = '''
 const nnom_shape_data_t <tensor_name>_dim[] = <dim>;
 const nnom_qformat_param_t <tensor_name>_dec[] = <q_dec>;
@@ -65,7 +67,7 @@ const nnom_tensor_t <tensor_name> = {
 };
 '''
     # inconsistance of TF1 and TF2
-    shape = tensor_shape(tensor)
+    shape = tensor_shape(tensor, is_io_tensor)
     config = config.replace('<tensor_name>', convert_tensor_name(tensor))#.name.replace('/','_').split(':')[0]) #conv2d/kernel:0
     config = config.replace('<bitwidth>', '8')
     config = config.replace('<value>', tensor_value)
@@ -218,7 +220,7 @@ const nnom_io_config_t <layer_name>_config = {
     c = c.replace('<tensor>', tensor_name)
     return c
 
-def gen_output_config(previous_layer, dec_bits, value_name='nnom_output_data'): #cheat at the moments
+def gen_output_config(previous_layer, dec_bits, output_num, value_name='nnom_output_data'): #cheat at the moments
     c = '''
 const nnom_shape_data_t <tensor_name>_dim[] = <dim>;
 const nnom_qformat_param_t <tensor_name>_dec[] = <q_dec>;
@@ -238,11 +240,11 @@ const nnom_io_config_t <layer_name>_config = {
     .tensor = (nnom_tensor_t*)&<tensor_name>
 };
 '''
-    shape = tensor_shape(previous_layer.output)
+    shape = tensor_shape(previous_layer.output, is_io_tensor=True)
 
-    c = c.replace('<tensor_name>', 'tensor_output')
-    c = c.replace('<layer_name>', 'output')
-    c = c.replace('<base_config>', '{.name = "output"}') # cheating at the moment.
+    c = c.replace('<tensor_name>', 'tensor_output'+str(output_num))
+    c = c.replace('<layer_name>', 'output'+str(output_num))
+    c = c.replace('<base_config>', '{.name = "output'+str(output_num)+'"}') # cheating at the moment.
     c = c.replace('<value>', value_name)
     c = c.replace('<qtype>', 'NNOM_QTYPE_PER_TENSOR')
     c = c.replace('<num_dim>', str(len(shape)))

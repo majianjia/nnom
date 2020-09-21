@@ -19,14 +19,21 @@
  *
  */
 
-#ifndef __KWS_MFCC_H__
-#define __KWS_MFCC_H__
+#ifndef __MFCC_H__
+#define __MFCC_H__
 
+
+// in main.c define "PLATFORM_ARM" before including 'mfcc.h' to use ARM optimized FFT 
+#ifdef PLATFORM_ARM
 #include "arm_math.h"
+#define MFCC_PLATFORM_ARM
+#endif
+
+#include <stdint.h>
 #include "string.h"
+#include <math.h>
 
 #define SAMP_FREQ 16000
-#define NUM_FBANK_BINS 26
 #define MEL_LOW_FREQ 20
 #define MEL_HIGH_FREQ 4000
 
@@ -35,9 +42,10 @@
 typedef struct _mfcc_t{
     int num_mfcc_features;
 	int num_features_offset;
+	int num_fbank;
     int frame_len;
     int frame_len_padded;
-    int mfcc_dec_bits;
+	int is_append_energy;
 	float preempha;
     float * frame;
     float * buffer;
@@ -47,7 +55,11 @@ typedef struct _mfcc_t{
     int32_t * fbank_filter_last;
     float ** mel_fbank;
     float * dct_matrix;
-    arm_rfft_fast_instance_f32 * rfft;
+	#ifdef PLATFORM_ARM
+		arm_rfft_fast_instance_f32* rfft;
+	#else
+		float* fft_buffer;
+	#endif
 } mfcc_t;
 
 static inline float InverseMelScale(float mel_freq) {
@@ -61,10 +73,10 @@ static inline float MelScale(float freq) {
 float * create_dct_matrix(int32_t input_length, int32_t coefficient_count); 
 float ** create_mel_fbank(mfcc_t* mfcc);
 
-mfcc_t* mfcc_create(int num_mfcc_features, int feature_offset,  int frame_len, int mfcc_dec_bits, float preemph);
+mfcc_t *mfcc_create(int num_mfcc_features, int feature_offset, int num_fbank, int frame_len, float preempha, int is_append_energy);
 void mfcc_delete(mfcc_t* mfcc);
 
-void mfcc_compute(mfcc_t *mfcc, const int16_t * audio_data, q7_t* mfcc_out);
+void mfcc_compute(mfcc_t *mfcc, const int16_t * audio_data, float* mfcc_out);
 
 #endif
 

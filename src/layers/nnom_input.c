@@ -43,6 +43,14 @@ nnom_layer_t *input_s(const nnom_io_config_t* config)
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
 
+    // // set parameters
+	// layer->buf = config->tensor->p_data;
+	// layer->dec_bit = config->tensor->q_dec[0];
+
+	// // input normally dont have a tensor, so we create one to store the initial data. 
+	// layer->super.in->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, config->tensor->num_dim, tensor_get_num_channel(config->tensor));
+	// tensor_set_attr_v(layer->super.in->tensor, layer->dec_bit, 0, config->tensor->dim, config->tensor->num_dim, 8);
+
 	// set parameters
 	if(config->tensor->num_dim == 2) // test for 1d input, expend h = 1
 		layer->shape = shape(1, config->tensor->dim[0], config->tensor->dim[1]);
@@ -116,11 +124,19 @@ nnom_status_t input_run(nnom_layer_t *layer)
 {
 	nnom_io_layer_t *cl = (nnom_io_layer_t *)layer;
 #ifdef NNOM_USING_CHW
-	//tensor_hwc2chw_q7(layer->out->tensor, layer->in->tensor); 	// this is not correct. both in and out tensor is the same tensor. 
-	nnom_3d_shape_t shape = {layer->in->tensor->dim[0], layer->in->tensor->dim[1], layer->in->tensor->dim[2]};
-	hwc2chw_q7(shape, cl->buf, layer->in->tensor->p_data);
-#else
-	memcpy(layer->in->tensor->p_data, cl->buf, tensor_size(layer->in->tensor));
+	if(layer->in->tensor->num_dim == 3)
+    {
+        nnom_3d_shape_t shape = {layer->in->tensor->dim[0], layer->in->tensor->dim[1], layer->in->tensor->dim[2]};
+        hwc2chw_q7(shape, cl->buf, layer->in->tensor->p_data);
+    }
+    else if (layer->in->tensor->num_dim == 2)
+    {
+        nnom_3d_shape_t shape = {1, layer->in->tensor->dim[0], layer->in->tensor->dim[1]};
+        hwc2chw_q7(shape, cl->buf, layer->in->tensor->p_data);
+    }
+    else
 #endif
+	memcpy(layer->in->tensor->p_data, cl->buf, tensor_size(layer->in->tensor));
+
 	return NN_SUCCESS;
 }
