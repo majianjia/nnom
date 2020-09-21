@@ -293,7 +293,7 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 			&& (cl->kernel.w == cl->kernel.h) && (cl->pad.w == cl->pad.h) && (cl->stride.w == cl->stride.h))
 			{
 				// 1x1 fast
-				if (cl->kernel.w == 1 && cl->kernel.h == 1)
+				if (cl->kernel.w == 1 && cl->kernel.h == 1 && cl->stride.w == 1 && cl->stride.h == 1 && cl->pad.w == 0 && cl->pad.h == 0)
 					return (nnom_status_t)arm_convolve_1x1_HWC_q7_fast_nonsquare(
 						layer->in->tensor->p_data,
 						layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
