@@ -41,7 +41,7 @@ def filter_voice(sig, rate, gains, nband=26, lowfreq=20, highfreq=8000, filter_t
     if(filter_type == 'fir'):
         print("denoising using FIR filter")
         b = fir_design(band_frequency, rate, order=101)
-        step = int(0.03125 * rate / 2)
+        step = int(0.032 * rate / 2)
         filtered_signal = np.zeros(len(sig))
         for i in range(len(b)):
             filtered_signal += bandpass_filter_fir(sig, b[i].copy(), 1, step, gains[:, i])
@@ -50,7 +50,7 @@ def filter_voice(sig, rate, gains, nband=26, lowfreq=20, highfreq=8000, filter_t
     else:
         print("denoising using IIR filter")
         b, a = iir_design(band_freq, rate)
-        step = int(0.03125 * rate / 2)
+        step = int(0.032 * rate / 2)
         print("audio process step:", step)
         filtered_signal = np.zeros(len(sig))
         for i in range(len(b)):
@@ -173,19 +173,23 @@ def train(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="mod
 
     # voice activity detection
     x1_1 = GRU(24, return_sequences=True, stateful=True, recurrent_dropout=0.2)(x_in)
+    x1_1 = Dropout(0.3)(x1_1)
     x1_2 = GRU(24, return_sequences=True, stateful=True, recurrent_dropout=0.2)(x1_1)
+    x1_2 = Dropout(0.3)(x1_2)
     x = Flatten()(x1_2)
     x = Dense(1)(x)
     vad_output = Activation("hard_sigmoid")(x)
 
     # Noise spectral estimation
-    x2_1 = concatenate([x_in, x1_1, x1_2], axis=-1)
-    x2_1 = GRU(48, return_sequences=True, stateful=True, recurrent_dropout=0.4)(x2_1)
+    x2 = concatenate([x_in, x1_1, x1_2], axis=-1)
+    x2 = GRU(48, return_sequences=True, stateful=True, recurrent_dropout=0.3)(x2)
+    x2 = Dropout(0.3)(x2)
 
     #Spectral subtraction
-    x3_1 = concatenate([x_in, x2_1, x1_2], axis=-1)
-    x3_1 = GRU(64, return_sequences=True, stateful=True, recurrent_dropout=0.4)(x3_1)
-    x = Flatten()(x3_1)
+    x3 = concatenate([x_in, x2, x1_2], axis=-1)
+    x3 = GRU(64, return_sequences=True, stateful=True, recurrent_dropout=0.3)(x3)
+    x3 = Dropout(0.3)(x3)
+    x = Flatten()(x3)
     x = Dense(output_feature_size)(x)
     x = Activation("hard_sigmoid")(x)
 
@@ -254,7 +258,7 @@ def main():
     print('mfcc diff max:', noisy_mfcc_diff.max(), 'mfcc diff min:', noisy_mfcc_diff.min())
 
     # preprocess data
-    timestamp_size = 1024 # this must be > than 1024, since we are using 1 one sample as a batch, which still too small for BP
+    timestamp_size = 2048 # this must be > than 1024, since we are using 1 one sample as a batch, which still too small for BP
     num_sequence = len(vad) // timestamp_size
     print('timestamp', timestamp_size, 'num of data', num_sequence)
 

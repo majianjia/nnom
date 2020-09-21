@@ -185,7 +185,7 @@ def noise_suppressed_example(filter_type='iir', plot=False):
     # becasue the frequency band is overlapping, we need to reduce the signal to avoid overflow when converting back to int16.
     if(filter_type == 'fir'):
         print("denoising using FIR filter")
-        b = fir_design(band_freq, 16000, order=75)
+        b = fir_design(band_freq, rate, order=75)
         if plot:
             plot_frequency_respond(b)
         step = int(0.03125 * rate / 2)
@@ -218,7 +218,7 @@ def noise_suppressed_example(filter_type='iir', plot=False):
     print("filtered signal is saved to:", "_filtered_sample.wav")
 
 
-def generate_data(path, vad_filter_size=21, vad_threshold=1e-1, winlen=0.032, winstep=0.032/2, numcep=13, nfilt=26, nfft=512,
+def generate_data(path, vad_filter_size=11, vad_threshold=1e-1, winlen=0.032, winstep=0.032/2, numcep=13, nfilt=26, nfft=512,
                     lowfreq=20, highfreq=8000, winfunc=np.hanning, ceplifter=0, preemph=0.97, appendEnergy=True):
     """
     vad_filter_size: number of winstep for filter. if one of the point is active, the first size/2 and last size/2 will be actived
@@ -326,7 +326,7 @@ if __name__ == "__main__":
         gains = np.clip(gains, 0, 1)
 
         # experimential, suppress the gains when there is no voice detected
-        gains[vad[idx_clnsp] < 1] = gains[vad[idx_clnsp] < 1] / 10
+        #gains[vad[idx_clnsp] < 1] = gains[vad[idx_clnsp] < 1] / 10
         # g = np.swapaxes(gains, 0, 1)
         # plt.imshow(g, interpolation='nearest', origin='lower', aspect='auto')
         # plt.show()
