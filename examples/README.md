@@ -14,6 +14,7 @@ This example come with 10 embedded images allows users to do prediction through 
 - **octave-conv** is to show how to construct the latest Octave convolution in Keras then deploy to NNoM. 
 - **uci-inception** is an example using data from motion sensors and Inception structure. 
 It is an interactive example using shell and Y-modem to transmit testing data. 
+- **rnn-denoise** is a fixed point implementation of RNN speech noise suppression using the methodology provided by [RNNoise](https://jmvalin.ca/demo/rnnoise/). It implement an RNN network like RNNoise. It can run on PC like `auto-test example`.
 - **uci-har-RNN** is an example using data from motion sensors and Inception structure. However, use a stack of RNN layers to test the data. It can run on PC like `auto-test example`.
 - **mnist-cnn** is an entry level example using jupyter notebook following this [Keras tutorial](https://adventuresinmachinelearning.com/keras-tutorial-cnn-11-lines/) 
 - **mnist-densenet** is a example showing how to use DenseNet with NNoM. 
