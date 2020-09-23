@@ -234,7 +234,7 @@ def generate_data(path, vad_filter_size=11, vad_threshold=1e-1, random_volume=Tr
         # for the mfcc, because we are not normalizing them,
         # so we randomize the volume to simulate the real life voice record.
         if(random_volume):
-            sig = sig/np.random.uniform(0.4, 1)
+            sig = sig * np.random.uniform(0.64, 1)
 
         # calculate mfcc features
         mfcc_feat = mfcc(sig, rate, winlen=winlen, winstep=winstep, numcep=numcep, nfilt=nfilt, nfft=nfft,
