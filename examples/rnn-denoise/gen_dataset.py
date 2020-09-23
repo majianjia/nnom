@@ -205,7 +205,7 @@ def noise_suppressed_example(plot=False):
     print("filtered signal is saved to:", "_filtered_sample.wav")
 
 
-def generate_data(path, vad_filter_size=11, vad_threshold=1e-1, random_volume=True, winlen=0.032, winstep=0.032/2,
+def generate_data(path, vad_filter_size=21, vad_threshold=1e-1, random_volume=True, winlen=0.032, winstep=0.032/2,
                   numcep=13, nfilt=26, nfft=512, lowfreq=20, highfreq=8000, winfunc=np.hanning, ceplifter=0,
                   preemph=0.97, appendEnergy=True):
     """
@@ -234,7 +234,7 @@ def generate_data(path, vad_filter_size=11, vad_threshold=1e-1, random_volume=Tr
         # for the mfcc, because we are not normalizing them,
         # so we randomize the volume to simulate the real life voice record.
         if(random_volume):
-            sig = sig * np.random.uniform(0.64, 1)
+            sig = sig * np.random.uniform(0.8, 1)
 
         # calculate mfcc features
         mfcc_feat = mfcc(sig, rate, winlen=winlen, winstep=winstep, numcep=numcep, nfilt=nfilt, nfft=nfft,
@@ -280,29 +280,32 @@ if __name__ == "__main__":
 
     noisy_speech_dir = 'MS-SNSD/NoisySpeech_training'
     clean_speech_dir = 'MS-SNSD/CleanSpeech_training'
+    noise_dir = 'MS-SNSD/Noise_training'
 
     # clean sound, mfcc, and vad
-    print('generating clean MFCC...')
+    print('generating clean speech MFCC...')
     clean_speech_mfcc, clean_file_label, total_energy, vad, clnsp_band_energy = \
         generate_data(clean_speech_dir, nfilt=num_filter, numcep=num_filter, appendEnergy=True, preemph=0, vad_threshold=vad_energy_threashold)
 
     # add noise to clean speech, then generate the noise MFCC
-    print('generating noisy MFCC...')
+    print('generating noisy speech MFCC...')
     noisy_speech_mfcc, noisy_file_label, _, _ , noisy_band_energy= \
         generate_data(noisy_speech_dir, nfilt=num_filter, numcep=num_filter, appendEnergy=True, preemph=0, vad_threshold=vad_energy_threashold)
 
-    plt.plot(vad[5], label='voice active')
-    plt.plot(total_energy[5], label='energy')
-    plt.legend()
-    plt.show()
+    # MFCC for noise only
+    print('generating noisy MFCC...')
+    noise_only_mfcc, noise_only_label, _, _ , noise_band_energy= \
+        generate_data(noise_dir, random_volume=False, nfilt=num_filter, numcep=num_filter, appendEnergy=True, preemph=0)
+
+    # plt.plot(vad[5], label='voice active')
+    # plt.plot(total_energy[5], label='energy')
+    # plt.legend()
+    # plt.show()
 
     # combine them together
     clnsp_mfcc = []
     noisy_mfcc = []
-    clnsp_mfcc_diff = []    # derivative of mfcc
-    noisy_mfcc_diff = []    #
-    clnsp_mfcc_diff1 = []    # second derivative of mfcc
-    noisy_mfcc_diff1 = []    #
+    noise_mfcc = []
     voice_active = []
     gains_array = []
 
@@ -331,6 +334,7 @@ if __name__ == "__main__":
         voice_active.append(vad[idx_clnsp])
         clnsp_mfcc.append(clean_speech_mfcc[idx_clnsp])
         noisy_mfcc.append(noisy_speech_mfcc[idx_nosiy])
+        noise_mfcc.append(noise_only_mfcc[idx_nosiy]) # noise has the same index as noisy speech
         gains_array.append(gains)
 
         #>>> Uncomment to plot the MFCC image
@@ -343,5 +347,5 @@ if __name__ == "__main__":
         # plt.show()
 
     # save the dataset.
-    np.savez("dataset.npz", clnsp_mfcc=clnsp_mfcc, noisy_mfcc=noisy_mfcc, vad=voice_active, gains=gains_array)
+    np.savez("dataset.npz", clnsp_mfcc=clnsp_mfcc, noisy_mfcc=noisy_mfcc, noise_mfcc=noise_mfcc, vad=voice_active, gains=gains_array)
     print("Dataset generation has been saved to:", "dataset.npz")

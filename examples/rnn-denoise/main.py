@@ -110,8 +110,14 @@ def get_diff_list(data):
 
 # we need to reset state in RNN. becasue we dont each batch are different. however, we need statful=true for nnom
 class reset_state_after_batch(tf.keras.callbacks.Callback):
+    reset_after = 5 # reset state after N batch.
+    curr = 0
     def on_batch_end(self, batch, logs=None):
-        self.model.reset_states()
+        self.curr += 1
+        if(self.curr >= self.reset_after):
+            self.curr = 0
+            self.model.reset_states()
+        pass
 
 def train_simple(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="model.h5"):
     """
@@ -166,6 +172,7 @@ def train(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="mod
     x1_2 = GRU(24, return_sequences=True, stateful=True, recurrent_dropout=0.2)(x1_1)
     x1_2 = Dropout(0.3)(x1_2)
     x = Flatten()(x1_2)
+    x = Dropout(0.3)(x)
     x = Dense(1)(x)
     vad_output = Activation("hard_sigmoid")(x)
 
