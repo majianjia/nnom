@@ -110,7 +110,7 @@ def get_diff_list(data):
 
 # we need to reset state in RNN. becasue we dont each batch are different. however, we need statful=true for nnom
 class reset_state_after_batch(tf.keras.callbacks.Callback):
-    reset_after = 5 # reset state after N batch.
+    reset_after = 1 # reset state after N batch.
     curr = 0
     def on_batch_end(self, batch, logs=None):
         self.curr += 1
@@ -162,12 +162,9 @@ def train(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="mod
     """
         This is an RNNoise-like structure
     """
-    # And extra layer for avoiding concat directly with input.
-    x_in = GRU(96, return_sequences=True, stateful=True, recurrent_dropout=0.2)(input)
-    x_in = Dropout(0.2)(x_in)
 
     # voice activity detection
-    x1_1 = GRU(24, return_sequences=True, stateful=True, recurrent_dropout=0.2)(x_in)
+    x1_1 = GRU(24, return_sequences=True, stateful=True, recurrent_dropout=0.2)(input)
     x1_1 = Dropout(0.3)(x1_1)
     x1_2 = GRU(24, return_sequences=True, stateful=True, recurrent_dropout=0.2)(x1_1)
     x1_2 = Dropout(0.3)(x1_2)
@@ -176,6 +173,9 @@ def train(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="mod
     x = Dense(1)(x)
     vad_output = Activation("hard_sigmoid")(x)
 
+    # we dont concate input with layer output, because the range different will cause quite many quantisation lost.
+    x_in = GRU(64, return_sequences=True, stateful=True, recurrent_dropout=0.3)(input)
+
     # Noise spectral estimation
     x2 = concatenate([x_in, x1_1, x1_2], axis=-1)
     x2 = GRU(48, return_sequences=True, stateful=True, recurrent_dropout=0.3)(x2)
@@ -183,7 +183,7 @@ def train(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="mod
 
     #Spectral subtraction
     x3 = concatenate([x_in, x2, x1_2], axis=-1)
-    x3 = GRU(64, return_sequences=True, stateful=True, recurrent_dropout=0.3)(x3)
+    x3 = GRU(96, return_sequences=True, stateful=True, recurrent_dropout=0.3)(x3)
     x3 = Dropout(0.3)(x3)
     x = Flatten()(x3)
     x = Dense(output_feature_size)(x)
@@ -207,7 +207,7 @@ def train(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="mod
 
     model = Model(inputs=input, outputs=[x, vad_output])
     #model.compile("adam", loss=[mycost, my_crossentropy], loss_weights=[10, 0.5], metrics=[msse])  # RNNoise loss and cost
-    model.compile("adam", loss=["MSE", my_crossentropy], loss_weights=[10, 0.5], metrics=[msse])
+    model.compile("adam", loss=["MSE", my_crossentropy], loss_weights=[10, 2], metrics=[msse])
     model.summary()
 
     history = model.fit(x_train, [y_train, vad_train],
@@ -280,7 +280,7 @@ def main():
     vad_train = np.reshape(vad_train, (num_sequence * timestamp_size, 1))
 
     # train the model, choose either one.
-    history = train(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=10, model_name="model.h5")
+    history = train(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=5, model_name="model.h5")
     #history = train_simple(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=10, model_name="model.h5")
 
     # get the model
@@ -293,7 +293,7 @@ def main():
     wav.write("_nn_filtered_sample.wav", rate, np.asarray(filtered_sig * 32767, dtype=np.int16))
 
     # now generate the NNoM model
-    generate_model(model, x_train[:timestamp_size*10], name='weights.h')
+    generate_model(model, x_train[:timestamp_size*4], name='weights.h')
     return
 
 # Press the green button in the gutter to run the script.
