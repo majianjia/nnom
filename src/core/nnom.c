@@ -475,7 +475,6 @@ static nnom_status_t layer_shortcut_add(nnom_layer_t *start, nnom_layer_t *curr)
 		// if the layer is already in shortcut list, tell upper.
 		if (curr == layer)
 			return NN_ARGUMENT_ERROR;
-
 		layer = layer->shortcut;
 	}
 	layer->shortcut = curr;
@@ -558,10 +557,10 @@ static void print_memory_block_info(nnom_mem_block_t *block_pool)
 // 	1) if the layer has multiple input but not all of them are filled by last layers. returns NN_MORE_TODO
 //	2) if all the output hooked are nested called. return NN_SUCCESS
 //	3) if the layer is output layer. return NN_SUCCESS
-nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, uint32_t *layer_count)
+nnom_status_t compile_layers(nnom_layer_t* first, nnom_layer_t *curr, nnom_mem_block_t *block_pool, uint32_t *layer_count)
 {
 	size_t mem_size = 0;
-	nnom_layer_t *layer = start;
+	nnom_layer_t *layer = curr;
 	nnom_layer_io_t *in;
 	nnom_layer_io_t *out;
 	nnom_layer_hook_t *hook;
@@ -635,7 +634,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 		layer->build(layer);
 
 		// 2. add to shortcut list. 
-		layer_shortcut_add(start, layer);
+		layer_shortcut_add(first, layer);
 
 		// 3. assign for computational buf
 		if (layer->comp != NULL)
@@ -753,15 +752,7 @@ nnom_status_t compile_layers(nnom_layer_t *start, nnom_mem_block_t *block_pool, 
 				hook = &out->hook;
 				while (hook != NULL && hook->io != NULL)
 				{
-					nnom_status_t result;
-					// test, add shorcut before nested call
-					// put the "hooked layer" to the END of the shortcut list, which STARTed at current "layer"
-					// if the layer is already in the list, then it is already compiled by other layer's nested call, returns NN_ARGUMENT_ERROR
-					result = layer_shortcut_add(layer, hook->io->owner);
-					if (result == NN_SUCCESS)
-						// nested call only when the layer hasnt been compiled
-						compile_layers(hook->io->owner, block_pool, layer_count);
-					// next hook
+					compile_layers(first, hook->io->owner, block_pool, layer_count);
 					hook = hook->next;
 				}
 
@@ -926,7 +917,7 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	NNOM_LOG("-------------------------------------------------------------------------------------------------\n");
 
 	// compile layers, started from list head, nested run till the end of models
-	compile_layers(m->head, m->blocks, &layer_num);
+	compile_layers(m->head, m->head, m->blocks, &layer_num);
 
 	NNOM_LOG("-------------------------------------------------------------------------------------------------\n");
 
