@@ -203,20 +203,21 @@ def find_offset(data):
     return np.average(data)
 
 
-def find_dec_bits_max_min(data, bit_width=8):
+def find_dec_bits_max_min(data, bit_width=8, maximum_bit=16):
     """
     A ragular non-saturated shift-based quantisation mathod. Using max/min values
     :param data:
     :param bit_width:
+    :param maximum_bit: maximum decimal bit. Incase sometime bias is too small lead to very large size dec bit
     :return:
     """
     max_val = abs(data.max()) - abs(data.max()/pow(2, bit_width)) # allow very small saturation.
     min_val = abs(data.min()) - abs(data.max()/pow(2, bit_width))
     int_bits = int(np.ceil(np.log2(max(max_val, min_val))))
     dec_bits = (bit_width-1) - int_bits
-    return dec_bits
+    return min(dec_bits, maximum_bit)
 
-def find_dec_bits_max_min_axis(data, axis=-1,bit_width=8):
+def find_dec_bits_max_min_axis(data, axis=-1,bit_width=8, maximum_bit=16):
     """
     A ragular non-saturated shift-based quantisation mathod. Using max/min values
     :param data:
@@ -236,10 +237,10 @@ def find_dec_bits_max_min_axis(data, axis=-1,bit_width=8):
         min_val = d.min()
         int_bit = int(np.ceil(np.log2(max(abs(max_val), abs(min_val)))))
         dec_bit = (bit_width-1) - int_bit
-        dec_bits.append(dec_bit)
+        dec_bits.append(min(dec_bit, maximum_bit))
     return dec_bits
 
-def find_dec_bits_kld(data, bit_width=8, scan_times=4):
+def find_dec_bits_kld(data, bit_width=8, scan_times=4, maximum_bit=16):
     """
     # saturation shift, using KLD method (Kullback-Leibler divergence)
     # Ref: http://on-demand.gputechconf.com/gtc/2017/presentation/s7310-8-bit-inference-with-tensorrt.pdf
@@ -284,7 +285,7 @@ def find_dec_bits_kld(data, bit_width=8, scan_times=4):
 
     # now get the least loss from the scaned kld shift
     dec_bits = kl_shifts[np.argmin(kl_loss)]  # set the dec_bit to the KLD results
-    return dec_bits
+    return min(dec_bits, maximum_bit)
 
 # convert to [-128,128) or int8
 def quantize_data(data, dec_bits, axis=-1, per_axis=False, bitwith=8):
@@ -611,7 +612,6 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
             if("kernel" not in var_name and 'bias' not in var_name): # ignore batchnormalisation's parameters
                 continue
 
-            print(var_name, "original shape:", var_values.shape)
             if (per_channel_quant and type(layer) in [Conv2D, Conv1D, DepthwiseConv2D, Conv2DTranspose]):
                 if(type(layer) in [DepthwiseConv2D] and "kernel" in var_name): #depthwise kernel quantised by
                     dec_bits = find_dec_bits_max_min_axis(var_values, axis=-2, bit_width=8)
@@ -621,7 +621,7 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
                     dec_bits = find_dec_bits_max_min_axis(var_values, bit_width=8)
             else:
                 dec_bits = find_dec_bits_max_min(var_values, bit_width=8)
-            print("  dec bit", dec_bits)
+            print('   ', var_name, "dec bit", dec_bits)
 
             # kernel dec, bias dec, bias shift, output shift
             if(is_shift_layer(layer) and not is_rnn_layer(layer)):
@@ -708,7 +708,6 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
                     if ("dense" in var_name or is_rnn_layer(layer)) and "kernel" in var_name: # and other RNN layers
                         transposed_wts = convert_to_x4_q7_weights(np.reshape(transposed_wts ,(transposed_wts.shape[0], transposed_wts.shape[1], 1, 1)))
 
-            print("  reshape to:",transposed_wts.shape)
             with open(name, 'a') as f:
                 def write_weights(f, name, value):
                     f.write('#define ' + name + ' {')
