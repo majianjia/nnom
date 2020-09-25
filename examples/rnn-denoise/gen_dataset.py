@@ -138,7 +138,7 @@ def plot_frequency_respond(b, a=None, fs=16000):
     plt.xlabel('Frequency [Hz]')
     plt.show()
 
-def noise_suppressed_example(filter_type='iir', plot=False):
+def noise_suppressed_example(plot=False):
     """
     In this example, we demonstrate how we suppress noise using dynamic gains in an audio equalizer [EQ].
     The basic idea is we use the clean to noisy energy ratio of each frequency band as the gain of suppression.
@@ -167,10 +167,10 @@ def noise_suppressed_example(filter_type='iir', plot=False):
     noisy_band_eng, _ = fbank(noisy_sig, rate, winlen=0.032, winstep=0.032/2, nfilt=nfilt, nfft=512, lowfreq=20, highfreq=8000, preemph=0)
     # gains
     gains = np.sqrt(clean_band_eng / noisy_band_eng)
-    # if(plot):
-    #     plt.title("Gains")
-    #     plt.plot(gains[:, :10])
-    #     plt.show()
+    if(plot):
+        plt.title("Gains")
+        plt.plot(gains[:, :10])
+        plt.show()
 
     # convert mel scale back to frequency band
     mel_scale = get_mel_scale(nfilt=nfilt, lowfreq=20, highfreq=8000)
@@ -183,43 +183,31 @@ def noise_suppressed_example(filter_type='iir', plot=False):
     # the different is we will change the gains of each band very quickly so that we suppress the noise while keeping the speech.
     # design our band pass filter for each band in the equalizer.
     # becasue the frequency band is overlapping, we need to reduce the signal to avoid overflow when converting back to int16.
-    if(filter_type == 'fir'):
-        print("denoising using FIR filter")
-        b = fir_design(band_freq, rate, order=75)
-        if plot:
-            plot_frequency_respond(b)
-        step = int(0.03125 * rate / 2)
-        filtered_signal = np.zeros(len(noisy_sig))
-        for i in range(len(b)):
-            filtered_signal += bandpass_filter_fir(noisy_sig, b[i].copy(), 1, step, gains[:, i])
-            print("filtering with frequency: ", band_freq[i],'to ', band_freq[i+1])
-        filtered_signal = filtered_signal / 6
-    else:
-        print("denoising using IIR filter")
-        b, a = iir_design(band_freq, rate)
-        if plot:
-            plot_frequency_respond(b, a)
-        print("b", b)
-        print("a", a)
-        step = int(0.03125 * rate / 2)
-        print("audio process step:", step)
-        filtered_signal = np.zeros(len(noisy_sig))
-        for i in range(len(b)):
-            filtered_signal += bandpass_filter_iir(noisy_sig, b[i].copy(), a[i].copy(), step, gains[:, i])
-            print("filtering with frequency: ", band_frequency[i])
-        filtered_signal = filtered_signal * 0.6
 
-    print('save to file')
+    print("denoising using IIR filter")
+    b, a = iir_design(band_freq, rate)
+    if plot:
+        plot_frequency_respond(b, a)
+    print("b", b)
+    print("a", a)
+    step = int(0.03125 * rate / 2)
+    print("audio process step:", step)
+    filtered_signal = np.zeros(len(noisy_sig))
+    for i in range(len(b)):
+        filtered_signal += bandpass_filter_iir(noisy_sig, b[i].copy(), a[i].copy(), step, gains[:, i])
+        print("filtering with frequency: ", band_frequency[i])
+    filtered_signal = filtered_signal * 0.6
+
     filtered_signal = np.clip(filtered_signal, -1, 1)
     wav.write("_filtered_sample.wav", rate, np.asarray(filtered_signal * 32767, dtype=np.int16))
     wav.write("_noisy_sample.wav", rate, np.asarray(noisy_sig * 32767, dtype=np.int16))
-
     print("noisy signal is saved to:", "_noisy_sample.wav")
     print("filtered signal is saved to:", "_filtered_sample.wav")
 
 
-def generate_data(path, vad_filter_size=11, vad_threshold=1e-1, winlen=0.032, winstep=0.032/2, numcep=13, nfilt=26, nfft=512,
-                    lowfreq=20, highfreq=8000, winfunc=np.hanning, ceplifter=0, preemph=0.97, appendEnergy=True):
+def generate_data(path, vad_filter_size=21, vad_threshold=1e-1, random_volume=True, winlen=0.032, winstep=0.032/2,
+                  numcep=13, nfilt=26, nfft=512, lowfreq=20, highfreq=8000, winfunc=np.hanning, ceplifter=0,
+                  preemph=0.97, appendEnergy=True):
     """
     vad_filter_size: number of winstep for filter. if one of the point is active, the first size/2 and last size/2 will be actived
     Larger size will have better cover to the speech, but will bring none-speech moments
@@ -239,14 +227,19 @@ def generate_data(path, vad_filter_size=11, vad_threshold=1e-1, winlen=0.032, wi
         # convert file to [-1, 1)
         sig = sig/32768
 
-        # calculate mfcc features
-        mfcc_feat = mfcc(sig, rate, winlen=winlen, winstep=winstep, numcep=numcep, nfilt=nfilt, nfft=nfft,
-                         lowfreq=lowfreq, highfreq=highfreq, winfunc=winfunc, ceplifter=ceplifter, preemph=preemph, appendEnergy=appendEnergy)
-        mfcc_feat = mfcc_feat.astype('float32')
-
         # calculate the energy per band, this was one of the step in mfcc but taked out
         band_eng, total_eng = fbank(sig, rate, winlen=winlen, winstep=winstep, nfilt=nfilt, nfft=nfft, lowfreq=lowfreq,
                                    highfreq=highfreq, preemph=preemph, winfunc=winfunc)
+
+        # for the mfcc, because we are not normalizing them,
+        # so we randomize the volume to simulate the real life voice record.
+        if(random_volume):
+            sig = sig * np.random.uniform(0.8, 1)
+
+        # calculate mfcc features
+        mfcc_feat = mfcc(sig, rate, winlen=winlen, winstep=winstep, numcep=numcep, nfilt=nfilt, nfft=nfft,
+                         lowfreq=lowfreq, highfreq=highfreq, winfunc=winfunc, ceplifter=ceplifter, preemph=preemph,
+                         appendEnergy=appendEnergy)
 
         # voice active detections, only valid with clean speech. Detected by total energy vs threshold.
         v = (total_eng > vad_threshold).astype(int)
@@ -256,7 +249,7 @@ def generate_data(path, vad_filter_size=11, vad_threshold=1e-1, winlen=0.032, wi
         total_energy.append(total_eng)
         band_energy.append(band_eng)
         vad.append(v)
-        mfcc_data.append(mfcc_feat)
+        mfcc_data.append(mfcc_feat.astype('float32'))
         filename_label.append(filename)
     return mfcc_data, filename_label, total_energy, vad, band_energy
 
@@ -267,6 +260,9 @@ if __name__ == "__main__":
     # It give you an idea that how does this energy based noise suppression work.
     noise_suppressed_example()
 
+    # change this will change the whole system, including equalizer and RNN
+    # it set: number of filter in equalizer, number of mfcc feature, and number of RNN output.
+    # choose from 10 ~ 30.
     num_filter = 20
 
     # generate filter coefficient
@@ -284,16 +280,22 @@ if __name__ == "__main__":
 
     noisy_speech_dir = 'MS-SNSD/NoisySpeech_training'
     clean_speech_dir = 'MS-SNSD/CleanSpeech_training'
+    noise_dir = 'MS-SNSD/Noise_training'
 
     # clean sound, mfcc, and vad
-    print('generating clean MFCC...')
+    print('generating clean speech MFCC...')
     clean_speech_mfcc, clean_file_label, total_energy, vad, clnsp_band_energy = \
         generate_data(clean_speech_dir, nfilt=num_filter, numcep=num_filter, appendEnergy=True, preemph=0, vad_threshold=vad_energy_threashold)
 
     # add noise to clean speech, then generate the noise MFCC
-    print('generating noisy MFCC...')
+    print('generating noisy speech MFCC...')
     noisy_speech_mfcc, noisy_file_label, _, _ , noisy_band_energy= \
         generate_data(noisy_speech_dir, nfilt=num_filter, numcep=num_filter, appendEnergy=True, preemph=0, vad_threshold=vad_energy_threashold)
+
+    # MFCC for noise only
+    print('generating noisy MFCC...')
+    noise_only_mfcc, noise_only_label, _, _ , noise_band_energy= \
+        generate_data(noise_dir, random_volume=False, nfilt=num_filter, numcep=num_filter, appendEnergy=True, preemph=0)
 
     # plt.plot(vad[5], label='voice active')
     # plt.plot(total_energy[5], label='energy')
@@ -303,10 +305,7 @@ if __name__ == "__main__":
     # combine them together
     clnsp_mfcc = []
     noisy_mfcc = []
-    clnsp_mfcc_diff = []    # derivative of mfcc
-    noisy_mfcc_diff = []    #
-    clnsp_mfcc_diff1 = []    # second derivative of mfcc
-    noisy_mfcc_diff1 = []    #
+    noise_mfcc = []
     voice_active = []
     gains_array = []
 
@@ -335,6 +334,7 @@ if __name__ == "__main__":
         voice_active.append(vad[idx_clnsp])
         clnsp_mfcc.append(clean_speech_mfcc[idx_clnsp])
         noisy_mfcc.append(noisy_speech_mfcc[idx_nosiy])
+        noise_mfcc.append(noise_only_mfcc[idx_nosiy]) # noise has the same index as noisy speech
         gains_array.append(gains)
 
         #>>> Uncomment to plot the MFCC image
@@ -347,5 +347,5 @@ if __name__ == "__main__":
         # plt.show()
 
     # save the dataset.
-    np.savez("dataset.npz", clnsp_mfcc=clnsp_mfcc, noisy_mfcc=noisy_mfcc, vad=voice_active, gains=gains_array)
+    np.savez("dataset.npz", clnsp_mfcc=clnsp_mfcc, noisy_mfcc=noisy_mfcc, noise_mfcc=noise_mfcc, vad=voice_active, gains=gains_array)
     print("Dataset generation has been saved to:", "dataset.npz")

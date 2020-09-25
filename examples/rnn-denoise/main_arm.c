@@ -275,8 +275,6 @@ void led(bool flag)
 		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8, GPIO_PIN_RESET);
 }
 
-
-
 void Error_Handler()
 {
 	printf("error\n");
@@ -323,7 +321,7 @@ static void DFSDM_Init(void)
   DfsdmChannelHandle.Init.Awd.FilterOrder          = DFSDM_CHANNEL_FASTSINC_ORDER; /* N.U. */
   DfsdmChannelHandle.Init.Awd.Oversampling         = 10; /* N.U. */
   DfsdmChannelHandle.Init.Offset                   = 0;
-  DfsdmChannelHandle.Init.RightBitShift            = 2;
+  DfsdmChannelHandle.Init.RightBitShift            = 2;//2;
   if(HAL_OK != HAL_DFSDM_ChannelInit(&DfsdmChannelHandle))
   {
     Error_Handler();
@@ -340,7 +338,7 @@ static void DFSDM_Init(void)
   DfsdmFilterHandle.Init.InjectedParam.DmaMode        = DISABLE; /* N.U. */
   DfsdmFilterHandle.Init.InjectedParam.ExtTrigger     = DFSDM_FILTER_EXT_TRIG_TIM1_TRGO; /* N.U. */
   DfsdmFilterHandle.Init.InjectedParam.ExtTriggerEdge = DFSDM_FILTER_EXT_TRIG_RISING_EDGE; /* N.U. */
-  DfsdmFilterHandle.Init.FilterParam.SincOrder        = DFSDM_FILTER_SINC3_ORDER;
+  DfsdmFilterHandle.Init.FilterParam.SincOrder        = DFSDM_FILTER_SINC3_ORDER; // DFSDM_FILTER_SINC3_ORDER = 19bit valide data (+-262144)
   DfsdmFilterHandle.Init.FilterParam.Oversampling     = 96; /* 11.294MHz/(4*64) = 44.1KHz */ // 1.536M/96 = 16k
   DfsdmFilterHandle.Init.FilterParam.IntOversampling  = 1;
   if(HAL_OK != HAL_DFSDM_FilterInit(&DfsdmFilterHandle))
@@ -394,12 +392,12 @@ void HAL_DFSDM_ChannelMspInit(DFSDM_Channel_HandleTypeDef *hdfsdm_channel)
   GPIO_Init.Pin = GPIO_PIN_7;
   HAL_GPIO_Init(GPIOE, &GPIO_Init);
   
-  /* Configure and enable PLLSAI1 clock to generate 11.294MHz */
+  /* Configure and enable PLLSAI1 clock to generate 24.57148MHz */
   RCC_PeriphCLKInitStruct.PeriphClockSelection    = RCC_PERIPHCLK_SAI1;
   RCC_PeriphCLKInitStruct.PLLSAI1.PLLSAI1Source   = RCC_PLLSOURCE_MSI;
   RCC_PeriphCLKInitStruct.PLLSAI1.PLLSAI1M        = 1;
   RCC_PeriphCLKInitStruct.PLLSAI1.PLLSAI1N        = 43;
-  RCC_PeriphCLKInitStruct.PLLSAI1.PLLSAI1P        = 7;//
+  RCC_PeriphCLKInitStruct.PLLSAI1.PLLSAI1P        = 7;// 24.5714
   RCC_PeriphCLKInitStruct.PLLSAI1.PLLSAI1ClockOut = RCC_PLLSAI1_SAI1CLK;
   RCC_PeriphCLKInitStruct.Sai1ClockSelection      = RCC_SAI1CLKSOURCE_PLLSAI1;
   if(HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphCLKInitStruct) != HAL_OK)

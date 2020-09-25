@@ -43,13 +43,14 @@ nnom_layer_t *input_s(const nnom_io_config_t* config)
 	layer->super.in = io_init(layer, in);
 	layer->super.out = io_init(layer, out);
 
-    // // set parameters
-	// layer->buf = config->tensor->p_data;
-	// layer->dec_bit = config->tensor->q_dec[0];
-
-	// // input normally dont have a tensor, so we create one to store the initial data. 
-	// layer->super.in->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, config->tensor->num_dim, tensor_get_num_channel(config->tensor));
-	// tensor_set_attr_v(layer->super.in->tensor, layer->dec_bit, 0, config->tensor->dim, config->tensor->num_dim, 8);
+	/*
+	// some other layers (Conv, pooling) are not supporting 12 d input, we still expand the 1,2 dimension to 3
+    // test -> native support 1,2,3 D input. 
+	layer->super.in->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, config->tensor->num_dim, tensor_get_num_channel(config->tensor));
+	tensor_cpy_attr(layer->super.in->tensor, config->tensor);
+	layer->buf = config->tensor->p_data;
+	layer->dec_bit = config->tensor->q_dec[0];
+	*/
 
 	// set parameters
 	if(config->tensor->num_dim == 2) // test for 1d input, expend h = 1

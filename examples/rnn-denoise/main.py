@@ -32,31 +32,19 @@ def mycost(y_true, y_pred):
 def my_accuracy(y_true, y_pred):
     return K.mean(2*K.abs(y_true-0.5) * K.equal(y_true, K.round(y_pred)), axis=-1)
 
-def filter_voice(sig, rate, gains, nband=26, lowfreq=20, highfreq=8000, filter_type='iir'):
+def filter_voice(sig, rate, gains, nband=26, lowfreq=20, highfreq=8000):
     # see gen_dataset.py's example for detial
     mel_scale = get_mel_scale(nfilt=nband, lowfreq=lowfreq, highfreq=highfreq)
     band_freq = mel2hz(mel_scale)
     band_frequency = band_freq[1:-1] # the middle point of each band
     print('band frequency', band_frequency)
-    if(filter_type == 'fir'):
-        print("denoising using FIR filter")
-        b = fir_design(band_frequency, rate, order=101)
-        step = int(0.032 * rate / 2)
-        filtered_signal = np.zeros(len(sig))
-        for i in range(len(b)):
-            filtered_signal += bandpass_filter_fir(sig, b[i].copy(), 1, step, gains[:, i])
-            print("filtering with frequency: ", band_frequency[i])
-        filtered_signal = filtered_signal/8
-    else:
-        print("denoising using IIR filter")
-        b, a = iir_design(band_freq, rate)
-        step = int(0.032 * rate / 2)
-        print("audio process step:", step)
-        filtered_signal = np.zeros(len(sig))
-        for i in range(len(b)):
-            filtered_signal += bandpass_filter_iir(sig, b[i].copy(), a[i].copy(), step, gains[:, i])
-            print("filtering with frequency: ", band_frequency[i])
-        filtered_signal =filtered_signal * 0.6
+    b, a = iir_design(band_freq, rate)
+    step = int(0.032 * rate / 2)
+    filtered_signal = np.zeros(len(sig))
+    for i in range(len(b)):
+        filtered_signal += bandpass_filter_iir(sig, b[i].copy(), a[i].copy(), step, gains[:, i])
+        print("filtering with frequency: ", band_frequency[i])
+    filtered_signal =filtered_signal * 0.6
     return filtered_signal
 
 def normalize(data, n, quantize=True):
@@ -101,7 +89,7 @@ def voice_denoise(sig, rate, model, timestamp_size, numcep=26, plot=False):
         predicted_vad = None
 
     # now process the signal.
-    filtered_sig = filter_voice(sig, rate=rate, gains=predicted_gains, nband=mfcc_feat.shape[-1], filter_type='iir')
+    filtered_sig = filter_voice(sig, rate=rate, gains=predicted_gains, nband=mfcc_feat.shape[-1])
     if(plot):
         for i in range(10):
             plt.plot(predicted_gains[:, i], label='band'+str(i))
@@ -122,8 +110,14 @@ def get_diff_list(data):
 
 # we need to reset state in RNN. becasue we dont each batch are different. however, we need statful=true for nnom
 class reset_state_after_batch(tf.keras.callbacks.Callback):
+    reset_after = 1 # reset state after N batch.
+    curr = 0
     def on_batch_end(self, batch, logs=None):
-        self.model.reset_states()
+        self.curr += 1
+        if(self.curr >= self.reset_after):
+            self.curr = 0
+            self.model.reset_states()
+        pass
 
 def train_simple(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="model.h5"):
     """
@@ -168,17 +162,18 @@ def train(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="mod
     """
         This is an RNNoise-like structure
     """
-    # And extra layer for avoiding concat directly with input.
-    x_in = GRU(96, return_sequences=True, stateful=True, recurrent_dropout=0.2)(input)
-
     # voice activity detection
-    x1_1 = GRU(24, return_sequences=True, stateful=True, recurrent_dropout=0.2)(x_in)
+    x1_1 = GRU(24, return_sequences=True, stateful=True, recurrent_dropout=0.2)(input)
     x1_1 = Dropout(0.3)(x1_1)
     x1_2 = GRU(24, return_sequences=True, stateful=True, recurrent_dropout=0.2)(x1_1)
     x1_2 = Dropout(0.3)(x1_2)
     x = Flatten()(x1_2)
+    x = Dropout(0.3)(x)
     x = Dense(1)(x)
     vad_output = Activation("hard_sigmoid")(x)
+
+    # we dont concate input with layer output, because the range different will cause quite many quantisation lost.
+    x_in = GRU(64, return_sequences=True, stateful=True, recurrent_dropout=0.3)(input)
 
     # Noise spectral estimation
     x2 = concatenate([x_in, x1_1, x1_2], axis=-1)
@@ -187,7 +182,7 @@ def train(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="mod
 
     #Spectral subtraction
     x3 = concatenate([x_in, x2, x1_2], axis=-1)
-    x3 = GRU(64, return_sequences=True, stateful=True, recurrent_dropout=0.3)(x3)
+    x3 = GRU(96, return_sequences=True, stateful=True, recurrent_dropout=0.3)(x3)
     x3 = Dropout(0.3)(x3)
     x = Flatten()(x3)
     x = Dense(output_feature_size)(x)
@@ -211,7 +206,7 @@ def train(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="mod
 
     model = Model(inputs=input, outputs=[x, vad_output])
     #model.compile("adam", loss=[mycost, my_crossentropy], loss_weights=[10, 0.5], metrics=[msse])  # RNNoise loss and cost
-    model.compile("adam", loss=["MSE", my_crossentropy], loss_weights=[10, 0.5], metrics=[msse])
+    model.compile("adam", loss=["MSE", my_crossentropy], loss_weights=[10, 2], metrics=[msse])
     model.summary()
 
     history = model.fit(x_train, [y_train, vad_train],
@@ -293,11 +288,11 @@ def main():
     # denoise a file for test.
     # Make sure the MFCC parameters inside the voice_denoise() are the same as our gen_dataset.
     (rate, sig) = wav.read("_noisy_sample.wav")
-    filtered_sig = voice_denoise(sig, rate, model, timestamp_size, numcep=y_train.shape[-1]) # use plot=True argument to see the gains/vad
+    filtered_sig = voice_denoise(sig, rate, model, timestamp_size, numcep=y_train.shape[-1], plot=True) # use plot=True argument to see the gains/vad
     wav.write("_nn_filtered_sample.wav", rate, np.asarray(filtered_sig * 32767, dtype=np.int16))
 
     # now generate the NNoM model
-    generate_model(model, x_train[:timestamp_size*10], name='weights.h')
+    generate_model(model, x_train[:timestamp_size*4], name='weights.h')
     return
 
 # Press the green button in the gutter to run the script.
