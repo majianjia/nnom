@@ -177,7 +177,7 @@ The test environment:
 
 
 Test conditions: 
-- NN backend: CMSIS-NN or Loacl C Backend
+- NN backend: CMSIS-NN or Local C Backend
 - FFT lib: `arm_rfft_fast_f32` or pure C fft [arduino_fft](https://github.com/lloydroc/arduino_fft)
 - Tested Compiler Optimization: `-O0/-O1` or  `-O2`
 - Tested equalizer bands: `13 band` or `20 band`
