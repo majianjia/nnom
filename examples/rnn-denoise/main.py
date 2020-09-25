@@ -162,7 +162,6 @@ def train(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="mod
     """
         This is an RNNoise-like structure
     """
-
     # voice activity detection
     x1_1 = GRU(24, return_sequences=True, stateful=True, recurrent_dropout=0.2)(input)
     x1_1 = Dropout(0.3)(x1_1)

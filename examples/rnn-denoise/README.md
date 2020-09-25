@@ -1,6 +1,6 @@
 # Speech Noise Suppression Example
 
-Also know as `rnn-denoise example`. 
+Also know as `rnn-denoise example`. [中文文档](README_CH.md)
 
 This example is partially based on the methodology provided by the well-known [RNNoise](https://jmvalin.ca/demo/rnnoise/) project and their [paper](https://arxiv.org/abs/1709.08243) . Great thanks to them!
 
@@ -34,7 +34,7 @@ This example uses MFCC (Mel-scale) to determine the gains, instead of Opus scale
 
 # Step by step Guide
 
-## Get the Noisy Speech
+## 1. Get the Noisy Speech
 
 This example uses [Microsoft Scalable Noisy Speech Dataset](https://github.com/microsoft/MS-SNSD) (MS-SNSD). If you want to train your own model, you may download the dataset from the above repository, then put them into folder `MS-SNSD/`.
 
@@ -54,7 +54,7 @@ total_snrlevels: 3
 
 Then, run `noisyspeech_synthesizer.py` to generate the speeches. If everything goes well, there will be 3 new folders created `/Noise_training`, `/CleanSpeech_training` and `NoisySpeech_training`. We only need the 2 later folders. 
 
-## Generate the dataset
+## 2. Generate the dataset
 
 Now we have Clean and Noisy speech located in `MS-SNSD/CleanSpeech_training` and `MS-SNSD/NoisySpeech_training`. They are the raw PCM signal, but our NN take MFCCs and their derivatives as input and the equalizer gains as output, so we need to process them to get our training dataset. 
 
@@ -65,7 +65,7 @@ Now we need to run `gen_dataset.py` to get the MFCC and gains. It will generate 
 
 In addition, `gen_dataset.py` also generates an audio file `_noisy_sample.wav` which is the raw noisy speech, as well as a filtered file filtered using the truth gains `_filtered_sample.wav`. I would recommend to play both files and see what is the best result we can get by using this equalizer suppression method. 
 
-## Training
+## 3. Training
 
 Once we have `dataset.npz` ready, just run `main.py` to train the model. The trained model will be saved as `model.h5`
 
@@ -75,7 +75,7 @@ At the later part of `main.py`, it will reload the `model.h5` and try to process
 
 Also, it will use the NNoM model converter script `generate_model(...)` to generate our NNoM model `weights.h`
 
-## Inference using NNoM
+## 4. Inference using NNoM
 
 This example provided a `SConstruct` so you can run `scons` in this folder to build a binary executable. 
 
@@ -96,11 +96,13 @@ _nn_filtered_sample.wav   --> denoised speech by the NN gains from Keras
 _nn_fixedpoit_filtered_sample.wav   --> denoised speech by NN gains from NNoM 
 ~~~
 
+Audio example: [Bilibili](https://www.bilibili.com/video/BV1ov411C7fi), [Youtube](https://youtu.be/JG0mSZ1ZnrY)
+
+
 Graphically, the results look like:
 
 ![](figures/speech_comparison.png)
 
-*awaiting for audio example ...*
 
 # Further details
 
@@ -160,31 +162,31 @@ If you are using ARM-Cortex M chips, turn on the below optimization will help to
 - In `mfcc.h` turn on `PLATFORM_ARM` to use ARM FFT
 
 
-## Peformance
+## Performance
 
-Peformance on MCU is all we care about. No matter how good a NN model is, if our MCU cannot run it in time, it will be meaningless of all the effort we done here. 
+The performance on MCU is all we care about. No matter how good a NN model is, if our MCU cannot run it in time, it will be meaningless of all the effort we done here. 
 
 There are 3 computational-expensive parts *MFCC*, *Neural Network*, *Equalizer(EQ)*. So I made a test to evaluate the time comsuming of these 3 parts.
 
-The test environment are:
+The test environment:
 - Board: [STM32L476-Discovery](https://www.st.com/en/evaluation-tools/32l476gdiscovery.html)
-- MCU: STM32L476, overclocked @140MHz Cortex-M4
+- MCU: STM32L476, overclocked @140MHz Cortex-M4F
 - Audio src: Embedded Microphone
 - Audio output: None (you could port it to the audio jack)
 - IDE: Keil MDK
 
 
-Test condition: 
+Test conditions: 
 - NN backend: CMSIS-NN or Loacl C Backend
 - FFT lib: `arm_rfft_fast_f32` or pure C fft [arduino_fft](https://github.com/lloydroc/arduino_fft)
-- Tested Compiler Optimization: `-O0/-O1` and `-O2`
-- Tested equalizer bands: `13 band` and `20 band`
+- Tested Compiler Optimization: `-O0/-O1` or  `-O2`
+- Tested equalizer bands: `13 band` or `20 band`
 
 Remember, our input audio format is `16kHz 1CH`, which means for each audio update (`256` sample), we only have `256/16000 = 16ms` to complete the whole work.
 
 **13 Band Equalizer**
 
-| NN backend| FFT | Opt | MFCC(ms) | Network(ms) |Equalizer(EQ)(ms)| Total(ms) | Comment|
+| NN backend| 512-FFT | Opt | MFCC(ms) | Network(ms) |Equalizer(EQ)(ms)| Total(ms) | Comment|
 | ------ | --- | ------ | ------ | ------| ------|  ------| ------|
 |cmsis-nn|arm_fft| -O1| 0.63 | 3.34 | 2.75 | 7.11 |  |
 |cmsis-nn|arm_fft |-O2| 0.56 | 3.3 | 2.27 | 6.18 |  |
@@ -198,7 +200,7 @@ The test results are quite impressive. With the most optimized option, the total
 
 **20 Band Equalizer**
 
-| NN backend| FFT | Opt | MFCC(ms) | Network(ms) |Equalizer(EQ)(ms)| Total(ms) | Comment|
+| NN backend| 512-FFT | Opt | MFCC(ms) | Network(ms) |Equalizer(EQ)(ms)| Total(ms) | Comment|
 | ------ | ------ | ------ | ------ | ------| ------|  ------| ------|
 |cmsis-nn| arm_fft|-O1| 0.66 | 3.74 | 4.20 | 8.64 |  |
 |cmsis-nn| arm_fft|-O2| 0.58 | 3.35 | 3.46 | 7.44 |  |
