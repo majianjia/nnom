@@ -1,11 +1,10 @@
-# 单片机 RNN 神经网络实时降噪
+# 单片机可以运行的单麦克风实时 RNN 神经网络降噪
 
 这个例子是根据 [RNNoise](https://jmvalin.ca/demo/rnnoise/) 的降噪方法进行设计的。整体进行了一些简化和定点化的一些修改。
-虽然是一个例子，但我尽可能罗列了所有需要用到的资源和信息。
 
-与RNNoise主要的不同如下:
+与RNNoise主要的区别如下:
 - 此例子并非从RNNoise的模型直接转换而来，而是从新基于Keras训练一个新模型，并转化成NNoM模型。
-- 音频信号处理去掉了pitch filtering的部分。
+- 音频信号处理去掉了Pitch iltering的部分。
 - RNN 网络定点化时，根据定点模型的一些特点进行了部分神经网络结构修改。
 - 训练数据集选择上使用了微软的可定制语音数据库。
 
@@ -33,11 +32,13 @@ RNNoise 使用的是第二种方法。
 
 实际进行语音降噪（滤波）的部分，是一个均衡器，也就是大家播放器内调节低音高音的那个玩意儿。而均衡器(Equalizer)的本质是很多个平行的带通滤波器(Bandpass Filter). 我们神经网络的输出，就是均衡器内各个filter band的增益。
 
-那输入是什么？跟之前的 [Key Word Ppotting](https://github.com/majianjia/nnom/tree/master/examples/keyword_spotting) 一样，我们这里使用了梅尔倒频谱 (MFCC)。如果不熟悉的小伙伴，可以回去看看KWS的解释。
+那输入是什么？跟之前的 [KeyWord Spotting](https://github.com/majianjia/nnom/tree/master/examples/keyword_spotting) 一样，我们这里使用了梅尔倒频谱 (MFCC)。如果不熟悉的小伙伴，可以回去看看KWS的解释或自行百度。
 
-跟RNNoise有一些不一样的是我们的例子使用MFCC和梅尔刻度 (Mel-scale) 而不是他们用的OPUS-Scale 或者响度刻度 (Bark-Scale)。单纯从刻度的对比上，他们其实差别不是很大。大家可以去查查他们的区别。
+跟RNNoise有一些不一样的是我们的例子使用MFCC和梅尔刻度 (Mel-scale) 而不是他们用的OPUS-Scale 或者响度刻度 (Bark-Scale)。单纯从刻度的对比上，他们其实差别不是很大。感兴趣的同学可以自己去查查他们的区别。
 
-![](figures/general_workflow.png)
+
+系统图如下
+![系统图](figures/general_workflow.png)
 
 # 运行步骤
 
@@ -49,7 +50,7 @@ RNNoise 使用的是第二种方法。
 
 下载完后，你就可以用它生成我们需要的`干净的语音`和`带噪音的语音`。同时我们还控制了语音混合的程度，也就是信噪比(SNR).
 
-在`MS-SNSD/`目录下修改 `noisyspeech_synthesizer.cfg` 就可以配置数据库，推荐配置如下:
+在`MS-SNSD/`目录下修改 `noisyspeech_synthesizer.cfg` 就可以配置需要生成的语音文件，推荐配置如下:
 ~~~
 sampling_rate: 16000
 audioformat: *.wav
@@ -61,7 +62,7 @@ snr_upper: 20
 total_snrlevels: 3  
 ~~~
 
-*如果打算快速测试一下，可以把total_hour 减少为1或者2小时。*
+*如果打算快速测试一下，可以把 `total_hour` 减少为1或者2小时。*
 
 修改完后，运行 `noisyspeech_synthesizer.py` 就可以生成我们需要的音频WAV文件了。我们需要一对一的`干净的语音`和`带噪音的语音`，它们分别在
 `MS-SNSD/CleanSpeech_training` 和 `MS-SNSD/NoisySpeech_training` 内。
@@ -82,7 +83,7 @@ total_snrlevels: 3
 
 当`dataset.npz`生成后，我们就可以跑 `main.py`来训练Keras模型了。训练好的模型会保存在目录下`model.h5`
 
-因为我们的模型最终要放在单片机上跑，RNN 每次处理一个 timestamp，所以我们的模型设置为`stateful=True` 和 `timestamps=1`。这样的设置对于训练并不是很理想，因为BP没有办法很好的在很小的batch上工作。我们的Batch尽量设置得很大。这里设置`batchsize >= 1024`。
+因为我们的模型最终要放在单片机上跑，RNN 每次处理一个 timestamp，所以我们的模型设置为`stateful=True` 和 `timestamps=1`。这样的设置对于训练并不是很理想，因为反向传播（BP）没有办法很好的在很小的batch上工作。我们的Batch尽量设置得很大。这里设置`batchsize >= 1024`。
 
 同时，这一步会把我们之前的噪音范例`_noisy_sample.wav` ，使用RNN生成的`gains`来滤波`filtered_sig = voice_denoise(...)`（可以对比我们真实`gains`降噪的结果）。滤波后的文件保存为`_nn_filtered_sample.wav`。
 
@@ -114,7 +115,7 @@ _nn_fixedpoit_filtered_sample.wav   --> NNoM定点模型gains降噪
 ![](figures/speech_comparison.png)
 
 
-# 细节
+# 以下是一大波细节讲解
 
 总的来说，我推荐大家看 `gen_dataset.py` 和 `main.py`里面的步骤，很多详细的步骤都在注释里面有相关的解释。
 
@@ -136,15 +137,16 @@ _nn_fixedpoit_filtered_sample.wav   --> NNoM定点模型gains降噪
 
 在默认的模型里面，有两个输出，其中一个便是VAD。 在`main_arm.c` (单片机版本的Demo)里面，这个VAD值控制了板子上的一个LED。如果`VAD > 0.5` LED 会被点亮。 
 
-![](figures/gains_vad_sample.png)
+下图为使用Keras的模型识别 VAD时刻 和 gains 的计算结果
 
+![](figures/gains_vad_sample.png)
 
 
 ## 关于均衡器
 
 这里使用了20（默认）或者13个带通滤波器(Filter Band)来抑制噪音所在的频率。
-实际上你可以设置成任何值不过我推荐大于10小于30。
-每一个独立的带通滤波器的`-3dB`点都与它附近的贷通滤波器的`-3dB`点相交。
+实际上你可以设置成任何值。不过我推荐 大于`10`且小于`30`。
+每一个独立的带通滤波器的`-3dB`点都与它附近的带通滤波器的`-3dB`点相交。
 响频曲线如下:
 
 ![](figures/equalizer_frequency_response.png)
@@ -157,7 +159,7 @@ _nn_fixedpoit_filtered_sample.wav   --> NNoM定点模型gains降噪
 这里提供了两个不同的RNN模型。
 一个是与RNNoise 类似的模型，各个RNN层之间包含很多的支线。这些支线会通过 concatenate 合并在一起。
 这个模型还会提供一个VAD输出。整个模型一共约 `120k`的权重。比RNNoise稍高因为做了一些针对定点模型的改变。
-其实这个模型有点过于复杂了，我尝试减少模型参数，仍然可以很好的进行降噪。
+其实这个模型有点过于复杂了，我尝试过减少模型参数，仍然可以很好的进行降噪。大佬们可以大胆地调整参数。
 如图下图所示。
 
 ![](figures/model_structure_full.png)
@@ -175,36 +177,35 @@ Keras的RNN需要把`stateful=True`打开，这样NNoM在每计算一个timestam
 
 例子通过一个绿色 LED（PE8）输出VAD检测的结果，有人说话时就会亮。
 
-
-除了BSP 相关的代码，功能那个上`main_arm.c`与PC代码`main.c`完全一致，
+除了单片机相关的代码，功能上MCU代码`main_arm.c`与PC代码`main.c`完全一致，
 本例虽然做了音频降噪，但是并没有针对音频输出写驱动，所以降噪输出是被直接抛弃了。大家可以自己写保存或者回放的代码。
 
-如果你使用的是 ARM-Cortex M系列的MCU，做以下设置可以提升性能。
+如果你使用的是 ARM-Cortex M系列的MCU，做以下设置可以提升性能 （参考下面性能测试章节）。
 - 打开 NNoM 的 CMSIS-NN 后端，参考 [Porting and Optimization Guide](../../docs/Porting_and_Optimisation_Guide.md)
 - 在 `mfcc.h`里面，打开 `PLATFORM_ARM` 宏定义来使用ARM_FFT。 
 
 
 ## MCU 上的性能测试
 
-传统的 RNNoise 不止包含了浮点模型，还包括了其他计算（比如pitch filtering），导致总计算量在`40MFLOPS`左右。即是换成定点计算，一般的单片机也会很吃力。
+传统的 RNNoise 不止包含了浮点模型，还包括了其他计算（比如Pitch Filtering），导致总计算量在`40MFLOPS`左右。即是换成定点计算，一般的单片机也会很吃力。
 
-本例中，浮点FFT，定点RNN模型，浮点均衡器（滤波器），并去掉了pitch filtering。
+本例中，浮点FFT，定点RNN模型，浮点均衡器（滤波器），并去掉了Pitch Filtering（额其实是因为我不知道怎么用）。
 我对这里使用的几个运算量大的模块进行了测试，分别是MFCC部分(包含FFT)，神经网络部分，还有均衡器。
 
 测试环境为
 - Board: [STM32L476-Discovery](https://www.st.com/en/evaluation-tools/32l476gdiscovery.html)
 - MCU: STM32L476, 超频到 140MHz Cortex-M4F
-- 音频输入: Embedded Microphone
+- 音频输入: 板载PDM麦克风
 - 音频输出: 无
 - IDE: Keil MDK
 
 测试条件: 
-- 神经网络后端: CMSIS-NN 或 Loacl C Backend
+- 神经网络后端: CMSIS-NN 或 Local C （本地后端）
 - FFT 库(512点): `arm_rfft_fast_f32` 或 纯FFT [arduino_fft](https://github.com/lloydroc/arduino_fft)
 - 优化等级: `-O0/-O1` 或 `-O2`
 - 均衡器滤波器数目: `13 band` 或者 `20 band`
 
-> 需要注意的是，这里使用的音频格式为 `16kHz 1CH`，所以我们每次更新(FFT窗口:512， 窗口overlapping=50%)只有`256/16000 = 16ms` 的时间来完成所有的计算。
+> 需要注意的是，这里使用的音频格式为 `16kHz 1CH`，所以我们每次更新（FFT窗口:512，overlapping=50%）只有 `256/16000 = 16ms` 的时间来完成所有的计算。
 
 
 **13 Band Equalizer**
@@ -234,7 +235,7 @@ Keras的RNN需要把`stateful=True`打开，这样NNoM在每计算一个timestam
 20个 band的情况下，大部分数据也是可用的。
 
 
-模型编译log
+## 模型编译log
 
 ~~~
  \ | /
@@ -296,22 +297,4 @@ Total memory:6512
 Total Memory cost (Network and NNoM): 6512
 
 ~~~
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
