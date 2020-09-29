@@ -205,7 +205,7 @@ def noise_suppressed_example(plot=False):
     print("filtered signal is saved to:", "_filtered_sample.wav")
 
 
-def generate_data(path, vad_filter_size=21, vad_threshold=1e-1, random_volume=True, winlen=0.032, winstep=0.032/2,
+def generate_data(path, vad_active_delay=0.07, vad_threshold=1e-1, random_volume=True, winlen=0.032, winstep=0.032/2,
                   numcep=13, nfilt=26, nfft=512, lowfreq=20, highfreq=8000, winfunc=np.hanning, ceplifter=0,
                   preemph=0.97, appendEnergy=True):
     """
@@ -243,7 +243,9 @@ def generate_data(path, vad_filter_size=21, vad_threshold=1e-1, random_volume=Tr
 
         # voice active detections, only valid with clean speech. Detected by total energy vs threshold.
         v = (total_eng > vad_threshold).astype(int)
-        v = np.convolve(v, np.ones(vad_filter_size), mode='same')
+        vad_delay = int(vad_active_delay*(rate*winstep))
+        conv_win = np.concatenate([np.zeros(vad_delay), np.ones(vad_delay)]) # delay the VAD for a vad_active_delay second
+        v = np.convolve(v, conv_win, mode='same')
         v = (v > 0).astype(int)
 
         total_energy.append(total_eng)
