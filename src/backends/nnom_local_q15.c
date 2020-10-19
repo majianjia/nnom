@@ -11,16 +11,14 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2019-02-05     Jianjia Ma   The first version
- * 2019-03-19     Jianjia Ma   Local C implementation partly from CMSIS-NN
- * 2019-06-19     Jianjia Ma   Implement CHW functions 
+ * 2020-10-05     Jianjia Ma   The first version
  */
 
 #include "nnom.h"
 #include "nnom_local.h"
 
 // modified from CMSIS-NN test_ref
-void local_avepool_q7_HWC(const q7_t *Im_in,           // input image
+void local_avepool_q15_HWC(const q15_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
 	const uint16_t dim_im_in_y,  // input image dimension y or H
 	const uint16_t ch_im_in,     // number of input image channels
@@ -34,7 +32,7 @@ void local_avepool_q7_HWC(const q7_t *Im_in,           // input image
 	const uint16_t dim_im_out_y, // output image dimension y or H
 	const uint16_t output_shift, // output right shift
 	q7_t *bufferA,               // a buffer for local storage, NULL by now
-	q7_t *Im_out)
+	q15_t *Im_out)
 {
     int16_t i_ch_in, i_x, i_y;
     int16_t k_x, k_y;
@@ -64,7 +62,7 @@ void local_avepool_q7_HWC(const q7_t *Im_in,           // input image
     }
 }
 
-void local_avepool_q7_CHW(const q7_t *Im_in,           // input image
+void local_avepool_q15_CHW(const q15_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
 	const uint16_t dim_im_in_y,  // input image dimension y or H
 	const uint16_t ch_im_in,     // number of input image channels
@@ -78,7 +76,7 @@ void local_avepool_q7_CHW(const q7_t *Im_in,           // input image
 	const uint16_t dim_im_out_y, // output image dimension y or H
 	const uint16_t output_shift, // output right shift
 	q7_t *bufferA,               // a buffer for local storage, NULL by now
-	q7_t *Im_out)
+	q15_t *Im_out)
 {
     int16_t i_ch_in, i_x, i_y;
     int16_t k_x, k_y;
@@ -111,7 +109,7 @@ void local_avepool_q7_CHW(const q7_t *Im_in,           // input image
 }
 
 // modified from CMSIS-NN test_ref
-void local_maxpool_q7_HWC(const q7_t *Im_in,           // input image
+void local_maxpool_q15_HWC(const q7_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
 	const uint16_t dim_im_in_y,  // input image dimension y or H
 	const uint16_t ch_im_in,     // number of input image channels
@@ -124,7 +122,7 @@ void local_maxpool_q7_HWC(const q7_t *Im_in,           // input image
 	const uint16_t dim_im_out_x, // output image dimension x or W
 	const uint16_t dim_im_out_y, // output image dimension y or H
 	q7_t *bufferA,               // a buffer for local storage, NULL by now
-	q7_t *Im_out)
+	q15_t *Im_out)
 {
     int16_t i_ch_in, i_x, i_y;
     int16_t k_x, k_y;
@@ -135,7 +133,7 @@ void local_maxpool_q7_HWC(const q7_t *Im_in,           // input image
         {
             for (i_x = 0; i_x < dim_im_out_x; i_x++)
             {
-                int max = -129;
+                int max = -32768;
                 for (k_y = i_y * stride_y - padding_y; k_y < i_y * stride_y - padding_y + dim_kernel_y; k_y++)
                 {
                     for (k_x = i_x * stride_x - padding_x; k_x < i_x * stride_x - padding_x + dim_kernel_x; k_x++)
@@ -155,7 +153,7 @@ void local_maxpool_q7_HWC(const q7_t *Im_in,           // input image
     }
 }
 
-void local_maxpool_q7_CHW(const q7_t *Im_in,           // input image
+void local_maxpool_q15_CHW(const q15_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
 	const uint16_t dim_im_in_y,  // input image dimension y or H
 	const uint16_t ch_im_in,     // number of input image channels
@@ -168,7 +166,7 @@ void local_maxpool_q7_CHW(const q7_t *Im_in,           // input image
 	const uint16_t dim_im_out_x, // output image dimension x or W
 	const uint16_t dim_im_out_y, // output image dimension y or H
 	q7_t *bufferA,               // a buffer for local storage, NULL by now
-	q7_t *Im_out)
+	q15_t *Im_out)
 {
     int16_t i_ch_in, i_x, i_y;
     int16_t k_x, k_y;
@@ -181,7 +179,7 @@ void local_maxpool_q7_CHW(const q7_t *Im_in,           // input image
         {
             for (i_x = 0; i_x < dim_im_out_x; i_x++)
             {
-                int max = -129;
+                int max = -32768;
                 for (k_y = i_y * stride_y - padding_y; k_y < i_y * stride_y - padding_y + dim_kernel_y; k_y++)
                 {
                     for (k_x = i_x * stride_x - padding_x; k_x < i_x * stride_x - padding_x + dim_kernel_x; k_x++)
@@ -201,9 +199,8 @@ void local_maxpool_q7_CHW(const q7_t *Im_in,           // input image
     }
 }
 
-// temporary for the thesis
 // shift according to the maximum
-int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
+void local_sumpool_q15_HWC(const q15_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
 	const uint16_t dim_im_in_y,  // input image dimension y or H
 	const uint16_t ch_im_in,     // number of input image channels
@@ -215,16 +212,17 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
 	const uint16_t stride_y,     // stride
 	const uint16_t dim_im_out_x, // output image dimension x or W
 	const uint16_t dim_im_out_y, // output image dimension y or H
+    const uint16_t output_shift, // output right shift
 	q7_t *bufferA,               // a buffer for local storage, size = 4*output_size
-	q7_t *Im_out)
+	q15_t *Im_out)
 {
     int16_t i_ch_in, i_x, i_y;
     int16_t k_x, k_y;
     int32_t *buf = (int32_t *)bufferA;
 	// stage2
-    int32_t max_abs = 0;
-    int32_t output_shift;
-    size_t output_size = dim_im_out_x * dim_im_out_x * ch_im_in;
+    // int32_t max_abs = 0;
+    // int32_t output_shift;
+    // size_t output_size = dim_im_out_x * dim_im_out_x * ch_im_in;
 
     // save in 32bit
     for (i_ch_in = 0; i_ch_in < ch_im_in; i_ch_in++)
@@ -245,38 +243,38 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
                     }
                 }
                 // 32bit
-                buf[i_ch_in + ch_im_in * (i_x + i_y * dim_im_out_x)] = sum;
+                buf[i_ch_in + ch_im_in * (i_x + i_y * dim_im_out_x)] = (q15_t)__NNOM_SSAT((sum >> output_shift), 16);
             }
         }
     }
 
-    // find max amount results
-    for (int i = 0; i < output_size; i++)
-    {
-        int32_t val = buf[i];
-        if (val < 0)
-            val = -val;
-        if (val > max_abs)
-            max_abs = val;
-    }
-    // find best shift to cover the max
-    for (output_shift = 0;; output_shift++)
-    {
-        if (127 * (1 + output_shift) >= max_abs)
-            break;
-    }
+    // // find max amount results
+    // for (int i = 0; i < output_size; i++)
+    // {
+    //     int32_t val = buf[i];
+    //     if (val < 0)
+    //         val = -val;
+    //     if (val > max_abs)
+    //         max_abs = val;
+    // }
+    // // find best shift to cover the max
+    // for (output_shift = 0;; output_shift++)
+    // {
+    //     if (127 * (1 + output_shift) >= max_abs)
+    //         break;
+    // }
 
-    // shift the results
-    for (int i = 0; i < output_size; i++)
-    {
-        Im_out[i] = buf[i] >> output_shift;
-    }
-    return output_shift;
+    // // shift the results
+    // for (int i = 0; i < output_size; i++)
+    // {
+    //     Im_out[i] = buf[i] >> output_shift;
+    // }
+    //return output_shift;
 }
 
 // temporary for the thesis
 // shift according to the maximum
-int32_t local_sumpool_q7_CHW(const q7_t *Im_in,           // input image
+void local_sumpool_q15_CHW(const q7_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
 	const uint16_t dim_im_in_y,  // input image dimension y or H
 	const uint16_t ch_im_in,     // number of input image channels
@@ -288,6 +286,7 @@ int32_t local_sumpool_q7_CHW(const q7_t *Im_in,           // input image
 	const uint16_t stride_y,     // stride
 	const uint16_t dim_im_out_x, // output image dimension x or W
 	const uint16_t dim_im_out_y, // output image dimension y or H
+	const uint16_t output_shift, // output right shift
 	q7_t *bufferA,               // a buffer for local storage, size = 4*output_size
 	q7_t *Im_out)
 {
@@ -295,10 +294,10 @@ int32_t local_sumpool_q7_CHW(const q7_t *Im_in,           // input image
     int16_t k_x, k_y;
     int32_t *buf = (int32_t *)bufferA;
 	int32_t i_ch_offset, o_ch_offset;
-	// stage2
-    int32_t max_abs = 0;
-    int32_t output_shift;
-    size_t output_size = dim_im_out_x * dim_im_out_x * ch_im_in;
+	// // stage2
+    // int32_t max_abs = 0;
+    // int32_t output_shift;
+    // size_t output_size = dim_im_out_x * dim_im_out_x * ch_im_in;
 
     // save in 32bit
     for (i_ch_in = 0; i_ch_in < ch_im_in; i_ch_in++)
@@ -322,37 +321,37 @@ int32_t local_sumpool_q7_CHW(const q7_t *Im_in,           // input image
                     }
                 }
                 // 32bit
-                buf[o_ch_offset + (i_x + i_y * dim_im_out_x)] = sum;
+                buf[o_ch_offset + (i_x + i_y * dim_im_out_x)] = (q15_t)__NNOM_SSAT((sum >> output_shift), 16);
             }
         }
     }
 
-    // find max amount results
-    for (int i = 0; i < output_size; i++)
-    {
-        int32_t val = buf[i];
-        if (val < 0)
-            val = -val;
-        if (val > max_abs)
-            max_abs = val;
-    }
-    // find best shift to cover the max
-    for (output_shift = 0;; output_shift++)
-    {
-        if (127 * (1 + output_shift) >= max_abs)
-            break;
-    }
+    // // find max amount results
+    // for (int i = 0; i < output_size; i++)
+    // {
+    //     int32_t val = buf[i];
+    //     if (val < 0)
+    //         val = -val;
+    //     if (val > max_abs)
+    //         max_abs = val;
+    // }
+    // // find best shift to cover the max
+    // for (output_shift = 0;; output_shift++)
+    // {
+    //     if (127 * (1 + output_shift) >= max_abs)
+    //         break;
+    // }
 
-    // shift the results
-    for (int i = 0; i < output_size; i++)
-    {
-        Im_out[i] = buf[i] >> output_shift;
-    }
-    return output_shift;
+    // // shift the results
+    // for (int i = 0; i < output_size; i++)
+    // {
+    //     Im_out[i] = buf[i] >> output_shift;
+    // }
+    //return output_shift;
 }
 
 // customised up sample pooling
-void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
+void local_up_sampling_q15_HWC(const q15_t *Im_in,       // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
 	const uint16_t dim_im_in_y,  // input image dimension y or H
 	const uint16_t ch_im_in,     // number of input image channels
@@ -361,7 +360,7 @@ void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
 	const uint16_t dim_im_out_x, // output image dimension x or W
 	const uint16_t dim_im_out_y, // output image dimension y or H
 	q7_t *bufferA,               // a buffer for local storage, NULL by now
-	q7_t *Im_out)
+	q15_t *Im_out)
 {
     int16_t i_x, i_y;
 	
@@ -371,20 +370,20 @@ void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
         for (i_x = 0; i_x < dim_im_in_x; i_x++)
         {
             // copy all the channels together. 
-            const q7_t *p_in = Im_in + (i_y * dim_im_in_x + i_x ) * ch_im_in;
-            q7_t *pout = Im_out + (i_y * dim_im_in_x * dim_kernel_x * dim_kernel_y + i_x * dim_kernel_y) * ch_im_in;
+            const q15_t *p_in = Im_in + (i_y * dim_im_in_x + i_x ) * ch_im_in;
+            q15_t *pout = Im_out + (i_y * dim_im_in_x * dim_kernel_x * dim_kernel_y + i_x * dim_kernel_y) * ch_im_in;
 
             // copy along x axis
             for(int i = 0; i<dim_kernel_x; i++)
-                memcpy(pout + i * ch_im_in, p_in, ch_im_in);
+                memcpy(pout + i * ch_im_in, p_in, ch_im_in * sizeof(q15_t));
             // duplicate the copied x data into y axis. 
             for(int i = 1; i<dim_kernel_y; i++)
-                memcpy(pout + i * ch_im_in * dim_im_in_x * dim_kernel_x, pout, ch_im_in * dim_kernel_x);
+                memcpy(pout + i * ch_im_in * dim_im_in_x * dim_kernel_x, pout, ch_im_in * dim_kernel_x * sizeof(q15_t));
         }
     }
 }
 
-void local_up_sampling_q7_CHW(const q7_t *Im_in,       // input image
+void local_up_sampling_q15_CHW(const q15_t *Im_in,       // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
 	const uint16_t dim_im_in_y,  // input image dimension y or H
 	const uint16_t ch_im_in,     // number of input image channels
@@ -393,7 +392,7 @@ void local_up_sampling_q7_CHW(const q7_t *Im_in,       // input image
 	const uint16_t dim_im_out_x, // output image dimension x or W
 	const uint16_t dim_im_out_y, // output image dimension y or H
 	q7_t *bufferA,               // a buffer for local storage, NULL by now
-	q7_t *Im_out)
+	q15_t *Im_out)
 {
     int16_t i_x, i_y, ch;
 	// for loop for channel
@@ -404,21 +403,21 @@ void local_up_sampling_q7_CHW(const q7_t *Im_in,       // input image
 		{
 			for (i_x = 0; i_x < dim_im_in_x; i_x++)
 			{
-				const q7_t *p_in = Im_in + ch * dim_im_in_x * dim_im_in_y + (i_y * dim_im_in_x + i_x);
-				q7_t *pout = Im_out + ch * dim_im_out_x * dim_im_out_y + (i_y * dim_im_in_x * dim_kernel_x * dim_kernel_y + i_x * dim_kernel_y);
+				const q15_t *p_in = Im_in + ch * dim_im_in_x * dim_im_in_y + (i_y * dim_im_in_x + i_x);
+				q15_t *pout = Im_out + ch * dim_im_out_x * dim_im_out_y + (i_y * dim_im_in_x * dim_kernel_x * dim_kernel_y + i_x * dim_kernel_y);
 
 				// cpy along x axis
 				for(int i = 0; i<dim_kernel_x; i++)
 					*(pout + i) =  *p_in;
 				// duplicate the copied x data into y axis. 
 				for(int i = 1; i<dim_kernel_y; i++)
-					memcpy(pout + i * dim_im_in_x * dim_kernel_x, pout, dim_kernel_x);
+					memcpy(pout + i * dim_im_in_x * dim_kernel_x, pout, dim_kernel_x * sizeof(q15_t));
 			}
 		}
 	}
 }
 
-void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input image
+void local_convolve_HWC_q15_nonsquare(const q15_t *Im_in,                // input image
 	const uint16_t dim_im_in_x,                                        // input image dimention x
 	const uint16_t dim_im_in_y,                                        // input image dimention y
 	const uint16_t ch_im_in,                                           // number of input image channels
@@ -436,7 +435,7 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
 	const nnom_qformat_param_t *bias_shift,                                        // bias shifts
     const nnom_qformat_param_t *out_shift,                                         // output shift
     const nnom_qtype_t q_type,                                         // per channel or per tensor
-    q7_t *Im_out,                                                      // output image
+    q15_t *Im_out,                                                      // output image
 	const uint16_t dim_im_out_x,                                       // output image dimension x
 	const uint16_t dim_im_out_y,                                       // output image dimension y
 	q15_t *bufferA,                                                    //buffer space for input
@@ -444,7 +443,7 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
 )
 {
     int i, j, k, l, m, n;
-    int conv_out;
+    int64_t conv_out;
     int in_row, in_col;
     int in_pix_loc, wt_loc;
     int shift_idx, shift_steps;
@@ -485,13 +484,13 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
                         } 
                     }
                 }
-                Im_out[i + (j * dim_im_out_x + k) * ch_im_out] = (q7_t)__NNOM_SSAT((conv_out >> out_shift[shift_idx]), 8);
+                Im_out[i + (j * dim_im_out_x + k) * ch_im_out] = (q15_t)__NNOM_SSAT((conv_out >> out_shift[shift_idx]), 16);
             }
         }
     }
 }
 
-void local_convolve_CHW_q7_nonsquare(const q7_t *Im_in,                // input image
+void local_convolve_CHW_q15_nonsquare(const q15_t *Im_in,                // input image
 	const uint16_t dim_im_in_x,                                        // input image dimention x
 	const uint16_t dim_im_in_y,                                        // input image dimention y
 	const uint16_t ch_im_in,                                           // number of input image channels
@@ -509,7 +508,7 @@ void local_convolve_CHW_q7_nonsquare(const q7_t *Im_in,                // input 
 	const nnom_qformat_param_t *bias_shift,                                        // bias shifts
     const nnom_qformat_param_t *out_shift,                                         // output shift
     const nnom_qtype_t q_type,                                         // per channel or per tensor
-    q7_t *Im_out,                                                      // output image
+    q15_t *Im_out,                                                      // output image
 	const uint16_t dim_im_out_x,                                       // output image dimension x
 	const uint16_t dim_im_out_y,                                       // output image dimension y
 	q15_t *bufferA,                                                    //buffer space for input
@@ -517,7 +516,7 @@ void local_convolve_CHW_q7_nonsquare(const q7_t *Im_in,                // input 
 )
 {
     int i, j, k, l, m, n;
-    long conv_out;
+    int64_t conv_out;
     int in_row, in_col;
     int shift_idx, shift_steps;
     if(q_type == NNOM_QTYPE_PER_AXIS)
@@ -549,7 +548,7 @@ void local_convolve_CHW_q7_nonsquare(const q7_t *Im_in,                // input 
 						}
 					}
 				}
-                Im_out[i * dim_im_out_x * dim_im_out_y + (j * dim_im_out_x + k)] = (q7_t)__NNOM_SSAT((conv_out >> out_shift[shift_idx]), 8);
+                Im_out[i * dim_im_out_x * dim_im_out_y + (j * dim_im_out_x + k)] = (q15_t)__NNOM_SSAT((conv_out >> out_shift[shift_idx]), 16);
             }
         }
     }
@@ -595,7 +594,7 @@ static int alg_deconv2d_calculate_position(
 	return is_zero;
 }
 
-void local_conv_trans_HWC_q7_nonsquare(const int8_t * Im_in,
+void local_conv_trans_HWC_q15_nonsquare(const int8_t * Im_in,
 	const uint16_t dim_im_in_x,                                        // input image dimention x
 	const uint16_t dim_im_in_y,                                        // input image dimention y
 	const uint16_t ch_im_in,                                           // number of input image channels
@@ -609,7 +608,7 @@ void local_conv_trans_HWC_q7_nonsquare(const int8_t * Im_in,
 	const uint16_t stride_y,                                           // stride y
     const uint16_t dilation_x,                                         // dilation x
 	const uint16_t dilation_y,                                         // dilation y
-	const q7_t *bias,                                                  // bias
+	const q15_t *bias,                                                  // bias
 	const uint16_t bias_shift, const uint16_t out_shift, q7_t *Im_out, // output image
 	const uint16_t dim_im_out_x,                                       // output image dimension x
 	const uint16_t dim_im_out_y,                                       // output image dimension y
@@ -662,7 +661,7 @@ void local_conv_trans_HWC_q7_nonsquare(const int8_t * Im_in,
 
 {
 	int i, j, k, l, m, n;
-	int conv_out;
+	int64_t conv_out;
 	int in_row, in_col;
 	int kernel_start_x,kernel_end_x;
 	int kernel_start_y,kernel_end_y;
@@ -676,9 +675,9 @@ void local_conv_trans_HWC_q7_nonsquare(const int8_t * Im_in,
 
 			if(is_zero) {
 				conv_out = ((q31_t)(bias[i]) << bias_shift) + NNOM_ROUND(out_shift);
-				conv_out = (q7_t) __NNOM_SSAT((conv_out >> out_shift), 8);
+				conv_out = (q15_t) __NNOM_SSAT((conv_out >> out_shift), 16);
 				for (k = 0; k < dim_im_out_x; k++) {
-					Im_out[i + (j * dim_im_out_x + k) * ch_im_out] = (q7_t) conv_out;
+					Im_out[i + (j * dim_im_out_x + k) * ch_im_out] = (q15_t) conv_out;
 				}
 				continue;
 			}
@@ -706,13 +705,13 @@ void local_conv_trans_HWC_q7_nonsquare(const int8_t * Im_in,
 					}
 				}
 
-				Im_out[i + (j * dim_im_out_x + k) * ch_im_out] = (q7_t) __NNOM_SSAT((conv_out >> out_shift), 8);
+				Im_out[i + (j * dim_im_out_x + k) * ch_im_out] = (q15_t) __NNOM_SSAT((conv_out >> out_shift), 16);
 			}
 		}
 	}
 }
 
-void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,// input image
+void local_depthwise_separable_conv_HWC_q15_nonsquare(const q15_t *Im_in,// input image
 	const uint16_t dim_im_in_x,                                        // input image dimention x
 	const uint16_t dim_im_in_y,                                        // input image dimention y
 	const uint16_t ch_im_in,                                           // number of input image channels
@@ -730,7 +729,7 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,// input 
 	const nnom_qformat_param_t *bias_shift,                            // bias shifts
     const nnom_qformat_param_t *out_shift,                             // output shift
     const nnom_qtype_t q_type,                                         // per channel or per tensor
-    q7_t *Im_out,                                                      // output image
+    q15_t *Im_out,                                                      // output image
 	const uint16_t dim_im_out_x,                                       // output image dimension x
 	const uint16_t dim_im_out_y,                                       // output image dimension y
 	q15_t *bufferA,                                                    //buffer space for input
@@ -751,7 +750,7 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,// input 
         {
             for (i_ch_out = 0, shift_idx=0; i_ch_out < ch_im_out; i_ch_out++, shift_idx+=shift_steps)
             {
-                q31_t conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                int64_t conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
                 for (i_ker_y = 0; i_ker_y < dim_kernel_y; i_ker_y++)
                 {
                     for (i_ker_x = 0; i_ker_x < dim_kernel_x; i_ker_x++)
@@ -766,13 +765,13 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,// input 
                     }
                 }
                 Im_out[(i_out_y * dim_im_out_x + i_out_x) * ch_im_out + i_ch_out] =
-                    (q7_t)__NNOM_SSAT((conv_out >> out_shift[shift_idx]), 8);
+                    (q15_t)__NNOM_SSAT((conv_out >> out_shift[shift_idx]), 16);
             }
         }
     }
 }
 
-void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,// input image
+void local_depthwise_separable_conv_CHW_q15_nonsquare(const q15_t *Im_in,// input image
 	const uint16_t dim_im_in_x,                                        // input image dimention x
 	const uint16_t dim_im_in_y,                                        // input image dimention y
 	const uint16_t ch_im_in,                                           // number of input image channels
@@ -790,7 +789,7 @@ void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,// input 
 	const nnom_qformat_param_t *bias_shift,                            // bias shifts
     const nnom_qformat_param_t *out_shift,                             // output shift
     const nnom_qtype_t q_type,                                         // per channel or per tensor
-    q7_t *Im_out,                                                      // output image
+    q15_t *Im_out,                                                      // output image
 	const uint16_t dim_im_out_x,                                       // output image dimension x
 	const uint16_t dim_im_out_y,                                       // output image dimension y
 	q15_t *bufferA,                                                    //buffer space for input
@@ -799,7 +798,7 @@ void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,// input 
 {
     int i_out_y, i_out_x, i_ch_out;
     int i_ker_y, i_ker_x;
-	long conv_out;
+	int64_t conv_out;
         int shift_idx, shift_steps;
     if(q_type == NNOM_QTYPE_PER_AXIS)
         shift_steps = 1;
@@ -827,14 +826,14 @@ void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,// input 
 						}
 					}
 				}
-                Im_out[i_ch_out * dim_im_out_x * dim_im_out_y + (i_out_y * dim_im_out_x + i_out_x)] = (q7_t)__NNOM_SSAT((conv_out >> out_shift[shift_idx]), 8);
+                Im_out[i_ch_out * dim_im_out_x * dim_im_out_y + (i_out_y * dim_im_out_x + i_out_x)] = (q15_t)__NNOM_SSAT((conv_out >> out_shift[shift_idx]), 16);
             }
         }
     }
 }
 
 
-void local_zero_padding_HWC_q7(const q7_t *Im_in,           // input image
+void local_zero_padding_HWC_q15(const q15_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,    // input image dimention x
 	const uint16_t dim_im_in_y,    // input image dimention y
 	const uint16_t ch_im_in,       // number of input image channels
@@ -842,16 +841,16 @@ void local_zero_padding_HWC_q7(const q7_t *Im_in,           // input image
 	const uint16_t padding_bottom, // padding sizes y
 	const uint16_t padding_left,   // padding sizes x
 	const uint16_t padding_right,  // padding sizes x
-	q7_t *Im_out,                  // output image
+	q15_t *Im_out,                  // output image
 	const uint16_t dim_im_out_x,   // output image dimension x
 	const uint16_t dim_im_out_y)   // output image dimension y 
 {
 	int i, size;
-	q7_t * p_out = Im_out; 
+	q15_t * p_out = Im_out; 
 	
 	// top rows
 	size = dim_im_out_x*ch_im_in*padding_top;
-	memset(p_out, 0, size); 
+	memset(p_out, 0, size*sizeof(q15_t)); 
 	p_out += size;
 	
 	// middle
@@ -859,22 +858,22 @@ void local_zero_padding_HWC_q7(const q7_t *Im_in,           // input image
 	{
 		// left - set to 0
 		size = ch_im_in * padding_left;
-		memset(p_out, 0, size); 
+		memset(p_out, 0, size*sizeof(q15_t)); 
 		p_out += size;
 		// data - copy a row
 		size = dim_im_in_x * ch_im_in;
-		memcpy(p_out, Im_in + i*size, size);
+		memcpy(p_out, Im_in + i*size, size*sizeof(q15_t));
 		p_out += size;
 		// right - set to 0
 		size = ch_im_in * padding_right;
-		memset(p_out, 0, size); 
+		memset(p_out, 0, size*sizeof(q15_t)); 
 		p_out += size;
 	}
 	// bottom rows
-	memset(p_out, 0, dim_im_out_x*ch_im_in*padding_bottom); 
+	memset(p_out, 0, dim_im_out_x*ch_im_in*padding_bottom*sizeof(q15_t)); 
 }
 
-void local_zero_padding_CHW_q7(const q7_t *Im_in,           // input image
+void local_zero_padding_CHW_q15(const q15_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,    // input image dimention x
 	const uint16_t dim_im_in_y,    // input image dimention y
 	const uint16_t ch_im_in,       // number of input image channels
@@ -882,19 +881,19 @@ void local_zero_padding_CHW_q7(const q7_t *Im_in,           // input image
 	const uint16_t padding_bottom, // padding sizes y
 	const uint16_t padding_left,   // padding sizes x
 	const uint16_t padding_right,  // padding sizes x
-	q7_t *Im_out,                  // output image
+	q15_t *Im_out,                  // output image
 	const uint16_t dim_im_out_x,   // output image dimension x
 	const uint16_t dim_im_out_y)   // output image dimension y 
 {
 	int i, size, ch_offset;
-	q7_t * p_out = Im_out; 
+	q15_t * p_out = Im_out; 
 	
 	for(int ch=0; ch < ch_im_in; ch++)
 	{
 		p_out = Im_out + ch * dim_im_out_x * dim_im_out_y;
 		// top rows
 		size = dim_im_out_x*padding_top;
-		memset(p_out, 0, size);
+		memset(p_out, 0, size*sizeof(q15_t));
 		p_out += size;
 		
 		// middle
@@ -902,23 +901,23 @@ void local_zero_padding_CHW_q7(const q7_t *Im_in,           // input image
 		for(i=0; i<dim_im_in_y; i++)
 		{
 			// left - set to 0
-			memset(p_out, 0, padding_left); 
+			memset(p_out, 0, padding_left*sizeof(q15_t)); 
 			p_out += padding_left;
 			// data - copy a row
-			memcpy(p_out, Im_in + i*dim_im_in_x + ch_offset, dim_im_in_x);
+			memcpy(p_out, Im_in + i*dim_im_in_x + ch_offset, dim_im_in_x*sizeof(q15_t));
 			p_out += dim_im_in_x;
 			// right - set to 0
-			memset(p_out, 0, size); 
+			memset(p_out, 0, size*sizeof(q15_t)); 
 			p_out += padding_right;
 		}
 		// bottom
-		memset(p_out, 0, dim_im_out_x*padding_bottom); 
+		memset(p_out, 0, dim_im_out_x*padding_bottom*sizeof(q15_t)); 
 	}
 
 }
 
 
-void local_cropping_HWC_q7(const q7_t *Im_in,           // input image
+void local_cropping_HWC_q15(const q15_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,    // input image dimention x
 	const uint16_t dim_im_in_y,    // input image dimention y
 	const uint16_t ch_im_in,       // number of input image channels
@@ -926,12 +925,12 @@ void local_cropping_HWC_q7(const q7_t *Im_in,           // input image
 	const uint16_t padding_bottom, // padding sizes y
 	const uint16_t padding_left,   // padding sizes x
 	const uint16_t padding_right,  // padding sizes x
-	q7_t *Im_out,                  // output image
+	q15_t *Im_out,                  // output image
 	const uint16_t dim_im_out_x,   // output image dimension x
 	const uint16_t dim_im_out_y)   // output image dimension y 
 {
 	int i, row_size;
-	const q7_t * p_in = Im_in; 
+	const q15_t * p_in = Im_in; 
 	
 	// top rows to ignore
 	p_in += dim_im_in_x*ch_im_in*padding_top;
@@ -943,7 +942,7 @@ void local_cropping_HWC_q7(const q7_t *Im_in,           // input image
 		// left to ignore          
 		p_in += ch_im_in * padding_left;
 		// data - copy a row
-		memcpy(Im_out + i*row_size, p_in, row_size);
+		memcpy(Im_out + i*row_size, p_in, row_size*sizeof(q15_t));
 		p_in += row_size;
 		// right to ingore
 		p_in += ch_im_in * padding_right;
@@ -951,7 +950,7 @@ void local_cropping_HWC_q7(const q7_t *Im_in,           // input image
 
 }
 
-void local_cropping_CHW_q7(const q7_t *Im_in,           // input image
+void local_cropping_CHW_q15(const q15_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,    // input image dimention x
 	const uint16_t dim_im_in_y,    // input image dimention y
 	const uint16_t ch_im_in,       // number of input image channels
@@ -959,12 +958,12 @@ void local_cropping_CHW_q7(const q7_t *Im_in,           // input image
 	const uint16_t padding_bottom, // padding sizes y
 	const uint16_t padding_left,   // padding sizes x
 	const uint16_t padding_right,  // padding sizes x
-	q7_t *Im_out,                  // output image
+	q15_t *Im_out,                  // output image
 	const uint16_t dim_im_out_x,   // output image dimension x
 	const uint16_t dim_im_out_y)   // output image dimension y 
 {
 	int i, ch, ch_offset;
-	const q7_t * p_in; 
+	const q15_t * p_in; 
 	
 	for(ch=0; ch < ch_im_in; ch++)
 	{
@@ -975,123 +974,19 @@ void local_cropping_CHW_q7(const q7_t *Im_in,           // input image
 		for(i=0; i<dim_im_out_y; i++)
 		{	
 			// data - middle of a row
-			memcpy(Im_out + i*dim_im_out_x + ch_offset, p_in+padding_left, dim_im_out_x); 
+			memcpy(Im_out + i*dim_im_out_x + ch_offset, p_in+padding_left, dim_im_out_x*sizeof(q15_t)); 
 			p_in += dim_im_in_x; // middle and right padding	
 		}
 	}	
 }
 
 
-void local_dot_q7_opt(const q7_t *pV, // pointer to vector
-	const q7_t *pM,               // pointer to matrix
+void local_dot_q15(const q15_t *pV, // pointer to vector
+	const q15_t *pM,               // pointer to matrix
 	const uint16_t dim_vec,       // length of the vector
 	const uint16_t num_of_rows,   // numCol of A
 	const uint16_t out_shift,     // amount of right-shift for output
-	 q7_t *pOut)                   // output operand)
-{
-    uint16_t rowCnt = num_of_rows >> 2;
-    const q7_t *pB = pM;
-    const q7_t *pA;
-    q7_t *pO = pOut;
-
-    while (rowCnt)
-    {
-        pA = pV;
-        q31_t     sum =  (q31_t) NNOM_ROUND(out_shift);
-        q31_t     sum2 = (q31_t) NNOM_ROUND(out_shift);
-        q31_t     sum3 = (q31_t) NNOM_ROUND(out_shift);
-        q31_t     sum4 = (q31_t) NNOM_ROUND(out_shift);
-
-        uint16_t colCnt = dim_vec >> 2;
-
-        while (colCnt)
-        {
-            q7_t inA1 = *pA++;
-            q7_t inA3 = *pA++;
-            q7_t inA2 = *pA++;
-            q7_t inA4 = *pA++;
-
-            q7_t inB1 = *pB++;
-            q7_t inB3 = *pB++;
-            q7_t inB2 = *pB++;
-            q7_t inB4 = *pB++;
-
-            sum += inA1 * inB1 + inA2 * inB2;
-            sum2 += inA1 * inB3 + inA2 * inB4;
-
-            inB1 = *pB++;
-            inB3 = *pB++;
-            inB2 = *pB++;
-            inB4 = *pB++;
-
-            sum3 += inA1 * inB1 + inA2 * inB2;
-            sum4 += inA1 * inB3 + inA2 * inB4;
-
-            inB1 = *pB++;
-            inB3 = *pB++;
-            inB2 = *pB++;
-            inB4 = *pB++;
-
-            sum += inA3 * inB1 + inA4 * inB2;
-            sum2 += inA3 * inB3 + inA4 * inB4;
-
-            inB1 = *pB++;
-            inB3 = *pB++;
-            inB2 = *pB++;
-            inB4 = *pB++;
-
-            sum3 += inA3 * inB1 + inA4 * inB2;
-            sum4 += inA3 * inB3 + inA4 * inB4;
-
-            colCnt--;
-        }
-        colCnt = dim_vec & 0x3;
-        while (colCnt)
-        {
-            q7_t inA = *pA++;
-            q7_t inB = *pB++;
-            sum += inA * inB;
-            inB = *pB++;
-            sum2 += inA * inB;
-            inB = *pB++;
-            sum3 += inA * inB;
-            inB = *pB++;
-            sum4 += inA * inB;
-
-            colCnt--;
-        }
-        *pO++ = (q7_t)__NNOM_SSAT((sum >> out_shift), 8);
-        *pO++ = (q7_t)__NNOM_SSAT((sum2 >> out_shift), 8);
-        *pO++ = (q7_t)__NNOM_SSAT((sum3 >> out_shift), 8);
-        *pO++ = (q7_t)__NNOM_SSAT((sum4 >> out_shift), 8);
-
-        rowCnt--;
-    }
-
-    rowCnt = num_of_rows & 0x3;
-
-    while (rowCnt)
-    {
-		int ip_out = (q31_t) NNOM_ROUND (out_shift);
-        pA = pV;
-        for (int j = 0; j < dim_vec; j++)
-        {
-            q7_t inA = *pA++;
-            q7_t inB = *pB++;
-            ip_out += inA * inB;
-        }
-        *pO++ = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
-
-        rowCnt--;
-    }
-}
-
-void local_dot_q7(const q7_t *pV, // pointer to vector
-	const q7_t *pM,               // pointer to matrix
-	const uint16_t dim_vec,       // length of the vector
-	const uint16_t num_of_rows,   // numCol of A
-	const uint16_t out_shift,     // amount of right-shift for output
-	 q7_t *pOut)                   // output operand)
+	 q15_t *pOut)                   // output operand)
 {
     for (int i = 0; i < num_of_rows; i++)
     {
@@ -1100,46 +995,148 @@ void local_dot_q7(const q7_t *pV, // pointer to vector
         {
             ip_out += pV[j] * pM[i * dim_vec + j];
         }
-        pOut[i] = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
+        pOut[i] = (q15_t)__NNOM_SSAT((ip_out >> out_shift), 16);
     }
 }
 
-void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to vector
-	const q7_t *pM,               // pointer to matrix
-	const uint16_t dim_vec,       // length of the vector
-	const uint16_t num_of_rows,   // numCol of A
-	const uint16_t bias_shift,    // amount of left-shift for bias
-	const uint16_t out_shift,     // amount of right-shift for output
-	const q7_t *bias, q7_t *pOut, // output operand
-	q15_t *vec_buffer)
+void local_dot_q15_opt(const q15_t * pV,
+	const q15_t * pM,
+	const uint16_t dim_vec,
+	const uint16_t num_of_rows,
+	const uint16_t out_shift, 
+	q15_t * pOut)
 {
-    uint16_t rowCnt = num_of_rows >> 2;
+    /* Run the following code as reference implementation for Cortex-M0 and Cortex-M3 */
+    uint16_t  rowCnt = num_of_rows >> 2;
+    const q15_t *pB = pM;
+    const q15_t *pA;
+    q15_t    *pO = pOut;
+
+    while (rowCnt)
+    {
+        q31_t     sum =  (q31_t) NNOM_ROUND(out_shift);
+        q31_t     sum2 = (q31_t) NNOM_ROUND(out_shift);
+        q31_t     sum3 = (q31_t) NNOM_ROUND(out_shift);
+        q31_t     sum4 = (q31_t) NNOM_ROUND(out_shift);
+        uint16_t  colCnt = dim_vec >> 1;
+        pA = pV;
+        while (colCnt)
+        {
+            q15_t     inA1 = *pA++;
+            q15_t     inA2 = *pA++;
+            q15_t     inB1 = *pB++;
+            q15_t     inB2 = *pB++;
+            sum += inA1 * inB1 + inA2 * inB2;
+
+            inB1 = *pB++;
+            inB2 = *pB++;
+            sum2 += inA1 * inB1 + inA2 * inB2;
+
+            inB1 = *pB++;
+            inB2 = *pB++;
+            sum3 += inA1 * inB1 + inA2 * inB2;
+
+            inB1 = *pB++;
+            inB2 = *pB++;
+            sum4 += inA1 * inB1 + inA2 * inB2;
+
+            colCnt--;
+        }
+        colCnt = dim_vec & 0x1;
+        while (colCnt)
+        {
+            q15_t     inA = *pA++;
+            q15_t     inB = *pB++;
+            sum += inA * inB;
+            inB = *pB++;
+            sum2 += inA * inB;
+            inB = *pB++;
+            sum3 += inA * inB;
+            inB = *pB++;
+            sum4 += inA * inB;
+            colCnt--;
+        }
+        *pO++ = (q15_t) __NNOM_SSAT((sum >> out_shift), 16);
+        *pO++ = (q15_t) __NNOM_SSAT((sum2 >> out_shift), 16);
+        *pO++ = (q15_t) __NNOM_SSAT((sum3 >> out_shift), 16);
+        *pO++ = (q15_t) __NNOM_SSAT((sum4 >> out_shift), 16);
+
+        rowCnt--;
+    }
+    rowCnt = num_of_rows & 0x3;
+
+    while (rowCnt)
+    {
+        int       ip_out = (q31_t) + NNOM_ROUND(out_shift);
+        int       j;
+
+        pA = pV;
+        for (j = 0; j < dim_vec; j++)
+        {
+            q15_t     inA = *pA++;
+            q15_t     inB = *pB++;
+            ip_out += inA * inB;
+        }
+        *pO++ = (q15_t) __NNOM_SSAT((ip_out >> out_shift), 16);
+
+        rowCnt--;
+    }
+}
+
+void local_fully_connected_mat_q7_vec_q15_opt(const q15_t * pV,
+                                       const q7_t * pM,
+                                       const uint16_t dim_vec,
+                                       const uint16_t num_of_rows,
+                                       const uint16_t bias_shift,
+                                       const uint16_t out_shift, 
+                                       const q7_t * bias, 
+                                       q15_t * pOut, 
+                                       q15_t * vec_buffer)
+{
+
+    (void)vec_buffer;
+
+    /* Run the following code as reference implementation for Cortex-M0 and Cortex-M3 */
+    uint16_t  rowCnt = num_of_rows >> 2;
     const q7_t *pB = pM;
-    const q7_t *pA;
-    q7_t *pO = pOut;
+    const q15_t *pA;
+    q15_t    *pO = pOut;
     const q7_t *pBias = bias;
 
     while (rowCnt)
     {
+        q31_t     sum;
+        q31_t     sum2;
+        q31_t     sum3;
+        q31_t     sum4;
+        uint16_t  colCnt = dim_vec >> 1;
+
+        // quick and dirty to support none bias fully connected
+        if(bias)
+        {
+            sum =  ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+            sum2 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+            sum3 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+            sum4 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+        }
+        else
+        {
+            sum =  (q31_t) NNOM_ROUND(out_shift);
+            sum2 = (q31_t) NNOM_ROUND(out_shift);
+            sum3 = (q31_t) NNOM_ROUND(out_shift);
+            sum4 = (q31_t) NNOM_ROUND(out_shift);
+        }
+        
         pA = pV;
-        q31_t     sum =  ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
-        q31_t     sum2 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
-        q31_t     sum3 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
-        q31_t     sum4 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
-
-        uint16_t colCnt = dim_vec >> 2;
-
         while (colCnt)
         {
-            q7_t inA1 = *pA++;
-            q7_t inA3 = *pA++;
-            q7_t inA2 = *pA++;
-            q7_t inA4 = *pA++;
+            q15_t     inA1 = *pA++;
+            q15_t     inA2 = *pA++;
 
-            q7_t inB1 = *pB++;
-            q7_t inB3 = *pB++;
-            q7_t inB2 = *pB++;
-            q7_t inB4 = *pB++;
+            q7_t      inB1 = *pB++;
+            q7_t      inB3 = *pB++;
+            q7_t      inB2 = *pB++;
+            q7_t      inB4 = *pB++;
 
             sum += inA1 * inB1 + inA2 * inB2;
             sum2 += inA1 * inB3 + inA2 * inB4;
@@ -1152,29 +1149,14 @@ void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to ve
             sum3 += inA1 * inB1 + inA2 * inB2;
             sum4 += inA1 * inB3 + inA2 * inB4;
 
-            inB1 = *pB++;
-            inB3 = *pB++;
-            inB2 = *pB++;
-            inB4 = *pB++;
-
-            sum += inA3 * inB1 + inA4 * inB2;
-            sum2 += inA3 * inB3 + inA4 * inB4;
-
-            inB1 = *pB++;
-            inB3 = *pB++;
-            inB2 = *pB++;
-            inB4 = *pB++;
-
-            sum3 += inA3 * inB1 + inA4 * inB2;
-            sum4 += inA3 * inB3 + inA4 * inB4;
-
             colCnt--;
         }
-        colCnt = dim_vec & 0x3;
+
+        colCnt = dim_vec & 0x1;
         while (colCnt)
         {
-            q7_t inA = *pA++;
-            q7_t inB = *pB++;
+            q15_t     inA = *pA++;
+            q7_t      inB = *pB++;
             sum += inA * inB;
             inB = *pB++;
             sum2 += inA * inB;
@@ -1185,10 +1167,10 @@ void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to ve
 
             colCnt--;
         }
-        *pO++ = (q7_t)__NNOM_SSAT((sum >> out_shift), 8);
-        *pO++ = (q7_t)__NNOM_SSAT((sum2 >> out_shift), 8);
-        *pO++ = (q7_t)__NNOM_SSAT((sum3 >> out_shift), 8);
-        *pO++ = (q7_t)__NNOM_SSAT((sum4 >> out_shift), 8);
+        *pO++ = (q15_t) __NNOM_SSAT((sum >> out_shift), 16);
+        *pO++ = (q15_t) __NNOM_SSAT((sum2 >> out_shift), 16);
+        *pO++ = (q15_t) __NNOM_SSAT((sum3 >> out_shift), 16);
+        *pO++ = (q15_t) __NNOM_SSAT((sum4 >> out_shift), 16);
 
         rowCnt--;
     }
@@ -1197,50 +1179,76 @@ void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to ve
 
     while (rowCnt)
     {
-		int ip_out = ((q31_t)(*bias++) << bias_shift) + NNOM_ROUND(out_shift);
+        int       ip_out;
+        int       j;
+
+        // quick and dirty to support none bias fully connected
+        if(bias)
+            ip_out = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+        else
+            ip_out = (q31_t)NNOM_ROUND(out_shift);
+        
         pA = pV;
-        for (int j = 0; j < dim_vec; j++)
+        for (j = 0; j < dim_vec; j++)
         {
-            q7_t inA = *pA++;
-            q7_t inB = *pB++;
+            q15_t     inA = *pA++;
+            q7_t      inB = *pB++;
             ip_out += inA * inB;
         }
-        *pO++ = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
+        *pO++ = (q15_t) __NNOM_SSAT((ip_out >> out_shift), 16);
 
         rowCnt--;
     }
 }
 
-void local_fully_connected_q7(const q7_t *pV,               // pointer to vector
-	const q7_t *pM,               // pointer to matrix
-	const uint16_t dim_vec,       // length of the vector
-	const uint16_t num_of_rows,   // numCol of A
-	const uint16_t bias_shift,    // amount of left-shift for bias
-	const uint16_t out_shift,     // amount of right-shift for output
-	const q7_t *bias, q7_t *pOut, // output operand
-	q15_t *vec_buffer)
+void local_fully_connected_mat_q7_vec_q15(const q15_t * pV,
+                                   const q7_t * pM,
+                                   const uint16_t dim_vec,
+                                   const uint16_t num_of_rows,
+                                   const uint16_t bias_shift,
+                                   const uint16_t out_shift,
+                                   const q7_t * bias,
+                                   q15_t * pOut,
+                                   q15_t * vec_buffer)
 {
-    for (int i = 0; i < num_of_rows; i++)
+    int  i, j;
+
+    // a quick solution for none-bias dot. 
+    if(bias == NULL)
     {
-        int ip_out = ((q31_t)(*bias++) << bias_shift) + NNOM_ROUND(out_shift);
-        for (int j = 0; j < dim_vec; j++)
+        for (i = 0; i < num_of_rows; i++)
         {
-            ip_out += pV[j] * pM[i * dim_vec + j];
+            int ip_out = (q31_t) NNOM_ROUND(out_shift);
+            for (j = 0; j < dim_vec; j++)
+            {
+                ip_out += pV[j] * pM[i * dim_vec + j];
+            }
+            pOut[i] = (q15_t) __NNOM_SSAT((ip_out >> out_shift), 16);
         }
-        pOut[i] = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
+    }
+    else
+    {
+        for (i = 0; i < num_of_rows; i++)
+        {
+            int ip_out = ((q31_t)(bias[i]) << bias_shift) + NNOM_ROUND(out_shift);
+            for (j = 0; j < dim_vec; j++)
+            {
+                ip_out += pV[j] * pM[i * dim_vec + j];
+            }
+            pOut[i] = (q15_t) __NNOM_SSAT((ip_out >> out_shift), 16);
+        }
     }
 }
 
-
-void local_softmax_q7(const q7_t *vec_in, const uint32_t dim_vec, q7_t *p_out)
+// This softmax is a copy from ARM CMSIS implimentation as it was efficient and written in pure-C.
+// original implementation: https://github.com/ARM-software/CMSIS_5/blob/develop/CMSIS/NN/Source/SoftmaxFunctions/arm_softmax_q15.c
+void local_softmax_q15(const q15_t * vec_in, const uint16_t dim_vec, q15_t * p_out)
 {
-    q31_t sum;
-    int32_t i;
-    uint8_t shift;
-    q15_t base;
-    base = -257;
-
-    /* We first search for the maximum */
+    q31_t     sum;
+    int16_t   i;
+    uint8_t   shift;
+    q31_t     base;
+    base = -1 * 0x100000;
     for (i = 0; i < dim_vec; i++)
     {
         if (vec_in[i] > base)
@@ -1249,12 +1257,11 @@ void local_softmax_q7(const q7_t *vec_in, const uint32_t dim_vec, q7_t *p_out)
         }
     }
 
-    /* 
-     * So the base is set to max-8, meaning 
-     * that we ignore really small values. 
-     * anyway, they will be 0 after shrinking to q7_t.
+    /* we ignore really small values
+     * anyway, they will be 0 after shrinking
+     * to q15_t
      */
-    base = base - 8;
+    base = base - 16;
 
     sum = 0;
 
@@ -1267,27 +1274,27 @@ void local_softmax_q7(const q7_t *vec_in, const uint32_t dim_vec, q7_t *p_out)
         }
     }
 
-    /* This is effectively (0x1 << 20) / sum */
-    int output_base = 0x100000 / sum;
+    /* This is effectively (0x1 << 32) / sum */
+    int64_t div_base = 0x100000000LL;
+    int output_base = (int32_t)(div_base / sum);
 
-    /* 
-     * Final confidence will be output_base >> ( 13 - (vec_in[i] - base) )
-     * so 128 (0x1<<7) -> 100% confidence when sum = 0x1 << 8, output_base = 0x1 << 12 
-     * and vec_in[i]-base = 8
+    /* Final confidence will be output_base >> ( 17 - (vec_in[i] - base) )
+     * so 32768 (0x1<<15) -> 100% confidence when sum = 0x1 << 16, output_base = 0x1 << 16
+     * and vec_in[i]-base = 16
      */
     for (i = 0; i < dim_vec; i++)
     {
         if (vec_in[i] > base)
         {
-            /* Here minimum value of 13+base-vec_in[i] will be 5 */
-            shift = (uint8_t)__NNOM_USAT(13 + base - vec_in[i], 5);
-            p_out[i] = (q7_t)__NNOM_SSAT((output_base >> shift), 8);
-        }
-        else
+            /* Here minimum value of 17+base-vec[i] will be 1 */
+            shift = (uint8_t)__NNOM_USAT(17+base-vec_in[i], 5);
+            p_out[i] = (q15_t) __NNOM_SSAT((output_base >> shift), 16);
+        } else
         {
             p_out[i] = 0;
         }
     }
+
 }
 
 
@@ -1295,11 +1302,11 @@ void local_softmax_q7(const q7_t *vec_in, const uint32_t dim_vec, q7_t *p_out)
 // y=-1 if x < -2.5
 // y=1  if x > 2.5
 // otherwise y = 0.2 * x + 0.5 (y=0.20315 * x + 0.5)
-void local_hard_sigmoid_q7(q7_t *data, uint32_t size, int16_t dec_bit)
+void local_hard_sigmoid_q15(q15_t *data, uint32_t size, int16_t dec_bit)
 {
 	int16_t limit = 2.5f * (1 << dec_bit)-1; 
-	int16_t offset = 64;	// 0.5 * 128
-	int16_t mult = 26;  	// 0.2 * 128
+	int16_t offset = 16384;	// 0.5 * 32768
+	int16_t mult = 6554;  	// 0.2 * 32768
 
 	// int bit >= 0
 	for(int i=0; i<size; i++)
@@ -1307,10 +1314,10 @@ void local_hard_sigmoid_q7(q7_t *data, uint32_t size, int16_t dec_bit)
 		if(data[i] <= -limit)
 			data[i] = 0;
 		else if(data[i] >= limit)
-			data[i] = 127;
+			data[i] = 32767;
 		else
 		{
-			data[i] = ((int16_t)(data[i] * mult) >> dec_bit) + offset;
+			data[i] = ((int32_t)(data[i] * mult) >> dec_bit) + offset;
 		} 
 	}   
  }
@@ -1319,12 +1326,12 @@ void local_hard_sigmoid_q7(q7_t *data, uint32_t size, int16_t dec_bit)
 // y=-1 if x < -1
 // y=1  if x > 1
 // otherwise y = x
-void local_hard_tanh_q7(q7_t *data, uint32_t size, int16_t dec_bit)
+void local_hard_tanh_q15(q15_t *data, uint32_t size, int16_t dec_bit)
 {
-    int16_t int_bit = 7 - dec_bit;
+    int16_t int_bit = 15 - dec_bit;
     int16_t limit = 1 << dec_bit;
 
-    if(dec_bit == 7)
+    if(dec_bit == 15)
         return;
 	
 	// int bit < 0
@@ -1332,9 +1339,9 @@ void local_hard_tanh_q7(q7_t *data, uint32_t size, int16_t dec_bit)
 		for(int i=0; i<size; i++)
 		{
 			if(data[i] <= -limit)
-				data[i] = -128;
+				data[i] = -32768;
 			else if(data[i] >= limit)
-				data[i] = 127;
+				data[i] = 32767;
 			else
 			{
 				data[i] = data[i] >> (-int_bit);
@@ -1345,9 +1352,9 @@ void local_hard_tanh_q7(q7_t *data, uint32_t size, int16_t dec_bit)
 		for(int i=0; i<size; i++)
 		{
 			if(data[i] <= -limit)
-				data[i] = -128;
+				data[i] = -32768;
 			else if(data[i] >= limit)
-				data[i] = 127;
+				data[i] = 32767;
 			else
 			{
 				data[i] = data[i] << int_bit;
@@ -1355,77 +1362,7 @@ void local_hard_tanh_q7(q7_t *data, uint32_t size, int16_t dec_bit)
 		}
 }
 
-void local_sigmoid_q7(q7_t *data, uint32_t size, int16_t int_width)
-{
-    uint32_t i = size;
-    q7_t *pIn = data;
-    q7_t *pOut = data;
-    q7_t in;
-    q7_t out;
-    uint16_t shift_size = 3 - int_width;
-	// saturation if int bit too large
-	if(int_width > 3)
-	{
-		while (i)
-		{
-			if(*pIn++ > 0)
-				*pOut++ = 127;
-			else
-				*pOut++ = 0;
-			i--;
-		}
-	}
-	// otherwise search table
-	else
-	{
-		while (i)
-		{
-			in = *pIn++;
-			out = nnom_sigmoid_table_q7[(uint8_t)(in >> shift_size)];
-			*pOut++ = out;
-			i--;
-		}
-    }
-}
-
-void local_tanh_q7(q7_t *data, uint32_t size, int16_t int_width)
-{
-    uint32_t i = size;
-    q7_t *pIn = data;
-    q7_t *pOut = data;
-    q7_t in;
-	q7_t out;
-	uint16_t shift_size = 3 - int_width;
-	
-	// saturation if int bit too large
-	if(int_width > 3)
-	{
-		while (i)
-		{
-			in = *pIn++;
-			if(in > 0)
-				*pOut++ = 127;
-			else if ( in == 0)
-				*pOut++ = 0;
-			else
-				*pOut++ = -128;
-			i--;
-		}
-	}
-	// otherwise search table
-	else
-	{
-		while (i)
-		{
-			in = *pIn++;
-			out = nnom_tanh_table_q7[(uint8_t)(in >> shift_size)];
-			*pOut++ = out;
-			i--;
-		}
-	}
-}
-
-void local_relu_q7(q7_t *data, uint32_t size)
+void local_relu_q15(q15_t *data, uint32_t size)
 {
     uint32_t i;
 
@@ -1437,7 +1374,7 @@ void local_relu_q7(q7_t *data, uint32_t size)
 }
 
 // alpha in q7 format with dec_bit=7
-void local_leaky_relu_q7(q7_t *data, q7_t alpha, uint32_t size)
+void local_leaky_relu_q15(q15_t *data, q7_t alpha, uint32_t size)
 {
     uint32_t i;
     
@@ -1452,7 +1389,7 @@ void local_leaky_relu_q7(q7_t *data, q7_t alpha, uint32_t size)
 
 // alpha in q7 format with dec_bit=7
 // max and threshold has the same Q format with the activation
-void local_adv_relu_q7(q7_t *data, q7_t negative_slope, q7_t max, q7_t threshold, uint32_t size)
+void local_adv_relu_q15(q15_t *data, q7_t negative_slope, q15_t max, q15_t threshold, uint32_t size)
 {
     uint32_t i;
     for (i = 0; i < size; i++)
@@ -1468,10 +1405,52 @@ void local_adv_relu_q7(q7_t *data, q7_t negative_slope, q7_t max, q7_t threshold
     }
 }
 
-// matrix ops
-void local_mult_q7(q7_t *pSrcA,
-                   q7_t *pSrcB,
-                   q7_t *pDst,
+// ARM's CMSIS implementation. 
+static void local_activation_q15(q15_t * data, uint32_t size, uint16_t int_width, const q15_t*lookup_table)
+{
+    uint32_t  i = size;
+    q15_t    *pIn = data;
+    q15_t    *pOut = data;
+    uint16_t  shift_size = 8 + 3 - int_width;
+    uint32_t  bit_mask = 0x7FF >> int_width;
+    uint32_t  full_frac = bit_mask + 1;
+    while (i)
+    {
+        q15_t     out;
+        q15_t     in = *pIn++;
+        q15_t     frac = (uint32_t) in & bit_mask;
+        q15_t     value = lookup_table[(uint8_t)(in >> shift_size)];
+        if ((in >> shift_size) != 0x7f)
+        {
+            q15_t    value2 = lookup_table[(uint8_t)(1 + ((uint8_t)(in >> shift_size)))];
+            /* doing the interpolation here for better accuracy */
+            out = ((q31_t) (full_frac - frac) * value + (q31_t) value2 * frac) >> shift_size;
+        } else
+        {
+            /* the largest positive value does not have a right side for linear interpolation */
+            out = value;
+        }
+        *pOut++ = out;
+        i--;
+    }
+}
+
+void local_sigmoid_q15(q15_t * data, uint32_t size, uint16_t int_width)
+{
+    local_activation_q15(data, size, int_width, nnom_sigmoid_table_q15);
+}
+
+void local_tanh_q15(q15_t * data, uint32_t size, uint16_t int_width)
+{
+    local_activation_q15(data, size, int_width, nnom_tanh_table_q15);
+}
+
+
+
+// matrix ops q15
+void local_mult_q15(q15_t *pSrcA,
+                   q15_t *pSrcB,
+                   q15_t *pDst,
                    const uint16_t out_shift,
                    uint32_t blockSize)
 {
@@ -1480,13 +1459,13 @@ void local_mult_q7(q7_t *pSrcA,
     for (i = 0; i < blockSize; i++)
     {
         q31_t product = pSrcA[i] * pSrcB[i];
-        pDst[i] = (q7_t) __NNOM_SSAT(((product + NNOM_ROUND(out_shift)) >> out_shift), 8);
+        pDst[i] = (q15_t) __NNOM_SSAT(((product + NNOM_ROUND(out_shift)) >> out_shift), 16);
     }
 }
 
-void local_add_q7(q7_t *pSrcA,
-                  q7_t *pSrcB,
-                  q7_t *pDst,
+void local_add_q15(q15_t *pSrcA,
+                  q15_t *pSrcB,
+                  q15_t *pDst,
                   const uint16_t out_shift,
                   uint32_t blockSize)
 {
@@ -1495,13 +1474,13 @@ void local_add_q7(q7_t *pSrcA,
     for (i = 0; i < blockSize; i++)
     {
         q31_t sum = pSrcA[i] + pSrcB[i];
-        pDst[i] = (q7_t) __NNOM_SSAT(((sum + NNOM_ROUND(out_shift)) >> out_shift), 8);
+        pDst[i] = (q15_t) __NNOM_SSAT(((sum + NNOM_ROUND(out_shift)) >> out_shift), 16);
     }
 }
 
-void local_sub_q7(q7_t *pSrcA,
-                  q7_t *pSrcB,
-                  q7_t *pDst,
+void local_sub_q15(q15_t *pSrcA,
+                  q15_t *pSrcB,
+                  q15_t *pDst,
                   const uint16_t out_shift,
                   uint32_t blockSize)
 {
@@ -1510,17 +1489,16 @@ void local_sub_q7(q7_t *pSrcA,
     for (i = 0; i < blockSize; i++)
     {
         q31_t sub = pSrcA[i] - pSrcB[i];
-        pDst[i] = (q7_t) __NNOM_SSAT(((sub + NNOM_ROUND(out_shift)) >> out_shift), 8);
+        pDst[i] = (q15_t) __NNOM_SSAT(((sub + NNOM_ROUND(out_shift)) >> out_shift), 16);
     }
 }
 
 
-
-void local_multiple_add_q7( q7_t *p_dst,
+void local_multiple_add_q15( q15_t *p_dst,
                   const int16_t out_shift,
                   uint32_t block_size,
                   uint32_t num_block,
-                  q7_t **p_src)
+                  q15_t **p_src)
 {
     uint32_t i, blk;
     q31_t sum; 
@@ -1530,15 +1508,15 @@ void local_multiple_add_q7( q7_t *p_dst,
         sum = 0;
         for(blk=0; blk < num_block; blk++)
             sum += p_src[blk][i];
-        p_dst[i] = (q7_t) __NNOM_SSAT(((sum + NNOM_ROUND(out_shift)) >> out_shift), 8);
+        p_dst[i] = (q15_t) __NNOM_SSAT(((sum + NNOM_ROUND(out_shift)) >> out_shift), 16);
     }
 }
 
-void local_multiple_mult_q7( q7_t *p_dst,
+void local_multiple_mult_q15( q15_t *p_dst,
                   const int16_t out_shift,
                   uint32_t block_size,
                   uint32_t num_block,
-                  q7_t **p_src)
+                  q15_t **p_src)
 {
     uint32_t i, blk;
     q31_t product; 
@@ -1548,15 +1526,15 @@ void local_multiple_mult_q7( q7_t *p_dst,
         product = 1;
         for(blk=0; blk < num_block; blk++)
             product *= p_src[blk][i];
-        p_dst[i] = (q7_t) __NNOM_SSAT(((product + NNOM_ROUND(out_shift)) >> out_shift), 8);
+        p_dst[i] = (q15_t) __NNOM_SSAT(((product + NNOM_ROUND(out_shift)) >> out_shift), 16);
     }
 }
 
-void local_multiple_sub_q7( q7_t *p_dst,
+void local_multiple_sub_q15( q15_t *p_dst,
                   const int16_t out_shift,
                   uint32_t block_size,
                   uint32_t num_block,
-                  q7_t **p_src)
+                  q15_t **p_src)
 {
     uint32_t i, blk;
     q31_t sub; 
@@ -1566,59 +1544,29 @@ void local_multiple_sub_q7( q7_t *p_dst,
         sub = p_src[0][i];
         for(blk=1; blk < num_block; blk++)
             sub -= p_src[blk][i];
-        p_dst[i] = (q7_t) __NNOM_SSAT(((sub + NNOM_ROUND(out_shift)) >> out_shift), 8);
+        p_dst[i] = (q15_t) __NNOM_SSAT(((sub + NNOM_ROUND(out_shift)) >> out_shift), 16);
     }
 }
 
-
-void local_q7_to_q15_no_shift(const q7_t *src, q15_t *des, uint32_t size)
+// y = 1 - x
+void local_1_minor_z_q15(q15_t* src, q15_t*des, uint16_t dec_bit, uint32_t size)
 {
-    // simple unloop
-    uint32_t  count = size/8;
-    while (count-- > 0)
+    int32_t one = (1 << dec_bit)-1;
+    for(int i=0; i<size/8; i++)
     {
-        *des++ = (q15_t)*src++;
-        *des++ = (q15_t)*src++;
-        *des++ = (q15_t)*src++;
-        *des++ = (q15_t)*src++;
-        *des++ = (q15_t)*src++;
-        *des++ = (q15_t)*src++;
-        *des++ = (q15_t)*src++;
-        *des++ = (q15_t)*src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
+        *des++ = one - *src++;
     }
-    count = size%8;
-    while(count-- > 0)
-        *des++ = (q15_t)*src++;
+    for(int i=0; i<size%8; i++)
+    {
+        *des++ = one - *src++;
+    }
 }
 
-void local_q7_to_q15(const q7_t *src, q15_t *des, uint32_t size)
-{
-    // simple unloop
-    uint32_t  count = size/8;
-    while (count-- > 0)
-    {
-        *des++ = (q15_t)*src++<<8;
-        *des++ = (q15_t)*src++<<8;
-        *des++ = (q15_t)*src++<<8;
-        *des++ = (q15_t)*src++<<8;
-        *des++ = (q15_t)*src++<<8;
-        *des++ = (q15_t)*src++<<8;
-        *des++ = (q15_t)*src++<<8;
-        *des++ = (q15_t)*src++<<8;
-    }
-    count = size%8;
-    while(count-- > 0)
-        *des++ = (q15_t)*src++<<8;
-}
-
-// right shift q15 to q7
-void local_q15_to_q7(const q15_t *src, q7_t *des,  uint32_t shift, uint32_t size)
-{
-    while(size-- >0)
-    {
-        *des = *src >> shift;
-        des++;
-        src++;
-    }
-}
 
