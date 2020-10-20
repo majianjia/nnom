@@ -203,7 +203,7 @@ void local_maxpool_q7_CHW(const q7_t *Im_in,           // input image
 
 // temporary for the thesis
 // shift according to the maximum
-int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
+void local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
 	const uint16_t dim_im_in_y,  // input image dimension y or H
 	const uint16_t ch_im_in,     // number of input image channels
@@ -222,9 +222,9 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
     int16_t k_x, k_y;
     int32_t *buf = (int32_t *)bufferA;
 	// stage2
-    int32_t max_abs = 0;
-    int32_t output_shift;
-    size_t output_size = dim_im_out_x * dim_im_out_x * ch_im_in;
+    // int32_t max_abs = 0;
+    // int32_t output_shift;
+    // size_t output_size = dim_im_out_x * dim_im_out_x * ch_im_in;
 
     // save in 32bit
     for (i_ch_in = 0; i_ch_in < ch_im_in; i_ch_in++)
@@ -250,33 +250,33 @@ int32_t local_sumpool_q7_HWC(const q7_t *Im_in,           // input image
         }
     }
 
-    // find max amount results
-    for (int i = 0; i < output_size; i++)
-    {
-        int32_t val = buf[i];
-        if (val < 0)
-            val = -val;
-        if (val > max_abs)
-            max_abs = val;
-    }
-    // find best shift to cover the max
-    for (output_shift = 0;; output_shift++)
-    {
-        if (127 * (1 + output_shift) >= max_abs)
-            break;
-    }
+    // // find max amount results
+    // for (int i = 0; i < output_size; i++)
+    // {
+    //     int32_t val = buf[i];
+    //     if (val < 0)
+    //         val = -val;
+    //     if (val > max_abs)
+    //         max_abs = val;
+    // }
+    // // find best shift to cover the max
+    // for (output_shift = 0;; output_shift++)
+    // {
+    //     if (127 * (1 + output_shift) >= max_abs)
+    //         break;
+    // }
 
-    // shift the results
-    for (int i = 0; i < output_size; i++)
-    {
-        Im_out[i] = buf[i] >> output_shift;
-    }
-    return output_shift;
+    // // shift the results
+    // for (int i = 0; i < output_size; i++)
+    // {
+    //     Im_out[i] = buf[i] >> output_shift;
+    // }
+    //return output_shift;
 }
 
 // temporary for the thesis
 // shift according to the maximum
-int32_t local_sumpool_q7_CHW(const q7_t *Im_in,           // input image
+void local_sumpool_q7_CHW(const q7_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
 	const uint16_t dim_im_in_y,  // input image dimension y or H
 	const uint16_t ch_im_in,     // number of input image channels
@@ -296,9 +296,9 @@ int32_t local_sumpool_q7_CHW(const q7_t *Im_in,           // input image
     int32_t *buf = (int32_t *)bufferA;
 	int32_t i_ch_offset, o_ch_offset;
 	// stage2
-    int32_t max_abs = 0;
-    int32_t output_shift;
-    size_t output_size = dim_im_out_x * dim_im_out_x * ch_im_in;
+    // int32_t max_abs = 0;
+    // int32_t output_shift;
+    // size_t output_size = dim_im_out_x * dim_im_out_x * ch_im_in;
 
     // save in 32bit
     for (i_ch_in = 0; i_ch_in < ch_im_in; i_ch_in++)
@@ -327,28 +327,28 @@ int32_t local_sumpool_q7_CHW(const q7_t *Im_in,           // input image
         }
     }
 
-    // find max amount results
-    for (int i = 0; i < output_size; i++)
-    {
-        int32_t val = buf[i];
-        if (val < 0)
-            val = -val;
-        if (val > max_abs)
-            max_abs = val;
-    }
-    // find best shift to cover the max
-    for (output_shift = 0;; output_shift++)
-    {
-        if (127 * (1 + output_shift) >= max_abs)
-            break;
-    }
+    // // find max amount results
+    // for (int i = 0; i < output_size; i++)
+    // {
+    //     int32_t val = buf[i];
+    //     if (val < 0)
+    //         val = -val;
+    //     if (val > max_abs)
+    //         max_abs = val;
+    // }
+    // // find best shift to cover the max
+    // for (output_shift = 0;; output_shift++)
+    // {
+    //     if (127 * (1 + output_shift) >= max_abs)
+    //         break;
+    // }
 
-    // shift the results
-    for (int i = 0; i < output_size; i++)
-    {
-        Im_out[i] = buf[i] >> output_shift;
-    }
-    return output_shift;
+    // // shift the results
+    // for (int i = 0; i < output_size; i++)
+    // {
+    //     Im_out[i] = buf[i] >> output_shift;
+    // }
+    //return output_shift;
 }
 
 // customised up sample pooling
@@ -466,7 +466,11 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
 				int32_t ker_y_end = MIN(dim_kernel_y, dim_im_in_y - base_idx_y);
 				int32_t ker_x_end = MIN(dim_kernel_x, dim_im_in_x - base_idx_x);
 
-                conv_out = ((q31_t)(bias[i]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                if(bias)
+                    conv_out = ((q31_t)(bias[i]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                else
+                    conv_out = (q31_t) NNOM_ROUND(out_shift[shift_idx]);
+
                 for (m = ker_y_start; m < ker_y_end; m++)
                 {
                     for (n = ker_x_start; n < ker_x_end; n++)
@@ -531,7 +535,11 @@ void local_convolve_CHW_q7_nonsquare(const q7_t *Im_in,                // input 
         {
             for (k = 0; k < dim_im_out_x; k++)
             {
-                conv_out = ((q31_t)(bias[i]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                if(bias)
+                    conv_out = ((q31_t)(bias[i]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                else
+                    conv_out = (q31_t) NNOM_ROUND(out_shift[shift_idx]);
+                    
 				for (m = 0; m < dim_kernel_y; m++)
 				{
 					for (n = 0; n < dim_kernel_x; n++)
@@ -740,6 +748,7 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,// input 
     int i_out_y, i_out_x, i_ch_out;
     int i_ker_y, i_ker_x;
     int shift_idx, shift_steps;
+    q31_t conv_out;
     if(q_type == NNOM_QTYPE_PER_AXIS)
         shift_steps = 1;
     else
@@ -751,7 +760,11 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,// input 
         {
             for (i_ch_out = 0, shift_idx=0; i_ch_out < ch_im_out; i_ch_out++, shift_idx+=shift_steps)
             {
-                q31_t conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                if(bias)
+                    conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                else
+                    conv_out = (q31_t)NNOM_ROUND(out_shift[shift_idx]);
+                
                 for (i_ker_y = 0; i_ker_y < dim_kernel_y; i_ker_y++)
                 {
                     for (i_ker_x = 0; i_ker_x < dim_kernel_x; i_ker_x++)
@@ -799,8 +812,8 @@ void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,// input 
 {
     int i_out_y, i_out_x, i_ch_out;
     int i_ker_y, i_ker_x;
-	long conv_out;
-        int shift_idx, shift_steps;
+	int32_t conv_out;
+    int shift_idx, shift_steps;
     if(q_type == NNOM_QTYPE_PER_AXIS)
         shift_steps = 1;
     else
@@ -812,7 +825,11 @@ void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,// input 
 		{
 			for (i_out_x = 0; i_out_x < dim_im_out_x; i_out_x++)
 			{
-                conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                if(bias)
+                    conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                else
+                    conv_out = (q31_t)NNOM_ROUND(out_shift[shift_idx]);
+
 				for (i_ker_y = 0; i_ker_y < dim_kernel_y; i_ker_y++)
 				{
 					for (i_ker_x = 0; i_ker_x < dim_kernel_x; i_ker_x++)
@@ -1122,12 +1139,26 @@ void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to ve
     while (rowCnt)
     {
         pA = pV;
-        q31_t     sum =  ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
-        q31_t     sum2 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
-        q31_t     sum3 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
-        q31_t     sum4 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
-
+        q31_t     sum;
+        q31_t     sum2;
+        q31_t     sum3;
+        q31_t     sum4;
         uint16_t colCnt = dim_vec >> 2;
+
+        if(bias)
+        {
+            sum =  ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+            sum2 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+            sum3 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+            sum4 = ((q31_t)(*pBias++) << bias_shift) + NNOM_ROUND(out_shift);
+        }
+        else
+        {
+            sum =  (q31_t) NNOM_ROUND(out_shift);
+            sum2 = (q31_t) NNOM_ROUND(out_shift);
+            sum3 = (q31_t) NNOM_ROUND(out_shift);
+            sum4 = (q31_t) NNOM_ROUND(out_shift);
+        }
 
         while (colCnt)
         {
@@ -1197,7 +1228,12 @@ void local_fully_connected_q7_opt(const q7_t *pV,               // pointer to ve
 
     while (rowCnt)
     {
-		int ip_out = ((q31_t)(*bias++) << bias_shift) + NNOM_ROUND(out_shift);
+		int ip_out;
+        if(bias)
+            ip_out=((q31_t)(*bias++) << bias_shift) + NNOM_ROUND(out_shift);
+        else
+            ip_out=(q31_t)NNOM_ROUND(out_shift);
+        
         pA = pV;
         for (int j = 0; j < dim_vec; j++)
         {
@@ -1220,14 +1256,29 @@ void local_fully_connected_q7(const q7_t *pV,               // pointer to vector
 	const q7_t *bias, q7_t *pOut, // output operand
 	q15_t *vec_buffer)
 {
-    for (int i = 0; i < num_of_rows; i++)
+    if(bias)
     {
-        int ip_out = ((q31_t)(*bias++) << bias_shift) + NNOM_ROUND(out_shift);
-        for (int j = 0; j < dim_vec; j++)
+        for (int i = 0; i < num_of_rows; i++)
         {
-            ip_out += pV[j] * pM[i * dim_vec + j];
+            int ip_out = ((q31_t)(*bias++) << bias_shift) + NNOM_ROUND(out_shift);
+            for (int j = 0; j < dim_vec; j++)
+            {
+                ip_out += pV[j] * pM[i * dim_vec + j];
+            }
+            pOut[i] = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
         }
-        pOut[i] = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
+    }
+    else
+    {
+        for (int i = 0; i < num_of_rows; i++)
+        {
+            int ip_out = (q31_t)NNOM_ROUND(out_shift);
+            for (int j = 0; j < dim_vec; j++)
+            {
+                ip_out += pV[j] * pM[i * dim_vec + j];
+            }
+            pOut[i] = (q7_t)__NNOM_SSAT((ip_out >> out_shift), 8);
+        }
     }
 }
 

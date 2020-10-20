@@ -109,7 +109,7 @@ void local_avepool_q15_CHW(const q15_t *Im_in,           // input image
 }
 
 // modified from CMSIS-NN test_ref
-void local_maxpool_q15_HWC(const q7_t *Im_in,           // input image
+void local_maxpool_q15_HWC(const q15_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
 	const uint16_t dim_im_in_y,  // input image dimension y or H
 	const uint16_t ch_im_in,     // number of input image channels
@@ -274,7 +274,7 @@ void local_sumpool_q15_HWC(const q15_t *Im_in,           // input image
 
 // temporary for the thesis
 // shift according to the maximum
-void local_sumpool_q15_CHW(const q7_t *Im_in,           // input image
+void local_sumpool_q15_CHW(const q15_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,  // input image dimension x or W
 	const uint16_t dim_im_in_y,  // input image dimension y or H
 	const uint16_t ch_im_in,     // number of input image channels
@@ -288,7 +288,7 @@ void local_sumpool_q15_CHW(const q7_t *Im_in,           // input image
 	const uint16_t dim_im_out_y, // output image dimension y or H
 	const uint16_t output_shift, // output right shift
 	q7_t *bufferA,               // a buffer for local storage, size = 4*output_size
-	q7_t *Im_out)
+	q15_t *Im_out)
 {
     int16_t i_ch_in, i_x, i_y;
     int16_t k_x, k_y;
@@ -465,7 +465,11 @@ void local_convolve_HWC_q15_nonsquare(const q15_t *Im_in,                // inpu
 				int32_t ker_y_end = MIN(dim_kernel_y, dim_im_in_y - base_idx_y);
 				int32_t ker_x_end = MIN(dim_kernel_x, dim_im_in_x - base_idx_x);
 
-                conv_out = ((q31_t)(bias[i]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                if(bias)
+                    conv_out = ((q31_t)(bias[i]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                else
+                    conv_out = (q31_t)NNOM_ROUND(out_shift[shift_idx]);
+                
                 for (m = ker_y_start; m < ker_y_end; m++)
                 {
                     for (n = ker_x_start; n < ker_x_end; n++)
@@ -530,7 +534,10 @@ void local_convolve_CHW_q15_nonsquare(const q15_t *Im_in,                // inpu
         {
             for (k = 0; k < dim_im_out_x; k++)
             {
-                conv_out = ((q31_t)(bias[i]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                if(bias)
+                    conv_out = ((q31_t)(bias[i]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                else
+                    conv_out = (q31_t)NNOM_ROUND(out_shift[shift_idx]);
 				for (m = 0; m < dim_kernel_y; m++)
 				{
 					for (n = 0; n < dim_kernel_x; n++)
@@ -608,8 +615,8 @@ void local_conv_trans_HWC_q15_nonsquare(const int8_t * Im_in,
 	const uint16_t stride_y,                                           // stride y
     const uint16_t dilation_x,                                         // dilation x
 	const uint16_t dilation_y,                                         // dilation y
-	const q15_t *bias,                                                  // bias
-	const uint16_t bias_shift, const uint16_t out_shift, q7_t *Im_out, // output image
+	const q7_t *bias,                                                  // bias
+	const uint16_t bias_shift, const uint16_t out_shift, q15_t *Im_out, // output image
 	const uint16_t dim_im_out_x,                                       // output image dimension x
 	const uint16_t dim_im_out_y,                                       // output image dimension y
 	q15_t *bufferA,                                                    //buffer space for input
@@ -739,6 +746,7 @@ void local_depthwise_separable_conv_HWC_q15_nonsquare(const q15_t *Im_in,// inpu
     int i_out_y, i_out_x, i_ch_out;
     int i_ker_y, i_ker_x;
     int shift_idx, shift_steps;
+    int64_t conv_out;
     if(q_type == NNOM_QTYPE_PER_AXIS)
         shift_steps = 1;
     else
@@ -750,7 +758,11 @@ void local_depthwise_separable_conv_HWC_q15_nonsquare(const q15_t *Im_in,// inpu
         {
             for (i_ch_out = 0, shift_idx=0; i_ch_out < ch_im_out; i_ch_out++, shift_idx+=shift_steps)
             {
-                int64_t conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                if(bias)
+                    conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                else
+                    conv_out = (q31_t)NNOM_ROUND(out_shift[shift_idx]);
+
                 for (i_ker_y = 0; i_ker_y < dim_kernel_y; i_ker_y++)
                 {
                     for (i_ker_x = 0; i_ker_x < dim_kernel_x; i_ker_x++)
@@ -811,7 +823,10 @@ void local_depthwise_separable_conv_CHW_q15_nonsquare(const q15_t *Im_in,// inpu
 		{
 			for (i_out_x = 0; i_out_x < dim_im_out_x; i_out_x++)
 			{
-                conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                if(bias)
+                    conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                else
+                    conv_out = (q31_t)NNOM_ROUND(out_shift[shift_idx]);
 				for (i_ker_y = 0; i_ker_y < dim_kernel_y; i_ker_y++)
 				{
 					for (i_ker_x = 0; i_ker_x < dim_kernel_x; i_ker_x++)
@@ -916,7 +931,6 @@ void local_zero_padding_CHW_q15(const q15_t *Im_in,           // input image
 
 }
 
-
 void local_cropping_HWC_q15(const q15_t *Im_in,           // input image
 	const uint16_t dim_im_in_x,    // input image dimention x
 	const uint16_t dim_im_in_y,    // input image dimention y
@@ -990,7 +1004,7 @@ void local_dot_q15(const q15_t *pV, // pointer to vector
 {
     for (int i = 0; i < num_of_rows; i++)
     {
-        int ip_out = (q31_t) NNOM_ROUND(out_shift);
+        int64_t ip_out = (q31_t) NNOM_ROUND(out_shift); // q31 might not be enough
         for (int j = 0; j < dim_vec; j++)
         {
             ip_out += pV[j] * pM[i * dim_vec + j];
@@ -1014,10 +1028,10 @@ void local_dot_q15_opt(const q15_t * pV,
 
     while (rowCnt)
     {
-        q31_t     sum =  (q31_t) NNOM_ROUND(out_shift);
-        q31_t     sum2 = (q31_t) NNOM_ROUND(out_shift);
-        q31_t     sum3 = (q31_t) NNOM_ROUND(out_shift);
-        q31_t     sum4 = (q31_t) NNOM_ROUND(out_shift);
+        int64_t     sum =  (q31_t) NNOM_ROUND(out_shift);
+        int64_t     sum2 = (q31_t) NNOM_ROUND(out_shift);
+        int64_t     sum3 = (q31_t) NNOM_ROUND(out_shift);
+        int64_t     sum4 = (q31_t) NNOM_ROUND(out_shift);
         uint16_t  colCnt = dim_vec >> 1;
         pA = pV;
         while (colCnt)
@@ -1067,7 +1081,7 @@ void local_dot_q15_opt(const q15_t * pV,
 
     while (rowCnt)
     {
-        int       ip_out = (q31_t) + NNOM_ROUND(out_shift);
+        int64_t       ip_out = (q31_t) + NNOM_ROUND(out_shift);
         int       j;
 
         pA = pV;
@@ -1105,10 +1119,10 @@ void local_fully_connected_mat_q7_vec_q15_opt(const q15_t * pV,
 
     while (rowCnt)
     {
-        q31_t     sum;
-        q31_t     sum2;
-        q31_t     sum3;
-        q31_t     sum4;
+        int64_t     sum;
+        int64_t     sum2;
+        int64_t     sum3;
+        int64_t     sum4;
         uint16_t  colCnt = dim_vec >> 1;
 
         // quick and dirty to support none bias fully connected
@@ -1179,7 +1193,7 @@ void local_fully_connected_mat_q7_vec_q15_opt(const q15_t * pV,
 
     while (rowCnt)
     {
-        int       ip_out;
+        int64_t       ip_out;
         int       j;
 
         // quick and dirty to support none bias fully connected
@@ -1218,7 +1232,7 @@ void local_fully_connected_mat_q7_vec_q15(const q15_t * pV,
     {
         for (i = 0; i < num_of_rows; i++)
         {
-            int ip_out = (q31_t) NNOM_ROUND(out_shift);
+            int64_t ip_out = (q31_t) NNOM_ROUND(out_shift);
             for (j = 0; j < dim_vec; j++)
             {
                 ip_out += pV[j] * pM[i * dim_vec + j];
@@ -1230,7 +1244,7 @@ void local_fully_connected_mat_q7_vec_q15(const q15_t * pV,
     {
         for (i = 0; i < num_of_rows; i++)
         {
-            int ip_out = ((q31_t)(bias[i]) << bias_shift) + NNOM_ROUND(out_shift);
+            int64_t ip_out = ((q31_t)(bias[i]) << bias_shift) + NNOM_ROUND(out_shift);
             for (j = 0; j < dim_vec; j++)
             {
                 ip_out += pV[j] * pM[i * dim_vec + j];
@@ -1444,8 +1458,6 @@ void local_tanh_q15(q15_t * data, uint32_t size, uint16_t int_width)
 {
     local_activation_q15(data, size, int_width, nnom_tanh_table_q15);
 }
-
-
 
 // matrix ops q15
 void local_mult_q15(q15_t *pSrcA,
