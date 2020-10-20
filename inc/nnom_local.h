@@ -128,7 +128,7 @@ void local_maxpool_q7_CHW(const q7_t * Im_in, 				// input image
 	q7_t * bufferA, 				// a buffer for local storage, NULL by now
 	q7_t * Im_out);
 							
-int32_t local_sumpool_q7_HWC(const q7_t * Im_in, // input image
+void local_sumpool_q7_HWC(const q7_t * Im_in, // input image
 	const uint16_t dim_im_in_x,   	// input image dimension x or W
 	const uint16_t dim_im_in_y,   	// input image dimension y or H
 	const uint16_t ch_im_in,    	// number of input image channels
@@ -143,7 +143,7 @@ int32_t local_sumpool_q7_HWC(const q7_t * Im_in, // input image
 	q7_t * bufferA, 				// a buffer for local storage, size = 4*output_size
 	q7_t * Im_out);
 							
-int32_t local_sumpool_q7_CHW(const q7_t * Im_in, // input image
+void local_sumpool_q7_CHW(const q7_t * Im_in, // input image
 	const uint16_t dim_im_in_x,   	// input image dimension x or W
 	const uint16_t dim_im_in_y,   	// input image dimension y or H
 	const uint16_t ch_im_in,    	// number of input image channels
