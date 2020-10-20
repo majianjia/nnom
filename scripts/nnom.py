@@ -924,13 +924,11 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                   or 'conv2d' in layer.name):
                 inp = layer_name_from_tensor(layer.input)
                 if('transpose' in layer.name):
-                        fp.write('\tlayer[{0}] = model.hook(conv2d_trans_s(&{1}_config), layer[{2}]);\n'.format(id, layer.name,  LI[inp][0]))
+                    fp.write('\tlayer[{0}] = model.hook(conv2d_trans_s(&{1}_config), layer[{2}]);\n'.format(id, layer.name,  LI[inp][0]))
+                elif('depthwise' in layer.name):
+                    fp.write('\tlayer[{0}] = model.hook(dw_conv2d_s(&{1}_config), layer[{2}]);\n'.format(id, layer.name, LI[inp][0]))
                 else:
-                    if('depthwise' in layer.name):
-                        fp.write('\tlayer[{0}] = model.hook(dw_conv2d_s(&{1}_config), layer[{2}]);\n'.format(id, layer.name, LI[inp][0]))
-                    else:
-                        fp.write('\tlayer[{0}] = model.hook(conv2d_s(&{1}_config), layer[{2}]);\n'.format(id, layer.name, LI[inp][0]))
-
+                    fp.write('\tlayer[{0}] = model.hook(conv2d_s(&{1}_config), layer[{2}]);\n'.format(id, layer.name, LI[inp][0]))
             elif ('activation' in layer.name):
                 inp = layer_name_from_tensor(layer.input)
                 cfg = layer.get_config()
