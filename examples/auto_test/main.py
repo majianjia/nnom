@@ -35,7 +35,7 @@ def build_model(x_shape):
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
     x = Dropout(0.2)(x)
 
-    x = Conv2D(64, kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
+    x = DepthwiseConv2D( kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
     x = ReLU(negative_slope=0.1, threshold=0, max_value=6)(x)
     x = Dropout(0.2)(x)
