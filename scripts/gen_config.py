@@ -254,7 +254,7 @@ const nnom_io_config_t <layer_name>_config = {
     return c
 
 
-def gen_pooling_config(layer):
+def gen_pooling_config(layer, output_shifts='0'):
     c = '''
 const nnom_pool_config_t <layer_name>_config = {
     .super = <base_config>,
@@ -271,7 +271,19 @@ const nnom_pool_config_t <layer_name>_config = {
     c = c.replace('<kernel_size>', to_cstyle(layer.pool_size))
     c = c.replace('<stride_size>', to_cstyle(layer.strides))
     c = c.replace('<num_dim>', str(len(layer.pool_size)))
-    c = c.replace('<output_shift>', '0') # not used at the moment
+    c = c.replace('<output_shift>', output_shifts) # not used at the moment
+    return c
+
+def gen_gl_pooling_config(layer, output_shifts='0'):
+    c = '''
+const nnom_global_pool_config_t <layer_name>_config = {
+    .super = <base_config>,
+    .output_shift = <output_shift>,
+};
+'''
+    c = c.replace('<layer_name>', layer.name)
+    c = c.replace('<base_config>', gen_base_config(layer))
+    c = c.replace('<output_shift>', output_shifts)
     return c
 
 

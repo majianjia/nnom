@@ -1531,7 +1531,7 @@ void local_multiple_mult_q15( q15_t *p_dst,
                   q15_t **p_src)
 {
     uint32_t i, blk;
-    q31_t product; 
+    q63_t product; 
 
     for (i = 0; i < block_size; i++)
     {

@@ -831,9 +831,10 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 for w in layer.weights:
                     gen_weight_tensor(w, per_axis=False)
                 fp.write(gen_dense_config(layer, layer.name.upper() +'_OUTPUT_RSHIFT', layer.name.upper() +'_BIAS_LSHIFT'))
-            elif (type(layer) in [MaxPooling2D, GlobalMaxPooling2D, AveragePooling2D, GlobalAveragePooling2D,
-                                  MaxPooling1D, GlobalMaxPooling1D, AveragePooling1D, GlobalAveragePooling1D]):
+            elif (type(layer) in [MaxPooling2D, AveragePooling2D, MaxPooling1D, AveragePooling1D]):
                 fp.write(gen_pooling_config(layer))
+            elif (type(layer) in [GlobalMaxPooling2D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalAveragePooling1D]):
+                fp.write(gen_gl_pooling_config(layer))
             elif (type(layer) in [Multiply, Add, Subtract]):
                 fp.write(gen_matrix_config(layer, output_shift_name=layer.name.upper()+'_OUTPUT_RSHIFT'))
             elif (type(layer) in [ZeroPadding2D, ZeroPadding1D]):
