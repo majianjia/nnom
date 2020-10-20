@@ -54,6 +54,7 @@ nnom_layer_io_t *io_init(void *owner_layer, nnom_layer_io_t *io);
 #include "layers/nnom_lambda.h"
 #include "layers/nnom_matrix.h"
 #include "layers/nnom_maxpool.h"
+#include "layers/nnom_avgpool.h"
 #include "layers/nnom_output.h"
 #include "layers/nnom_rnn.h"
 #include "layers/nnom_softmax.h"
