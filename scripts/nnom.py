@@ -956,7 +956,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                     fp.write('\tlayer[%s] = model.active(act_relu(), layer[%s]);\n' % (id, LI[inp][0]))
                 else:
                     if(cfg['max_value'] is None):
-                        max_v = '0x7fc00000'        #QNaN for None in NNoM
+                        max_v = 'INFINITY '
                     else:
                         max_v = str(cfg['max_value'])
                     fp.write('\tlayer[%s] = model.active(act_adv_relu(%f,%s,%f), layer[%s]);\n'
