@@ -14,3 +14,4 @@ weights.h
 result.csv
 test_*
 _cifar.py
+auto_test

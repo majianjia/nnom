@@ -459,7 +459,7 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
         {
             for (k = 0; k < dim_im_out_x; k++)
             {
-				int32_t base_idx_y = stride_y * j - padding_y;
+				int32_t base_idx_y = stride_y * j - padding_y; 
 				int32_t base_idx_x = stride_x * k - padding_x;
 				int32_t ker_y_start = MAX(0, -base_idx_y);
 				int32_t ker_x_start = MAX(0, -base_idx_x);
@@ -475,7 +475,6 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
                 {
                     for (n = ker_x_start; n < ker_x_end; n++)
                     {
-                        // if-for implementation
                         in_row = stride_y * j + m * dilation_y - padding_y;
                         in_col = stride_x * k + n * dilation_x - padding_x;
 
@@ -745,41 +744,48 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,// input 
 	q7_t *bufferB                                                      //buffer space for output
 )
 {
-    int i_out_y, i_out_x, i_ch_out;
+    int i_out_y, i_out_x, i_ch_out, i_ch_in, i_ch_mult;
     int i_ker_y, i_ker_x;
+    int i_out = 0;
     int shift_idx, shift_steps;
+    int ch_mult = ch_im_out / ch_im_in;
     q31_t conv_out;
-    if(q_type == NNOM_QTYPE_PER_AXIS)
-        shift_steps = 1;
-    else
-        shift_steps = 0;
 
     for (i_out_y = 0; i_out_y < dim_im_out_y; i_out_y++)
     {
+        const int32_t base_idx_y = stride_y * i_out_y - padding_y;
         for (i_out_x = 0; i_out_x < dim_im_out_x; i_out_x++)
         {
-            for (i_ch_out = 0, shift_idx=0; i_ch_out < ch_im_out; i_ch_out++, shift_idx+=shift_steps)
+            const int32_t base_idx_x = stride_x * i_out_x - padding_x;
+            for (i_ch_in = 0; i_ch_in < ch_im_in; i_ch_in++)
             {
-                if(bias)
-                    conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
-                else
-                    conv_out = (q31_t)NNOM_ROUND(out_shift[shift_idx]);
-                
-                for (i_ker_y = 0; i_ker_y < dim_kernel_y; i_ker_y++)
+                for(i_ch_mult = 0; i_ch_mult < ch_mult; i_ch_mult++)
                 {
-                    for (i_ker_x = 0; i_ker_x < dim_kernel_x; i_ker_x++)
+                    i_ch_out = i_ch_mult + i_ch_in * ch_mult;
+                    int32_t ker_y_start = MAX(0, -base_idx_y);
+                    int32_t ker_x_start = MAX(0, -base_idx_x);
+                    int32_t ker_y_end = MIN(dim_kernel_y, dim_im_in_y - base_idx_y);
+                    int32_t ker_x_end = MIN(dim_kernel_x, dim_im_in_x - base_idx_x);
+
+                    shift_idx = q_type == NNOM_QTYPE_PER_AXIS ? i_ch_out : 0;
+                    if (bias)
+                        conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                    else
+                        conv_out = (q31_t)NNOM_ROUND(out_shift[shift_idx]);
+
+                    for (i_ker_y = ker_y_start; i_ker_y < ker_y_end; i_ker_y++)
                     {
-                        int in_row = stride_y * i_out_y + i_ker_y * dilation_y - padding_y;
-                        int in_col = stride_x * i_out_x + i_ker_x * dilation_x - padding_x;
-                        if (in_row >= 0 && in_col >= 0 && in_row < dim_im_in_y && in_col < dim_im_in_x)
+                        const int32_t idx_y = base_idx_y + i_ker_y * dilation_y;
+                        for (i_ker_x = ker_x_start; i_ker_x < ker_x_end; i_ker_x++)
                         {
-                            conv_out += Im_in[(in_row * dim_im_in_x + in_col) * ch_im_in + i_ch_out] *
-                                        wt[(i_ker_y * dim_kernel_x + i_ker_x) * ch_im_out + i_ch_out];
+                            const int32_t idx_x = base_idx_x + i_ker_x * dilation_x;
+                            int32_t in_pix_loc = (idx_y * dim_im_in_x + idx_x) * ch_im_in + i_ch_in;
+                            int32_t wt_loc = (i_ker_y * dim_kernel_x + i_ker_x) * (ch_im_in * ch_mult) + i_ch_out;
+                            conv_out += Im_in[in_pix_loc] * wt[wt_loc];
                         }
                     }
+                    Im_out[i_out++] = (q7_t)__NNOM_SSAT((conv_out >> out_shift[shift_idx]), 8);
                 }
-                Im_out[(i_out_y * dim_im_out_x + i_out_x) * ch_im_out + i_ch_out] =
-                    (q7_t)__NNOM_SSAT((conv_out >> out_shift[shift_idx]), 8);
             }
         }
     }
@@ -810,44 +816,52 @@ void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,// input 
 	q7_t *bufferB                                                      //buffer space for output
 )
 {
-    int i_out_y, i_out_x, i_ch_out;
+    int i_out_y, i_out_x, i_ch_out, i_ch_in, i_ch_mult;
     int i_ker_y, i_ker_x;
-	int32_t conv_out;
+    int i_out = 0;
     int shift_idx, shift_steps;
-    if(q_type == NNOM_QTYPE_PER_AXIS)
-        shift_steps = 1;
-    else
-        shift_steps = 0;
+    int ch_mult = ch_im_out / ch_im_in;
+    q31_t conv_out;
 
-	for (i_ch_out = 0, shift_idx=0; i_ch_out < ch_im_out; i_ch_out++, shift_idx+=shift_steps)
-	{
-		for (i_out_y = 0; i_out_y < dim_im_out_y; i_out_y++)
-		{
-			for (i_out_x = 0; i_out_x < dim_im_out_x; i_out_x++)
-			{
-                if(bias)
-                    conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
-                else
-                    conv_out = (q31_t)NNOM_ROUND(out_shift[shift_idx]);
+    for (i_out_y = 0; i_out_y < dim_im_out_y; i_out_y++)
+    {
+        const int32_t base_idx_y = stride_y * i_out_y - padding_y;
+        for (i_out_x = 0; i_out_x < dim_im_out_x; i_out_x++)
+        {
+            const int32_t base_idx_x = stride_x * i_out_x - padding_x;
+            for (i_ch_in = 0; i_ch_in < ch_im_in; i_ch_in++)
+            {
+                for (i_ch_mult = 0; i_ch_mult < ch_mult; i_ch_mult++)
+                {
+                    i_ch_out = i_ch_mult + i_ch_in * ch_mult;
+                    int32_t ker_y_start = MAX(0, -base_idx_y);
+                    int32_t ker_x_start = MAX(0, -base_idx_x);
+                    int32_t ker_y_end = MIN(dim_kernel_y, dim_im_in_y - base_idx_y);
+                    int32_t ker_x_end = MIN(dim_kernel_x, dim_im_in_x - base_idx_x);
 
-				for (i_ker_y = 0; i_ker_y < dim_kernel_y; i_ker_y++)
-				{
-					for (i_ker_x = 0; i_ker_x < dim_kernel_x; i_ker_x++)
-					{
-						// if-for implementation
-						int in_row = stride_y * i_out_y + i_ker_y * dilation_y  - padding_y;
-						int in_col = stride_x * i_out_x + i_ker_x * dilation_x  - padding_x;
-						if (in_row >= 0 && in_col >= 0 && in_row < dim_im_in_y && in_col < dim_im_in_x)
-						{
-							conv_out += Im_in[(in_row * dim_im_in_x + in_col) + i_ch_out * dim_im_in_x * dim_im_in_y] *
-								wt[(i_ker_y * dim_kernel_x + i_ker_x) * ch_im_out + i_ch_out];		
-						}
-					}
-				}
-                Im_out[i_ch_out * dim_im_out_x * dim_im_out_y + (i_out_y * dim_im_out_x + i_out_x)] = (q7_t)__NNOM_SSAT((conv_out >> out_shift[shift_idx]), 8);
+                    shift_idx = q_type == NNOM_QTYPE_PER_AXIS ? i_ch_out : 0;
+                    if (bias)
+                        conv_out = ((q31_t)(bias[i_ch_out]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
+                    else
+                        conv_out = (q31_t)NNOM_ROUND(out_shift[shift_idx]);
+
+                    for (i_ker_y = ker_y_start; i_ker_y < ker_y_end; i_ker_y++)
+                    {
+                        const int32_t idx_y = base_idx_y + i_ker_y * dilation_y;
+                        for (i_ker_x = ker_x_start; i_ker_x < ker_x_end; i_ker_x++)
+                        {
+                            const int32_t idx_x = base_idx_x + i_ker_x * dilation_x;
+                            int32_t in_pix_loc = (idx_y * dim_im_in_x + idx_x) + i_ch_in * dim_im_in_x * dim_im_in_y;
+                            int32_t wt_loc = (i_ker_y * dim_kernel_x + i_ker_x) * ch_im_out +  i_ch_out;
+                            conv_out += Im_in[in_pix_loc] * wt[wt_loc];
+                        }
+                    }
+                    Im_out[i_ch_out * dim_im_out_x * dim_im_out_y + (i_out_y * dim_im_out_x + i_out_x)] = (q7_t)__NNOM_SSAT((conv_out >> out_shift[shift_idx]), 8);
+                }
             }
         }
     }
+
 }
 
 

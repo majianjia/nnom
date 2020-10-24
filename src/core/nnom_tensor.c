@@ -30,6 +30,10 @@ size_t tensor_size(nnom_tensor_t* t)
 	}
 	return size;
 }
+size_t tensor_size_byte(nnom_tensor_t* t)
+{
+    return tensor_size(t)*t->bitwidth/8;
+}
 
 
 size_t tensor_get_num_channel(nnom_tensor_t* t)

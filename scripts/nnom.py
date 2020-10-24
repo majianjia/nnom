@@ -35,7 +35,6 @@ def fuse_bn_to_conv(layer):
     # try to fuse BN layer to convolutional
     if ('conv' in layer.name) and \
             ('batch_normalization' in layer.outbound_nodes[0].outbound_layer.name):
-
         print("fusing batch normalization to", layer.name)
         bn_layer = layer._outbound_nodes[0].outbound_layer
         c_w = layer.get_weights()[0]
@@ -46,21 +45,22 @@ def fuse_bn_to_conv(layer):
         bn_beta = bn_layer.get_weights()[1]
         bn_mean = bn_layer.get_weights()[2]
         bn_variance = bn_layer.get_weights()[3]
-
+        epsilon = 1e-3  # default epsilon for tf.slim.batch_norm
         if ('conv2d' in layer.name):
-            epsilon = 1e-3  # default epsilon for tf.slim.batch_norm
-            for l in range(c_w.shape[3]):
-                for k in range(c_w.shape[2]):
-                    for j in range(c_w.shape[1]):
-                        for i in range(c_w.shape[0]):
-                            if "depthwise" in layer.name:  # depthwise batchnorm params are ordered differently
-                                c_w[i][j][k][l] *= bn_gamma[k] / np.sqrt(bn_variance[k] + epsilon)
-                            else:
-                                c_w[i][j][k][l] *= bn_gamma[l] / np.sqrt(bn_variance[l] + epsilon)
-
-            if "depthwise" in layer.name:
-                depth_dim = c_w.shape[2]
+            if "depthwise" in layer.name:  # depthwise batchnorm params are ordered differently
+                for l in range(c_w.shape[3]):
+                    for k in range(c_w.shape[2]):
+                        for j in range(c_w.shape[1]):
+                            for i in range(c_w.shape[0]):
+                                c_w[i][j][k][l] *= bn_gamma[k*c_w.shape[3]+l] / np.sqrt(bn_variance[k*c_w.shape[3]+l] + epsilon)
+                depth_dim = c_w.shape[2] * c_w.shape[3]  # test needed
+            # normal conv
             else:
+                for l in range(c_w.shape[3]):
+                    for k in range(c_w.shape[2]):
+                        for j in range(c_w.shape[1]):
+                            for i in range(c_w.shape[0]):
+                                c_w[i][j][k][l] *= bn_gamma[l] / np.sqrt(bn_variance[l] + epsilon)
                 depth_dim = c_w.shape[3]
             for l in range(depth_dim):
                 c_b[l] = (bn_gamma[l] * (c_b[l] - bn_mean[l]) / np.sqrt(bn_variance[l] + epsilon)) + bn_beta[l]
@@ -76,7 +76,7 @@ def fuse_bn_to_conv(layer):
                             c_w[i][j][k] *= bn_gamma[k] / np.sqrt(bn_variance[k] + epsilon)
 
             if "depthwise" in layer.name:
-                depth_dim = c_w.shape[1]
+                depth_dim = c_w.shape[1]*c_w.shape[2] # need to be tested
             else:
                 depth_dim = c_w.shape[2]
             for l in range(depth_dim):
@@ -692,8 +692,10 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
                 if (len(var_values.shape) == 3):  # 1D convolution layer weights
                     transposed_wts = np.transpose(var_values, (2, 0, 1))
                 elif (len(var_values.shape) == 4):  # 2D convolution layer weights
-                    if(type(layer) == Conv2DTranspose):
+                    if(type(layer) == Conv2DTranspose): # test
                         transposed_wts = np.transpose(var_values, (2, 0, 1, 3))
+                    elif type(layer) == DepthwiseConv2D:
+                        transposed_wts = var_values#np.transpose(var_values, (0, 1, 3, 2)) # [h, w, out, mult] test for multiplier
                     else:
                         transposed_wts = np.transpose(var_values, (3, 0, 1, 2))
                 elif(is_lstm_layer(layer) or is_gru_layer(layer)):   # currently we use 16 bit intermediate, use reorder optimation

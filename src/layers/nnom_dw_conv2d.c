@@ -100,16 +100,16 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 #ifndef NNOM_USING_CHW	
 	#ifdef NNOM_USING_CMSIS_NN
 	// Current CMSIS-NN does not support dilation
-	if(cl->dilation.w ==1 && cl->dilation.h == 1 && cl->weight->qtype == NNOM_QTYPE_PER_TENSOR)
+	if(cl->dilation.w ==1 && cl->dilation.h == 1 && cl->weight->qtype == NNOM_QTYPE_PER_TENSOR && cl->filter_mult == 1)
 	{
 		// CMSIS-NN only support 1 mulplipier in depthwise conv
-		if (cl->filter_mult != 1 || layer->in->tensor->dim[2] % 2 != 0 || layer->out->tensor->dim[2] % 2)
+		if (layer->in->tensor->dim[2] % 2 != 0 || layer->out->tensor->dim[2] % 2)
 			return NN_ARGUMENT_ERROR;
 		result = (nnom_status_t)arm_depthwise_separable_conv_HWC_q7_nonsquare(
 				layer->in->tensor->p_data,
 				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 				cl->weight->p_data,
-				layer->in->tensor->dim[2],
+				layer->out->tensor->dim[2],
 				cl->kernel.w, cl->kernel.h,
 				cl->pad.w, cl->pad.h,
 				cl->stride.w, cl->stride.h,
@@ -127,7 +127,7 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 		layer->in->tensor->p_data,
 		layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 		cl->weight->p_data,
-		layer->in->tensor->dim[2],
+		layer->out->tensor->dim[2],
 		cl->kernel.w, cl->kernel.h,
 		cl->pad.w, cl->pad.h,
 		cl->stride.w, cl->stride.h,
@@ -136,6 +136,5 @@ nnom_status_t dw_conv2d_run(nnom_layer_t *layer)
 		cl->bias_lshift, cl->output_rshift, cl->weight->qtype,
 		layer->out->tensor->p_data,
 		layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
-
 	return result;
 }

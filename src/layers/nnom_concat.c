@@ -151,6 +151,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 	// by default, concat layer has mutiple (>=2) input and 1 output.
 	nnom_concat_layer_t *cl = (nnom_concat_layer_t *)layer;
 	nnom_layer_io_t *in;
+    uint32_t dwidth = layer->in->tensor->bitwidth/8; // data width in byte
 
 #ifdef NNOM_USING_CHW
 	// Concatenate for HWC	
@@ -174,7 +175,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 		while (in != NULL)
 		{
 			// the block size of concat data in this layer
-			block_size = 1;
+			block_size = dwidth;
 			for(int j= num_dim-1; j >= chw_i(cl->axis, num_dim); j--)
 				block_size *= in->tensor->dim[hwc_i(j, num_dim)];
 			// concat		
@@ -206,7 +207,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 		while (in != NULL)
 		{
 			// the block size of concat data in this layer
-			block_size = 1;
+			block_size = dwidth;
 			for (int j = cl->axis; j < num_dim; j++)
 				block_size *= in->tensor->dim[j];
 			// concat		
