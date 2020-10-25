@@ -32,6 +32,21 @@ int8_t* load(const char* file, size_t * size)
 	return input;
 }
 
+nnom_status_t callback(nnom_model_t* m, nnom_layer_t* layer)
+{
+	printf("\nOutput of Layer %s \n", default_layer_names[layer->type]);
+	for (int i = 0; i < tensor_size(layer->out->tensor); i++)
+	{
+		if (i % 16 == 0)
+			printf("\n");
+
+		printf("%f ", (float)((int8_t*)layer->out->tensor->p_data)[i] / powf(2,layer->out->tensor->q_dec[0]));
+	}
+
+	return NN_SUCCESS;
+}
+
+
 int main(int argc, char* argv[])
 {
 	FILE* fp;
@@ -49,6 +64,7 @@ int main(int argc, char* argv[])
 	
 	model = nnom_model_create();				// create NNoM model
 	pre = prediction_create(model, nnom_output_data, sizeof(nnom_output_data), 4); // mnist, 10 classes, get top-4
+	//model_set_callback(model, callback);
 	
 	// now takes label and data from the file and data
 	for(size_t seek=0; seek < size;)

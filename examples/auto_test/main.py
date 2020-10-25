@@ -29,30 +29,30 @@ def build_model(x_shape):
     x = Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding='valid')(inputs)
     x = BatchNormalization()(x)
 
-    x = Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
+    x = Conv2D(16, dilation_rate=(1,1), kernel_size=(5, 5), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
     x = LeakyReLU(alpha=0.2)(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
     x = Dropout(0.2)(x)
 
-    x = DepthwiseConv2D( kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
+    x = DepthwiseConv2D(depth_multiplier=2, dilation_rate=(2,2), kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
-    x = ReLU(negative_slope=0.1, threshold=0, max_value=6)(x)
+    x = ReLU(negative_slope=0.2, threshold=0, max_value=6)(x)
     x = Dropout(0.2)(x)
 
-    x = Conv2D(64, kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
+    x = Conv2D(16, kernel_size=(1, 1), strides=(1, 1), padding="valid")(x)
     x = BatchNormalization()(x)
-    x = ReLU(negative_slope=0.1, threshold=2)(x)
+    x = ReLU()(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding="same")(x)
     x = Dropout(0.2)(x)
 
-    # x = Flatten()(x)
-    # x = Dense(64)(x)
-    # x = ReLU()(x)
-    # x = Dropout(0.2)(x)
-    # x = Dense(10)(x)
-    x = Conv2D(10, kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
-    x = GlobalAveragePooling2D()(x)
+    x = Flatten()(x)
+    x = Dense(64)(x)
+    x = ReLU()(x)
+    x = Dropout(0.2)(x)
+    x = Dense(10)(x)
+    # x = Conv2D(10, kernel_size=(3, 3), strides=(1, 1), padding="valid")(x)
+    # x = GlobalAveragePooling2D()(x)
     predictions = Softmax()(x)
 
     model = Model(inputs=inputs, outputs=predictions)
@@ -106,7 +106,7 @@ def main():
     x_train = x_train.astype('float32')/255
     print("data range", x_test.min(), x_test.max())
 
-    # build model
+    #build model
     model = build_model(x_test.shape[1:])
 
     # train model
@@ -115,6 +115,14 @@ def main():
     # -------- generate weights.h (NNoM model) ----------
     # get the best model
     model = load_model(save_dir)
+
+    # output test
+    # for L in model.layers:
+    #     layer_model = Model(inputs=model.input, outputs=L.output)
+    #     print("layer", L.name)
+    #     features = layer_model.predict(x_test[:1])
+    #     pass
+    #     #print("output", features)
 
     # only use 1000 for test
     x_test = x_test[:1000]
@@ -126,7 +134,7 @@ def main():
     scores = evaluate_model(model, x_test, y_test)
 
     # generate NNoM model, x_test is the calibration dataset used in quantisation process
-    generate_model(model,  x_test, format='hwc', name="weights.h")
+    generate_model(model,  x_test, format='hwc', per_channel_quant=False, name="weights.h")
 
     # --------- for test in CI ----------
     # build NNoM
