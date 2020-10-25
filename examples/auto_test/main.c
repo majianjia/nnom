@@ -15,6 +15,7 @@
 
 #include "nnom.h"
 #include "weights.h"
+#include <math.h>
 
 int8_t* load(const char* file, size_t * size)
 {
