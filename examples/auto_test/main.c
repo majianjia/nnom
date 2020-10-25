@@ -15,7 +15,6 @@
 
 #include "nnom.h"
 #include "weights.h"
-#include <math.h>
 
 int8_t* load(const char* file, size_t * size)
 {
@@ -35,15 +34,15 @@ int8_t* load(const char* file, size_t * size)
 
 nnom_status_t callback(nnom_model_t* m, nnom_layer_t* layer)
 {
-	printf("\nOutput of Layer %s \n", default_layer_names[layer->type]);
+	float scale = 1 << (layer->out->tensor->q_dec[0]);
+	printf("\nOutput of Layer %s", default_layer_names[layer->type]);
 	for (int i = 0; i < tensor_size(layer->out->tensor); i++)
 	{
 		if (i % 16 == 0)
 			printf("\n");
-
-		printf("%f ", (float)((int8_t*)layer->out->tensor->p_data)[i] / powf(2,layer->out->tensor->q_dec[0]));
+		printf("%f ", (float)((int8_t*)layer->out->tensor->p_data)[i] / scale);
 	}
-
+	printf("\n");
 	return NN_SUCCESS;
 }
 
