@@ -614,7 +614,9 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
 
             if (per_channel_quant and type(layer) in [Conv2D, Conv1D, DepthwiseConv2D, Conv2DTranspose]):
                 if(type(layer) in [DepthwiseConv2D] and "kernel" in var_name): #depthwise kernel quantised by
-                    dec_bits = find_dec_bits_max_min_axis(var_values, axis=-2, bit_width=8)
+                    shape = var_values.shape[:2] + (-1,) # need to combine the mult and channel first
+                    var = var_values.reshape(shape)
+                    dec_bits = find_dec_bits_max_min_axis(var, axis=-1, bit_width=8)
                 elif(type(layer) in [Conv2DTranspose]):
                     dec_bits = find_dec_bits_max_min_axis(var_values, axis=-2, bit_width=8)
                 else:
@@ -666,7 +668,10 @@ def quantize_weights(model, name='weights.h', format='hwc', per_channel_quant=Tr
             # now quantise them
             if(type(layer) in [Conv2D, Conv1D, DepthwiseConv2D, Conv2DTranspose]):
                 if(type(layer) in [DepthwiseConv2D] and "kernel" in var_name):
-                    var_values = quantize_data(var_values, dec_bits, axis=-2, per_axis=per_channel_quant) # [h, w, out, mult]
+                    old_shape = var_values.shape
+                    var_values = quantize_data(var_values.reshape(var_values.shape[:2] + (-1,)),
+                                   dec_bits, axis=-1, per_axis=per_channel_quant) # convert to [h, w, out x mult]
+                    var_values = var_values.reshape(old_shape) # convert the shape back to  [h, w, out, mult]
                 elif(type(layer) in [Conv2DTranspose] and "kernel" in var_name):
                     var_values = quantize_data(var_values, dec_bits, axis=-2, per_axis=per_channel_quant) # [h, w, out, in]
                 else:

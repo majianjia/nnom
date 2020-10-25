@@ -457,14 +457,14 @@ void local_convolve_HWC_q7_nonsquare(const q7_t *Im_in,                // input 
     {
         for (j = 0; j < dim_im_out_y; j++)
         {
+            int32_t base_idx_y = stride_y * j - padding_y;
             for (k = 0; k < dim_im_out_x; k++)
             {
-				int32_t base_idx_y = stride_y * j - padding_y; 
 				int32_t base_idx_x = stride_x * k - padding_x;
-				int32_t ker_y_start = MAX(0, -base_idx_y);
-				int32_t ker_x_start = MAX(0, -base_idx_x);
-				int32_t ker_y_end = MIN(dim_kernel_y, dim_im_in_y - base_idx_y);
-				int32_t ker_x_end = MIN(dim_kernel_x, dim_im_in_x - base_idx_x);
+                int32_t ker_y_start = MAX(0, -(base_idx_y-(dilation_y-1))/dilation_y);
+                int32_t ker_x_start = MAX(0, -(base_idx_x-(dilation_x-1))/dilation_x);
+                int32_t ker_y_end = MIN(dim_kernel_y, (dim_im_in_y - base_idx_y + (dilation_y-1))/dilation_y);
+                int32_t ker_x_end = MIN(dim_kernel_x, (dim_im_in_x - base_idx_x + (dilation_x-1))/dilation_x);
 
                 if(bias)
                     conv_out = ((q31_t)(bias[i]) << bias_shift[shift_idx]) + NNOM_ROUND(out_shift[shift_idx]);
@@ -762,10 +762,10 @@ void local_depthwise_separable_conv_HWC_q7_nonsquare(const q7_t *Im_in,// input 
                 for(i_ch_mult = 0; i_ch_mult < ch_mult; i_ch_mult++)
                 {
                     i_ch_out = i_ch_mult + i_ch_in * ch_mult;
-                    int32_t ker_y_start = MAX(0, -base_idx_y);
-                    int32_t ker_x_start = MAX(0, -base_idx_x);
-                    int32_t ker_y_end = MIN(dim_kernel_y, dim_im_in_y - base_idx_y);
-                    int32_t ker_x_end = MIN(dim_kernel_x, dim_im_in_x - base_idx_x);
+                    int32_t ker_y_start = MAX(0, -(base_idx_y-(dilation_y-1))/dilation_y);
+                    int32_t ker_x_start = MAX(0, -(base_idx_x-(dilation_x-1))/dilation_x);
+                    int32_t ker_y_end = MIN(dim_kernel_y, (dim_im_in_y - base_idx_y + (dilation_y-1))/dilation_y);
+                    int32_t ker_x_end = MIN(dim_kernel_x, (dim_im_in_x - base_idx_x + (dilation_x-1))/dilation_x);
 
                     shift_idx = q_type == NNOM_QTYPE_PER_AXIS ? i_ch_out : 0;
                     if (bias)
@@ -834,10 +834,10 @@ void local_depthwise_separable_conv_CHW_q7_nonsquare(const q7_t *Im_in,// input 
                 for (i_ch_mult = 0; i_ch_mult < ch_mult; i_ch_mult++)
                 {
                     i_ch_out = i_ch_mult + i_ch_in * ch_mult;
-                    int32_t ker_y_start = MAX(0, -base_idx_y);
-                    int32_t ker_x_start = MAX(0, -base_idx_x);
-                    int32_t ker_y_end = MIN(dim_kernel_y, dim_im_in_y - base_idx_y);
-                    int32_t ker_x_end = MIN(dim_kernel_x, dim_im_in_x - base_idx_x);
+                    int32_t ker_y_start = MAX(0, -(base_idx_y-(dilation_y-1))/dilation_y);
+                    int32_t ker_x_start = MAX(0, -(base_idx_x-(dilation_x-1))/dilation_x);
+                    int32_t ker_y_end = MIN(dim_kernel_y, (dim_im_in_y - base_idx_y + (dilation_y-1))/dilation_y);
+                    int32_t ker_x_end = MIN(dim_kernel_x, (dim_im_in_x - base_idx_x + (dilation_x-1))/dilation_x);
 
                     shift_idx = q_type == NNOM_QTYPE_PER_AXIS ? i_ch_out : 0;
                     if (bias)

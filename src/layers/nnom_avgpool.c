@@ -93,7 +93,34 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 		out_x = layer->out->tensor->dim[1]; //W
 		out_y = layer->out->tensor->dim[0]; //h
 	}
-	
+
+    // 16 bit
+    if(layer->in->tensor->bitwidth == 16)
+    {
+#ifdef NNOM_USING_CHW
+	local_avepool_q15_CHW(layer->in->tensor->p_data, 				
+			layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+			cl->kernel.w, cl->kernel.h, 
+			cl->pad.w, cl->pad.h,
+			cl->stride.w, cl->stride.h,
+			out_x, out_y,
+			cl->output_shift,
+			NULL,
+			layer->out->tensor->p_data);
+#else
+    local_avepool_q15_HWC(layer->in->tensor->p_data, 				
+            layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+            cl->kernel.w, cl->kernel.h, 
+            cl->pad.w, cl->pad.h,
+            cl->stride.w, cl->stride.h,
+            out_x, out_y,
+            cl->output_shift,
+            NULL,
+            layer->out->tensor->p_data);
+#endif
+    }
+    // 8bit
+	else{
 #ifdef NNOM_USING_CHW
 	local_avepool_q7_CHW(layer->in->tensor->p_data, 				
 			layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
@@ -135,5 +162,6 @@ nnom_status_t avgpool_run(nnom_layer_t *layer)
 				layer->out->tensor->p_data);
 	}
 #endif
+    }
 	return NN_SUCCESS;
 }

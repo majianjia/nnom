@@ -83,6 +83,8 @@ nnom_status_t default_build(nnom_layer_t *layer)
 nnom_status_t default_run(nnom_layer_t *layer)
 {
 	if(layer->out->type != NNOM_TENSOR_BUF_NULL)
-		memcpy(layer->out->tensor->p_data, layer->in->tensor->p_data, tensor_size(layer->in->tensor)); 
+    {
+		memcpy(layer->out->tensor->p_data, layer->in->tensor->p_data, tensor_size_byte(layer->in->tensor)); 
+    }
 	return NN_SUCCESS;
 }

@@ -206,7 +206,7 @@ nnom_status_t conv2d_build(nnom_layer_t *layer)
 	tensor_cpy_attr(layer->out->tensor, layer->in->tensor);
 	
 	// calculate the output tensor q format, only support per tensor quantise now
-	layer->out->tensor->q_dec[0] = layer->in->tensor->q_dec[0] + cl->weight->q_dec[0] - cl->output_rshift[0];
+	layer->out->tensor->q_dec[0] = layer->in->tensor->q_dec[0] + cl->weight->q_dec[0] - cl->output_rshift[0]; // need some modification for 16bit. 
 	// see if the activation will change the q format
 	if(layer->actail) 
 		layer->out->tensor->q_dec[0] = act_get_dec_bit(layer->actail->type, layer->out->tensor->q_dec[0]);
@@ -252,8 +252,9 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 	nnom_conv2d_layer_t *cl = (nnom_conv2d_layer_t *)layer;
 
 #ifdef NNOM_USING_CHW
-	// CHW format
-	local_convolve_CHW_q7_nonsquare(
+    // CHW format
+    if(layer->in->tensor->bitwidth == 16) 
+    	local_convolve_CHW_q15_nonsquare(
 				layer->in->tensor->p_data,
 				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
 				cl->weight->p_data, layer->out->tensor->dim[2],
@@ -261,99 +262,161 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 				cl->bias->p_data, cl->bias_lshift, cl->output_rshift, cl->weight->qtype,
 				layer->out->tensor->p_data,
 				layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
+    else
+        local_convolve_CHW_q7_nonsquare(
+                    layer->in->tensor->p_data,
+                    layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+                    cl->weight->p_data, layer->out->tensor->dim[2],
+                    cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h, cl->dilation.w, cl->dilation.h,
+                    cl->bias->p_data, cl->bias_lshift, cl->output_rshift, cl->weight->qtype,
+                    layer->out->tensor->p_data,
+                    layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
 	return NN_SUCCESS;
 #else
 	// HWC format
 	#ifdef NNOM_USING_CMSIS_NN
 	// current cmsis nn does not support dilation
 	if(cl->dilation.w == 1 && cl->dilation.h == 1 && cl->weight->qtype == NNOM_QTYPE_PER_TENSOR)
-	{
-		//RGB
-		// ch_im_in = 3, w = h
-		if (layer->in->tensor->dim[2] == 3 && layer->in->tensor->dim[0] == layer->in->tensor->dim[1])
-			// squared
-			if((cl->kernel.w == cl->kernel.h) && (cl->pad.w == cl->pad.h) && (cl->stride.w == cl->stride.h))
-				return (nnom_status_t)arm_convolve_HWC_q7_RGB(
-					layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
-					cl->weight->p_data,
-					layer->out->tensor->dim[2],
-					cl->kernel.w, cl->pad.w, cl->stride.w,
-					cl->bias->p_data, cl->bias_lshift[0],
-					cl->output_rshift[0], layer->out->tensor->p_data, layer->out->tensor->dim[1],
-					(q15_t *)(layer->comp->mem->blk), NULL);
+    {   
+        // 8 bit cmsis nn
+        if(layer->in->tensor->bitwidth == 8)
+        {
+            //RGB
+            // ch_im_in = 3, w = h
+            if (layer->in->tensor->dim[2] == 3 && layer->in->tensor->dim[0] == layer->in->tensor->dim[1])
+                // squared
+                if((cl->kernel.w == cl->kernel.h) && (cl->pad.w == cl->pad.h) && (cl->stride.w == cl->stride.h))
+                    return (nnom_status_t)arm_convolve_HWC_q7_RGB(
+                        layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
+                        cl->weight->p_data,
+                        layer->out->tensor->dim[2],
+                        cl->kernel.w, cl->pad.w, cl->stride.w,
+                        cl->bias->p_data, cl->bias_lshift[0],
+                        cl->output_rshift[0], layer->out->tensor->p_data, layer->out->tensor->dim[1],
+                        (q15_t *)(layer->comp->mem->blk), NULL);
 
-		// check if can use optimized function
-		//	ch_im_in is multiple of 4
-		//	ch_im_out is multiple of 2
-		if ((layer->in->tensor->dim[2] % 4 == 0) && (layer->out->tensor->dim[2] % 2 == 0))
-		{
-			// squared
-			if((layer->in->tensor->dim[0] == layer->in->tensor->dim[1])
-			&& (layer->out->tensor->dim[0] == layer->out->tensor->dim[1])
-			&& (cl->kernel.w == cl->kernel.h) && (cl->pad.w == cl->pad.h) && (cl->stride.w == cl->stride.h))
-			{
-				// 1x1 fast
-				if (cl->kernel.w == 1 && cl->kernel.h == 1 && cl->stride.w == 1 && cl->stride.h == 1 && cl->pad.w == 0 && cl->pad.h == 0)
-					return (nnom_status_t)arm_convolve_1x1_HWC_q7_fast_nonsquare(
-						layer->in->tensor->p_data,
-						layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
-						cl->weight->p_data,
-						layer->out->tensor->dim[2],
-						cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-						cl->bias->p_data, cl->bias_lshift[0],
-						cl->output_rshift[0], layer->out->tensor->p_data, layer->out->tensor->dim[1], layer->out->tensor->dim[0],
-						(q15_t *)(layer->comp->mem->blk), NULL);
-				// opt square shape
-				else
-					return (nnom_status_t)arm_convolve_HWC_q7_fast(
-						layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
-						cl->weight->p_data,
-						layer->out->tensor->dim[2], cl->kernel.w, cl->pad.w, cl->stride.w,
-						cl->bias->p_data, cl->bias_lshift[0],
-						cl->output_rshift[0], layer->out->tensor->p_data,
-						layer->out->tensor->dim[1], (q15_t *)(layer->comp->mem->blk), NULL);
-			}
-			// opt none square shape
-			else
-				return (nnom_status_t)arm_convolve_HWC_q7_fast_nonsquare(
-					layer->in->tensor->p_data,
-					layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
-					cl->weight->p_data, layer->out->tensor->dim[2],
-					cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-					cl->bias->p_data, cl->bias_lshift[0], cl->output_rshift[0],
-					layer->out->tensor->p_data,
-					layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
-		}
-		// none optimized
-		else
-		{
-			// none opt square shape
-			if ((layer->in->tensor->dim[0] == layer->in->tensor->dim[1] && 
-				layer->out->tensor->dim[0] == layer->out->tensor->dim[1]) &&
-				(cl->kernel.w == cl->kernel.h) && (cl->pad.w == cl->pad.h) && (cl->stride.w == cl->stride.h))
-				return (nnom_status_t)arm_convolve_HWC_q7_basic(
-					layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
-					cl->weight->p_data,
-					layer->out->tensor->dim[2], cl->kernel.w, cl->pad.w, cl->stride.w,
-					cl->bias->p_data, cl->bias_lshift[0],
-					cl->output_rshift[0], layer->out->tensor->p_data,
-					layer->out->tensor->dim[1], (q15_t *)(layer->comp->mem->blk), NULL);
-			// none opt none square shape
-			else
-				return (nnom_status_t)arm_convolve_HWC_q7_basic_nonsquare(
-					layer->in->tensor->p_data,
-					layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
-					cl->weight->p_data, layer->out->tensor->dim[2],
-					cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-					cl->bias->p_data, cl->bias_lshift[0], cl->output_rshift[0],
-					layer->out->tensor->p_data,
-					layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
-		} //end of cmsis-nn none-opt
-	} // end of dilation == 1
+            // check if can use optimized function
+            //	ch_im_in is multiple of 4
+            //	ch_im_out is multiple of 2
+            if ((layer->in->tensor->dim[2] % 4 == 0) && (layer->out->tensor->dim[2] % 2 == 0))
+            {
+                // squared
+                if((layer->in->tensor->dim[0] == layer->in->tensor->dim[1])
+                && (layer->out->tensor->dim[0] == layer->out->tensor->dim[1])
+                && (cl->kernel.w == cl->kernel.h) && (cl->pad.w == cl->pad.h) && (cl->stride.w == cl->stride.h))
+                {
+                    // 1x1 fast
+                    if (cl->kernel.w == 1 && cl->kernel.h == 1 && cl->stride.w == 1 && cl->stride.h == 1 && cl->pad.w == 0 && cl->pad.h == 0)
+                        return (nnom_status_t)arm_convolve_1x1_HWC_q7_fast_nonsquare(
+                            layer->in->tensor->p_data,
+                            layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+                            cl->weight->p_data,
+                            layer->out->tensor->dim[2],
+                            cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
+                            cl->bias->p_data, cl->bias_lshift[0],
+                            cl->output_rshift[0], layer->out->tensor->p_data, layer->out->tensor->dim[1], layer->out->tensor->dim[0],
+                            (q15_t *)(layer->comp->mem->blk), NULL);
+                    // opt square shape
+                    else
+                        return (nnom_status_t)arm_convolve_HWC_q7_fast(
+                            layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
+                            cl->weight->p_data,
+                            layer->out->tensor->dim[2], cl->kernel.w, cl->pad.w, cl->stride.w,
+                            cl->bias->p_data, cl->bias_lshift[0],
+                            cl->output_rshift[0], layer->out->tensor->p_data,
+                            layer->out->tensor->dim[1], (q15_t *)(layer->comp->mem->blk), NULL);
+                }
+                // opt none square shape
+                else
+                    return (nnom_status_t)arm_convolve_HWC_q7_fast_nonsquare(
+                        layer->in->tensor->p_data,
+                        layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+                        cl->weight->p_data, layer->out->tensor->dim[2],
+                        cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
+                        cl->bias->p_data, cl->bias_lshift[0], cl->output_rshift[0],
+                        layer->out->tensor->p_data,
+                        layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
+            }
+            // none optimized
+            else
+            {
+                // none opt square shape
+                if ((layer->in->tensor->dim[0] == layer->in->tensor->dim[1] && 
+                    layer->out->tensor->dim[0] == layer->out->tensor->dim[1]) &&
+                    (cl->kernel.w == cl->kernel.h) && (cl->pad.w == cl->pad.h) && (cl->stride.w == cl->stride.h))
+                    return (nnom_status_t)arm_convolve_HWC_q7_basic(
+                        layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
+                        cl->weight->p_data,
+                        layer->out->tensor->dim[2], cl->kernel.w, cl->pad.w, cl->stride.w,
+                        cl->bias->p_data, cl->bias_lshift[0],
+                        cl->output_rshift[0], layer->out->tensor->p_data,
+                        layer->out->tensor->dim[1], (q15_t *)(layer->comp->mem->blk), NULL);
+                // none opt none square shape
+                else
+                    return (nnom_status_t)arm_convolve_HWC_q7_basic_nonsquare(
+                        layer->in->tensor->p_data,
+                        layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+                        cl->weight->p_data, layer->out->tensor->dim[2],
+                        cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
+                        cl->bias->p_data, cl->bias_lshift[0], cl->output_rshift[0],
+                        layer->out->tensor->p_data,
+                        layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
+            } //end of cmsis-nn none-opt
+        }  //end of 8 bit cmsis-nn
+        else if (layer->in->tensor->bitwidth == 16)
+        {
+            // fast opt
+            if ((layer->in->tensor->dim[2] % 2 == 0) && (layer->out->tensor->dim[2] % 2 == 0))
+            {
+                if((layer->in->tensor->dim[0] == layer->in->tensor->dim[1])
+                    && (layer->out->tensor->dim[0] == layer->out->tensor->dim[1])
+                    && (cl->kernel.w == cl->kernel.h) && (cl->pad.w == cl->pad.h) && (cl->stride.w == cl->stride.h))
+                    return (nnom_status_t)arm_convolve_HWC_q15_fast(
+                        layer->in->tensor->p_data, layer->in->tensor->dim[1], layer->in->tensor->dim[2],
+                        cl->weight->p_data,
+                        layer->out->tensor->dim[2], cl->kernel.w, cl->pad.w, cl->stride.w,
+                        cl->bias->p_data, cl->bias_lshift[0],
+                        cl->output_rshift[0], layer->out->tensor->p_data,
+                        layer->out->tensor->dim[1], (q15_t *)(layer->comp->mem->blk), NULL);
+                else 
+                    return (nnom_status_t)arm_convolve_HWC_q15_fast_nonsquare(
+                        layer->in->tensor->p_data,
+                        layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+                        cl->weight->p_data, layer->out->tensor->dim[2],
+                        cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
+                        cl->bias->p_data, cl->bias_lshift[0], cl->output_rshift[0],
+                        layer->out->tensor->p_data,
+                        layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
+            }
+            // none opt basic
+            else
+            {
+                return (nnom_status_t)arm_convolve_HWC_q15_basic_nonsquare(
+                    layer->in->tensor->p_data,
+                    layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+                    cl->weight->p_data, layer->out->tensor->dim[2],
+                    cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
+                    cl->bias->p_data, cl->bias_lshift[0], cl->output_rshift[0],
+                    layer->out->tensor->p_data,
+                    layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
+            }
+
+        } // end of 16 bit cmsis-nn
+    } // end of dilation == 1
 	else
 	#endif // NNOM_USING_CMSIS_NN
 	{
-		// local implementation
+
+        if(layer->in->tensor->bitwidth == 16) 
+    	local_convolve_HWC_q15_nonsquare(
+				layer->in->tensor->p_data,
+				layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+				cl->weight->p_data, layer->out->tensor->dim[2],
+				cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h, cl->dilation.w, cl->dilation.h,
+				cl->bias->p_data, cl->bias_lshift, cl->output_rshift, cl->weight->qtype,
+				layer->out->tensor->p_data,
+				layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
+        else
 		local_convolve_HWC_q7_nonsquare(
 					layer->in->tensor->p_data,
 					layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],

@@ -177,20 +177,22 @@ static nnom_status_t adv_relu_run(nnom_activation_t* act)
     if(act->tensor->bitwidth == 16)
     {
         q15_t max = 32767;
-        q15_t threshold = MIN(a->threshold * (1<<act->tensor->q_dec[0]), 32767);
-        if(a->max != INFINITY || a->max != 0x7fc00000) 
-            if(a->max * (1<<act->tensor->q_dec[0]) < max)
-                max = a->max * (1<<act->tensor->q_dec[0]);
-        local_adv_relu_q7(act->tensor->p_data, a->negative_slope, max, threshold, tensor_size(act->tensor));
+        q15_t threshold = MIN(a->threshold * (1 << (15 - act->tensor->q_dec[0])), 32767);
+		q7_t max_scale = (1 << (15 - act->tensor->q_dec[0]));
+        if(a->max != INFINITY && a->max != 0x7fc00000) 
+            if(a->max * max_scale < max)
+                max = a->max * max_scale;
+        local_adv_relu_q15(act->tensor->p_data, a->negative_slope, max, threshold, tensor_size(act->tensor));
     }
     // 8bit
     else
     {
         q7_t max = 127;
-        q7_t threshold = MIN(a->threshold * (1<<act->tensor->q_dec[0]), 127);
-        if(a->max != INFINITY || a->max != 0x7fc00000) // QNAN also represent infinity in script 0.4.1
-            if(a->max * (1<<act->tensor->q_dec[0]) < max)
-                max = a->max * (1<<act->tensor->q_dec[0]);
+        q7_t threshold = MIN(a->threshold * (1 << (7 - act->tensor->q_dec[0])), 127);
+		q7_t max_scale = (1 << (7 - act->tensor->q_dec[0]));
+        if(a->max != INFINITY && a->max != 0x7fc00000) // QNAN 0x7fc00000 also represent infinity in script 0.4.1
+            if(a->max * max_scale < max)
+                max = a->max * max_scale;
         local_adv_relu_q7(act->tensor->p_data, a->negative_slope, max, threshold, tensor_size(act->tensor));
     }
     
@@ -286,7 +288,7 @@ nnom_activation_t* act_leaky_relu(float alpha)
 	nnom_activation_leaky_relu_t* act = nnom_mem(sizeof(nnom_activation_leaky_relu_t));
 	act->super.run = leaky_relu_run;
 	act->super.type = ACT_LEAKY_RELU;
-	act->alpha = (q7_t)alpha*128;
+	act->alpha = (q7_t)(alpha*128);
 	return (nnom_activation_t* )act;
 }
 
@@ -295,7 +297,7 @@ nnom_activation_t* act_adv_relu(float negative_slope, float max, float threshold
 	nnom_activation_adv_relu_t* act = nnom_mem(sizeof(nnom_activation_adv_relu_t));
 	act->super.run = adv_relu_run;
 	act->super.type = ACT_ADV_RELU;
-	act->negative_slope = (q7_t)negative_slope*128;
+	act->negative_slope = (q7_t)(negative_slope*128);
 	act->max = max;
 	act->threshold = threshold;
 	return (nnom_activation_t* )act;
@@ -339,8 +341,6 @@ nnom_activation_t* act_hard_sigmoid(int32_t dec_bit)
 	act->dec_bit = dec_bit;
 	return (nnom_activation_t*)act;
 }
-
-
 
 // return the decimal bit if the activation will change the q format of the layer. 
 int32_t act_get_dec_bit(nnom_activation_type_t type, int32_t dec_bit)

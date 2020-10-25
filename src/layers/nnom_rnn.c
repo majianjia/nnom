@@ -109,7 +109,8 @@ nnom_status_t rnn_build(nnom_layer_t* layer)
 	}
 
 	// output q format - the output of the available activations are both q0.7.  
-	layer->out->tensor->q_dec[0] = 7;
+	layer->out->tensor->q_dec[0] = layer->in->tensor->bitwidth==16? 15: 7;
+	layer->out->tensor->bitwidth = layer->in->tensor->bitwidth;
 	// see if the activation will change the q format
 	if(layer->actail) 
 		layer->out->tensor->q_dec[0] = act_get_dec_bit(layer->actail->type, layer->out->tensor->q_dec[0]);
