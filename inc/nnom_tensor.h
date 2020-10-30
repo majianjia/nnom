@@ -32,6 +32,7 @@ nnom_tensor_t* tensor_set_attr(nnom_tensor_t* t,
 nnom_tensor_t* tensor_cpy_attr(nnom_tensor_t* des, nnom_tensor_t* src);
 size_t tensor_get_num_channel(nnom_tensor_t* t);
 size_t tensor_size(nnom_tensor_t* t);
+size_t tensor_size_byte(nnom_tensor_t* t);
 
 // only support 3d tensor
 // change format from CHW to HWC

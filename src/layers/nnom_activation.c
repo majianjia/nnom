@@ -138,11 +138,22 @@ nnom_status_t activation_run(nnom_layer_t *layer)
 // porting
 static nnom_status_t relu_run(nnom_activation_t* act)
 {
-#ifdef NNOM_USING_CMSIS_NN
-	arm_relu_q7(act->tensor->p_data, tensor_size(act->tensor));
-#else
-	local_relu_q7(act->tensor->p_data, tensor_size(act->tensor));
-#endif
+    if(act->tensor->bitwidth == 16)
+    {
+    #ifdef NNOM_USING_CMSIS_NN
+        arm_relu_q15(act->tensor->p_data, tensor_size(act->tensor));
+    #else
+        local_relu_q15(act->tensor->p_data, tensor_size(act->tensor));
+    #endif
+    }
+    else
+    {
+    #ifdef NNOM_USING_CMSIS_NN
+        arm_relu_q7(act->tensor->p_data, tensor_size(act->tensor));
+    #else
+        local_relu_q7(act->tensor->p_data, tensor_size(act->tensor));
+    #endif
+    }
 	return NN_SUCCESS;
 }
 
@@ -150,7 +161,10 @@ static nnom_status_t relu_run(nnom_activation_t* act)
 static nnom_status_t leaky_relu_run(nnom_activation_t* act)
 {
 	nnom_activation_leaky_relu_t* a = (nnom_activation_leaky_relu_t*) act;
-	local_leaky_relu_q7(act->tensor->p_data, a->alpha, tensor_size(act->tensor));
+    if(act->tensor->bitwidth == 16)
+        local_leaky_relu_q15(act->tensor->p_data, a->alpha, tensor_size(act->tensor));
+    else
+	    local_leaky_relu_q7(act->tensor->p_data, a->alpha, tensor_size(act->tensor));
 	return NN_SUCCESS;
 }
 
@@ -160,61 +174,103 @@ static nnom_status_t adv_relu_run(nnom_activation_t* act)
 	nnom_activation_adv_relu_t* a = (nnom_activation_adv_relu_t*) act;
 
 	// we need to convert float to fixpoint in runtime where we can know the tensor's q format
-	q7_t max = 127;
-	q7_t threshold = a->threshold * (1<<act->tensor->q_dec[0]);
-
-	if(a->max != 0x7fc00000) // QNAN for None
-	{
-		if(a->max * (1<<act->tensor->q_dec[0]) < 127)
-			max = a->max * (1<<act->tensor->q_dec[0]);
-	}
-
-	local_adv_relu_q7(act->tensor->p_data, a->negative_slope, max, threshold, tensor_size(act->tensor));
+    if(act->tensor->bitwidth == 16)
+    {
+        q15_t max = 32767;
+        q15_t threshold = MIN(a->threshold * (1 << (15 - act->tensor->q_dec[0])), 32767);
+		q7_t max_scale = (1 << (15 - act->tensor->q_dec[0]));
+        if(a->max != INFINITY && a->max != 0x7fc00000) 
+            if(a->max * max_scale < max)
+                max = a->max * max_scale;
+        local_adv_relu_q15(act->tensor->p_data, a->negative_slope, max, threshold, tensor_size(act->tensor));
+    }
+    // 8bit
+    else
+    {
+        q7_t max = 127;
+        q7_t threshold = MIN(a->threshold * (1 << (7 - act->tensor->q_dec[0])), 127);
+		q7_t max_scale = (1 << (7 - act->tensor->q_dec[0]));
+        if(a->max != INFINITY && a->max != 0x7fc00000) // QNAN 0x7fc00000 also represent infinity in script 0.4.1
+            if(a->max * max_scale < max)
+                max = a->max * max_scale;
+        local_adv_relu_q7(act->tensor->p_data, a->negative_slope, max, threshold, tensor_size(act->tensor));
+    }
+    
 	return NN_SUCCESS;
 }
-
 
 static nnom_status_t tanh_run(nnom_activation_t* act)
 {
 	nnom_activation_fixed_q_t * a = (nnom_activation_fixed_q_t*)act;
-	uint8_t int_bit = 7 - a->dec_bit;
-
-	// arm version cannot handle int_bit > 3
-#ifdef NNOM_USING_CMSIS_NN
-	if(act->tensor->q_dec[0] <= 3) 
-		arm_nn_activations_direct_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit, ARM_TANH);
-	else
-#endif
-		local_tanh_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit);
+    // 16 bit
+    if(act->tensor->bitwidth == 16)
+    {   
+        uint8_t int_bit = 15 - a->dec_bit;
+        #ifdef NNOM_USING_CMSIS_NN
+        arm_nn_activations_direct_q15(act->tensor->p_data, tensor_size(act->tensor), int_bit, ARM_TANH);
+        #else
+        local_tanh_q15(act->tensor->p_data, tensor_size(act->tensor), int_bit);
+        #endif
+    }
+    else // 8bit
+    {
+        uint8_t int_bit = 7 - a->dec_bit;
+        // arm version cannot handle int_bit > 3
+    #ifdef NNOM_USING_CMSIS_NN
+        if(act->tensor->q_dec[0] <= 3) 
+            arm_nn_activations_direct_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit, ARM_TANH);
+        else
+    #endif
+            local_tanh_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit);
+    }
 	return NN_SUCCESS;
 }
 
 static nnom_status_t sigmoid_run( nnom_activation_t* act)
 {
 	nnom_activation_fixed_q_t * a = (nnom_activation_fixed_q_t*)act;
-	uint8_t int_bit = 7 - a->dec_bit;
+    // 16 bit
+    if(act->tensor->bitwidth == 16)
+    {   
+        uint8_t int_bit = 15 - a->dec_bit;
+        #ifdef NNOM_USING_CMSIS_NN
+        arm_nn_activations_direct_q15(act->tensor->p_data, tensor_size(act->tensor), int_bit, ARM_SIGMOID);
+        #else
+        local_sigmoid_q15(act->tensor->p_data, tensor_size(act->tensor), int_bit);
+        #endif
+    }
+    else     // 8bit
+    {
+        uint8_t int_bit = 7 - a->dec_bit;
+        // arm version cannot handle int_bit > 3
+    #ifdef NNOM_USING_CMSIS_NN
+        if(act->tensor->q_dec[0] <= 3) 
+            arm_nn_activations_direct_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit, ARM_TANH);
+        else
+    #endif
+            local_sigmoid_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit);
+    }
 
-	// arm version cannot handle int_bit > 3
-#ifdef NNOM_USING_CMSIS_NN
-	if(act->tensor->q_dec[0] <= 3) 
-		arm_nn_activations_direct_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit, ARM_SIGMOID);
-	else
-#endif
-		local_sigmoid_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit);
 	return NN_SUCCESS;
 }
 
 static nnom_status_t hard_tanh_run( nnom_activation_t* act)
 {
 	nnom_activation_fixed_q_t * a = (nnom_activation_fixed_q_t*)act;
-    local_hard_tanh_q7(act->tensor->p_data, tensor_size(act->tensor), a->dec_bit); // hard take dec bit instead
+    if(act->tensor->bitwidth == 16)
+        local_hard_tanh_q15(act->tensor->p_data, tensor_size(act->tensor), a->dec_bit + 8); // a->dec is based on 8 bit. 
+    else
+        local_hard_tanh_q7(act->tensor->p_data, tensor_size(act->tensor), a->dec_bit); 
 	return NN_SUCCESS;
 }
 
 static nnom_status_t hard_sigmoid_run( nnom_activation_t* act)
 {
 	nnom_activation_fixed_q_t * a = (nnom_activation_fixed_q_t*)act;
-    local_hard_sigmoid_q7(act->tensor->p_data, tensor_size(act->tensor), a->dec_bit); // hard take dec bit instead
+    if(act->tensor->bitwidth == 16)
+        local_hard_sigmoid_q15(act->tensor->p_data, tensor_size(act->tensor), a->dec_bit + 8); // a->dec is based on 8 bit. 
+    else
+        local_hard_sigmoid_q7(act->tensor->p_data, tensor_size(act->tensor), a->dec_bit); 
 	return NN_SUCCESS;
 }
 
@@ -232,7 +288,7 @@ nnom_activation_t* act_leaky_relu(float alpha)
 	nnom_activation_leaky_relu_t* act = nnom_mem(sizeof(nnom_activation_leaky_relu_t));
 	act->super.run = leaky_relu_run;
 	act->super.type = ACT_LEAKY_RELU;
-	act->alpha = (q7_t)alpha*128;
+	act->alpha = (q7_t)(alpha*128);
 	return (nnom_activation_t* )act;
 }
 
@@ -241,7 +297,7 @@ nnom_activation_t* act_adv_relu(float negative_slope, float max, float threshold
 	nnom_activation_adv_relu_t* act = nnom_mem(sizeof(nnom_activation_adv_relu_t));
 	act->super.run = adv_relu_run;
 	act->super.type = ACT_ADV_RELU;
-	act->negative_slope = (q7_t)negative_slope*128;
+	act->negative_slope = (q7_t)(negative_slope*128);
 	act->max = max;
 	act->threshold = threshold;
 	return (nnom_activation_t* )act;
@@ -285,8 +341,6 @@ nnom_activation_t* act_hard_sigmoid(int32_t dec_bit)
 	act->dec_bit = dec_bit;
 	return (nnom_activation_t*)act;
 }
-
-
 
 // return the decimal bit if the activation will change the q format of the layer. 
 int32_t act_get_dec_bit(nnom_activation_type_t type, int32_t dec_bit)
