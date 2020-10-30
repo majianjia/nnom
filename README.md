@@ -2,6 +2,7 @@
 # Neural Network on Microcontroller (NNoM)
 [![Build Status](https://travis-ci.org/majianjia/nnom.svg?branch=master)](https://travis-ci.org/majianjia/nnom)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![DOI](https://zenodo.org/badge/166869630.svg)](https://zenodo.org/badge/latestdoi/166869630)
 
 NNoM is a high-level inference Neural Network library specifically for microcontrollers. 
 
@@ -184,9 +185,23 @@ x = Relu()(x)
 
 ## Contacts
 Jianjia Ma
-
 majianjia@live.com
 
-## Citation Required
-Please contact us using above details. 
+Also find me for field supports. 
+
+## Citation are required in publication
+Please contact me using above details if you have any problem. 
+
+Example:
+@software{jianjia_ma_2020_4158709,
+  author       = {Jianjia Ma},
+  title        = {{A higher-level Neural Network library on Microcontrollers (NNoM)}},
+  month        = oct,
+  year         = 2020,
+  publisher    = {Zenodo},
+  version      = {v0.4.2},
+  doi          = {10.5281/zenodo.4158709},
+  url          = {https://doi.org/10.5281/zenodo.4158709}
+}
+
 
