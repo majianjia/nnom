@@ -193,6 +193,7 @@ Also find me for field supports.
 Please contact me using above details if you have any problem. 
 
 Example:
+~~~
 @software{jianjia_ma_2020_4158709,
   author       = {Jianjia Ma},
   title        = {{A higher-level Neural Network library on Microcontrollers (NNoM)}},
@@ -203,5 +204,5 @@ Example:
   doi          = {10.5281/zenodo.4158709},
   url          = {https://doi.org/10.5281/zenodo.4158709}
 }
-
+~~~
 
