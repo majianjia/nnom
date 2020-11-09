@@ -391,14 +391,15 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
             // none opt basic
             else
             {
-                return (nnom_status_t)arm_convolve_HWC_q15_basic_nonsquare(
-                    layer->in->tensor->p_data,
-                    layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
-                    cl->weight->p_data, layer->out->tensor->dim[2],
-                    cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h,
-                    cl->bias->p_data, cl->bias_lshift[0], cl->output_rshift[0],
-                    layer->out->tensor->p_data,
-                    layer->out->tensor->dim[1], layer->out->tensor->dim[0], (q15_t *)(layer->comp->mem->blk), NULL);
+				local_convolve_HWC_q7_nonsquare(
+					layer->in->tensor->p_data,
+					layer->in->tensor->dim[1], layer->in->tensor->dim[0], layer->in->tensor->dim[2],
+					cl->weight->p_data, layer->out->tensor->dim[2],
+					cl->kernel.w, cl->kernel.h, cl->pad.w, cl->pad.h, cl->stride.w, cl->stride.h, cl->dilation.w, cl->dilation.h,
+					cl->bias->p_data, cl->bias_lshift, cl->output_rshift, cl->weight->qtype,
+					layer->out->tensor->p_data,
+					layer->out->tensor->dim[1], layer->out->tensor->dim[0], NULL, NULL);
+				return NN_SUCCESS;
             }
 
         } // end of 16 bit cmsis-nn
