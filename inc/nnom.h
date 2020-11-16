@@ -35,7 +35,7 @@ extern "C" {
 /* version */
 #define NNOM_MAJORVERSION     0              /**< major version number */
 #define NNOM_SUBVERSION       4              /**< minor version number */
-#define NNOM_REVISION         2              /**< revise version number */
+#define NNOM_REVISION         3              /**< revise version number */
 #define NNOM_VERSION          ((NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 
 #ifdef ARM_NN_TRUNCATE
