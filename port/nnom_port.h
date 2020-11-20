@@ -33,7 +33,7 @@
 #define NNOM_BLOCK_NUM  	(8)		// maximum number of memory block  
 #define DENSE_WEIGHT_OPT 	(1)		// if used fully connected layer optimized weights. 
 
-//#define NNOM_TRUNCATE             // enable: use round to the nearest int. disable: floor (default)
+//#define NNOM_TRUNCATE             // disable: backend ops use round to the nearest int (default). enable: floor 
 
 // Backend format configuration
 //#define NNOM_USING_CHW            // uncomment if using CHW format. otherwise using default HWC format.

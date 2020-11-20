@@ -43,7 +43,7 @@ extern "C" {
 #endif
 
 #ifndef NNOM_TRUNCATE 
-    #define NNOM_ROUND(out_shift) ( (0x1u << out_shift) >> 1 )
+    #define NNOM_ROUND(out_shift) ((0x1 << out_shift) >> 1 )
 #else
     #define NNOM_ROUND(out_shift) 0
 #endif
