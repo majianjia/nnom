@@ -19,7 +19,7 @@
 #include <string.h>
 
 #include "nnom.h"
-#include "weights.h"
+#include "denoise_weights.h"
 #include "mfcc.h"
 
  // the bandpass filter coefficiences

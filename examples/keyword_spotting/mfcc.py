@@ -20,7 +20,7 @@ def load_noise(path='dat/_background_noise_/'):
         noise.append(sig)
     return  noise
 
-def generate_mfcc(sig, rate, sig_len, noise=None, noise_weight=0.1, winlen=0.03125, winstep=0.03125/2, numcep=13, nfilt=26, nfft=512, lowfreq=20, highfreq=4000, winfunc=np.hanning, ceplifter=0, preemph=0.97):
+def generate_mfcc(sig, rate, sig_len, noise=None, noise_weight=0.1, winlen=0.032, winstep=0.032/2, numcep=13, nfilt=26, nfft=512, lowfreq=20, highfreq=4000, winfunc=np.hanning, ceplifter=0, preemph=0.97):
     if(len(sig) != sig_len):
         if(len(sig)< sig_len):
             sig = np.pad(sig, (0, sig_len - len(sig)), 'constant')
@@ -41,7 +41,7 @@ def generate_mfcc(sig, rate, sig_len, noise=None, noise_weight=0.1, winlen=0.031
     mfcc_feat = mfcc_feat.astype('float32')
     return mfcc_feat
 
-def merge_mfcc_file(input_path='dat/', mix_noise=True, sig_len=16000, winlen=0.03125, winstep=0.03125/2, numcep=13, nfilt=26, nfft=512,
+def merge_mfcc_file(input_path='dat/', mix_noise=True, sig_len=16000, winlen=0.032, winstep=0.032/2, numcep=13, nfilt=26, nfft=512,
                     lowfreq=20, highfreq=4000, winfunc=np.hanning, ceplifter=0, preemph=0.97):
     train_data = []
     test_data = []
