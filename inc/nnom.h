@@ -327,6 +327,13 @@ typedef struct _nnom_activation_t
 	nnom_activation_type_t type;
 } nnom_activation_t;
 
+// local static functions when libc is not available
+#ifdef NNOM_USING_STATIC_MEMORY
+    void nnom_set_static_buf(void* buf, size_t size);
+    void *nnom_malloc(size_t size);
+    void nnom_free(void* p);
+    void nnom_memset(void* ptr, int value, size_t num);
+#endif //NNOM_USING_STATIC_BUF
 
 typedef struct _nnom_model nnom_model_t;
 
