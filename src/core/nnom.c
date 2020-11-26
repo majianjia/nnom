@@ -35,7 +35,7 @@ void nnom_set_static_buf(void* buf, size_t size)
 }
 void* nnom_malloc(size_t size)
 {
-    size = nnom_alignto(size, 4);
+    size = nnom_alignto(size, sizeof(*char));
     if(size + nnom_static_buf_curr < nnom_static_buf_size)
     {
         uint8_t* new_block = nnom_static_buf_curr + nnom_static_buf;
@@ -63,7 +63,7 @@ void nnom_memset(void* ptr, int value, size_t num)
 
 void *nnom_mem(size_t size)
 {
-	size = nnom_alignto(size, 4);
+	size = nnom_alignto(size, NNOM_ALIGN);
 	void *p = nnom_malloc(size);
 	if (p)
 	{
@@ -631,7 +631,7 @@ nnom_status_t compile_layers(nnom_layer_t* first, nnom_layer_t *curr, nnom_mem_b
 			{
 				in_blk = allocate_block(block_pool);
 				in_blk->owners += 1; // add 1
-				mem_size = nnom_alignto(tensor_size(in->tensor), 4);
+				mem_size = nnom_alignto(tensor_size(in->tensor), NNOM_ALIGN);
 				in_blk->size = mem_size > in_blk->size ? mem_size : in_blk->size;
 				// set the blk to the layer IO
 				in->mem = in_blk;
@@ -684,7 +684,7 @@ nnom_status_t compile_layers(nnom_layer_t* first, nnom_layer_t *curr, nnom_mem_b
 			layer->comp->mem->owners += 1; // add us to buffer users
 			layer->comp->mem->state = NNOM_BUF_FILLED;
 			// record maximum mem size in this block
-			mem_size = nnom_alignto(layer->comp->size, 4);
+			mem_size = nnom_alignto(layer->comp->size, NNOM_ALIGN);
 			layer->comp->mem->size =
 				mem_size > layer->comp->mem->size ? mem_size : layer->comp->mem->size;
 		}
@@ -724,7 +724,7 @@ nnom_status_t compile_layers(nnom_layer_t* first, nnom_layer_t *curr, nnom_mem_b
 				out_blk->owners = 1;
 				out_blk->state = NNOM_BUF_FILLED; // marked filled
 				// record maximum mem size in this block
-				mem_size = nnom_alignto(tensor_size(layer->out->tensor), 4);
+				mem_size = nnom_alignto(tensor_size(layer->out->tensor), NNOM_ALIGN);
 				out_blk->size = mem_size > out_blk->size ? mem_size : out_blk->size;
 				// set the blk to the layer IO
 				layer->out->mem = out_blk;
@@ -767,7 +767,7 @@ nnom_status_t compile_layers(nnom_layer_t* first, nnom_layer_t *curr, nnom_mem_b
 					if (out->mem == NULL)
 						return NN_NO_MEMORY;
 					// record maximum mem size in this block
-					mem_size = nnom_alignto(tensor_size(out->tensor), 4);
+					mem_size = nnom_alignto(tensor_size(out->tensor), NNOM_ALIGN);
 					out->mem->size = mem_size > out->mem->size ? mem_size : out->mem->size;
 					// keep the block untill the last hooked layer is called.
 					out->mem->owners = nnom_hook_length(&out->hook); // set lifetime of the buffer = the num of hooked layers
