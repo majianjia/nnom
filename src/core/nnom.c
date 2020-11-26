@@ -976,7 +976,7 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 		return NN_NO_MEMORY;
 	}
     // all memory cost
-	NNOM_LOG(" Total memory cost: %d bytes\n", (uint32_t)nnom_memory_taken);
+	NNOM_LOG(" Total memory occupied: %d bytes\n", (uint32_t)nnom_memory_taken);
 
 	// split the memory for every memory block
 	block_mem_set(m, buf);

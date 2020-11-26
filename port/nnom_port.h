@@ -13,14 +13,11 @@
 #ifndef __NNOM_PORT_H__
 #define __NNOM_PORT_H__
 
-#include <stdint.h>
-#include <string.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 // use static memory 
-#define NNOM_USING_STATIC_MEMORY    // enable to use built in memory allocation using large block of static memory
+//#define NNOM_USING_STATIC_MEMORY    // enable to use built in memory allocation using large block of static memory
                                     // must set buf using "nnom_set_static_buf()" before creating a model. 
 
 // dynamic memory interfaces
