@@ -35,7 +35,7 @@ void nnom_set_static_buf(void* buf, size_t size)
 }
 void* nnom_malloc(size_t size)
 {
-    size = nnom_alignto(size, sizeof(*char));
+    size = nnom_alignto(size, NNOM_ALIGN);
     if(size + nnom_static_buf_curr < nnom_static_buf_size)
     {
         uint8_t* new_block = nnom_static_buf_curr + nnom_static_buf;
