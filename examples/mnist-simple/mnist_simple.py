@@ -132,8 +132,8 @@ if __name__ == "__main__":
     generate_model(model, np.vstack((x_train, x_test)), name="weights.h")
 
     # plot
-    acc = history.history['acc']
-    val_acc = history.history['val_acc']
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
 
     plt.plot(range(0, epochs), acc, color='red', label='Training acc')
     plt.plot(range(0, epochs), val_acc, color='green', label='Validation acc')

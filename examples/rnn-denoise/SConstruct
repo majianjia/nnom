@@ -1,4 +1,5 @@
 import os
+import sys
 
 #if(not os.path.exists('CMSIS_5')):
 #    os.system('git clone https://github.com/ARM-software/CMSIS_5.git')
@@ -27,11 +28,18 @@ objs += Glob('mfcc.c')
 #                      'CMSIS_5/CMSIS/Core/Include'])
 #env.Append(CPPDEFINES=['__ARM_ARCH_8M_BASE__'])
 #env.Append(CCFLAGS=['-g','-O0','-std=gnu99'])
+
 env.Append(CCFLAGS=['-std=c99'])
+
 
 objs +=Glob('%s/src/core/*.c'%(ROOT))
 objs +=Glob('%s/src/layers/*.c'%(ROOT))
 objs +=Glob('%s/src/backends/*.c'%(ROOT))
-env.Append(CPPPATH=['%s/inc'%(ROOT),'%s/port'%(ROOT)])
 
-env.Program('rnn-denoise',objs)
+
+
+env.Append(CPPPATH=['%s/inc'%(ROOT),'%s/port'%(ROOT)])
+if sys.platform == "linux" or sys.platform == "linux2":
+    env.Program('rnn-denoise',objs,LIBS=['m'])
+else:
+    env.Program('rnn-denoise',objs)

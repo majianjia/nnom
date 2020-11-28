@@ -1,8 +1,10 @@
 # Speech Noise Suppression Example
 
-Also know as `rnn-denoise example`. [中文文档](README_CH.md)
+Also know as `rnn-denoise example`. [中文文档](README_CN.md)
 
 This example is partially based on the methodology provided by the well-known [RNNoise](https://jmvalin.ca/demo/rnnoise/) project and their [paper](https://arxiv.org/abs/1709.08243) . Great thanks to them!
+
+Audio Demo: https://youtu.be/JG0mSZ1ZnrY
 
 **Third party packages and license**
 
@@ -137,7 +139,7 @@ Due to the overlapping of each band, the signal might sound too loud and will le
 
 ## Model structure
 
-This example provides 2 different RNN models. The first one is RNNoise-like structure, consist of multiple links between many individual GRU layers. Those links are merge using concatenation. In addition to the gains of the equalizer, it also outputs the Voice Activity Detection(VAD). This model is the default in `main.py` The structure is shown below.  This model has around `120k` weights, larger than RNNoise because it go an extra input layer. However, the scale for the model is far beyond enough. You may reduce many without any noticeable different in result.  
+This example provides 2 different RNN models. The first one is RNNoise-like structure, consist of multiple links between many individual GRU layers. Those links are merge using concatenation. In addition to the gains of the equalizer, it also outputs the Voice Activity Detection(VAD). This model is the default in `main.py` The structure is shown below.  This model has around `120k` weights, larger than RNNoise because it go an extra input layer. However, the scale for the model is far beyond enough. You may reduce many GRU units without any noticeable different in result.  
 
 ![](figures/model_structure_full.png)
 

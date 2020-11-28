@@ -791,6 +791,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
             # FIXME: add more that could be skiped
             if ('lambda' in layer.name or
                 'dropout' in layer.name or
+                'gaussian_noise' in layer.name or
                 'batch_normalization' in layer.name
                 #or ('flatten' in layer.name and 'chw' not in format)
                 ): # flatten layer can be skipped in HWC but needed in CHW
