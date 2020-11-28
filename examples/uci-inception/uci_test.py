@@ -231,7 +231,7 @@ if __name__ == "__main__":
     evaluate_model(model, x_test, y_test)
 
     # save weight
-    generate_model(model, x_test, name='weights-uci.h')
+    generate_model(model, x_test, name='uci_weights.h')
 
     # plot
     acc = history.history['accuracy']

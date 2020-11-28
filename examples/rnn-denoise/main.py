@@ -292,7 +292,7 @@ def main():
     wav.write("_nn_filtered_sample.wav", rate, np.asarray(filtered_sig * 32767, dtype=np.int16))
 
     # now generate the NNoM model
-    generate_model(model, x_train[:timestamp_size*4], name='weights.h')
+    generate_model(model, x_train[:timestamp_size*4], name='denoise_weights.h')
     return
 
 # Press the green button in the gutter to run the script.

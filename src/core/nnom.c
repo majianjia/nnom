@@ -22,9 +22,48 @@ const char default_activation_names[][8] = ACTIVATION_NAMES;
 const char default_cell_names[][8] = DEFUALT_CELL_NAMES;
 size_t nnom_memory_taken = 0;
 
+// local static functions (when libc/dynamic memory interfaces are not avaiable. )
+#ifdef NNOM_USING_STATIC_MEMORY
+uint8_t *nnom_static_buf = NULL;    //pointer to static buffer
+size_t nnom_static_buf_size = 0;    //static buf size
+size_t nnom_static_buf_curr = 0;
+void nnom_set_static_buf(void* buf, size_t size)
+{
+    nnom_static_buf = buf;
+    nnom_static_buf_size = size;
+    nnom_static_buf_curr = 0;
+}
+void* nnom_malloc(size_t size)
+{
+    size = nnom_alignto(size, NNOM_ALIGN);
+    if(size + nnom_static_buf_curr < nnom_static_buf_size)
+    {
+        uint8_t* new_block = nnom_static_buf_curr + nnom_static_buf;
+        nnom_static_buf_curr += size;
+        return new_block;
+    }
+    else
+    {
+        if(nnom_static_buf_size == 0)
+            NNOM_LOG("Please set static memory using 'nnom_set_static_buf()' before calling model created.");
+        else
+            NNOM_LOG("No memory! Static buffer size(%d) not big enough, please increase buffer size!", 
+                        (uint32_t)nnom_static_buf_size);
+        return NULL;
+    }
+}
+void nnom_free(void* p){;}
+void nnom_memset(void* ptr, int value, size_t num)
+{
+    uint8_t *p = ptr;
+    while(num--)
+        *p++=value;
+}
+#endif // NNOM_USING_STATIC_MEMORY
+
 void *nnom_mem(size_t size)
 {
-	size = nnom_alignto(size, 4);
+	size = nnom_alignto(size, NNOM_ALIGN);
 	void *p = nnom_malloc(size);
 	if (p)
 	{
@@ -62,7 +101,6 @@ size_t nnom_alignto(size_t value, uint32_t alignment)
 	return value;
 }
 
-// FIXME, this might not work correctly when model has mutiple output. 
 static nnom_layer_t *find_last(nnom_layer_t *layer)
 {
 	if (layer == NULL)
@@ -260,8 +298,6 @@ nnom_model_t *new_model(nnom_model_t *model)
 	return m;
 }
 
-
-// delete the 
 static void io_tensor_delete(nnom_layer_io_t* io)
 {
 	while (io)
@@ -385,6 +421,12 @@ static nnom_mem_block_t *allocate_block(nnom_mem_block_t *list)
 		if (list[idx].owners == 0)
 			break;
 	}
+    if(idx == NNOM_BLOCK_NUM)
+    {
+        NNOM_LOG("\nERROR! No enough memory block for parallel buffers, please increase the 'NNOM_BLOCK_NUM' in 'nnom_port.h'\n");
+        return NULL;
+    }
+
 	free = &list[idx];
 	return free;
 }
@@ -430,7 +472,6 @@ size_t nnom_io_length(nnom_layer_io_t *io)
 	}
 	return num;
 }
-
 
 // return the length of the hook lists
 size_t nnom_hook_length(nnom_layer_hook_t *hook)
@@ -590,7 +631,7 @@ nnom_status_t compile_layers(nnom_layer_t* first, nnom_layer_t *curr, nnom_mem_b
 			{
 				in_blk = allocate_block(block_pool);
 				in_blk->owners += 1; // add 1
-				mem_size = nnom_alignto(tensor_size(in->tensor), 4);
+				mem_size = nnom_alignto(tensor_size(in->tensor), NNOM_ALIGN);
 				in_blk->size = mem_size > in_blk->size ? mem_size : in_blk->size;
 				// set the blk to the layer IO
 				in->mem = in_blk;
@@ -643,7 +684,7 @@ nnom_status_t compile_layers(nnom_layer_t* first, nnom_layer_t *curr, nnom_mem_b
 			layer->comp->mem->owners += 1; // add us to buffer users
 			layer->comp->mem->state = NNOM_BUF_FILLED;
 			// record maximum mem size in this block
-			mem_size = nnom_alignto(layer->comp->size, 4);
+			mem_size = nnom_alignto(layer->comp->size, NNOM_ALIGN);
 			layer->comp->mem->size =
 				mem_size > layer->comp->mem->size ? mem_size : layer->comp->mem->size;
 		}
@@ -683,7 +724,7 @@ nnom_status_t compile_layers(nnom_layer_t* first, nnom_layer_t *curr, nnom_mem_b
 				out_blk->owners = 1;
 				out_blk->state = NNOM_BUF_FILLED; // marked filled
 				// record maximum mem size in this block
-				mem_size = nnom_alignto(tensor_size(layer->out->tensor), 4);
+				mem_size = nnom_alignto(tensor_size(layer->out->tensor), NNOM_ALIGN);
 				out_blk->size = mem_size > out_blk->size ? mem_size : out_blk->size;
 				// set the blk to the layer IO
 				layer->out->mem = out_blk;
@@ -726,7 +767,7 @@ nnom_status_t compile_layers(nnom_layer_t* first, nnom_layer_t *curr, nnom_mem_b
 					if (out->mem == NULL)
 						return NN_NO_MEMORY;
 					// record maximum mem size in this block
-					mem_size = nnom_alignto(tensor_size(out->tensor), 4);
+					mem_size = nnom_alignto(tensor_size(out->tensor), NNOM_ALIGN);
 					out->mem->size = mem_size > out->mem->size ? mem_size : out->mem->size;
 					// keep the block untill the last hooked layer is called.
 					out->mem->owners = nnom_hook_length(&out->hook); // set lifetime of the buffer = the num of hooked layers
@@ -793,8 +834,7 @@ size_t mem_analysis_result(nnom_model_t *m)
 		NNOM_LOG("blk_%d:%d  ", index, (uint32_t)(m->blocks[index].size));
 	}
 	// size of total memory cost by networks buffer
-	NNOM_LOG("\n Total memory cost by network buffers: %d bytes\n", total_mem);
-
+	NNOM_LOG("\n Memory cost by network buffers: %d bytes\n", total_mem);
 	return total_mem;
 }
 
@@ -857,11 +897,6 @@ nnom_status_t set_tailed_activation(nnom_model_t *m)
 		if (layer->actail != NULL)
 		{
 			layer->actail->tensor = layer->out->tensor;
-			// layer->actail->data = layer->out->tensor->p_data;
-			// layer->actail->size = tensor_size(layer->out->tensor);
-			// // if actail has its own shifting, then leave it as it is. otherwise set it to the same as output
-			// if(layer->actail->qfmt.m == 0 && layer->actail->qfmt.n == 0)
-			// 	layer->actail->qfmt = layer->out->tensor->qfmt;
 		}
 		if (layer->shortcut == NULL)
 			break;
@@ -907,10 +942,14 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 		m->tail = find_last(input);
 
 	NNOM_LOG("NNoM version %d.%d.%d\n", NNOM_MAJORVERSION, NNOM_SUBVERSION, NNOM_REVISION);
+	NNOM_LOG("To disable logs, please void the marco 'NNOM_LOG(...)' in 'nnom_port.h'.\n");
 	#ifdef NNOM_USING_CHW
-	NNOM_LOG("Data format: Channel first (CHW)\n");
+	    NNOM_LOG("Data format: Channel first (CHW)\n");
 	#else
-	NNOM_LOG("Data format: Channel last (HWC)\n");
+	    NNOM_LOG("Data format: Channel last (HWC)\n");
+	#endif
+	#ifdef NNOM_USING_CMSIS_NN
+	    NNOM_LOG("Backend optimization: CMSIS-NN\n");
 	#endif
 	NNOM_LOG("Start compiling model...\n");
 	NNOM_LOG("Layer(#)         Activation    output shape    ops(MAC)   mem(in, out, buf)      mem blk lifetime\n");
@@ -936,6 +975,8 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 		NNOM_LOG("ERROR: No enough memory for network buffer, required %d bytes\n", (uint32_t)buf_size);
 		return NN_NO_MEMORY;
 	}
+    // all memory cost
+	NNOM_LOG(" Total memory occupied: %d bytes\n", (uint32_t)nnom_memory_taken);
 
 	// split the memory for every memory block
 	block_mem_set(m, buf);

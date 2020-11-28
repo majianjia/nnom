@@ -429,5 +429,6 @@ nnom_status_t conv2d_run(nnom_layer_t *layer)
 		return NN_SUCCESS;
 	}
 #endif // end of CHW/HWC
+	return NN_SUCCESS;
 }
 

@@ -19,7 +19,7 @@
 
 #include "stm32l4xx_hal.h"
 #include "nnom.h"
-#include "weights.h"
+#include "kws_weights.h"
 
 // enable MFCC arm FFT acceleration
 #define PLATFORM_ARM
@@ -79,7 +79,7 @@ static TIM_HandleTypeDef s_TimerInstance = {
 void us_timer_enable()
 {
     __TIM2_CLK_ENABLE();
-    s_TimerInstance.Init.Prescaler = 150;
+    s_TimerInstance.Init.Prescaler = HAL_RCC_GetSysClockFreq()/1000000;
     s_TimerInstance.Init.CounterMode = TIM_COUNTERMODE_UP;
     s_TimerInstance.Init.Period = 0xffffffff;
     s_TimerInstance.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;

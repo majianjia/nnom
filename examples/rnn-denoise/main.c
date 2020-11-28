@@ -19,7 +19,7 @@
 #include <string.h>
 
 #include "nnom.h"
-#include "weights.h"
+#include "denoise_weights.h"
 
 #include "mfcc.h"
 #include "wav.h"
@@ -144,15 +144,13 @@ int main(int argc, char* argv[])
 	wav_header_t wav_header; 
 	size_t size;
 
-	//char* input_file = "../../_noisy_sample.wav";
-	//char* output_file = "../../_nn_fixed_filtered_sample.wav";
 	char* input_file = "sample.wav";
 	char* output_file = "filtered_sample.wav";
 	FILE* src_file;
 	FILE* des_file;
 
-	//char* log_file = "../../log.csv";
-	//FILE* flog = fopen(log_file, "wb");
+	char* log_file = "log.csv";
+	FILE* flog = fopen(log_file, "wb");
 
 	// if user has specify input and output files. 
 	if (argc > 1)
@@ -240,7 +238,7 @@ int main(int argc, char* argv[])
 		for(int i=0; i< NUM_FEATURES; i++)
 			band_gains[i] = (float)(nnom_output_data[i]) / 127.f;
 
-//log_values(band_gains, NUM_FILTER, flog);
+log_values(band_gains, NUM_FILTER, flog);
 		
 		// one more step, limit the change of gians, to smooth the speech, per RNNoise paper
 		for(int i=0; i< NUM_FEATURES; i++)
@@ -270,7 +268,7 @@ int main(int argc, char* argv[])
 	model_stat(model);
 	model_delete(model);
 
-//	fclose(flog);
+	fclose(flog);
 	fclose(src_file);
 	fclose(des_file);
 

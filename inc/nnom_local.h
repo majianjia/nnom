@@ -24,7 +24,6 @@ extern "C" {
 
 
 #include "stdint.h"
-#include "nnom.h"
 #include "nnom_port.h"
 
 #ifdef ARM_NN_TRUNCATE

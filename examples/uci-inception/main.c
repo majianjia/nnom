@@ -14,7 +14,7 @@
 #include "rtdevice.h"
 #include "nnom.h"
 
-#include "weights.h"
+#include "uci_weights.h"
 #include "ymodem.h"
 
 // input data (int8 or q7)
@@ -32,7 +32,7 @@ static TIM_HandleTypeDef s_TimerInstance = {
 void us_timer_enable()
 {
     __TIM2_CLK_ENABLE();
-    s_TimerInstance.Init.Prescaler = 80;
+    s_TimerInstance.Init.Prescaler = HAL_RCC_GetSysClockFreq()/1000000;
     s_TimerInstance.Init.CounterMode = TIM_COUNTERMODE_UP;
     s_TimerInstance.Init.Period = 0xffffffff;
     s_TimerInstance.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;

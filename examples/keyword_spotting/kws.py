@@ -195,7 +195,7 @@ def main():
 
     evaluate_model(model, x_test, y_test)
 
-    generate_model(model, x_test[:100], name="weights.h")
+    generate_model(model, x_test[:100], name="kws_weights.h")
 
     acc = history.history['accuracy']
     val_acc = history.history['val_accuracy']

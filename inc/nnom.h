@@ -27,6 +27,7 @@ extern "C" {
 
 #include "nnom_port.h"
 
+#define NNOM_ALIGN  (sizeof(char*))     // alignment when doing memory ops. Equal to size of pointer in byte.
 #define q7_t 	int8_t
 #define q15_t 	int16_t
 #define q31_t 	int32_t
@@ -35,7 +36,7 @@ extern "C" {
 /* version */
 #define NNOM_MAJORVERSION     0              /**< major version number */
 #define NNOM_SUBVERSION       4              /**< minor version number */
-#define NNOM_REVISION         2              /**< revise version number */
+#define NNOM_REVISION         3              /**< revise version number */
 #define NNOM_VERSION          ((NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 
 #ifdef ARM_NN_TRUNCATE
@@ -43,7 +44,7 @@ extern "C" {
 #endif
 
 #ifndef NNOM_TRUNCATE 
-    #define NNOM_ROUND(out_shift) ( (0x1u << out_shift) >> 1 )
+    #define NNOM_ROUND(out_shift) ((0x1 << out_shift) >> 1 )
 #else
     #define NNOM_ROUND(out_shift) 0
 #endif
@@ -327,6 +328,13 @@ typedef struct _nnom_activation_t
 	nnom_activation_type_t type;
 } nnom_activation_t;
 
+// local static functions when libc is not available
+#ifdef NNOM_USING_STATIC_MEMORY
+    void nnom_set_static_buf(void* buf, size_t size);
+    void *nnom_malloc(size_t size);
+    void nnom_free(void* p);
+    void nnom_memset(void* ptr, int value, size_t num);
+#endif //NNOM_USING_STATIC_BUF
 
 typedef struct _nnom_model nnom_model_t;
 

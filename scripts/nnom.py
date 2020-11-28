@@ -24,11 +24,11 @@ import warnings
 
 model_major_version = 0
 model_sub_version = 4
-model_reversion = 2
+model_reversion = 3
 
 #define NNOM_MAJORVERSION     0L              /**< major version number */
 #define NNOM_SUBVERSION       4L              /**< minor version number */
-#define NNOM_REVISION         2L              /**< revise version number */
+#define NNOM_REVISION         3L              /**< revise version number */
 #define NNOM_VERSION          (NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 
 def fuse_bn_to_conv(layer):
