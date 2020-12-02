@@ -49,6 +49,6 @@ nnom_layer_t *Output(nnom_3d_shape_t output_shape, void *p_buf)
 nnom_status_t output_run(nnom_layer_t *layer)
 {
 	nnom_io_layer_t *cl = (nnom_io_layer_t *)layer;
-	memcpy(cl->buf, layer->in->tensor->p_data, tensor_size(layer->out->tensor)); // in->memory -> user memory
+	nnom_memcpy(cl->buf, layer->in->tensor->p_data, tensor_size(layer->out->tensor)); // in->memory -> user memory
 	return NN_SUCCESS;
 }

@@ -159,7 +159,7 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nno
 		layer->weight->p_data = (void*)w->p_value;
 		layer->weight->bitwidth = 8;
 		layer->weight->qtype = NNOM_QTYPE_PER_TENSOR;
-		memcpy(layer->weight->dim, dim, layer->weight->num_dim * sizeof(nnom_shape_data_t));
+		nnom_memcpy(layer->weight->dim, dim, layer->weight->num_dim * sizeof(nnom_shape_data_t));
 
 		// config bias 
 		dim[0] = filters;
@@ -168,7 +168,7 @@ nnom_layer_t *Conv2D(uint32_t filters, nnom_3d_shape_t k, nnom_3d_shape_t s, nno
 		layer->bias->p_data = (void*) b->p_value;
 		layer->bias->bitwidth = 8;
 		layer->weight->qtype = NNOM_QTYPE_PER_TENSOR;
-		memcpy(layer->bias->dim, dim, layer->bias->num_dim * sizeof(nnom_shape_data_t));
+		nnom_memcpy(layer->bias->dim, dim, layer->bias->num_dim * sizeof(nnom_shape_data_t));
 		
 		// output shift and bias shift
 		layer->output_rshift = (nnom_qformat_param_t *)&w->shift;

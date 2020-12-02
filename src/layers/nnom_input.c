@@ -137,7 +137,7 @@ nnom_status_t input_run(nnom_layer_t *layer)
     }
     else
 #endif
-	memcpy(layer->in->tensor->p_data, cl->buf, tensor_size(layer->in->tensor));
+	nnom_memcpy(layer->in->tensor->p_data, cl->buf, tensor_size(layer->in->tensor));
 
 	return NN_SUCCESS;
 }

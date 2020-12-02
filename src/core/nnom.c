@@ -24,9 +24,9 @@ size_t nnom_memory_taken = 0;
 
 // local static functions (when libc/dynamic memory interfaces are not avaiable. )
 #ifdef NNOM_USING_STATIC_MEMORY
-uint8_t *nnom_static_buf = NULL;    //pointer to static buffer
-size_t nnom_static_buf_size = 0;    //static buf size
-size_t nnom_static_buf_curr = 0;
+static uint8_t *nnom_static_buf = NULL;    //pointer to static buffer
+static size_t nnom_static_buf_size = 0;    //static buf size
+static size_t nnom_static_buf_curr = 0;
 void nnom_set_static_buf(void* buf, size_t size)
 {
     nnom_static_buf = buf;
@@ -53,12 +53,6 @@ void* nnom_malloc(size_t size)
     }
 }
 void nnom_free(void* p){;}
-void nnom_memset(void* ptr, int value, size_t num)
-{
-    uint8_t *p = ptr;
-    while(num--)
-        *p++=value;
-}
 #endif // NNOM_USING_STATIC_MEMORY
 
 void *nnom_mem(size_t size)
@@ -284,7 +278,7 @@ nnom_model_t *new_model(nnom_model_t *model)
 	}
 	else
 	{
-		memset(m, 0, sizeof(nnom_model_t));
+		nnom_memset(m, 0, sizeof(nnom_model_t));
 		m->is_allocated = false;
 	}
 
@@ -950,6 +944,9 @@ nnom_status_t model_compile(nnom_model_t *m, nnom_layer_t *input, nnom_layer_t *
 	#endif
 	#ifdef NNOM_USING_CMSIS_NN
 	    NNOM_LOG("Backend optimization: CMSIS-NN\n");
+	#endif
+    #ifdef NNOM_USING_STATIC_MEMORY
+	    NNOM_LOG("Static memory size set to: %d\n", (uint32_t)nnom_static_buf_size);
 	#endif
 	NNOM_LOG("Start compiling model...\n");
 	NNOM_LOG("Layer(#)         Activation    output shape    ops(MAC)   mem(in, out, buf)      mem blk lifetime\n");

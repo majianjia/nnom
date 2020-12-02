@@ -116,7 +116,7 @@ nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_
 		layer->weight->p_data = (void*)w->p_value;
 		layer->weight->bitwidth = 8;
 		layer->weight->qtype = NNOM_QTYPE_PER_TENSOR;
-		memcpy(layer->weight->dim, dim, layer->weight->num_dim * sizeof(nnom_shape_data_t));
+		nnom_memcpy(layer->weight->dim, dim, layer->weight->num_dim * sizeof(nnom_shape_data_t));
 
 		// config bias 
 		dim[0] = output_unit;
@@ -125,7 +125,7 @@ nnom_layer_t *Dense(size_t output_unit, const nnom_weight_t *w, const nnom_bias_
 		layer->bias->p_data = (void*)b->p_value;
 		layer->bias->bitwidth = 8;
 		layer->weight->qtype = NNOM_QTYPE_PER_TENSOR;
-		memcpy(layer->bias->dim, dim, layer->bias->num_dim * sizeof(nnom_shape_data_t));
+		nnom_memcpy(layer->bias->dim, dim, layer->bias->num_dim * sizeof(nnom_shape_data_t));
 	}
 
 	// set output shifts

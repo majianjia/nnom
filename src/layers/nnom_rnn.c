@@ -145,7 +145,7 @@ nnom_status_t rnn_run(nnom_layer_t* layer)
 
 	// reset state buffer if not in stateful
 	if (!cl->stateful)
-		memset(cl->state_buf, 0, state_size * 2);
+		nnom_memset(cl->state_buf, 0, state_size * 2);
 
 	// set output data
 	output_growth = cl->return_sequence ? cl->cell->units : 0;

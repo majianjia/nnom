@@ -184,7 +184,7 @@ nnom_status_t lstm_cell_q7_q15_run(nnom_rnn_cell_t* cell)
 
     /* h = o * nn.tanh(c) -> o_state[0] for the step 1-2 */
     // 1. tanh(c) -> buf2  --- first copy then activate. 
-    memcpy(buf2, o_state[1], cell->units*2);
+    nnom_memcpy(buf2, o_state[1], cell->units*2);
 	local_tanh_q15(buf2, cell->units, 7 - c->q_dec_c); //  this int bit is under 8bit
     // 2. h = o*tanh(c) -> o_state[0]    ** fill the lower state (memory, hidden)
     local_mult_q15(z[3], buf2, o_state[0], 15, cell->units);
@@ -235,7 +235,7 @@ nnom_status_t lstm_cell_q7_q15_run(nnom_rnn_cell_t* cell)
     int act_int_bit = 7 - c->q_dec_z;
 	
 				// test
-				//memset(cell->in_data, 32, cell->feature_size); 
+				//nnom_memset(cell->in_data, 32, cell->feature_size); 
 
     // state buffer
     // low |-- hidden --|-- carry --| high
@@ -316,7 +316,7 @@ nnom_status_t lstm_cell_q7_q15_run(nnom_rnn_cell_t* cell)
 
     /* h = o * nn.tanh(c) -> o_state[0] for the step 1-2 */
     // 1. tanh(c) -> buf2  --- first copy then activate. 
-    memcpy(buf2, o_state[1], cell->units*2);
+    nnom_memcpy(buf2, o_state[1], cell->units*2);
 	local_tanh_q15(buf2, cell->units, 7 - c->q_dec_c); //  this int bit is under 8bit
 			print_variable_q15(buf2, "tanh(c)", 15, cell->units);
 
