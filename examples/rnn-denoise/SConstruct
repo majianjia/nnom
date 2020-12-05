@@ -40,6 +40,6 @@ objs +=Glob('%s/src/backends/*.c'%(ROOT))
 
 env.Append(CPPPATH=['%s/inc'%(ROOT),'%s/port'%(ROOT)])
 if sys.platform == "linux" or sys.platform == "linux2":
-    env.Program('rnn-denoise',objs,LIBS=['m'])
+    env.Program('rnn_denoise',objs,LIBS=['m'])
 else:
-    env.Program('rnn-denoise',objs)
+    env.Program('rnn_denoise',objs)
