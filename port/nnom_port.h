@@ -17,7 +17,7 @@
 #include <stdio.h>
 
 /* use static memory */
-#define NNOM_USING_STATIC_MEMORY    // enable to use built in memory allocation on a large static memory block
+//#define NNOM_USING_STATIC_MEMORY    // enable to use built in memory allocation on a large static memory block
                                      // must set buf using "nnom_set_static_buf()" before creating a model. 
 
 /* dynamic memory interfaces */
