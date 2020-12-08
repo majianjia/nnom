@@ -53,7 +53,9 @@ nnom_layer_t *input_s(const nnom_io_config_t* config)
 	*/
 
 	// set parameters
-	if(config->tensor->num_dim == 2) // test for 1d input, expend h = 1
+    if(config->tensor->num_dim == 1) // test for 1d input, expend h = 1
+        layer->shape = shape(1, 1, config->tensor->dim[0]);
+    else if (config->tensor->num_dim == 2) // test for 1d input, expend h = 1
 		layer->shape = shape(1, config->tensor->dim[0], config->tensor->dim[1]);
 	else
 		layer->shape = shape(config->tensor->dim[0], config->tensor->dim[1], config->tensor->dim[2]);
