@@ -17,3 +17,4 @@ examples/uci-har-rnn/result.csv
 examples/keyword_spotting/evaluation.csv
 examples/uci-har-rnn/weights.h
 examples/uci-har-rnn/model.exe
+examples/auto_test/mnist
