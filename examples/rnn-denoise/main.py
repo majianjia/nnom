@@ -80,7 +80,7 @@ def voice_denoise(sig, rate, model, timestamp_size, numcep=26, plot=False):
     # interference.
     feat = np.reshape(feat, (feat.shape[0], 1, feat.shape[1]))
     feat = feat[: feat.shape[0] // timestamp_size * timestamp_size]
-    prediction = model.predict(feat)
+    prediction = model.predict(feat, batch_size=timestamp_size)
     if(type(prediction) is list):
         predicted_gains = prediction[0]
         predicted_vad = prediction[1]
@@ -210,7 +210,7 @@ def train(x_train, y_train, vad_train, batch_size=64, epochs=10, model_name="mod
     model.summary()
 
     history = model.fit(x_train, [y_train, vad_train],
-                        batch_size=timestamp_size, epochs=epochs, verbose=2, shuffle=False, # shuffle must be false
+                        batch_size=timestamp_size, epochs=epochs, shuffle=False, # shuffle must be false
                         callbacks=[reset_state_after_batch()])# validation_split=0.1)
 
     # free the session to avoid nesting naming while we load the best model after.
@@ -279,7 +279,7 @@ def main():
     vad_train = np.reshape(vad_train, (num_sequence * timestamp_size, 1))
 
     # train the model, choose either one.
-    history = train(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=5, model_name="model.h5")
+    history = train(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=10, model_name="model.h5")
     #history = train_simple(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=10, model_name="model.h5")
 
     # get the model

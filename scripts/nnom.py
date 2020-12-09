@@ -494,7 +494,8 @@ def quantize_output(model, x_test, quantize_method='max_min', layer_offset=False
             if (is_rnn_layer(layer)):
                 in_layer = layer.inbound_nodes[0].inbound_layers
                 layer_model = Model(inputs=model.input, outputs=in_layer.output)
-                features = layer_model.predict(x_test)
+                bs = model.input.shape[0]
+                features = layer_model.predict(x_test, batch_size=bs)
                 intermediate_dec = quantize_rnn_intermediate_output(layer, features)
                 print(layer.name, 'dec bit', intermediate_dec)
                 layer_q_list['intermediate_' + layer.name] = intermediate_dec
@@ -504,7 +505,8 @@ def quantize_output(model, x_test, quantize_method='max_min', layer_offset=False
             if (is_shift_layer(layer) or
                     ('batch_normalization' in layer.name)):
                 layer_model = Model(inputs=model.input, outputs=layer.output)
-                features = layer_model.predict(x_test)
+                bs = model.input.shape[0]
+                features = layer_model.predict(x_test, batch_size=bs)
             else:
                 # leave the features not changed, so this layer shift will be the same as its inputs
                 pass
@@ -907,7 +909,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
         fp.write('static nnom_model_t* nnom_model_create(void)\n{\n')
         fp.write('\tstatic nnom_model_t model;\n')
         if (ID > 32):
-            fp.write('\tnnom_layer_t ** layer = malloc(sizeof(nnom_layer_t *)*%d);\n' % (ID + 1))
+            fp.write('\tnnom_layer_t **layer = (nnom_layer_t**)malloc(sizeof(nnom_layer_t *)*%d);\n' % (ID + 1))
             fp.write('\tif(NULL == layer) return NULL;\n')
         else:
             fp.write('\tnnom_layer_t* layer[%d];\n' % (ID + 1))
@@ -1089,7 +1091,8 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
     print('Top 1:', scores[1])
 
     if(len(y_test.shape)>1):
-        predictions = model.predict(x_test)
+        bs = model.input.shape[0]
+        predictions = model.predict(x_test, batch_size=bs)
         matrix = skmetrics.confusion_matrix(y_test.argmax(axis=1), predictions.argmax(axis=1))
         print(matrix)
 
@@ -1097,8 +1100,9 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
     if running_time:
         # try to calculate the time
         T = time.time()
+        bs = model.input.shape[0]
         for i in range(10):
-            model.predict(x_test)
+            model.predict(x_test, batch_size=bs)
         T = time.time() - T
         run_time = round((T / 10 / x_test.shape[0] * 1000 * 1000), 2)
         print("Runing time:",run_time , "us" )
