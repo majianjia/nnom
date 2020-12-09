@@ -97,8 +97,7 @@ def generate_test_bin(x, y, name='test_data_with_label.bin'):
     '''
     # quantize input x
     dec_bits = find_dec_bits_max_min(x, bit_width=8)
-    int_bits = 7 - dec_bits
-    x = np.round(x*2**dec_bits).clip(-2**int_bits, 2**int_bits-1).astype(np.int8)
+    x = np.round(x*2**dec_bits).clip(-128, 127).astype(np.int8)
     # get label
     if(len(y.shape) >1):
         test_label = np.argwhere(y == 1).astype(np.int8)  # test data
