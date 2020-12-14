@@ -129,11 +129,11 @@ def train_simple(x_train, y_train, vad_train, batch_size=64, epochs=10, model_na
     output_feature_size = y_train.shape[-1]
     timestamp_size = batch_size
 
-    input = Input(shape=(1, input_feature_size), batch_size=timestamp_size)
-
-    x = GRU(96, return_sequences=True, stateful=True, recurrent_dropout=0.3)(input)
-    x = GRU(96, return_sequences=True, stateful=True, recurrent_dropout=0.3)(x)
-    x = GRU(48, return_sequences=True, stateful=True, recurrent_dropout=0.3)(x)
+    #input = Input(shape=(1, input_feature_size), batch_size=timestamp_size)
+    input = Input(shape=(1, input_feature_size))
+    x = GRU(96, return_sequences=True, recurrent_dropout=0.3)(input)
+    x = GRU(96, return_sequences=True, recurrent_dropout=0.3)(x)
+    x = GRU(48, return_sequences=True, recurrent_dropout=0.3)(x)
     x = Flatten()(x)
     x = Dense(output_feature_size)(x)
     x = Activation("hard_sigmoid")(x) # use hard sigmoid for better resolution in fixed-point model
@@ -143,7 +143,8 @@ def train_simple(x_train, y_train, vad_train, batch_size=64, epochs=10, model_na
     model.summary()
     history = model.fit(x_train, y_train,
                         batch_size=timestamp_size, epochs=epochs, verbose=2, shuffle=False, # shuffle must be false
-                        callbacks=[reset_state_after_batch()])
+                        callbacks=[reset_state_after_batch()]
+                        )
     # free the session to avoid nesting naming while we load the best model after.
     save_model(model, model_name)
     del model
@@ -279,11 +280,23 @@ def main():
     vad_train = np.reshape(vad_train, (num_sequence * timestamp_size, 1))
 
     # train the model, choose either one.
-    history = train(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=10, model_name="model.h5")
-    #history = train_simple(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=10, model_name="model.h5")
+    #history = train(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=5, model_name="model.h5")
+    #history = train_simple(x_train, y_train, vad_train, batch_size=timestamp_size, epochs=5, model_name="model.h5")
 
     # get the model
     model = load_model("model.h5", custom_objects={'mycost': mycost, 'msse':msse, 'my_crossentropy':my_crossentropy, 'my_accuracy':my_accuracy})
+
+    # tests/try to measure R2
+    data = x_train[timestamp_size*4: timestamp_size*6]
+    prediction = model.predict(data, batch_size=timestamp_size)
+    if (type(prediction) is list):
+        from sklearn.metrics import r2_score
+        predicted_gains = prediction[0]
+        truth_gains = y_train[timestamp_size*4 : timestamp_size*6]
+        score = r2_score(truth_gains.flatten(), predicted_gains.flatten())
+        print(truth_gains)
+        print(predicted_gains)
+        print("R2",score)
 
     # denoise a file for test.
     # Make sure the MFCC parameters inside the voice_denoise() are the same as our gen_dataset.
@@ -291,17 +304,48 @@ def main():
     filtered_sig = voice_denoise(sig, rate, model, timestamp_size, numcep=y_train.shape[-1], plot=True) # use plot=True argument to see the gains/vad
     wav.write("_nn_filtered_sample.wav", rate, np.asarray(filtered_sig * 32767, dtype=np.int16))
 
+    def convert_to_tflm(model, cali_data, name):
+        import tensorflow as tf
+        import numpy as np
+        name_pb = name + ".pb"
+        model.save(name_pb)
+
+        # Convert the model to the TensorFlow Lite format without quantization
+        converter = tf.lite.TFLiteConverter.from_saved_model(name_pb)
+        model_no_quant_tflite = converter.convert()
+        # Save the model to disk
+        open(name + '_no_quant.tflite', "wb").write(model_no_quant_tflite)
+
+        def representative_dataset():
+            for i in range(len(cali_data)):
+                temp = cali_data[i][np.newaxis, ...].astype("float32")
+                yield ([temp])
+
+        # Set the optimization flag.
+        converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        # Enforce integer only quantization
+        converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8, tf.lite.OpsSet.TFLITE_BUILTINS]
+        converter.inference_input_type = tf.float32
+        converter.inference_output_type = tf.int8
+        # Provide a representative dataset to ensure we quantize correctly.
+        converter.representative_dataset = representative_dataset
+        model_tflite = converter.convert()
+
+        # Save the model to disk
+        open(name + '.tflite', "wb").write(model_tflite)
+    convert_to_tflm(model, cali_data=x_train[:timestamp_size], name="rnn_denoise")
+
     # now generate the NNoM model
     generate_model(model, x_train[:timestamp_size*4], name='denoise_weights.h')
     return
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-    physical_devices = tf.config.experimental.list_physical_devices("GPU")
-    if(physical_devices is not None):
-       tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    # physical_devices = tf.config.experimental.list_physical_devices("GPU")
+    # if(physical_devices is not None):
+    #    tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
     main()
 

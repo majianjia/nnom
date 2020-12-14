@@ -203,7 +203,7 @@ def find_offset(data):
     return np.average(data)
 
 
-def find_dec_bits_max_min(data, bit_width=8, maximum_bit=16):
+def find_dec_bits_max_min(data, bit_width=8, maximum_bit=32):
     """
     A ragular non-saturated shift-based quantisation mathod. Using max/min values
     :param data:
@@ -212,12 +212,12 @@ def find_dec_bits_max_min(data, bit_width=8, maximum_bit=16):
     :return:
     """
     max_val = abs(data.max()) - abs(data.max()/pow(2, bit_width)) # allow very small saturation.
-    min_val = abs(data.min()) - abs(data.max()/pow(2, bit_width))
+    min_val = abs(data.min()) - abs(data.min()/pow(2, bit_width))
     int_bits = int(np.ceil(np.log2(max(max_val, min_val))))
     dec_bits = (bit_width-1) - int_bits
     return min(dec_bits, maximum_bit)
 
-def find_dec_bits_max_min_axis(data, axis=-1,bit_width=8, maximum_bit=16):
+def find_dec_bits_max_min_axis(data, axis=-1,bit_width=8, maximum_bit=32):
     """
     A ragular non-saturated shift-based quantisation mathod. Using max/min values
     :param data:
@@ -233,8 +233,8 @@ def find_dec_bits_max_min_axis(data, axis=-1,bit_width=8, maximum_bit=16):
     #     size = data.shape[axis]
     for i in np.arange(0, data.shape[axis]):
         d = np.take(data, indices=i, axis=axis)
-        max_val = d.max()
-        min_val = d.min()
+        max_val = abs(d.max()) - abs(d.max() / pow(2, bit_width))  # allow very small saturation.
+        min_val = abs(d.min()) - abs(d.min() / pow(2, bit_width))
         int_bit = int(np.ceil(np.log2(max(abs(max_val), abs(min_val)))))
         dec_bit = (bit_width-1) - int_bit
         dec_bits.append(min(dec_bit, maximum_bit))
