@@ -180,7 +180,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 				block_size *= in->tensor->dim[hwc_i(j, num_dim)];
 			// concat		
 			pin = (uint8_t *)in->tensor->p_data + i * block_size;
-			memcpy(pout, pin, block_size);
+			nnom_memcpy(pout, pin, block_size);
 			pout += block_size;
 			in = in->aux;
 		}
@@ -212,7 +212,7 @@ nnom_status_t concat_run(nnom_layer_t *layer)
 				block_size *= in->tensor->dim[j];
 			// concat		
 			pin = (uint8_t*)in->tensor->p_data + i * block_size;
-			memcpy(pout, pin, block_size);
+			nnom_memcpy(pout, pin, block_size);
 			pout += block_size;
 			in = in->aux;
 		}

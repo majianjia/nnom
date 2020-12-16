@@ -95,7 +95,7 @@ nnom_tensor_t* tensor_set_attr_v(nnom_tensor_t* t,
 {
 	// copy dim
 	t->num_dim = num_dim;
-	memcpy(t->dim, dim, sizeof(nnom_shape_data_t) * num_dim);
+	nnom_memcpy(t->dim, dim, sizeof(nnom_shape_data_t) * num_dim);
 
 	// bitwidth
 	t->bitwidth = bitwidth;
@@ -115,7 +115,7 @@ nnom_tensor_t* tensor_set_attr(nnom_tensor_t* t,
 		
 	// copy dim
 	t->num_dim = num_dim;
-	memcpy(t->dim, dim, sizeof(nnom_shape_data_t) * num_dim);
+	nnom_memcpy(t->dim, dim, sizeof(nnom_shape_data_t) * num_dim);
 	
 	// get the q format data size
 	if(t->qtype == NNOM_QTYPE_PER_AXIS)
@@ -126,8 +126,8 @@ nnom_tensor_t* tensor_set_attr(nnom_tensor_t* t,
 	// bitwidth
 	t->bitwidth = bitwidth;
 	// copy the offset and q format
-	memcpy(t->q_dec, dec_bit, size);
-	memcpy(t->q_offset, offset, size);
+	nnom_memcpy(t->q_dec, dec_bit, size);
+	nnom_memcpy(t->q_offset, offset, size);
 	return t;
 }
 
@@ -148,12 +148,12 @@ nnom_tensor_t* tensor_cpy_attr(nnom_tensor_t* des, nnom_tensor_t* src)
 	// bit
 	des->bitwidth = src->bitwidth;
 	// copy quantisation parameters
-	memcpy(des->q_dec, src->q_dec, size);
-	memcpy(des->q_offset, src->q_offset, size);
+	nnom_memcpy(des->q_dec, src->q_dec, size);
+	nnom_memcpy(des->q_offset, src->q_offset, size);
 
 	// copy number of dimension
 	des->num_dim = src->num_dim;
-	memcpy(des->dim, src->dim, src->num_dim * sizeof(nnom_shape_data_t));
+	nnom_memcpy(des->dim, src->dim, src->num_dim * sizeof(nnom_shape_data_t));
 	return des;
 }
 

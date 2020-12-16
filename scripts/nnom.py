@@ -203,7 +203,7 @@ def find_offset(data):
     return np.average(data)
 
 
-def find_dec_bits_max_min(data, bit_width=8, maximum_bit=16):
+def find_dec_bits_max_min(data, bit_width=8, maximum_bit=32):
     """
     A ragular non-saturated shift-based quantisation mathod. Using max/min values
     :param data:
@@ -212,12 +212,12 @@ def find_dec_bits_max_min(data, bit_width=8, maximum_bit=16):
     :return:
     """
     max_val = abs(data.max()) - abs(data.max()/pow(2, bit_width)) # allow very small saturation.
-    min_val = abs(data.min()) - abs(data.max()/pow(2, bit_width))
+    min_val = abs(data.min()) - abs(data.min()/pow(2, bit_width))
     int_bits = int(np.ceil(np.log2(max(max_val, min_val))))
     dec_bits = (bit_width-1) - int_bits
     return min(dec_bits, maximum_bit)
 
-def find_dec_bits_max_min_axis(data, axis=-1,bit_width=8, maximum_bit=16):
+def find_dec_bits_max_min_axis(data, axis=-1,bit_width=8, maximum_bit=32):
     """
     A ragular non-saturated shift-based quantisation mathod. Using max/min values
     :param data:
@@ -233,8 +233,8 @@ def find_dec_bits_max_min_axis(data, axis=-1,bit_width=8, maximum_bit=16):
     #     size = data.shape[axis]
     for i in np.arange(0, data.shape[axis]):
         d = np.take(data, indices=i, axis=axis)
-        max_val = d.max()
-        min_val = d.min()
+        max_val = abs(d.max()) - abs(d.max() / pow(2, bit_width))  # allow very small saturation.
+        min_val = abs(d.min()) - abs(d.min() / pow(2, bit_width))
         int_bit = int(np.ceil(np.log2(max(abs(max_val), abs(min_val)))))
         dec_bit = (bit_width-1) - int_bit
         dec_bits.append(min(dec_bit, maximum_bit))
@@ -493,7 +493,8 @@ def quantize_output(model, x_test, quantize_method='max_min', layer_offset=False
             if (is_rnn_layer(layer)):
                 in_layer = layer.inbound_nodes[0].inbound_layers
                 layer_model = Model(inputs=model.input, outputs=in_layer.output)
-                features = layer_model.predict(x_test)
+                bs = model.input.shape[0]
+                features = layer_model.predict(x_test, batch_size=bs)
                 intermediate_dec = quantize_rnn_intermediate_output(layer, features)
                 print(layer.name, 'dec bit', intermediate_dec)
                 layer_q_list['intermediate_' + layer.name] = intermediate_dec
@@ -503,7 +504,8 @@ def quantize_output(model, x_test, quantize_method='max_min', layer_offset=False
             if (is_shift_layer(layer) or
                     ('batch_normalization' in layer.name)):
                 layer_model = Model(inputs=model.input, outputs=layer.output)
-                features = layer_model.predict(x_test)
+                bs = model.input.shape[0]
+                features = layer_model.predict(x_test, batch_size=bs)
             else:
                 # leave the features not changed, so this layer shift will be the same as its inputs
                 pass
@@ -906,7 +908,7 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
         fp.write('static nnom_model_t* nnom_model_create(void)\n{\n')
         fp.write('\tstatic nnom_model_t model;\n')
         if (ID > 32):
-            fp.write('\tnnom_layer_t ** layer = malloc(sizeof(nnom_layer_t *)*%d);\n' % (ID + 1))
+            fp.write('\tnnom_layer_t **layer = (nnom_layer_t**)malloc(sizeof(nnom_layer_t *)*%d);\n' % (ID + 1))
             fp.write('\tif(NULL == layer) return NULL;\n')
         else:
             fp.write('\tnnom_layer_t* layer[%d];\n' % (ID + 1))
@@ -1088,7 +1090,8 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
     print('Top 1:', scores[1])
 
     if(len(y_test.shape)>1):
-        predictions = model.predict(x_test)
+        bs = model.input.shape[0]
+        predictions = model.predict(x_test, batch_size=bs)
         matrix = skmetrics.confusion_matrix(y_test.argmax(axis=1), predictions.argmax(axis=1))
         print(matrix)
 
@@ -1096,8 +1099,9 @@ def evaluate_model(model, x_test, y_test, running_time=False, to_file='evaluatio
     if running_time:
         # try to calculate the time
         T = time.time()
+        bs = model.input.shape[0]
         for i in range(10):
-            model.predict(x_test)
+            model.predict(x_test, batch_size=bs)
         T = time.time() - T
         run_time = round((T / 10 / x_test.shape[0] * 1000 * 1000), 2)
         print("Runing time:",run_time , "us" )

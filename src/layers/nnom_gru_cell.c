@@ -239,7 +239,7 @@ nnom_status_t gru_cell_run(nnom_rnn_cell_t* cell)
 	q15_t* temp[3];
 	
     	 		// test
-	 			//memset(cell->in_data, 5 * (1<<layer->in->tensor->q_dec[0]), cell->feature_size); 
+	 			//nnom_memset(cell->in_data, 5 * (1<<layer->in->tensor->q_dec[0]), cell->feature_size); 
 
     // bias
     q7_t* bias = (q7_t*)c->bias->p_data;

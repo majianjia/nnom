@@ -376,10 +376,10 @@ void local_up_sampling_q7_HWC(const q7_t *Im_in,       // input image
 
             // copy along x axis
             for(int i = 0; i<dim_kernel_x; i++)
-                memcpy(pout + i * ch_im_in, p_in, ch_im_in);
+                nnom_memcpy(pout + i * ch_im_in, p_in, ch_im_in);
             // duplicate the copied x data into y axis. 
             for(int i = 1; i<dim_kernel_y; i++)
-                memcpy(pout + i * ch_im_in * dim_im_in_x * dim_kernel_x, pout, ch_im_in * dim_kernel_x);
+                nnom_memcpy(pout + i * ch_im_in * dim_im_in_x * dim_kernel_x, pout, ch_im_in * dim_kernel_x);
         }
     }
 }
@@ -412,7 +412,7 @@ void local_up_sampling_q7_CHW(const q7_t *Im_in,       // input image
 					*(pout + i) =  *p_in;
 				// duplicate the copied x data into y axis. 
 				for(int i = 1; i<dim_kernel_y; i++)
-					memcpy(pout + i * dim_im_in_x * dim_kernel_x, pout, dim_kernel_x);
+					nnom_memcpy(pout + i * dim_im_in_x * dim_kernel_x, pout, dim_kernel_x);
 			}
 		}
 	}
@@ -882,7 +882,7 @@ void local_zero_padding_HWC_q7(const q7_t *Im_in,           // input image
 	
 	// top rows
 	size = dim_im_out_x*ch_im_in*padding_top;
-	memset(p_out, 0, size); 
+	nnom_memset(p_out, 0, size); 
 	p_out += size;
 	
 	// middle
@@ -890,19 +890,19 @@ void local_zero_padding_HWC_q7(const q7_t *Im_in,           // input image
 	{
 		// left - set to 0
 		size = ch_im_in * padding_left;
-		memset(p_out, 0, size); 
+		nnom_memset(p_out, 0, size); 
 		p_out += size;
 		// data - copy a row
 		size = dim_im_in_x * ch_im_in;
-		memcpy(p_out, Im_in + i*size, size);
+		nnom_memcpy(p_out, Im_in + i*size, size);
 		p_out += size;
 		// right - set to 0
 		size = ch_im_in * padding_right;
-		memset(p_out, 0, size); 
+		nnom_memset(p_out, 0, size); 
 		p_out += size;
 	}
 	// bottom rows
-	memset(p_out, 0, dim_im_out_x*ch_im_in*padding_bottom); 
+	nnom_memset(p_out, 0, dim_im_out_x*ch_im_in*padding_bottom); 
 }
 
 void local_zero_padding_CHW_q7(const q7_t *Im_in,           // input image
@@ -925,7 +925,7 @@ void local_zero_padding_CHW_q7(const q7_t *Im_in,           // input image
 		p_out = Im_out + ch * dim_im_out_x * dim_im_out_y;
 		// top rows
 		size = dim_im_out_x*padding_top;
-		memset(p_out, 0, size);
+		nnom_memset(p_out, 0, size);
 		p_out += size;
 		
 		// middle
@@ -933,17 +933,17 @@ void local_zero_padding_CHW_q7(const q7_t *Im_in,           // input image
 		for(i=0; i<dim_im_in_y; i++)
 		{
 			// left - set to 0
-			memset(p_out, 0, padding_left); 
+			nnom_memset(p_out, 0, padding_left); 
 			p_out += padding_left;
 			// data - copy a row
-			memcpy(p_out, Im_in + i*dim_im_in_x + ch_offset, dim_im_in_x);
+			nnom_memcpy(p_out, Im_in + i*dim_im_in_x + ch_offset, dim_im_in_x);
 			p_out += dim_im_in_x;
 			// right - set to 0
-			memset(p_out, 0, size); 
+			nnom_memset(p_out, 0, size); 
 			p_out += padding_right;
 		}
 		// bottom
-		memset(p_out, 0, dim_im_out_x*padding_bottom); 
+		nnom_memset(p_out, 0, dim_im_out_x*padding_bottom); 
 	}
 
 }
@@ -974,7 +974,7 @@ void local_cropping_HWC_q7(const q7_t *Im_in,           // input image
 		// left to ignore          
 		p_in += ch_im_in * padding_left;
 		// data - copy a row
-		memcpy(Im_out + i*row_size, p_in, row_size);
+		nnom_memcpy(Im_out + i*row_size, p_in, row_size);
 		p_in += row_size;
 		// right to ingore
 		p_in += ch_im_in * padding_right;
@@ -1006,7 +1006,7 @@ void local_cropping_CHW_q7(const q7_t *Im_in,           // input image
 		for(i=0; i<dim_im_out_y; i++)
 		{	
 			// data - middle of a row
-			memcpy(Im_out + i*dim_im_out_x + ch_offset, p_in+padding_left, dim_im_out_x); 
+			nnom_memcpy(Im_out + i*dim_im_out_x + ch_offset, p_in+padding_left, dim_im_out_x); 
 			p_in += dim_im_in_x; // middle and right padding	
 		}
 	}	

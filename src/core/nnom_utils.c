@@ -31,8 +31,8 @@ static nnom_predict_t *_predict_create_instance(nnom_model_t *m, size_t label_nu
 		nnom_free(pre->top_k); nnom_free(pre->confusion_mat); nnom_free(pre);
 		return NULL;
 	}
-	memset(pre->top_k, 0, top_k_size * sizeof(uint32_t));
-	memset(pre->confusion_mat, 0, label_num * label_num * sizeof(uint16_t));
+	nnom_memset(pre->top_k, 0, top_k_size * sizeof(uint32_t));
+	nnom_memset(pre->confusion_mat, 0, label_num * label_num * sizeof(uint16_t));
 	
 	// config
 	pre->label_num = label_num;

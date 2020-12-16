@@ -32,6 +32,7 @@ def mycost(y_true, y_pred):
 def my_accuracy(y_true, y_pred):
     return K.mean(2*K.abs(y_true-0.5) * K.equal(y_true, K.round(y_pred)), axis=-1)
 
+
 def filter_voice(sig, rate, gains, nband=26, lowfreq=20, highfreq=8000):
     # see gen_dataset.py's example for detial
     mel_scale = get_mel_scale(nfilt=nband, lowfreq=lowfreq, highfreq=highfreq)
@@ -80,7 +81,7 @@ def voice_denoise(sig, rate, model, timestamp_size, numcep=26, plot=False):
     # interference.
     feat = np.reshape(feat, (feat.shape[0], 1, feat.shape[1]))
     feat = feat[: feat.shape[0] // timestamp_size * timestamp_size]
-    prediction = model.predict(feat)
+    prediction = model.predict(feat, batch_size=timestamp_size)
     if(type(prediction) is list):
         predicted_gains = prediction[0]
         predicted_vad = prediction[1]

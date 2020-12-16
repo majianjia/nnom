@@ -134,7 +134,7 @@ nnom_status_t simple_cell_run(nnom_rnn_cell_t* cell)
 		//local_hard_sigmoid_q7(cell->out_state, cell->units, act_int_bit);
 
 	// (out_state buf) --copy--> (output buf)
-	memcpy(cell->out_data, cell->out_state, cell->units);
+	nnom_memcpy(cell->out_data, cell->out_state, cell->units);
 
 	return NN_SUCCESS;
 }
