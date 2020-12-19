@@ -49,6 +49,7 @@ nnom_layer_io_t *io_init(void *owner_layer, nnom_layer_io_t *io);
 #include "layers/nnom_dense.h"
 #include "layers/nnom_dw_conv2d.h"
 #include "layers/nnom_flatten.h"
+#include "layers/nnom_reshape.h"
 #include "layers/nnom_global_pool.h"
 #include "layers/nnom_input.h"
 #include "layers/nnom_lambda.h"
@@ -144,12 +145,14 @@ nnom_status_t sumpool_build(nnom_layer_t* layer);
 nnom_status_t global_pool_build(nnom_layer_t* layer);
 
 nnom_status_t flatten_build(nnom_layer_t* layer);
+nnom_status_t reshape_build(nnom_layer_t* layer);
 nnom_status_t concat_build(nnom_layer_t* layer);
 
 // run
 nnom_status_t input_run(nnom_layer_t* layer);
 nnom_status_t output_run(nnom_layer_t* layer);
 nnom_status_t flatten_run(nnom_layer_t* layer);
+nnom_status_t reshape_run(nnom_layer_t* layer);
 nnom_status_t default_run(nnom_layer_t* layer);  // simply copy data from input to output
 
 nnom_status_t dw_conv2d_run(nnom_layer_t* layer);

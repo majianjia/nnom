@@ -855,6 +855,8 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
                 fp.write(gen_softmax_config(layer))
             elif (type(layer) in [Flatten]):
                 fp.write(gen_flatten_config(layer))
+            elif (type(layer) in [Reshape]):
+                fp.write(gen_reshape_config(layer))
             elif (type(layer) in [Concatenate]):
                 fp.write(gen_concat_config(layer))
             elif (type(layer) in [Lambda]):
@@ -1000,6 +1002,9 @@ def generate_model(model, x_test, per_channel_quant=False, name='weights.h', for
             elif ('flatten' in layer.name):  # flatten is needed in CHW backend but not needed in HWC
                 inp = layer_name_from_tensor(layer.input)
                 fp.write('\tlayer[{0}] = model.hook(flatten_s(&{1}_config), layer[{2}]);\n'.format(id, layer.name, LI[inp][0]))
+            elif ('reshape' in layer.name):  # flatten is needed in CHW backend but not needed in HWC
+                inp = layer_name_from_tensor(layer.input)
+                fp.write('\tlayer[{0}] = model.hook(reshape_s(&{1}_config), layer[{2}]);\n'.format(id, layer.name, LI[inp][0]))
             elif ('concatenate' in layer.name):
                 inps = [layer_name_from_tensor(input) for input in layer.input]
                 inX = ''

@@ -364,6 +364,21 @@ const nnom_flatten_config_t <layer_name>_config = {
     c = c.replace('<base_config>', gen_base_config(layer))
     return c
 
+def gen_reshape_config(layer):
+    c = '''
+const nnom_shape_data_t <layer_name>_targeted_shape[] = <shape>;
+const nnom_reshape_config_t <layer_name>_config = {
+    .super = <base_config>,
+    .dim = (nnom_shape_data_t*)<layer_name>_targeted_shape,
+    .num_dim = <num_dim>
+};
+'''
+    c = c.replace('<layer_name>', layer.name)
+    c = c.replace('<base_config>', gen_base_config(layer))
+    c = c.replace('<shape>', to_cstyle(layer.output_shape[1:]))
+    c = c.replace('<num_dim>', str(len(layer.output_shape[1:])))
+    return c
+
 def gen_concat_config(layer):
     c = '''
 const nnom_concat_config_t <layer_name>_config = {

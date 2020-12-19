@@ -106,6 +106,7 @@ Please check [examples](https://github.com/majianjia/nnom/tree/master/examples) 
 | Lambda |lambda_s()| Lambda() |single input / single output anonymous operation| 
 | Batch Normalization |N/A| N/A| This layer is merged to the last Conv by the script|
 | Flatten|flatten_s()| Flatten()| |
+| Reshape (New!)|reshape_s()| N/A| |
 | SoftMax|softmax_s()| SoftMax()| Softmax only has layer API| 
 | Activation|N/A| Activation()|A layer instance for activation|
 | Input/Output |input_s()/output_s()| Input()/Output()| |
