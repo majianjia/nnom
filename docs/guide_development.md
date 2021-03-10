@@ -1,8 +1,70 @@
 # Development Guide
 
-Currently, it is not yet a "guide". At least, it provides some further information.
-
 -----
+
+## Must READ
+
+**This section shows the basic and necessary info for development with NNoM.** Please do read carefuly before you start the development.
+
+**Why this is important:**
+
+Firstly, the aim of NNoM is narrow, only focusing the low-resources platform. Therefore, the ops it supports will always be a subset of comprehensive tools (e.g. Tensorflow, Pytorch).
+Which means you must train your model in a restricted configurations/forms to be able to use NNoM to run. 
+
+Secondly, NNoM is different from other inteference lib which only act as an parser of existing protobuf or model file.
+NNoM instead has its own representative of a model, which doesn't need runtime memory allocation or runtime parsing, brings maximum performance. 
+(less than 1us (avg) switch time between layers' backend ops)
+
+It is always recommended that **the developer who trains keras model is the same who deploy the model to NNoM**, to manipulate between the configuration and pefromance. 
+
+### Supported layer
+As said, NNoM only support a subset layers of the Keras, please refer to [the list in the main page](index.md) for details. 
+
+
+### The Restriction
+
+**No support for an activation embedded with layer's configuration.** i.e. `x = Conv2D(..., activation='relu')(x)`. 
+The below form are supported.
+~~~
+x = Conv2D(..., activation='relu')(x)
+x = ReLU()(x)
+~~~
+
+**Do not change the name of a layer.** The current script is still using name to recognise a layer's type. (Using type() is not stable in Keras.)
+ Changing names will lead to unable to recognise layer. 
+
+
+#### For layers:
+Agains, for all layer, **do not change the default name** or if you know how to keep the keyword. 
+
+#### Regular Convolution 
+Including `Conv1D`, `Conv2D`, `DepthwiseConv1D`, `DepthwiseConv2D`
+
+**Supported config:** `filters`, `kernel_size` ,`dilation_rate` ,`stride_size` , `padding`, `depth_multiplier`.
+Unrelated configs are not affecting: `bias/weight's constrains/regularlizer/inits.` 
+
+**Restriction:** `use_bias` must be `True`
+
+Examples that works: 
+~~~
+x = Conv2D(16, dilation_rate=(1,1), kernel_size=(5, 5), strides=(1, 1), padding="valid")(x)
+x = DepthwiseConv2D(depth_multiplier=2, dilation_rate=(2,2), kernel_size=(3, 3), padding="same")(x)
+~~~
+
+#### Seperatable Conv
+
+No support for generic Seperatable Conv. Please should you use `Depthwise Conv` following by an regular `Conv` (Pointwise Conv) instead. 
+
+Example that works:
+~~~
+x = DepthwiseConv2D(depth_multiplier=2, kernel_size=(3, 3), padding="same")(x)
+x = Conv2D(16, kernel_size=(1, 1), strides=(1, 1), padding="same")(x)
+~~~
+
+
+
+
+
 
 ## Frequent Questions and Answers (Q&A)
 
