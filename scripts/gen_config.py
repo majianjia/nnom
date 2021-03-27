@@ -398,8 +398,8 @@ def gen_rnn_config(layer):
     c = '''
 const nnom_rnn_config_t <layer_name>_config = {
     .super = <base_config>,
-    .stateful = <stateful>,
     .return_sequence = <return_sequence>,
+    .stateful = <stateful>,
     .go_backwards = <go_backwards>
 };
 '''
