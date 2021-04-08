@@ -265,14 +265,14 @@ typedef struct _nnom_buf
 	uint8_t type;
 } nnom_buf_t;
 
-// a memory block to store pre-assign memories during compiling. then assigned to each tensor after.   
-typedef struct _nnom_mem_block_t
+// a memory block to store pre-assign memories during compiling. then assigned to each tensor after.
+struct _nnom_mem_block_t
 {
 	void *blk;		// data block location
 	size_t size;	// the maximum size for this block
 	uint8_t owners; // how many layers own this block
 	uint8_t state;  // empty? filled? for static nn, currently only used in compiling
-} nnom_mem_block_t;
+};
 
 typedef struct _nnom_stat_t
 {
@@ -280,13 +280,13 @@ typedef struct _nnom_stat_t
 	uint32_t time;
 } nnom_layer_stat_t;
 
-typedef struct _nnom_layer_hook_t
+struct _nnom_layer_hook_t
 {
 	nnom_layer_io_t *io;	 // hooked io
 	nnom_layer_hook_t *next; // next hook include secondary hooked layer
-} nnom_layer_hook_t;
+};
 
-typedef struct _nnom_layer_io_t
+struct _nnom_layer_io_t
 {
 	nnom_layer_hook_t hook;		  // for example: (layer->out)--hook--(layer->in)
 	nnom_layer_io_t *aux; 			// point to auxilary I/O (multiple I/O layer)
@@ -294,7 +294,7 @@ typedef struct _nnom_layer_io_t
 	nnom_mem_block_t *mem;		  // memory blocks handles for compiling only. The memory are now pass by tensor. trying to remove it. 
 	nnom_layer_t *owner;		  // which layer owns this io.
 	uint8_t type;
-} nnom_layer_io_t;
+};
 
 // structured configuration base type
 typedef struct _nnom_layer_config_t
@@ -303,7 +303,7 @@ typedef struct _nnom_layer_config_t
 } nnom_layer_config_t;
 
 // layers base
-typedef struct _nnom_layer_t
+struct _nnom_layer_t
 {
 	nnom_layer_t *shortcut; // shortcut points to the next layer, applied on compiling
 
@@ -318,15 +318,15 @@ typedef struct _nnom_layer_t
 	nnom_layer_io_t *in;	// IO buff, last*layer, states
 	nnom_layer_io_t *out;   // IO buff, next*layer, states
 	nnom_layer_stat_t stat; // stats, timing, ops
-} nnom_layer_t;
+};
 
 // activation base
-typedef struct _nnom_activation_t
+struct _nnom_activation_t
 {
 	nnom_status_t (*run)(struct _nnom_activation_t *act);
 	nnom_tensor_t *tensor;
 	nnom_activation_type_t type;
-} nnom_activation_t;
+};
 
 // local static functions when libc is not available
 #ifdef NNOM_USING_STATIC_MEMORY
@@ -342,7 +342,7 @@ typedef struct _nnom_model nnom_model_t;
 #include "nnom_utils.h"
 
 // models, I dont want to make model class as a child of layer class yet
-typedef struct _nnom_model
+struct _nnom_model
 {
 	nnom_layer_t *head;
 	nnom_layer_t *tail;
@@ -364,7 +364,7 @@ typedef struct _nnom_model
 
 	bool is_inited; 	//	is this structure initialized
 	bool is_allocated;  //	is this structure allocated by nnom (not by user)
-} nnom_model_t;
+};
 
 #define NNOM_NULL_CHECK(p)                 \
 	if ((p) == NULL)                       \
