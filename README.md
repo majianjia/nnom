@@ -183,6 +183,11 @@ x = Dense(32)(x)
 x = Relu()(x)
 ~~~
 
+## Tips - improving accuracy
+- Attaching an BatchNormalization after each convolutional layer limit the activation range thus help quantisation. BN add no extra computation in NNoM. 
+- Dont train too much epoch. Large epoch number increases extreme number in activation -> lower the quantisation resolution.
+- Leave enough data for bottleneck - do not compress data at before the output of a model, infomation will be lost when it is quantised. 
+
 ## Contacts
 Jianjia Ma
 majianjia@live.com
