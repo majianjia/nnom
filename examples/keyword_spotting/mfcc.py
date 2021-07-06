@@ -27,8 +27,7 @@ def generate_mfcc(sig, rate, sig_len, noise=None, noise_weight=0.1, winlen=0.032
         if(len(sig) >sig_len):
             sig = sig[0:sig_len]
     # i dont know, 'tensorflow' normalization
-    sig = sig.astype('float') / 32768
-
+    sig = sig.astype('float32') / 32768
     if(noise is not None):
         noise = noise[random.randint(0, len(noise)-1)] # pick a noise
         start = random.randint(0, len(noise)-sig_len) # pick a sequence
@@ -59,7 +58,6 @@ def merge_mfcc_file(input_path='dat/', mix_noise=True, sig_len=16000, winlen=0.0
         test_list = f.read()
     with open(input_path +  'validation_list.txt', 'r') as f:
         validate_list = f.read()
-
     files = os.listdir(input_path)
     for fi in files:
         fi_d = os.path.join(input_path, fi)
@@ -68,6 +66,7 @@ def merge_mfcc_file(input_path='dat/', mix_noise=True, sig_len=16000, winlen=0.0
             label = fi_d.split('/')[1] # get the label from the dir
             print(label)
             # noise in training
+            
             if 'noise' in label:
                 for f in os.listdir(fi_d):
                     filename = f
@@ -76,6 +75,7 @@ def merge_mfcc_file(input_path='dat/', mix_noise=True, sig_len=16000, winlen=0.0
                     f = os.path.join(fi_d, f)
                     (rate, sig) = wav.read(f)
                     for i in range(0, len(sig), sig_len):
+                        
                         data = generate_mfcc(sig[i:i+sig_len], rate, sig_len, winlen=winlen, winstep=winstep, numcep=numcep,
                                              nfilt=nfilt, nfft=nfft, lowfreq=lowfreq,
                                              highfreq=highfreq, winfunc=winfunc, ceplifter=ceplifter, preemph=preemph)
@@ -87,22 +87,31 @@ def merge_mfcc_file(input_path='dat/', mix_noise=True, sig_len=16000, winlen=0.0
             # dataset
             for f in os.listdir(fi_d):
                 filename = f
+                
                 f = os.path.join(fi_d, f)
                 (rate, sig) = wav.read(f)
-                data = generate_mfcc(sig, rate, sig_len, noise=noise, winlen=winlen, winstep=winstep, numcep=numcep, nfilt=nfilt, nfft=nfft, lowfreq=lowfreq,
-                     highfreq=highfreq, winfunc=winfunc, ceplifter=ceplifter, preemph=preemph)
-                data = np.array(data) # ?? no idea why this works
 
                 # split dataset into train, test, validate
+                
                 if filename in test_list:
+                    data = generate_mfcc(sig, rate, sig_len, winlen=winlen, winstep=winstep, numcep=numcep, nfilt=nfilt, nfft=nfft, lowfreq=lowfreq, highfreq=highfreq, winfunc=winfunc, ceplifter=ceplifter, preemph=preemph)
+                    data = np.array(data) # ?? no idea why this works
+                    
                     test_data.append(data)
                     test_label.append(label)
+                
                 elif filename in validate_list:
+                    data = generate_mfcc(sig, rate, sig_len, winlen=winlen, winstep=winstep, numcep=numcep, nfilt=nfilt, nfft=nfft, lowfreq=lowfreq, highfreq=highfreq, winfunc=winfunc, ceplifter=ceplifter, preemph=preemph)
+                    data = np.array(data) # ?? no idea why this works
                     validate_data.append(data)
                     validate_label.append(label)
                 else:
+                    data = generate_mfcc(sig, rate, sig_len, noise=noise, winlen=winlen, winstep=winstep, numcep=numcep, nfilt=nfilt, nfft=nfft, lowfreq=lowfreq, highfreq=highfreq, winfunc=winfunc, ceplifter=ceplifter, preemph=preemph)
+                    data = np.array(data) # ?? no idea why this works
                     train_data.append(data)
                     train_lable.append(label)
+                
+
 
     # finalize
     train_data = np.array(train_data)
@@ -116,14 +125,14 @@ if __name__ == "__main__":
 
     # test
     (x_train, y_train), (x_test, y_test), (x_val, y_val) = merge_mfcc_file()
-
+    
     np.save('train_data.npy', x_train)
     np.save('train_label.npy', y_train)
     np.save('test_data.npy', x_test)
     np.save('test_label.npy', y_test)
     np.save('val_data.npy', x_val)
     np.save('val_label.npy', y_val)
-
+    
     print('x_train shape:', x_train.shape, 'max', x_train.max(), 'min', x_train.min())
 
     mfcc_feat = x_train[3948]
