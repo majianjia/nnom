@@ -38,10 +38,13 @@ def framesig(sig, frame_len, frame_step, winfunc=lambda x: numpy.ones((x,)), str
 
     padlen = int((numframes - 1) * frame_step + frame_len)
 
-    zeros = numpy.zeros((padlen - slen,))
+    zeros = numpy.zeros((padlen - slen,)).astype('float32')
     padsignal = numpy.concatenate((sig, zeros))
     if stride_trick:
-        win = winfunc(frame_len)
+        win = winfunc(frame_len).astype('float32')
+        for i in range (0,512):
+            win[i] = 0.5 - 0.5*numpy.cos(numpy.pi*2 * (i / 512))
+        win = win.astype('float32')
         frames = rolling_window(padsignal, window=frame_len, step=frame_step)
     else:
         indices = numpy.tile(numpy.arange(0, frame_len), (numframes, 1)) + numpy.tile(
@@ -49,7 +52,6 @@ def framesig(sig, frame_len, frame_step, winfunc=lambda x: numpy.ones((x,)), str
         indices = numpy.array(indices, dtype=numpy.int32)
         frames = padsignal[indices]
         win = numpy.tile(winfunc(frame_len), (numframes, 1))
-
     return frames * win
 
 
@@ -100,7 +102,7 @@ def magspec(frames, NFFT):
             'frame length (%d) is greater than FFT size (%d), frame will be truncated. Increase NFFT to avoid.',
             numpy.shape(frames)[1], NFFT)
     complex_spec = numpy.fft.rfft(frames, NFFT)
-    return numpy.absolute(complex_spec)
+    return numpy.absolute(complex_spec).astype('float32')
 
 
 def powspec(frames, NFFT):
@@ -110,7 +112,7 @@ def powspec(frames, NFFT):
     :param NFFT: the FFT length to use. If NFFT > frame_len, the frames are zero-padded.
     :returns: If frames is an NxD matrix, output will be Nx(NFFT/2+1). Each row will be the power spectrum of the corresponding frame.
     """
-    return 1.0 / NFFT * numpy.square(magspec(frames, NFFT))
+    return 1.0 / NFFT * numpy.square(magspec(frames, NFFT)).astype('float32')
 
 
 def logpowspec(frames, NFFT, norm=1):
@@ -123,7 +125,7 @@ def logpowspec(frames, NFFT, norm=1):
     """
     ps = powspec(frames, NFFT);
     ps[ps <= 1e-30] = 1e-30
-    lps = 10 * numpy.log10(ps)
+    lps = 10 * numpy.log10(ps).astype('float32')
     if norm:
         return lps - numpy.max(lps)
     else:
@@ -137,4 +139,4 @@ def preemphasis(signal, coeff=0.95):
     :param coeff: The preemphasis coefficient. 0 is no filter, default is 0.95.
     :returns: the filtered signal.
     """
-    return numpy.append(signal[0], signal[1:] - coeff * signal[:-1])
+    return numpy.append(signal[0], signal[1:] - coeff * signal[:-1]).astype('float32')

@@ -164,8 +164,33 @@ Total Memory cost (Network and NNoM): 15020
 msh > 
 ~~~
 
+## Testing it on PC
+Now, you can test your KWS model on PC using KWS test data to be preprocessed by the C MFCC implementation. First, you need to download the raw test data from Google Drive [here](https://drive.google.com/drive/folders/1gS2klWb02YvaoE5UTNDy9SQsS5ZTsvNN?usp=sharing). Then, replace the main_pc.c to be you main file. It will print the model predictions followed by the groundtruth, and will also calculate the Top-1 accuracy score every 100 samples.
 
-
+~~~
+0 right : 100% - Ground Truth is: right
+1 nine : 100% - Ground Truth is: right
+2 right : 100% - Ground Truth is: right
+3 right : 100% - Ground Truth is: right
+4 right : 100% - Ground Truth is: right
+5 right : 100% - Ground Truth is: right
+6 right : 100% - Ground Truth is: right
+7 right : 100% - Ground Truth is: right
+8 right : 100% - Ground Truth is: right
+9 forward : 66% - Ground Truth is: right
+10 right : 100% - Ground Truth is: right
+11 right : 100% - Ground Truth is: right
+12 right : 100% - Ground Truth is: right
+13 right : 100% - Ground Truth is: right
+14 right : 52% - Ground Truth is: right
+15 right : 100% - Ground Truth is: right
+16 right : 100% - Ground Truth is: right
+17 right : 100% - Ground Truth is: right
+18 right : 100% - Ground Truth is: right
+19 right : 74% - Ground Truth is: right
+20 right : 100% - Ground Truth is: right
+...
+~~~
 
 
 

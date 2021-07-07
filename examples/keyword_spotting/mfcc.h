@@ -23,7 +23,7 @@
 #define __MFCC_H__
 
 
-// in main.c define "PLATFORM_ARM" before including 'mfcc.h' to use ARM optimized FFT 
+// in main.c define "PLATFORM_ARM" before including 'mfcc.h' to use ARM optimized FFT
 #ifdef PLATFORM_ARM
 #include "arm_math.h"
 #define MFCC_PLATFORM_ARM
@@ -63,14 +63,14 @@ typedef struct _mfcc_t{
 } mfcc_t;
 
 static inline float InverseMelScale(float mel_freq) {
-  return 700.0f * (expf (mel_freq / 1127.0f) - 1.0f);
+  return 700.0f * (pow(10,(mel_freq / 2595.0f)) - 1.0f);
 }
 
 static inline float MelScale(float freq) {
-  return 1127.0f * logf (1.0f + freq / 700.0f);
+  return 2595.0f * log10(1.0f + freq / 700.0f);
 }
 
-float * create_dct_matrix(int32_t input_length, int32_t coefficient_count); 
+float * create_dct_matrix(int32_t input_length, int32_t coefficient_count);
 float ** create_mel_fbank(mfcc_t* mfcc);
 
 mfcc_t *mfcc_create(int num_mfcc_features, int feature_offset, int num_fbank, int frame_len, float preempha, int is_append_energy);
