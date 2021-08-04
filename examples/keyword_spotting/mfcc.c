@@ -34,7 +34,7 @@
 
 #ifndef MFCC_PLATFORM_ARM
 // FFT code from arduino_fft: https://github.com/lloydroc/arduino_fft
-// change to float data£¬ modify to fit within this file
+// change to float dataÂ£Â¬ modify to fit within this file
 // see the above link for license( MIT license).
 #include <stdio.h>
 #include <math.h>
@@ -205,7 +205,7 @@ float ** create_mel_fbank(mfcc_t *mfcc) {
     float mel_high_freq = MelScale(MEL_HIGH_FREQ);
     float mel_freq_delta = (mel_high_freq - mel_low_freq) / (mfcc->num_fbank +1);
 
-    float * bin =  mfcc_malloc(sizeof(float) * mfcc->num_fbank+2);
+    float * bin =  mfcc_malloc(sizeof(float) * (mfcc->num_fbank+2));
     for (int i=0; i<mfcc->num_fbank+2; i++)
     {
         bin[i] = mel_low_freq + mel_freq_delta*i;
