@@ -91,6 +91,7 @@ typedef enum
 	NNOM_GLOBAL_SUMPOOL,
 	NNOM_UPSAMPLE,
 	NNOM_FLATTEN,
+    NNOM_RESHAPE,
 	NNOM_LAMBDA,
 	NNOM_CONCAT,
 	NNOM_ADD,
@@ -129,6 +130,7 @@ typedef enum
 			"GL_SumPool",	\
 			"UpSample",		\
 			"Flatten",      \
+            "Reshape",      \
 			"Lambda",       \
 			"Concat",       \
 			"Add",          \

@@ -72,8 +72,6 @@ def train(model, x_train, y_train, x_test, y_test, batch_size=64, epochs=50):
               shuffle=False)
 
     save_model(model, save_dir)
-    del model
-    tf.keras.backend.clear_session()
     return history
 
 def main():
@@ -111,6 +109,8 @@ def main():
 
     # train model
     history = train(model, x_train, y_train, x_test.copy(), y_test.copy(), epochs=epochs)
+    del model
+    tf.keras.backend.clear_session()
 
     # -------- generate weights.h (NNoM model) ----------
     # get the best model
