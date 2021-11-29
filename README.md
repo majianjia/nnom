@@ -14,7 +14,8 @@ NNoM is a high-level inference Neural Network library specifically for microcont
 - Support complex structures; Inception, ResNet, DenseNet, Octave Convolution...
 - User-friendly interfaces.
 - High-performance backend selections.
-- Onboard (MCU) evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
+- Onboard pre-compiling - zero interpreter performance loss at runtime. 
+- Onboard evaluation tools; Runtime analysis, Top-k, Confusion matrix... 
 
 The structure of NNoM is shown below:
 ![](docs/figures/nnom_structure.png)
@@ -64,8 +65,7 @@ However, the available NN libs for MCU are too low-level which make it sooooo di
 Therefore, we build NNoM to help embedded developers for faster and simpler deploying NN model directly to MCU. 
 > NNoM will manage the strucutre, memory and everything else for the developer. All you need to do is feeding your new measurements and getting the results. 
 
-**NNoM is now working closely with Keras (You can easily learn [**Keras**](https://keras.io/) in 30 seconds!).**
-There is no need to learn TensorFlow/Lite or other libs.  
+
 
 
 ## Documentations
@@ -81,6 +81,27 @@ There is no need to learn TensorFlow/Lite or other libs.
 [RT-Thread Guide(Chinese)](https://majianjia.github.io/nnom/rt-thread_guide/)
 
 [RT-Thread-MNIST example (Chinese)](docs/example_mnist_simple_cn.md)
+
+
+
+## Performance 
+
+There are many articles compared NNoM with other famous MCU AI tools, such as TensorFlow LiteSTM32Cube.AI .etc. 
+
+**Raphael Zingg etc** from Zurich University of Applied Sciences compare nnom with tflite, cube, and e-Ai in their paper  ["Artificial Intelligence on Microcontrollers"](https://github.com/InES-HPMM/Artificial_Intelligence_on_Microcontrollers/blob/master/Artificial_Intelligence_on_Microcontrollers.pdf) blog https://blog.zhaw.ch/high-performance/2020/05/14/artificial-intelligence-on-microcontrollers/
+
+![performance-comparison-tflite-cubeai-eai](docs/figures/performance-comparison-tflite-cubeai-eai.png)
+
+**Butt Usman Ali** from POLITECNICO DI TORINO, did below comparison in [the thesis: On the deployment of Artificial Neural Networks (ANN) in low 
+cost embedded systems](https://webthesis.biblio.polito.it/19692/1/tesi.pdf)
+
+![performance-comparison-tflite-cubeai](docs/figures/performance-comparison-tflite-cubeai.png)
+
+Both articles shows that NNoM is not only comparable with other popular NN framework but with faster inference time and sometime less memory footprint. 
+
+**Note:** These graphs and tables are credited to their authors. Please refer the their original papers for details and copyright. 
+
+
 
 ## Examples
 
