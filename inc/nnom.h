@@ -35,8 +35,8 @@ extern "C" {
 
 /* version */
 #define NNOM_MAJORVERSION     0              /**< major version number */
-#define NNOM_SUBVERSION       4              /**< minor version number */
-#define NNOM_REVISION         3              /**< revise version number */
+#define NNOM_SUBVERSION       5              /**< minor version number */
+#define NNOM_REVISION         0              /**< revise version number */
 #define NNOM_VERSION          ((NNOM_MAJORVERSION * 10000) + (NNOM_SUBVERSION * 100) + NNOM_REVISION)
 
 #ifdef ARM_NN_TRUNCATE
@@ -91,7 +91,7 @@ typedef enum
 	NNOM_GLOBAL_SUMPOOL,
 	NNOM_UPSAMPLE,
 	NNOM_FLATTEN,
-    NNOM_RESHAPE,
+	NNOM_RESHAPE,
 	NNOM_LAMBDA,
 	NNOM_CONCAT,
 	NNOM_ADD,
