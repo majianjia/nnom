@@ -69,12 +69,12 @@ nnom_tensor_t* new_tensor(nnom_qtype_t type, uint32_t num_dim, uint32_t num_chan
 	}
 
 	t = nnom_mem(nnom_alignto(sizeof(nnom_tensor_t), NNOM_ALIGN) 
-							+ num_dim*sizeof(nnom_shape_data_t) 
+							+ nnom_alignto(num_dim*sizeof(nnom_shape_data_t), NNOM_ALIGN) 
 							+ q_len*sizeof(nnom_qformat_param_t)*2);
 	if(t == NULL)
 		return t;
 	t->dim = (nnom_shape_data_t*)((uint8_t*)t + sizeof(nnom_tensor_t));	// should add alignment
-	t->q_dec = (nnom_qformat_param_t*)((uint8_t*)t->dim + num_dim*sizeof(nnom_shape_data_t));
+	t->q_dec = (nnom_qformat_param_t*)((uint8_t*)t->dim + nnom_alignto(num_dim*sizeof(nnom_shape_data_t), NNOM_ALIGN));
 	t->q_offset = (nnom_qformat_param_t*)((uint8_t*)t->q_dec + q_len*sizeof(nnom_qformat_param_t));
 	t->num_dim = num_dim;
 	t->qtype = type;
