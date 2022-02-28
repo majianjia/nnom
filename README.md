@@ -1,6 +1,6 @@
 
 # Neural Network on Microcontroller (NNoM)
-[![Build Status](https://travis-ci.com/majianjia/nnom.svg?branch=master)](https://travis-ci.com/majianjia/nnom)
+[![Build Status](https://travis-ci.com/majianjia/nnom.svg?branch=master)](https://app.travis-ci.com/github/majianjia/nnom)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![DOI](https://zenodo.org/badge/166869630.svg)](https://zenodo.org/badge/latestdoi/166869630)
 
