@@ -15,7 +15,7 @@ sys.path.append(os.path.abspath("../../scripts"))
 from nnom import *
 ~~~
 
-Please refer to [examples](https://github.com/majianjia/nnom/tree/dev/examples) for usage.
+Please refer to [examples](https://github.com/majianjia/nnom/tree/master/examples) for usage.
 
 
 ---
