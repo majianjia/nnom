@@ -45,7 +45,7 @@ nnom_layer_t *reshape_s(const nnom_reshape_config_t *config)
 
     // config
     //nnom_memcpy(layer->dim, config->dim, config->num_dim * sizeof(nnom_shape_data_t));
-	layer->super.config = config;
+	layer->super.config = (void*)config;
     layer->dim = config->dim;		// temporary use the config directly. (not preferable.) 
 	layer->num_dim = config->num_dim;
 
