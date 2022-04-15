@@ -30,7 +30,7 @@ Both models are working with MFCC features see below for detail.
 - The output of MFCC is similar to an image.
 - Use the neural network to recognise these MFCCs same as to classify images. 
 
-A few one second MFCC result are shown below:
+A few "one second MFCC coefficient maps" are shown below:
 
 ![](docs/kws_mfcc_example1.png)
 ![](docs/kws_mfcc_example2.png)
