@@ -20,7 +20,7 @@ Please open the model python file to see. There are 2 demo models.
 
 `kws-rnn.py` -> This model use a regular RNN network (Conv1D and LSTM/GRU).
 
-Both model working on MFCC features see below for detail. 
+Both models are working with MFCC features see below for detail. 
 
 
 ## How does this example work?
