@@ -160,6 +160,7 @@ void thread_kws_serv()
             }
 
         }
+    mfcc_delete(mfcc);
 }
 
 
