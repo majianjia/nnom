@@ -245,7 +245,7 @@ static nnom_status_t sigmoid_run( nnom_activation_t* act)
         // arm version cannot handle int_bit > 3
     #ifdef NNOM_USING_CMSIS_NN
         if(act->tensor->q_dec[0] <= 3) 
-            arm_nn_activations_direct_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit, ARM_TANH);
+            arm_nn_activations_direct_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit, ARM_SIGMOID);
         else
     #endif
             local_sigmoid_q7(act->tensor->p_data, tensor_size(act->tensor), int_bit);
