@@ -29,6 +29,7 @@ nnom_layer_t *output_s(const nnom_io_config_t* config)
 		layer->type = NNOM_OUTPUT;
 		layer->run = output_run;
 		layer->build = default_build;
+		free(layer->in->tensor);  // free unused tensor.
 	}
 	return layer;
 }
@@ -42,6 +43,7 @@ nnom_layer_t *Output(nnom_3d_shape_t output_shape, void *p_buf)
 		layer->type = NNOM_OUTPUT;
 		layer->run = output_run;
 		layer->build = default_build;
+		free(layer->in->tensor);  // free unused tensor.
 	}
 	return layer;
 }
