@@ -142,11 +142,23 @@ nnom_status_t dense_build(nnom_layer_t *layer)
 	// get the tensor from last layer's output
 	layer->in->tensor = layer->in->hook.io->tensor;
 
-	// create new tensor for output
-	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, 1, tensor_get_num_channel(layer->in->tensor));
-	// setup new tensor
-	nnom_shape_data_t dim[1] = {cl->output_unit};
-	tensor_set_attr(layer->out->tensor, cl->weight->q_dec, cl->weight->q_offset, dim, 1, 8); // test, this is not correct
+  // create new tensor for output
+  // TODO: a temporary solution, may be incorrect.
+  if (layer->in->tensor->num_dim == 3) {
+    layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, 1, 0);
+    // setup new tensor
+    nnom_shape_data_t dim[2] = {1, cl->output_unit};
+    tensor_set_attr(layer->out->tensor, cl->weight->q_dec, cl->weight->q_offset, dim, 2,
+                    8); // test, this is not correct
+  }
+  else {
+    layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, 1, tensor_get_num_channel(layer->in->tensor));
+    // setup new tensor
+    nnom_shape_data_t dim[1] = {cl->output_unit};
+    tensor_set_attr(layer->out->tensor, cl->weight->q_dec, cl->weight->q_offset, dim, 1,
+                    8); // test, this is not correct
+  }
+
 
 	// calculate the output tensor q format, only support per tensor quantise now
 	layer->out->tensor->q_dec[0] = layer->in->tensor->q_dec[0] + cl->weight->q_dec[0] - cl->output_rshift[0];
@@ -198,7 +210,7 @@ nnom_status_t dense_run(nnom_layer_t *layer)
 #endif
 			layer->in->tensor->p_data,
 			cl->weight->p_data,
-			tensor_size(layer->in->tensor), layer->out->tensor->dim[0],
+			tensor_size(layer->in->tensor), layer->out->tensor->dim[layer->out->tensor->num_dim-1],
 			bias_shift, output_shift,
 			cl->bias->p_data,
 			layer->out->tensor->p_data, (q15_t *)(layer->comp->mem->blk));
