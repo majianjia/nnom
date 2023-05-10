@@ -64,7 +64,7 @@ nnom_status_t reshape_build(nnom_layer_t *layer)
 	layer->in->tensor = layer->in->hook.io->tensor;
 
 	// create new tensor for output
-	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, layer->in->tensor->num_dim, tensor_get_num_channel(layer->in->tensor));
+	layer->out->tensor = new_tensor(NNOM_QTYPE_PER_TENSOR, cl->num_dim, cl->dim[cl->num_dim-1]);
 	tensor_set_attr(layer->out->tensor, layer->in->tensor->q_dec, layer->in->tensor->q_offset, cl->dim, cl->num_dim, 8);
 
 	return NN_SUCCESS;
