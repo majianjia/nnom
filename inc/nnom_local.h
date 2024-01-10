@@ -47,7 +47,7 @@ static inline int __NNOM_SSAT(int32_t value, int32_t bit) {
 // USAT implementation with C code
 #ifndef __NNOM_USAT
 static inline int __NNOM_USAT(int32_t value, int32_t bit) {
-    int32_t max = (1<<(bit-1)) - 1;
+    int32_t max = (1<<bit) - 1;
     if (value < 0)
         return 0;
     else if (value > max)
