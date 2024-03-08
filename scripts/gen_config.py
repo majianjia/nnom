@@ -16,7 +16,7 @@ def convert_tensor_name(t):
 def to_cstyle(data, integer=True):
     #Convert an array to C style basket, not to be used for very large array. size > options['threshold'] will lead to ...
     if(integer):
-        data = np.array(data, dtype=np.int).flatten()
+        data = np.array(data, dtype=np.int32).flatten()
     else:
         data = np.array(data).flatten()
     s = np.array2string(data, separator=',')
