@@ -278,6 +278,9 @@ static nnom_status_t hard_sigmoid_run( nnom_activation_t* act)
 nnom_activation_t* act_relu(void)
 {
 	nnom_activation_t* act = nnom_mem(sizeof(nnom_activation_t));
+	if (act == NULL)
+		return NULL;
+
 	act->run = relu_run;
 	act->type = ACT_RELU;
 	return act;
@@ -286,6 +289,9 @@ nnom_activation_t* act_relu(void)
 nnom_activation_t* act_leaky_relu(float alpha)
 {
 	nnom_activation_leaky_relu_t* act = nnom_mem(sizeof(nnom_activation_leaky_relu_t));
+	if (act == NULL)
+		return NULL;
+
 	act->super.run = leaky_relu_run;
 	act->super.type = ACT_LEAKY_RELU;
 	act->alpha = (q7_t)(alpha*128);
@@ -295,6 +301,9 @@ nnom_activation_t* act_leaky_relu(float alpha)
 nnom_activation_t* act_adv_relu(float negative_slope, float max, float threshold)
 {
 	nnom_activation_adv_relu_t* act = nnom_mem(sizeof(nnom_activation_adv_relu_t));
+	if (act == NULL)
+		return NULL;
+
 	act->super.run = adv_relu_run;
 	act->super.type = ACT_ADV_RELU;
 	act->negative_slope = (q7_t)(negative_slope*128);
@@ -306,6 +315,9 @@ nnom_activation_t* act_adv_relu(float negative_slope, float max, float threshold
 nnom_activation_t* act_tanh(int32_t dec_bit)
 {
 	nnom_activation_fixed_q_t* act = nnom_mem(sizeof(nnom_activation_fixed_q_t));
+	if (act == NULL)
+		return NULL;
+
 	act->super.run = tanh_run;
 	act->super.type = ACT_TANH;
 	act->dec_bit = dec_bit;
@@ -315,6 +327,8 @@ nnom_activation_t* act_tanh(int32_t dec_bit)
 nnom_activation_t* act_sigmoid(int32_t dec_bit)
 {
 	nnom_activation_fixed_q_t* act = nnom_mem(sizeof(nnom_activation_fixed_q_t));
+	if (act == NULL)
+		return NULL;
 
 	act->super.run = sigmoid_run;
 	act->super.type = ACT_SIGMOID;
@@ -325,6 +339,8 @@ nnom_activation_t* act_sigmoid(int32_t dec_bit)
 nnom_activation_t* act_hard_tanh(int32_t dec_bit)
 {
 	nnom_activation_fixed_q_t* act = nnom_mem(sizeof(nnom_activation_fixed_q_t));
+	if (act == NULL)
+		return NULL;
 
 	act->super.run = hard_tanh_run;
 	act->super.type = ACT_HARD_TANH;
@@ -335,6 +351,8 @@ nnom_activation_t* act_hard_tanh(int32_t dec_bit)
 nnom_activation_t* act_hard_sigmoid(int32_t dec_bit)
 {
 	nnom_activation_fixed_q_t* act = nnom_mem(sizeof(nnom_activation_fixed_q_t));
+	if (act == NULL)
+		return NULL;
 
 	act->super.run = hard_sigmoid_run;
 	act->super.type = ACT_HARD_SIGMOID;
