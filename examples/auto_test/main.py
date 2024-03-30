@@ -10,8 +10,6 @@
 
 import sys
 import os
-sys.path.append(os.path.abspath("../../scripts"))
-print(sys.path)
 
 from tensorflow.keras import *
 from tensorflow.keras.datasets import mnist

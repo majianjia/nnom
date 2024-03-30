@@ -11,8 +11,6 @@
 
 import matplotlib.pyplot as plt
 import os
-nnscript = os.path.abspath('../../scripts')
-os.sys.path.append(nnscript)
 
 from tensorflow.keras import *
 from tensorflow.keras.datasets import mnist
