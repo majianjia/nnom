@@ -2,7 +2,7 @@
 # NNoM Utils - Structured API
 
 What makes NNoM easy to use is the models can be deployed to MCU automatically or manually with the help of NNoM utils. 
-These functions are located in `scripts/nnom.py`
+These functions are located in the `nnom` Python package.
 
 This tools, will generate NNoM model using **Structured API** instead of 'layer API' in the previous script.
 
@@ -11,7 +11,6 @@ Usage in short, in your python file, add the scripts the directory to your envir
 ~~~
 import sys
 import os
-sys.path.append(os.path.abspath("../../scripts"))
 from nnom import *
 ~~~
 
