@@ -1,0 +1,4 @@
+tensorflow-cpu==2.14.1
+matplotlib
+scikit-learn
+numpy
