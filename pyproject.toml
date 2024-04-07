@@ -1,0 +1,35 @@
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scripts", "src", "inc", "port"]
+
+[tool.hatch.build.targets.wheel.sources]
+"scripts" = "nnom"
+"src" = "nnom_core/src"
+"inc" = "nnom_core/inc"
+"port" = "nnom_core/port"
+
+[project]
+name = "nnom"
+readme = "README.md"
+requires-python = ">= 3.8"
+keywords = ["machine learning", "deep learning", "microcontroller", "embedded"]
+version = "0.5.0a1"
+
+dependencies = [
+  "keras<3.0.0",
+]
+
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+]
+
+
+[project.urls]
+Homepage = "https://github.com/majianjia/nnom"
+Documentation = "https://majianjia.github.io/nnom/"
+Repository = "https://github.com/majianjia/nnom"
+

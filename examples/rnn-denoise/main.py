@@ -10,10 +10,6 @@ from scipy import signal
 import tensorflow as tf
 import numpy as np
 
-import sys
-sys.path.append(os.path.abspath("../../scripts"))
-print(sys.path)
-
 from gen_dataset import *
 from nnom import *
 

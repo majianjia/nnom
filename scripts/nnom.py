@@ -16,8 +16,8 @@ import tensorflow as tf
 import tensorflow.keras.backend as K
 from tensorflow.keras import *
 from tensorflow.keras.layers import *
-from fully_connected_opt_weight_generation import *
-from gen_config import *
+from .fully_connected_opt_weight_generation import *
+from .gen_config import *
 import scipy.stats
 import time
 import warnings
