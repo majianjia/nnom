@@ -11,7 +11,7 @@
 '''
 
 import sklearn.metrics as skmetrics
-import matplotlib.pyplot as plt
+
 import tensorflow as tf
 import tensorflow.keras.backend as K
 from tensorflow.keras import *
@@ -1137,6 +1137,9 @@ def q2f(d, Q):
     return d*2**-Q
 
 def show_weights(w, name):
+
+    import matplotlib.pyplot as plt
+
     sz = 1
     for s in w.shape:
         sz = sz*s
@@ -1167,6 +1170,9 @@ def show_weights(w, name):
     plt.show()
 
 def compare(a,b,name):
+
+    import matplotlib.pyplot as plt
+
     sz = 1
     for s in a.shape:
         sz = sz*s
