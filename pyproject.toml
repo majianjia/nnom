@@ -21,6 +21,7 @@ version = "0.5.0a1"
 
 dependencies = [
   "keras<3.0.0",
+  "scikit-learn<2.0.0",
 ]
 
 classifiers = [
