@@ -3,6 +3,10 @@ import os
 #if(not os.path.exists('CMSIS_5')):
 #    os.system('git clone https://github.com/ARM-software/CMSIS_5.git')
 
+# Specify the path to NNoM C files
+# When NNoM is installed as Python package, you can find this using
+# python -c "import nnom_core; print(nnom_core.__path__[0])"
+# Otherwise, use the path to the NNoM git repository root.
 ROOT=os.path.abspath('../..')
 
 env = Environment()

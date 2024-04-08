@@ -65,8 +65,34 @@ However, the available NN libs for MCU are too low-level which make it sooooo di
 Therefore, we build NNoM to help embedded developers for faster and simpler deploying NN model directly to MCU. 
 > NNoM will manage the strucutre, memory and everything else for the developer. All you need to do is feeding your new measurements and getting the results. 
 
+## Installing
 
+NNoM can be installed as a Python package
 
+```
+pip install git+https://github.com/majianjia/nnom@master
+```
+
+NNoM requires [Tensorflow](https://www.tensorflow.org/) version `<= 2.14`.
+There are multiple options for how to install this, see the TensorFlow documentation.
+
+For example:
+```
+pip install 'tensorflow-cpu<=2.14.1'
+```
+
+NOTE: Tensorflow 2.14 supports up until Python 3.11.
+However, *Python 3.12 is not supported*.
+
+## Accessing C files
+
+The C headers and source code in NNoM are distributed in the `nnom_core` Python package.
+You can find its location by running the following command.
+```
+python -c "import nnom_core; print(nnom_core.__path__[0])"
+```
+In your build system, add the `inc/` and `port/` directories as include directories,
+and compile the the `src/*.c` files.
 
 ## Documentations
 
